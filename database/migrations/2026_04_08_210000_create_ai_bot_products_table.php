@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('ai_bot_products', function (Blueprint $table) {
+            $table->id();
+            $table->enum('type', ['produto', 'servico'])->default('produto');
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('photo_path')->nullable();
+            $table->boolean('show_price')->default(false);
+            $table->decimal('price', 10, 2)->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('ai_bot_products');
+    }
+};

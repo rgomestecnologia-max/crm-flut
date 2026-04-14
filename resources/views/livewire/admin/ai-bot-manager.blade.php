@@ -1,0 +1,162 @@
+@php
+$inputStyle = "width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 14px; font-size:13px; color:white; outline:none; transition:all 0.2s; font-family:inherit; box-sizing:border-box;";
+$inputFocus = "onfocus=\"this.style.borderColor='rgba(178,255,0,0.5)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.07)'\" onblur=\"this.style.borderColor='rgba(255,255,255,0.08)'; this.style.boxShadow='none'\"";
+$labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;";
+$cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,15,28,0.95) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; margin-bottom:16px; position:relative; overflow:hidden;";
+@endphp
+
+<div>
+
+    {{-- Toggle principal --}}
+    <div style="{{ $cardStyle }}">
+        <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, {{ $is_active ? '#b2ff0080' : 'rgba(107,114,128,0.4)' }}, transparent); border-radius:16px 16px 0 0;"></div>
+        <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.3s;
+                        background:{{ $is_active ? 'rgba(178,255,0,0.12)' : 'rgba(255,255,255,0.04)' }}; border:1px solid {{ $is_active ? 'rgba(178,255,0,0.25)' : 'rgba(255,255,255,0.07)' }};">
+                <svg width="24" height="24" fill="none" stroke="{{ $is_active ? '#b2ff00' : 'rgba(255,255,255,0.25)' }}" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2M9 9h6"/>
+                </svg>
+            </div>
+            <div style="flex:1;">
+                <h2 style="font-size:16px; font-weight:800; color:white; font-family:'Syne',sans-serif; letter-spacing:-0.01em;">IA de Atendimento</h2>
+                <p style="font-size:12px; color:rgba(255,255,255,0.35); margin-top:3px;">
+                    Atendimento automático via Google Gemini com roteamento inteligente de departamentos.
+                </p>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                <span style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:{{ $is_active ? '#b2ff00' : 'rgba(255,255,255,0.2)' }};">
+                    {{ $is_active ? 'ATIVO' : 'INATIVO' }}
+                </span>
+                <button wire:click="toggleActive"
+                        style="position:relative; display:inline-flex; width:48px; height:26px; border-radius:20px; border:none; cursor:pointer; transition:background 0.2s; background:{{ $is_active ? '#b2ff00' : 'rgba(255,255,255,0.1)' }};">
+                    <span style="position:absolute; top:3px; width:20px; height:20px; border-radius:50%; background:white; box-shadow:0 1px 4px rgba(0,0,0,0.3); transition:left 0.2s; left:{{ $is_active ? '25px' : '3px' }};"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Aviso sem chave global --}}
+    @if(!$globalKeySet)
+    <div style="display:flex; align-items:flex-start; gap:10px; background:rgba(234,179,8,0.06); border:1px solid rgba(234,179,8,0.2); border-radius:12px; padding:12px 16px; margin-bottom:16px;">
+        <svg width="14" height="14" fill="none" stroke="#fbbf24" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+        </svg>
+        <p style="font-size:12px; color:rgba(251,191,36,0.8);">A chave API Gemini não está configurada. Peça ao administrador do sistema para configurar em <strong>Config. Globais</strong>.</p>
+    </div>
+    @endif
+
+    <form wire:submit="save">
+
+        {{-- Status da API Gemini (global) --}}
+        <div style="{{ $cardStyle }} {{ $globalKeySet ? 'border-color:rgba(178,255,0,0.2);' : 'border-color:rgba(245,158,11,0.3);' }}">
+            <div style="display:flex; align-items:center; gap:10px;">
+                @if($globalKeySet)
+                    <div style="width:32px; height:32px; border-radius:9px; background:rgba(178,255,0,0.12); border:1px solid rgba(178,255,0,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="14" height="14" fill="none" stroke="#b2ff00" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p style="font-size:12px; font-weight:600; color:#b2ff00;">API Gemini configurada</p>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.4);">Modelo: <strong style="color:rgba(255,255,255,0.6);">{{ $globalModel }}</strong> — gerenciado pelo administrador do sistema.</p>
+                    </div>
+                @else
+                    <div style="width:32px; height:32px; border-radius:9px; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="14" height="14" fill="none" stroke="#f59e0b" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p style="font-size:12px; font-weight:600; color:#f59e0b;">API Gemini não configurada</p>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.4);">A IA não funcionará até o administrador do sistema configurar a chave em <strong style="color:rgba(255,255,255,0.6);">Configurações Globais</strong>.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Treinamento --}}
+        <div style="{{ $cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:2px; height:16px; background:#b2ff00; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Treinamento da IA</h3>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">Instruções internas — <strong style="color:rgba(255,255,255,0.4);">nunca enviadas ao contato</strong>. Defina persona, empresa, produtos, tom de voz.</p>
+
+            <div>
+                <label style="{{ $labelStyle }}">Instruções do sistema</label>
+                <textarea wire:model="system_prompt" rows="8"
+                          placeholder="Exemplo: Você é o assistente virtual da empresa XYZ, especializada em vendas de eletrônicos. Seu nome é ARIA. Seja sempre educado, objetivo e profissional. Responda em português brasileiro..."
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                @error('system_prompt') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        {{-- Roteamento --}}
+        <div style="{{ $cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:2px; height:16px; background:#3b82f6; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Roteamento de Departamentos</h3>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">O robô identifica o assunto e direciona para o departamento correto automaticamente.</p>
+
+            @if($departments->isNotEmpty())
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px; margin-bottom:14px;">
+                <p style="font-size:9px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Departamentos cadastrados</p>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    @foreach($departments as $dept)
+                    <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:7px; padding:4px 10px; font-size:11px;">
+                        <span style="width:7px; height:7px; border-radius:50%; flex-shrink:0; background:{{ $dept->color }};"></span>
+                        <span style="color:rgba(255,255,255,0.4);">ID <strong style="color:rgba(255,255,255,0.7);">{{ $dept->id }}</strong>: {{ $dept->name }}</span>
+                    </span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <div>
+                <label style="{{ $labelStyle }}">Instruções de roteamento</label>
+                <textarea wire:model="department_routing_prompt" rows="5"
+                          placeholder="Exemplo: Analise o assunto e direcione. Vendas/compras → Vendas. Problemas técnicos → Suporte. Pagamentos → Financeiro. Use [DEPT:ID] no final quando identificar o departamento."
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                @error('department_routing_prompt') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        {{-- Controles --}}
+        <div style="{{ $cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">
+                <div style="width:2px; height:16px; background:#a855f7; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Controles</h3>
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:20px;">
+                <div>
+                    <label style="{{ $labelStyle }}">Máx. turnos do robô por conversa</label>
+                    <input wire:model="max_bot_turns" type="number" min="1" max="50"
+                           style="width:96px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:13px; color:white; outline:none; transition:all 0.2s; font-family:inherit; text-align:center;"
+                           onfocus="this.style.borderColor='rgba(178,255,0,0.5)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.07)'"
+                           onblur="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.boxShadow='none'">
+                    @error('max_bot_turns') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                </div>
+                <div style="flex:1; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px;">
+                    <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Passagem para humano</p>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.2); line-height:1.5;">O robô para automaticamente quando um agente enviar qualquer mensagem manual na conversa.</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Save --}}
+        <div style="display:flex; justify-content:flex-end;">
+            <button type="submit"
+                    style="display:flex; align-items:center; gap:8px; padding:10px 24px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; font-size:13px; font-weight:700; border-radius:11px; border:none; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 16px rgba(178,255,0,0.3);"
+                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 24px rgba(178,255,0,0.4)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 16px rgba(178,255,0,0.3)'">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span wire:loading.remove wire:target="save">Salvar configurações</span>
+                <span wire:loading wire:target="save">Salvando...</span>
+            </button>
+        </div>
+
+    </form>
+</div>
