@@ -62,21 +62,21 @@
 
         /* ── Mobile overlay para sidebar ─────────────────── */
         .sidebar-overlay {
-            display: none;
             position: fixed; inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             z-index: 40;
         }
 
         /* ── Responsive ──────────────────────────────────── */
         @media (max-width: 768px) {
             html { font-size: 100%; }
-            .sidebar-mobile-hidden { display: none !important; }
-            .sidebar-overlay { display: block; }
-            aside:not(.sidebar-mobile-hidden) {
+            .mobile-sidebar {
                 position: fixed !important;
                 top: 0; left: 0; bottom: 0;
+                width: 260px !important;
                 height: 100dvh !important;
+                z-index: 41;
+                background: #0B0F1C !important;
             }
             .mobile-full { width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
             .mobile-hide { display: none !important; }
@@ -122,6 +122,7 @@
 
     {{-- Mobile menu button --}}
     <button @click="mobileMenu = true; sidebarOpen = true"
+            x-show="!mobileMenu"
             class="mobile-menu-btn"
             style="display:none; position:fixed; top:12px; left:12px; z-index:39; width:40px; height:40px; border-radius:10px; background:rgba(17,24,39,0.95); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); cursor:pointer; align-items:center; justify-content:center;">
         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,15 +135,17 @@
         }
     </style>
 
-    {{-- Mobile overlay --}}
-    <div x-show="mobileMenu" @click="mobileMenu = false" class="sidebar-overlay" x-transition.opacity></div>
+    {{-- Mobile overlay (só fecha ao clicar no overlay, não na sidebar) --}}
+    <template x-if="mobileMenu && window.innerWidth <= 768">
+        <div @click="mobileMenu = false" class="sidebar-overlay"></div>
+    </template>
 
     {{-- SIDEBAR --}}
     <aside
-        :style="sidebarOpen ? 'width:220px;' : 'width:56px;'"
-        :class="{ 'sidebar-mobile-hidden': !mobileMenu && window.innerWidth <= 768 }"
-        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; overflow:hidden; position:relative; z-index:41;"
-        x-init="if(window.innerWidth <= 768) { sidebarOpen = false; }"
+        :style="window.innerWidth > 768 ? (sidebarOpen ? 'width:220px;' : 'width:56px;') : ''"
+        x-show="window.innerWidth > 768 || mobileMenu"
+        :class="{ 'mobile-sidebar': window.innerWidth <= 768 }"
+        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; overflow:hidden; position:relative;"
     >
         {{-- Subtle top glow --}}
         <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(178,255,0,0.3), transparent); pointer-events:none;"></div>
@@ -152,12 +155,16 @@
             <img src="/images/logo-flut.webp" alt="CRM Flut"
                  :style="sidebarOpen ? 'height:28px; width:auto;' : 'height:24px; width:24px; object-fit:contain; object-position:left;'"
                  style="flex-shrink:0; transition:all 0.25s;">
-            <button @click="sidebarOpen = !sidebarOpen"
+            {{-- Desktop: toggle sidebar | Mobile: fechar menu --}}
+            <button @click="window.innerWidth <= 768 ? (mobileMenu = false) : (sidebarOpen = !sidebarOpen)"
                     style="margin-left:auto; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; border-radius:6px; transition:all 0.15s; flex-shrink:0;"
                     onmouseover="this.style.color='rgba(255,255,255,0.6)'; this.style.background='rgba(255,255,255,0.05)'"
                     onmouseout="this.style.color='rgba(255,255,255,0.2)'; this.style.background='transparent'">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg x-show="window.innerWidth > 768" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg x-show="window.innerWidth <= 768" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
