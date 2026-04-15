@@ -11,11 +11,14 @@ RUN apk add --no-cache \
     freetype-dev \
     oniguruma-dev \
     icu-dev \
+    libzip-dev \
+    zip \
+    unzip \
     curl
 
 # Extensões PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_mysql pcntl bcmath gd intl mbstring
+    && docker-php-ext-install pdo_mysql pcntl bcmath gd intl mbstring zip
 
 # PHP config otimizado pra produção
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
