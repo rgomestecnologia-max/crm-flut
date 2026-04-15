@@ -82,7 +82,7 @@ class ChatbotMenuManager extends Component
 
     public function render()
     {
-        $departments = Department::active()->orderBy('name')->get();
+        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
         return view('livewire.admin.chatbot-menu-manager', compact('departments'));
     }
 }
