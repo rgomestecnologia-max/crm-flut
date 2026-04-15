@@ -96,7 +96,7 @@
                                  {{ $enable_ai_on_reply ? 'translate-x-4' : 'translate-x-1' }}"></span>
                 </button>
                 <div>
-                    <p class="text-sm text-gray-200 font-medium">Ativar IA de Atendimento na resposta</p>
+                    <p class="text-sm text-gray-200 font-medium">Ativar IA de Atendimento na resposta do Cliente</p>
                     <p class="text-xs text-gray-500 mt-0.5">Quando o cliente responder à mensagem automática, a IA assume o atendimento automaticamente (requer IA configurada em <span class="text-accent">IA de Atendimento</span>).</p>
                 </div>
             </div>
