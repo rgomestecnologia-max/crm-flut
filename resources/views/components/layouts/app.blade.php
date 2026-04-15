@@ -174,7 +174,7 @@
             {{-- Gestão da empresa — admin + supervisor, filtrado por módulos contratados --}}
             @if(auth()->user()->canManageCompany())
             @php
-                $hasAnyGestao = $isSystemAdmin || count(array_intersect($companyModules, array_keys(\App\Models\Company::AVAILABLE_MODULES['gestao']))) > 0;
+                $hasAnyGestao = $isSystemAdmin || $isSupervisor || count(array_intersect($companyModules, array_keys(\App\Models\Company::AVAILABLE_MODULES['gestao']))) > 0;
             @endphp
             @if($hasAnyGestao)
             <div style="margin-top:8px; display:flex; flex-direction:column; gap:2px;">
