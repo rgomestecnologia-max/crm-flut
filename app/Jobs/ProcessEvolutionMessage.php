@@ -238,7 +238,10 @@ class ProcessEvolutionMessage implements ShouldQueue
 
                     $skipMenu = $automationAi && $botConfig && $botConfig->is_active && $botConfig->hasKey();
 
-                    if ($menuConfig && $menuConfig->is_active && !$skipMenu) {
+                    // Não envia chatbot em grupos se reply_in_groups está desativado
+                    $skipGroups = $isGroup && $menuConfig && !$menuConfig->reply_in_groups;
+
+                    if ($menuConfig && $menuConfig->is_active && !$skipMenu && !$skipGroups) {
                         \App\Jobs\ProcessMenuBot::dispatch($conversation, $menuConfig, $botConfig, $message->id);
                     } elseif ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
                         \App\Jobs\ProcessBotResponse::dispatch($conversation, $botConfig, $message->id);

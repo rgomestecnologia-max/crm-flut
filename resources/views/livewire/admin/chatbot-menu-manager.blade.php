@@ -29,6 +29,18 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         </div>
     </div>
 
+    {{-- Toggle responder em grupos --}}
+    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; gap:14px;">
+        <button type="button" wire:click="$toggle('reply_in_groups')"
+                style="position:relative; display:inline-flex; width:44px; height:24px; border-radius:20px; border:none; cursor:pointer; transition:background 0.2s; flex-shrink:0; background:{{ $reply_in_groups ? '#b2ff00' : 'rgba(255,255,255,0.1)' }};">
+            <span style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:white; box-shadow:0 1px 4px rgba(0,0,0,0.3); transition:left 0.2s; left:{{ $reply_in_groups ? '22px' : '2px' }};"></span>
+        </button>
+        <div>
+            <p style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.8);">Responder em grupos</p>
+            <p style="font-size:11px; color:rgba(255,255,255,0.35);">Quando ativado, o chatbot também envia mensagens dentro de grupos do WhatsApp. Por padrão fica desativado.</p>
+        </div>
+    </div>
+
     <form wire:submit="save">
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">

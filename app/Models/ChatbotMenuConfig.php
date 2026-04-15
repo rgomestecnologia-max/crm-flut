@@ -13,6 +13,7 @@ class ChatbotMenuConfig extends Model
     protected $fillable = [
         'company_id',
         'is_active',
+        'reply_in_groups',
         'company_name',
         'welcome_template',
         'menu_prompt',
@@ -21,7 +22,8 @@ class ChatbotMenuConfig extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_active'       => 'boolean',
+        'reply_in_groups' => 'boolean',
     ];
 
     public static function current(): ?self

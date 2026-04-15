@@ -103,7 +103,15 @@
       "Bash(git -C /Users/rogerio/Downloads/projeto-crm status)",
       "Bash(git init:*)",
       "Bash(git branch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(sshpass:*)",
+      "Bash(php -l app/Http/Controllers/Webhook/EvolutionWebhookController.php)",
+      "Bash(php -l app/Jobs/ProcessMenuBot.php)",
+      "Bash(php -l app/Models/ChatbotMenuConfig.php)",
+      "Bash(php -l app/Livewire/Admin/ChatbotMenuManager.php)"
     ]
   }
 }

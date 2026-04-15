@@ -10,6 +10,7 @@ use Livewire\Component;
 class ChatbotMenuManager extends Component
 {
     public bool   $is_active              = false;
+    public bool   $reply_in_groups        = false;
     public string $company_name           = '';
     public string $welcome_template       = '';
     public string $menu_prompt            = '';
@@ -22,6 +23,7 @@ class ChatbotMenuManager extends Component
 
         if ($config) {
             $this->is_active               = $config->is_active;
+            $this->reply_in_groups         = $config->reply_in_groups ?? false;
             $this->company_name            = $config->company_name;
             $this->welcome_template        = $config->welcome_template;
             $this->menu_prompt             = $config->menu_prompt;
@@ -65,8 +67,11 @@ class ChatbotMenuManager extends Component
 
     private function saveConfig(): void
     {
-        ChatbotMenuConfig::updateOrCreate(['id' => 1], [
+        ChatbotMenuConfig::updateOrCreate(
+            ['company_id' => app(\App\Services\CurrentCompany::class)->id()],
+            [
             'is_active'               => $this->is_active,
+            'reply_in_groups'         => $this->reply_in_groups,
             'company_name'            => $this->company_name,
             'welcome_template'        => $this->welcome_template,
             'menu_prompt'             => $this->menu_prompt,
