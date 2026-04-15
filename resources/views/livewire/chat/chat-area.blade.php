@@ -391,7 +391,7 @@
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
                     <div>
                         @if($msg->type === 'text')
-                            <div data-msg-text style="background: linear-gradient(135deg, #b2ff00 0%, #8fcc00 100%); color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:400px; word-break:break-word; box-shadow:0 2px 12px rgba(178,255,0,0.2);">
+                            <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:400px; word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3);">
                                 @if($msg->sender?->name)
                                     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); margin-bottom:3px;">{{ $msg->sender->name }}</p>
                                 @endif
