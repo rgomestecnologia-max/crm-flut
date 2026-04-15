@@ -7,6 +7,15 @@
     @if($conversationId && $conversation)
     {{-- Chat Header --}}
     <div style="height:64px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0; background:rgba(11,15,28,0.6); backdrop-filter:blur(8px);">
+        {{-- Botão voltar (mobile) --}}
+        <button @click="$dispatch('conversation-deleted')"
+                class="chat-back-btn"
+                style="display:none; flex-shrink:0; width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.05); border:none; color:rgba(255,255,255,0.5); cursor:pointer; align-items:center; justify-content:center;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <style>@media (max-width: 768px) { .chat-back-btn { display: flex !important; } }</style>
         <div style="position:relative; flex-shrink:0;">
             <img src="{{ $conversation->contact->avatar }}" alt=""
                  style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3);">
@@ -187,7 +196,7 @@
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(255,255,255,0.08);">
                     <div>
                         @if($msg->type === 'text')
-                            <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:400px; word-break:break-word;">
+                            <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word;">
                                 @if($msg->sender_name)
                                     <p style="font-size:11px; font-weight:700; color:#b2ff00; margin-bottom:3px;">{{ $msg->sender_name }}</p>
                                 @endif
@@ -202,7 +211,7 @@
                                      loading="lazy"
                                      onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='{{ $msg->media_url }}'}"
                                      @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })"
-                                     style="max-width:260px; display:block; cursor:zoom-in; transition:opacity 0.2s;"
+                                     style="max-width:min(260px, 70vw); display:block; cursor:zoom-in; transition:opacity 0.2s;"
                                      onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                                 @if($msg->content)
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6);">{{ $msg->content }}</p>
@@ -213,7 +222,7 @@
                                 $audioSeed = strlen($msg->media_url ?? '');
                                 $audioBars = array_map(fn($i) => max(15, min(100, abs(sin(($i+1)*$audioSeed*0.07+$i*1.9))*85+15)), range(0,51));
                             @endphp
-                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; padding:12px 14px 10px; width:280px; border:1px solid rgba(255,255,255,0.06);"
+                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; padding:12px 14px 10px; width:min(280px, 80vw); border:1px solid rgba(255,255,255,0.06);"
                                  x-data="{
                                     playing: false, progress: 0, currentTime: 0, duration: {{ $msg->media_duration ?? 0 }},
                                     speed: 1, speeds: [1, 1.5, 2],
@@ -343,7 +352,7 @@
                                 <template x-teleport="body">
                                 <div x-show="pvOpen" x-cloak @click.self="pvOpen = false"
                                      style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; background:rgba(0,0,0,0.88); display:flex; align-items:center; justify-content:center; padding:20px;">
-                                    <div style="width:100%; max-width:900px; height:86vh; background:#0f172a; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; border:1px solid rgba(255,255,255,0.08); box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+                                    <div style="width:100%; max-width:min(900px, 95vw); height:86vh; background:#0f172a; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; border:1px solid rgba(255,255,255,0.08); box-shadow:0 24px 80px rgba(0,0,0,0.6);">
                                         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0;">
                                             <p style="font-size:13px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ $docFile }}</p>
                                             <div style="display:flex; gap:8px;">
@@ -397,7 +406,7 @@
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
                     <div>
                         @if($msg->type === 'text')
-                            <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:400px; word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3);">
+                            <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3);">
                                 @if($msg->sender?->name)
                                     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); margin-bottom:3px;">{{ $msg->sender->name }}</p>
                                 @endif
@@ -409,7 +418,7 @@
                                      loading="lazy"
                                      onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='{{ $msg->media_url }}'}"
                                      @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })"
-                                     style="max-width:260px; display:block; cursor:zoom-in; transition:opacity 0.2s;"
+                                     style="max-width:min(260px, 70vw); display:block; cursor:zoom-in; transition:opacity 0.2s;"
                                      onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                                 @if($msg->content)
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.7);">{{ $msg->content }}</p>
@@ -420,7 +429,7 @@
                                 $audioSeedA = strlen($msg->media_url ?? '');
                                 $audioBarsA = array_map(fn($i) => max(15, min(100, abs(sin(($i+1)*$audioSeedA*0.07+$i*1.9))*85+15)), range(0,51));
                             @endphp
-                            <div style="background:rgba(178,255,0,0.12); border-radius:18px 18px 4px 18px; padding:12px 14px 10px; width:280px; border:1px solid rgba(178,255,0,0.25);"
+                            <div style="background:rgba(178,255,0,0.12); border-radius:18px 18px 4px 18px; padding:12px 14px 10px; width:min(280px, 80vw); border:1px solid rgba(178,255,0,0.25);"
                                  x-data="{
                                     _interval: null,
                                     playing: false, progress: 0, currentTime: 0, duration: {{ $msg->media_duration ?? 0 }},
@@ -544,7 +553,7 @@
                                 @if($aDocCanPv)
                                 <div x-show="pvOpen" x-cloak @click.self="pvOpen = false"
                                      style="position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.88); display:flex; align-items:center; justify-content:center; padding:20px;">
-                                    <div style="width:100%; max-width:900px; height:86vh; background:#0f172a; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; border:1px solid rgba(255,255,255,0.08); box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+                                    <div style="width:100%; max-width:min(900px, 95vw); height:86vh; background:#0f172a; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; border:1px solid rgba(255,255,255,0.08); box-shadow:0 24px 80px rgba(0,0,0,0.6);">
                                         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0;">
                                             <p style="font-size:13px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ $aDocFile }}</p>
                                             <div style="display:flex; gap:8px;">
@@ -909,7 +918,7 @@
              x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
              @click.outside="showEmoji=false"
              :style="emojiPos ? `position:fixed; bottom:${emojiPos.bottom}px; right:${emojiPos.right}px; z-index:9999;` : 'position:fixed; bottom:80px; right:16px; z-index:9999;'"
-             style="background:rgba(11,15,28,0.97); border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.5); padding:12px; width:300px;">
+             style="background:rgba(11,15,28,0.97); border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.5); padding:12px; width:min(300px, 90vw);">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                 <p style="font-size:9px; color:rgba(255,255,255,0.25); font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Emojis</p>
                 <button @click="showEmoji=false" style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer;">

@@ -8,7 +8,7 @@
     @endphp
 
     {{-- Header --}}
-    <div style="height:60px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:0 24px; flex-shrink:0; background:rgba(11,15,28,0.5); backdrop-filter:blur(6px);">
+    <div style="height:60px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:0 24px; flex-shrink:0; background:rgba(11,15,28,0.5); backdrop-filter:blur(6px);" class="mobile-p-sm">
         <div>
             <h1 style="font-size:15px; font-weight:800; color:white; font-family:'Syne',sans-serif; letter-spacing:-0.02em;">Dashboard</h1>
             <p style="font-size:10px; color:rgba(255,255,255,0.25); margin-top:1px;">Visão geral dos atendimentos</p>
@@ -31,14 +31,14 @@
         </div>
     </div>
 
-    <div style="flex:1; overflow-y:auto; padding:24px;">
+    <div style="flex:1; overflow-y:auto; padding:24px;" class="mobile-p-sm">
 
         {{-- Row 1: Metric Cards --}}
         <livewire:dashboard.metrics-cards />
 
         {{-- Row 2: Conversas por Departamento + Atividade Recente (admin/supervisor) --}}
         @if($isManager)
-        <div style="display:grid; grid-template-columns:3fr 2fr; gap:16px; margin-top:16px;">
+        <div style="display:grid; grid-template-columns:3fr 2fr; gap:16px; margin-top:16px;" class="mobile-grid-1">
             <livewire:dashboard.conversations-by-department />
             <livewire:dashboard.recent-activity />
         </div>
@@ -57,7 +57,7 @@
         @endif
 
         {{-- Quick Actions --}}
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:20px;">
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:20px;" class="mobile-grid-1">
             <a href="{{ route('chat') }}" style="display:flex; align-items:center; gap:12px; padding:16px; background:linear-gradient(135deg, rgba(178,255,0,0.08), rgba(13,148,136,0.04)); border:1px solid rgba(178,255,0,0.2); border-radius:14px; text-decoration:none; transition:all 0.2s;"
                onmouseover="this.style.borderColor='rgba(178,255,0,0.4)'; this.style.transform='translateY(-1px)'"
                onmouseout="this.style.borderColor='rgba(178,255,0,0.2)'; this.style.transform='translateY(0)'">

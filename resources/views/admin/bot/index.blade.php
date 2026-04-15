@@ -5,7 +5,7 @@
         <h1 style="font-size:15px; font-weight:800; color:white; font-family:Syne,sans-serif; letter-spacing:-0.02em;">IA de Atendimento</h1>
     </div>
 
-    <div style="flex:1; overflow-y:auto; padding:24px;">
+    <div style="flex:1; overflow-y:auto; padding:24px;" class="mobile-p-sm">
         <div class="max-w-4xl mx-auto space-y-8">
 
             {{-- Menu Chatbot --}}

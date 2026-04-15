@@ -71,7 +71,7 @@ $preStyle = "background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06)
             @error('token_name') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;" class="mobile-grid-1">
             <div>
                 <label style="{{ $labelStyle }}">Pipeline padrão</label>
                 <select wire:model.live="pipeline_id" style="{{ $inputStyle }}" {!! $inputFocus !!}>

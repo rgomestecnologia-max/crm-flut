@@ -43,7 +43,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
 
     <form wire:submit="save">
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;" class="mobile-grid-1">
 
             {{-- Configurações --}}
             <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,15,28,0.95) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; display:flex; flex-direction:column; gap:14px;">

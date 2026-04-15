@@ -1,5 +1,5 @@
 <div>
-    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:hidden;">
+    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:auto; -webkit-overflow-scrolling:touch;">
         <div style="padding:20px 20px 0;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
                 <div style="width:2px; height:14px; background:#3b82f6; border-radius:2px;"></div>

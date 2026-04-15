@@ -17,7 +17,7 @@
         </a>
     </div>
 
-    <div style="flex:1; overflow-y:auto; padding:24px;">
+    <div style="flex:1; overflow-y:auto; padding:24px;" class="mobile-p-sm">
         <div class="max-w-3xl mx-auto space-y-6">
 
             <div class="bg-surface-800 border border-surface-700 rounded-2xl p-6">

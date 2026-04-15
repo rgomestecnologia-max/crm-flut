@@ -41,7 +41,7 @@
     </div>
 
     {{-- Grid: Configuração + QR Code --}}
-    <div style="display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start;">
+    <div style="display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start;" class="mobile-grid-1">
 
         {{-- ── Coluna esquerda: formulário ── --}}
         <div style="display:flex; flex-direction:column; gap:16px;">

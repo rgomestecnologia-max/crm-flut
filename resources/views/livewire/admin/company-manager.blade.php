@@ -154,7 +154,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
     @endif
 
     {{-- Table --}}
-    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.8) 0%, rgba(11,15,28,0.9) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:hidden;">
+    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.8) 0%, rgba(11,15,28,0.9) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:auto; -webkit-overflow-scrolling:touch;">
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">

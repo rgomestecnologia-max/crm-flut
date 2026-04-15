@@ -34,7 +34,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;" class="mobile-grid-1">
                 <div>
                     <label style="{{ $labelStyle }}">Chave API Gemini {{ $keyAlreadySaved ? '(em branco = manter)' : '*' }}</label>
                     <input wire:model="gemini_api_key" type="password"
