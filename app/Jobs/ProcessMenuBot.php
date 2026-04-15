@@ -50,16 +50,11 @@ class ProcessMenuBot implements ShouldQueue
             if ($this->conversation->menu_awaiting) {
                 $this->processSelection($triggerMessage);
             } else {
-                // Só envia menu na primeira mensagem da conversa
-                $contactMessagesCount = Message::where('conversation_id', $this->conversation->id)
-                    ->where('sender_type', 'contact')
-                    ->where('id', '<=', $this->triggerMessageId)
-                    ->count();
-
-                if ($contactMessagesCount === 1) {
+                // Envia menu se a conversa não tem agente atribuído (nova ou reaberta)
+                if (!$this->conversation->assigned_to) {
                     $this->sendWelcomeMenu();
                 } else {
-                    // Fora do fluxo do menu: delega para a IA se ativa
+                    // Já tem agente: delega para a IA se ativa
                     if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
                         ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $this->triggerMessageId);
                     }
