@@ -134,7 +134,6 @@
         $tabs = [
             ['key' => 'mine',     'label' => 'Minhas Conversas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
             ['key' => 'queue',    'label' => 'Fila',      'count' => $counts['queue'],   'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)',  'activeColor' => '#fbbf24'],
-            ['key' => 'resolved', 'label' => 'Resolvidos','count' => $counts['resolved'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.15)', 'activeColor' => '#9ca3af'],
         ];
 
         // Filtro "Todos" só pra admin + supervisor

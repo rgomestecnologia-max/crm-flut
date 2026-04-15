@@ -264,9 +264,6 @@ class ConversationList extends Component
                 });
             }),
 
-            // Resolvidos
-            'resolved' => $query->where('status', 'resolved'),
-
             // Todos: só admin + supervisor
             'all'      => $user->canManageCompany() ? $query : $query->whereRaw('1 = 0'),
 
@@ -292,7 +289,6 @@ class ConversationList extends Component
                     $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
                 });
             })->count(),
-            'resolved' => (clone $baseQuery)->where('status', 'resolved')->count(),
             'all'      => $user->canManageCompany() ? (clone $baseQuery)->count() : null,
         ];
 
