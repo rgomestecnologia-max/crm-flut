@@ -70,7 +70,7 @@ class ProcessMenuBot implements ShouldQueue
 
     private function sendWelcomeMenu(): void
     {
-        $departments = Department::active()->orderBy('name')->get();
+        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
         if ($departments->isEmpty()) return;
 
         $contactName = $this->conversation->contact->name ?? 'cliente';
@@ -108,7 +108,7 @@ class ProcessMenuBot implements ShouldQueue
         }
 
         $choice = (int) $input;
-        $departments = Department::active()->orderBy('name')->get();
+        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
 
         if ($choice < 1 || $choice > $departments->count()) {
             $this->sendInvalidOption();
@@ -152,7 +152,7 @@ class ProcessMenuBot implements ShouldQueue
 
     private function sendInvalidOption(): void
     {
-        $departments = Department::active()->orderBy('name')->get();
+        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
 
         $lines = [$this->config->invalid_option_message, '', $this->config->menu_prompt, ''];
         foreach ($departments as $index => $dept) {

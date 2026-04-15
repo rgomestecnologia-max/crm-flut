@@ -11,7 +11,7 @@ class Department extends Model
 {
     use Auditable, BelongsToCompany;
 
-    protected $fillable = ['company_id', 'name', 'description', 'color', 'icon', 'is_active'];
+    protected $fillable = ['company_id', 'name', 'description', 'color', 'icon', 'is_active', 'sort_order'];
 
     protected $casts = ['is_active' => 'boolean'];
 

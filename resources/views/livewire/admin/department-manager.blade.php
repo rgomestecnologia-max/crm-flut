@@ -54,6 +54,11 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 <label style="{{ $labelStyle }}">Ícone</label>
                 <input wire:model="icon" type="text" placeholder="ex: chat-bubble-left-right" style="{{ $inputStyle }}" {!! $inputFocus !!}>
             </div>
+            <div>
+                <label style="{{ $labelStyle }}">Ordem no Chatbot</label>
+                <input wire:model="sort_order" type="number" min="0" placeholder="0" style="{{ $inputStyle }} width:100px;" {!! $inputFocus !!}>
+                <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">Define a posição do departamento no menu do chatbot (menor = primeiro)</p>
+            </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; margin-top:20px;">

@@ -14,14 +14,16 @@ class DepartmentManager extends Component
     public string $color       = '#b2ff00';
     public string $icon        = 'chat-bubble-left-right';
     public bool   $is_active   = true;
+    public int    $sort_order  = 0;
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'description', 'color', 'icon', 'is_active');
-        $this->color    = '#b2ff00';
-        $this->icon     = 'chat-bubble-left-right';
-        $this->is_active= true;
-        $this->showForm = true;
+        $this->reset('editingId', 'name', 'description', 'color', 'icon', 'is_active', 'sort_order');
+        $this->color      = '#b2ff00';
+        $this->icon       = 'chat-bubble-left-right';
+        $this->is_active  = true;
+        $this->sort_order = Department::max('sort_order') + 1;
+        $this->showForm   = true;
     }
 
     public function openEdit(int $id): void
@@ -33,6 +35,7 @@ class DepartmentManager extends Component
         $this->color       = $dept->color;
         $this->icon        = $dept->icon;
         $this->is_active   = $dept->is_active;
+        $this->sort_order  = $dept->sort_order ?? 0;
         $this->showForm    = true;
     }
 
@@ -44,6 +47,7 @@ class DepartmentManager extends Component
             'color'       => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'icon'        => 'required|string|max:100',
             'is_active'   => 'boolean',
+            'sort_order'  => 'integer|min:0',
         ]);
 
         if ($this->editingId) {
@@ -55,7 +59,7 @@ class DepartmentManager extends Component
         }
 
         $this->showForm = false;
-        $this->reset('editingId', 'name', 'description', 'color', 'icon');
+        $this->reset('editingId', 'name', 'description', 'color', 'icon', 'sort_order');
     }
 
     public function delete(int $id): void
@@ -71,7 +75,10 @@ class DepartmentManager extends Component
 
     public function render()
     {
-        $departments = Department::withCount('users', 'conversations')->get();
+        $departments = Department::withCount('users', 'conversations')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
         return view('livewire.admin.department-manager', compact('departments'));
     }
 }
