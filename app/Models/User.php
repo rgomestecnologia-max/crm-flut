@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'password', 'role', 'department_id', 'company_id',
-        'avatar', 'status', 'is_active',
+        'avatar', 'status', 'is_active', 'modules',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -29,7 +29,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
             'is_active'         => 'boolean',
+            'modules'           => 'array',
         ];
+    }
+
+    /**
+     * Verifica se o usuário tem acesso a um módulo específico.
+     * Admin/supervisor veem tudo. Agentes respeitam a lista de módulos atribuídos.
+     * Se modules é null, tem acesso a todos (retrocompat com agentes existentes).
+     */
+    public function hasModule(string $key): bool
+    {
+        if ($this->isAdmin() || $this->isSupervisor()) return true;
+        if ($this->modules === null) return true; // retrocompat: sem restrição
+        return in_array($key, $this->modules, true);
     }
 
     public function department(): BelongsTo

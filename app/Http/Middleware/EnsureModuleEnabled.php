@@ -30,6 +30,11 @@ class EnsureModuleEnabled
             abort(403, 'Este módulo não está habilitado para sua empresa.');
         }
 
+        // Verifica também se o usuário tem acesso a este módulo
+        if (!$user->hasModule($module)) {
+            abort(403, 'Você não tem acesso a este módulo.');
+        }
+
         return $next($request);
     }
 }

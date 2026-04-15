@@ -111,7 +111,9 @@
       "Bash(php -l app/Http/Controllers/Webhook/EvolutionWebhookController.php)",
       "Bash(php -l app/Jobs/ProcessMenuBot.php)",
       "Bash(php -l app/Models/ChatbotMenuConfig.php)",
-      "Bash(php -l app/Livewire/Admin/ChatbotMenuManager.php)"
+      "Bash(php -l app/Livewire/Admin/ChatbotMenuManager.php)",
+      "Bash(php -l app/Livewire/Admin/AgentManager.php)",
+      "Bash(php -l app/Http/Middleware/EnsureModuleEnabled.php)"
     ]
   }
 }

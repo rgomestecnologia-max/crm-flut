@@ -99,6 +99,32 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             @error('extra_department_ids.*') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
         </div>
 
+        {{-- Módulos do agente --}}
+        @if($role === 'agent' && !empty($companyPrincipalModules))
+        <div style="margin-top:18px;">
+            <label style="{{ $labelStyle }}">Menus que o agente pode acessar</label>
+            <p style="font-size:11px; color:rgba(255,255,255,0.3); margin:-2px 0 10px;">
+                Selecione quais menus principais este agente terá acesso. Supervisores acessam todos automaticamente.
+            </p>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                @foreach($companyPrincipalModules as $key => $label)
+                    @php $checked = in_array($key, $agent_modules, true); @endphp
+                    <label style="display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border-radius:9px; cursor:pointer; transition:all 0.15s;
+                                  background:{{ $checked ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.03)' }};
+                                  border:1px solid {{ $checked ? 'rgba(178,255,0,0.4)' : 'rgba(255,255,255,0.07)' }};">
+                        <input type="checkbox"
+                               value="{{ $key }}"
+                               wire:model.live="agent_modules"
+                               style="width:14px; height:14px; accent-color:#b2ff00; cursor:pointer;">
+                        <span style="font-size:11px; font-weight:600; color:{{ $checked ? '#b2ff00' : 'rgba(255,255,255,0.55)' }};">
+                            {{ $label }}
+                        </span>
+                    </label>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         <div style="display:flex; align-items:center; gap:10px; margin-top:20px;">
             <button wire:click="save"
                     style="padding:8px 20px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; font-size:12px; font-weight:700; border-radius:9px; border:none; cursor:pointer; transition:all 0.2s;"

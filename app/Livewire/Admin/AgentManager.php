@@ -21,13 +21,16 @@ class AgentManager extends Component
     /** Departamentos adicionais (além do principal). */
     public array  $extra_department_ids = [];
     public bool   $is_active   = true;
+    /** Módulos que o agente pode acessar. */
+    public array  $agent_modules = [];
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'email', 'password', 'role', 'department_id', 'extra_department_ids', 'is_active');
-        $this->role      = 'agent';
-        $this->is_active = true;
-        $this->showForm  = true;
+        $this->reset('editingId', 'name', 'email', 'password', 'role', 'department_id', 'extra_department_ids', 'is_active', 'agent_modules');
+        $this->role           = 'agent';
+        $this->is_active      = true;
+        $this->agent_modules  = $this->getCompanyPrincipalModules();
+        $this->showForm       = true;
     }
 
     public function openEdit(int $id): void
@@ -46,6 +49,7 @@ class AgentManager extends Component
             ->values()
             ->all();
         $this->is_active            = $user->is_active;
+        $this->agent_modules        = $user->modules ?? $this->getCompanyPrincipalModules();
         $this->showForm             = true;
     }
 
@@ -69,6 +73,8 @@ class AgentManager extends Component
             'extra_department_ids'   => 'array',
             'extra_department_ids.*' => 'integer|exists:departments,id',
             'is_active'              => 'boolean',
+            'agent_modules'          => 'array',
+            'agent_modules.*'        => 'string',
         ];
 
         if (!$this->editingId) {
@@ -93,8 +99,13 @@ class AgentManager extends Component
             unset($validated['password']);
         }
 
-        // extra_department_ids não é coluna de users — separar antes do save
+        // Campos que não são colunas diretas de users
         unset($validated['extra_department_ids']);
+        unset($validated['agent_modules']);
+
+        // Módulos do agente (filtra só os que a empresa tem contratado)
+        $companyModules = app(CurrentCompany::class)->model()?->modules ?? [];
+        $validated['modules'] = array_values(array_intersect($this->agent_modules, $companyModules));
 
         $currentCompanyId = app(CurrentCompany::class)->id();
 
@@ -138,7 +149,24 @@ class AgentManager extends Component
             ->latest()
             ->get();
         $departments = Department::active()->get();
-        return view('livewire.admin.agent-manager', compact('agents', 'departments'));
+
+        // Módulos principais contratados pela empresa (pra mostrar checkboxes)
+        $companyPrincipalModules = $this->getCompanyPrincipalModules(true);
+        return view('livewire.admin.agent-manager', compact('agents', 'departments', 'companyPrincipalModules'));
+    }
+
+    /**
+     * Retorna módulos principais contratados pela empresa.
+     * Se $withLabels = true, retorna [key => label]; senão retorna [key, ...].
+     */
+    protected function getCompanyPrincipalModules(bool $withLabels = false): array
+    {
+        $companyModules = app(CurrentCompany::class)->model()?->modules ?? [];
+        $principal = \App\Models\Company::AVAILABLE_MODULES['principal'];
+
+        $available = array_filter($principal, fn($label, $key) => in_array($key, $companyModules, true), ARRAY_FILTER_USE_BOTH);
+
+        return $withLabels ? $available : array_keys($available);
     }
 
     /**

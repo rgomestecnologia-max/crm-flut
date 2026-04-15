@@ -125,7 +125,9 @@
             // Admin do sistema vê TODOS os módulos. Agentes/supervisores veem só os da empresa.
             $isSystemAdmin = auth()->user()->isAdmin();
             $companyModules = app(\App\Services\CurrentCompany::class)->model()?->modules ?? [];
-            $canSee = fn(string $mod) => $isSystemAdmin || in_array($mod, $companyModules, true);
+            $userModules = auth()->user()->modules; // null = todos, array = restritos
+            $canSee = fn(string $mod) => $isSystemAdmin
+                || (in_array($mod, $companyModules, true) && ($userModules === null || in_array($mod, $userModules, true)));
         @endphp
         <nav style="flex:1; padding:10px 8px; overflow-y:auto; display:flex; flex-direction:column; gap:2px;">
             <p x-show="sidebarOpen" style="padding:8px 6px 4px; font-size:9px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:0.1em;">
