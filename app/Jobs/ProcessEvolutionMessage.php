@@ -96,13 +96,24 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             // ── Contato ──────────────────────────────────────────────────────
             if ($isGroup) {
-                // Para grupos, contato é o remetente individual
-                $contact = Contact::firstOrCreate(
-                    ['phone' => $senderPhone],
-                    ['name'  => $senderName]
-                );
-                if ($senderName && !$contact->name) {
-                    $contact->update(['name' => $senderName]);
+                // Para grupos, contato é o GRUPO (não o remetente individual)
+                $groupName = $data['chatName'] ?? null;
+                $groupPhone = substr($chatPhone, 0, 20); // trunca pra caber no campo
+
+                $contact = Contact::where('chat_lid', $remoteJid)->first()
+                    ?? Contact::where('phone', $groupPhone)->first();
+
+                if (!$contact) {
+                    $contact = Contact::create([
+                        'phone'    => $groupPhone,
+                        'name'     => $groupName,
+                        'chat_lid' => $remoteJid,
+                    ]);
+                } elseif ($groupName && !$contact->name) {
+                    $contact->update(['name' => $groupName]);
+                }
+                if ($remoteJid && !$contact->chat_lid) {
+                    $contact->update(['chat_lid' => $remoteJid]);
                 }
             } else {
                 if ($fromMe) {
@@ -128,8 +139,7 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             // ── Conversa ─────────────────────────────────────────────────────
             if ($isGroup) {
-                $groupName = $data['chatName'] ?? null;
-
+                // $groupName já definido na seção de contato acima
                 $conversation = Conversation::where('contact_id', $contact->id)
                     ->where('is_group', true)
                     ->whereIn('status', ['open', 'pending'])
