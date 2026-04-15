@@ -452,14 +452,24 @@ class EvolutionApiManager extends Component
 
                 if (!$jid || !str_ends_with($jid, '@g.us')) continue;
 
-                $phone = preg_replace('/\D/', '', preg_replace('/@.+/', '', $jid));
+                // Usa o ID do grupo antes do @ como phone (limitado a 20 chars)
+                $rawId = preg_replace('/@.+/', '', $jid);
+                $phone = substr($rawId, 0, 20);
                 if (!$phone) continue;
 
-                // Cria ou busca contato do grupo
-                $contact = \App\Models\Contact::firstOrCreate(
-                    ['phone' => $phone, 'company_id' => $companyId],
-                    ['name' => $groupName, 'chat_lid' => $jid]
-                );
+                // Cria ou busca contato do grupo pelo chat_lid (mais confiável que phone pra grupos)
+                $contact = \App\Models\Contact::where('company_id', $companyId)
+                    ->where(fn($q) => $q->where('chat_lid', $jid)->orWhere('phone', $phone))
+                    ->first();
+
+                if (!$contact) {
+                    $contact = \App\Models\Contact::create([
+                        'company_id' => $companyId,
+                        'phone'      => $phone,
+                        'name'       => $groupName,
+                        'chat_lid'   => $jid,
+                    ]);
+                }
 
                 if ($groupName && !$contact->name) {
                     $contact->update(['name' => $groupName]);
