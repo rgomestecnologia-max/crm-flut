@@ -713,9 +713,7 @@ class ChatArea extends Component
             }
 
             if ($this->showTransfer) {
-                $departments = Department::active()
-                    ->where('id', '!=', $this->conversation?->department_id)
-                    ->get();
+                $departments = Department::active()->get();
 
                 if ($this->transferTo) {
                     $transferAgents = User::active()
