@@ -173,7 +173,12 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'is_group'      => false,
                     ]);
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
-                    $conversation->update(['status' => 'open']);
+                    // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
+                    $conversation->update([
+                        'status'        => 'open',
+                        'assigned_to'   => null,
+                        'menu_awaiting' => false,
+                    ]);
                 }
             }
 

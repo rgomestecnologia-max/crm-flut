@@ -60,6 +60,35 @@ class EvolutionWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
+        // ── Atualização de contato (salva avatar do WhatsApp) ──────────────
+        if (in_array($event, ['contacts.upsert', 'contacts.update'])) {
+            $contacts = $payload['data'] ?? [];
+            // Pode vir como array de objetos ou objeto único
+            if (!isset($contacts[0])) $contacts = [$contacts];
+
+            foreach ($contacts as $contactData) {
+                $jid      = $contactData['id'] ?? null;
+                $photoUrl = $contactData['profilePictureUrl'] ?? null;
+                $pushName = $contactData['pushName'] ?? null;
+
+                if (!$jid || !$photoUrl) continue;
+                if (str_contains($jid, '@g.us')) continue; // ignora grupos
+
+                $phone = preg_replace('/\D/', '', preg_replace('/@.+/', '', $jid));
+                if (!$phone) continue;
+
+                // Atualiza avatar_url do contato (sem company scope — cross-tenant)
+                \App\Models\Contact::withoutCompanyScope()
+                    ->where(function ($q) use ($jid, $phone) {
+                        $q->where('chat_lid', $jid)->orWhere('phone', $phone);
+                    })
+                    ->whereNull('avatar_url')
+                    ->update(['avatar_url' => $photoUrl]);
+            }
+
+            return response()->json(['ok' => true]);
+        }
+
         // ── Mensagens recebidas / enviadas ─────────────────────────────────
         if ($event === 'messages.upsert') {
             $data    = $payload['data'] ?? [];
