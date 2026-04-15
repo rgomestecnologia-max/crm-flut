@@ -264,8 +264,8 @@ class ConversationList extends Component
                 });
             }),
 
-            // Todos: só admin + supervisor
-            'all'      => $user->canManageCompany() ? $query : $query->whereRaw('1 = 0'),
+            // Todos: todas as conversas dos departamentos do usuário
+            'all'      => $query,
 
             default    => null,
         };
@@ -289,7 +289,7 @@ class ConversationList extends Component
                     $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
                 });
             })->count(),
-            'all'      => $user->canManageCompany() ? (clone $baseQuery)->count() : null,
+            'all'      => (clone $baseQuery)->count(),
         ];
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();

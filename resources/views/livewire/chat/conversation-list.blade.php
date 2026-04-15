@@ -134,12 +134,8 @@
         $tabs = [
             ['key' => 'mine',     'label' => 'Minhas Conversas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
             ['key' => 'queue',    'label' => 'Fila',      'count' => $counts['queue'],   'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)',  'activeColor' => '#fbbf24'],
+            ['key' => 'all',      'label' => 'Todos',     'count' => $counts['all'],     'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'],
         ];
-
-        // Filtro "Todos" só pra admin + supervisor
-        if(auth()->user()->canManageCompany()) {
-            $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
-        }
         @endphp
         @foreach($tabs as $tab)
         <button wire:click="setFilter('{{ $tab['key'] }}')"
