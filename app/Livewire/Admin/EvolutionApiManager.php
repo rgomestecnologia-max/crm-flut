@@ -46,6 +46,9 @@ class EvolutionApiManager extends Component
             $this->connectionStatus = $config->connection_status;
             $this->profileName    = $config->profile_name;
             $this->phoneNumber    = $config->phone_number;
+
+            // Carrega info do webhook configurado no Evolution
+            $this->loadWebhookInfo();
         } else {
             // Empresa nova sem config: pré-preenche URL do servidor e API key global
             // a partir de qualquer config existente, pois esses valores são do servidor
