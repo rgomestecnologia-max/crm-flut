@@ -188,10 +188,16 @@
                     <div>
                         @if($msg->type === 'text')
                             <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:400px; word-break:break-word;">
+                                @if($msg->sender_name)
+                                    <p style="font-size:11px; font-weight:700; color:#b2ff00; margin-bottom:3px;">{{ $msg->sender_name }}</p>
+                                @endif
                                 {{ $msg->content }}
                             </div>
                         @elseif($msg->type === 'image')
                             <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid rgba(255,255,255,0.06);">
+                                @if($msg->sender_name)
+                                    <p style="font-size:11px; font-weight:700; color:#b2ff00; padding:8px 10px 4px;">{{ $msg->sender_name }}</p>
+                                @endif
                                 <img src="{{ $msg->media_thumb_url ?? $msg->media_url }}" alt="Imagem"
                                      loading="lazy"
                                      onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='{{ $msg->media_url }}'}"
