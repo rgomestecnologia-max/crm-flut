@@ -140,9 +140,9 @@ class ProcessEvolutionMessage implements ShouldQueue
             // ── Conversa ─────────────────────────────────────────────────────
             if ($isGroup) {
                 // $groupName já definido na seção de contato acima
+                // Grupo sempre reutiliza a mesma conversa (independente do status)
                 $conversation = Conversation::where('contact_id', $contact->id)
                     ->where('is_group', true)
-                    ->whereIn('status', ['open', 'pending'])
                     ->latest()
                     ->first();
 
@@ -157,8 +157,14 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'is_group'      => true,
                         'group_name'    => $groupName,
                     ]);
-                } elseif ($groupName && !$conversation->group_name) {
-                    $conversation->update(['group_name' => $groupName]);
+                } else {
+                    // Reabre se estava resolvido/transferido
+                    if (in_array($conversation->status, ['resolved', 'transferred'])) {
+                        $conversation->update(['status' => 'open']);
+                    }
+                    if ($groupName && !$conversation->group_name) {
+                        $conversation->update(['group_name' => $groupName]);
+                    }
                 }
             } else {
                 $conversation = Conversation::where('contact_id', $contact->id)

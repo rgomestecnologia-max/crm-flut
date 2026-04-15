@@ -13,8 +13,8 @@
             </p>
         </div>
 
-        {{-- Botão selecionar (admin only) --}}
-        @if(auth()->user()->isAdmin())
+        {{-- Botão selecionar (admin + supervisor) --}}
+        @if(auth()->user()->canManageCompany())
         <button wire:click="toggleSelectMode"
                 title="{{ $selectMode ? 'Cancelar seleção' : 'Selecionar conversas' }}"
                 style="width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; border:none; cursor:pointer;
@@ -49,6 +49,25 @@
             Limpar
         </button>
         @if(count($selected) > 0)
+        <button wire:click="$toggle('showBulkTransfer')"
+                style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#3b82f6; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
+                onmouseover="this.style.background='#2563eb'"
+                onmouseout="this.style.background='#3b82f6'">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+            Transferir
+        </button>
+        <button wire:click="resolveSelected"
+                wire:confirm="Resolver {{ count($selected) }} conversa(s)? Elas serão movidas para Resolvidos."
+                style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#22c55e; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
+                onmouseover="this.style.background='#16a34a'"
+                onmouseout="this.style.background='#22c55e'">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Resolver
+        </button>
         <button wire:click="deleteSelected"
                 wire:confirm="Excluir {{ count($selected) }} conversa(s) e todas as mensagens? Esta ação não pode ser desfeita."
                 style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#ef4444; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
@@ -61,6 +80,36 @@
         </button>
         @endif
     </div>
+
+    {{-- Painel de transferência em lote --}}
+    @if($showBulkTransfer && count($selected) > 0)
+    <div style="padding:10px 12px; background:rgba(59,130,246,0.06); border-bottom:1px solid rgba(59,130,246,0.15); flex-shrink:0;">
+        <p style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Transferir {{ count($selected) }} conversa(s) para:</p>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <select wire:model="bulkTransferDept"
+                    style="flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:7px 10px; font-size:12px; color:white; outline:none; cursor:pointer;">
+                <option value="">Selecione o departamento</option>
+                @foreach($departments as $dept)
+                    <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                @endforeach
+            </select>
+            <button wire:click="transferSelected"
+                    @if(!$bulkTransferDept) disabled @endif
+                    style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:7px 14px; border-radius:8px; border:none; cursor:pointer; transition:all 0.15s;
+                           {{ $bulkTransferDept ? 'background:#3b82f6; color:white;' : 'background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.2); cursor:not-allowed;' }}">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Confirmar
+            </button>
+            <button wire:click="$set('showBulkTransfer', false)"
+                    style="font-size:11px; color:rgba(255,255,255,0.4); padding:5px 8px; border-radius:6px; border:none; background:transparent; cursor:pointer;"
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
+                Cancelar
+            </button>
+        </div>
+    </div>
+    @endif
     @endif
 
     {{-- Search --}}

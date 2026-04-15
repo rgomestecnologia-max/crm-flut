@@ -3,6 +3,7 @@
 namespace App\Livewire\Chat;
 
 use App\Models\Conversation;
+use App\Models\Department;
 use App\Models\Message;
 use App\Models\TransferLog;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,8 @@ class ConversationList extends Component
     public array  $selected    = [];
     public int    $perPage     = 30;
     public bool   $hasMore     = true;
+    public bool   $showBulkTransfer = false;
+    public ?int   $bulkTransferDept = null;
 
     public function mount(?int $activeId = null): void
     {
@@ -106,7 +109,7 @@ class ConversationList extends Component
 
     public function deleteSelected(): void
     {
-        if (empty($this->selected) || !Auth::user()->isAdmin()) return;
+        if (empty($this->selected) || !Auth::user()->canManageCompany()) return;
 
         foreach ($this->selected as $id) {
             Message::where('conversation_id', $id)->delete();
@@ -124,6 +127,97 @@ class ConversationList extends Component
         }
 
         $this->dispatch('toast', type: 'success', message: "{$count} conversa(s) excluída(s).");
+    }
+
+    public function resolveSelected(): void
+    {
+        if (empty($this->selected)) return;
+
+        $count = 0;
+        foreach ($this->selected as $id) {
+            $conv = Conversation::find($id);
+            if ($conv && $conv->status !== 'resolved') {
+                $conv->update(['status' => 'resolved']);
+
+                Message::create([
+                    'conversation_id' => $conv->id,
+                    'sender_type'     => 'system',
+                    'content'         => 'Atendimento encerrado por ' . Auth::user()->name,
+                    'type'            => 'text',
+                    'delivery_status' => 'sent',
+                ]);
+
+                $count++;
+            }
+        }
+
+        $this->selected   = [];
+        $this->selectMode = false;
+
+        if ($this->activeId) {
+            $active = Conversation::find($this->activeId);
+            if ($active && $active->status === 'resolved') {
+                $this->activeId = null;
+                $this->dispatch('conversation-deleted');
+            }
+        }
+
+        $this->dispatch('toast', type: 'success', message: "{$count} conversa(s) resolvida(s).");
+    }
+
+    public function transferSelected(): void
+    {
+        if (empty($this->selected) || !$this->bulkTransferDept) return;
+
+        $dept = Department::find($this->bulkTransferDept);
+        if (!$dept) return;
+
+        $user  = Auth::user();
+        $count = 0;
+
+        foreach ($this->selected as $id) {
+            $conv = Conversation::find($id);
+            if (!$conv || $conv->department_id === $dept->id) continue;
+
+            TransferLog::create([
+                'conversation_id'    => $conv->id,
+                'from_department_id' => $conv->department_id,
+                'to_department_id'   => $dept->id,
+                'from_agent_id'      => $user->id,
+                'to_agent_id'        => null,
+            ]);
+
+            $conv->update([
+                'department_id' => $dept->id,
+                'assigned_to'   => null,
+                'status'        => 'transferred',
+            ]);
+
+            Message::create([
+                'conversation_id' => $conv->id,
+                'sender_type'     => 'system',
+                'content'         => "Conversa transferida para o departamento {$dept->name} por {$user->name}.",
+                'type'            => 'text',
+                'delivery_status' => 'sent',
+            ]);
+
+            $count++;
+        }
+
+        $this->selected        = [];
+        $this->selectMode      = false;
+        $this->showBulkTransfer = false;
+        $this->bulkTransferDept = null;
+
+        if ($this->activeId) {
+            $active = Conversation::find($this->activeId);
+            if ($active && $active->department_id === $dept->id) {
+                $this->activeId = null;
+                $this->dispatch('conversation-deleted');
+            }
+        }
+
+        $this->dispatch('toast', type: 'success', message: "{$count} conversa(s) transferida(s) para {$dept->name}.");
     }
 
     /**
@@ -202,6 +296,8 @@ class ConversationList extends Component
             'all'      => $user->canManageCompany() ? (clone $baseQuery)->count() : null,
         ];
 
-        return view('livewire.chat.conversation-list', compact('conversations', 'counts'));
+        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
+
+        return view('livewire.chat.conversation-list', compact('conversations', 'counts', 'departments'));
     }
 }
