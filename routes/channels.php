@@ -49,10 +49,12 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
  *  - Admin: precisa ter X selecionado na sessão atual (CurrentCompany).
  *    Isso impede que um admin "logado em RSG Group" receba broadcasts de outra empresa.
  */
-function userCanAccessCompany($user, int $companyId): bool
-{
-    if (!$user->isAdmin()) {
-        return (int) $user->company_id === $companyId;
+if (!function_exists('userCanAccessCompany')) {
+    function userCanAccessCompany($user, int $companyId): bool
+    {
+        if (!$user->isAdmin()) {
+            return (int) $user->company_id === $companyId;
+        }
+        return (int) app(CurrentCompany::class)->id() === $companyId;
     }
-    return (int) app(CurrentCompany::class)->id() === $companyId;
 }
