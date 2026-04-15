@@ -33,14 +33,10 @@ services:
     volumes:
       - storage_data:/var/www/html/storage/app/public
     ports:
-      - "80:80"
-      - "443:443"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.crm.rule=Host(`crm.flut.com.br`)"
-      - "traefik.http.routers.crm.entrypoints=websecure"
-      - "traefik.http.routers.crm.tls.certresolver=letsencrypt"
-      - "traefik.http.services.crm.loadbalancer.server.port=80"
+      - "8000:80"
+    networks:
+      - default
+      - easypanel
 
   # ── Evolution API (WhatsApp) ──────────────────────────
   evolution:
@@ -55,12 +51,12 @@ services:
       TZ: America/Sao_Paulo
     ports:
       - "8080:8080"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.evolution.rule=Host(`evolution.flut.com.br`)"
-      - "traefik.http.routers.evolution.entrypoints=websecure"
-      - "traefik.http.routers.evolution.tls.certresolver=letsencrypt"
-      - "traefik.http.services.evolution.loadbalancer.server.port=8080"
+
+networks:
+  default:
+  easypanel:
+    external: true
+    name: easypanel
 
 volumes:
   mysql_data:
