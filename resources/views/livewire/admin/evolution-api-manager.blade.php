@@ -246,6 +246,17 @@
                                 onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='rgba(255,255,255,0.5)'">
                             Ver Configuração Atual
                         </button>
+
+                        <button wire:click="syncGroups" wire:loading.attr="disabled"
+                                wire:confirm="Sincronizar todos os grupos do WhatsApp para a fila do CRM?"
+                                style="background:rgba(168,85,247,0.1); color:#c084fc; border:1px solid rgba(168,85,247,0.25); border-radius:10px; padding:9px 14px; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:6px;"
+                                onmouseover="this.style.background='rgba(168,85,247,0.2)'"
+                                onmouseout="this.style.background='rgba(168,85,247,0.1)'">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M9 7a4 4 0 100 8 4 4 0 000-8z"/>
+                            </svg>
+                            Sincronizar Grupos
+                        </button>
                     </div>
 
                     @if($webhookInfo)

@@ -414,6 +414,86 @@ class EvolutionApiManager extends Component
         } catch (\Throwable) {}
     }
 
+    public function syncGroups(): void
+    {
+        $this->loading = true;
+
+        try {
+            $svc    = $this->makeService();
+            $result = $svc->fetchAllGroups();
+
+            if (!is_array($result) || isset($result['error'])) {
+                $this->dispatch('toast', type: 'error', message: 'Erro ao buscar grupos: ' . ($result['error'] ?? 'resposta inválida'));
+                return;
+            }
+
+            // Filtra só os arrays de grupos (remove chave 'success' etc)
+            $groups = array_filter($result, fn($v, $k) => is_array($v) && isset($v['id']), ARRAY_FILTER_USE_BOTH);
+            if (empty($groups)) {
+                $groups = array_values(array_filter($result, fn($v) => is_array($v) && isset($v['id'])));
+            }
+            // Se o resultado é um array direto de grupos
+            if (empty($groups) && isset($result[0]['id'])) {
+                $groups = $result;
+            }
+
+            $companyId    = app(\App\Services\CurrentCompany::class)->id();
+            $departmentId = \App\Models\Department::active()->orderBy('sort_order')->first()?->id;
+
+            if (!$departmentId) {
+                $this->dispatch('toast', type: 'error', message: 'Crie pelo menos um departamento antes de sincronizar grupos.');
+                return;
+            }
+
+            $created = 0;
+            foreach ($groups as $group) {
+                $jid       = $group['id'] ?? null;
+                $groupName = $group['subject'] ?? $group['name'] ?? null;
+
+                if (!$jid || !str_ends_with($jid, '@g.us')) continue;
+
+                $phone = preg_replace('/\D/', '', preg_replace('/@.+/', '', $jid));
+                if (!$phone) continue;
+
+                // Cria ou busca contato do grupo
+                $contact = \App\Models\Contact::firstOrCreate(
+                    ['phone' => $phone, 'company_id' => $companyId],
+                    ['name' => $groupName, 'chat_lid' => $jid]
+                );
+
+                if ($groupName && !$contact->name) {
+                    $contact->update(['name' => $groupName]);
+                }
+                if ($jid && !$contact->chat_lid) {
+                    $contact->update(['chat_lid' => $jid]);
+                }
+
+                // Cria conversa se não existir
+                $exists = \App\Models\Conversation::where('contact_id', $contact->id)
+                    ->where('is_group', true)
+                    ->whereIn('status', ['open', 'pending'])
+                    ->exists();
+
+                if (!$exists) {
+                    \App\Models\Conversation::create([
+                        'contact_id'    => $contact->id,
+                        'department_id' => $departmentId,
+                        'status'        => 'open',
+                        'is_group'      => true,
+                        'group_name'    => $groupName,
+                    ]);
+                    $created++;
+                }
+            }
+
+            $this->dispatch('toast', type: 'success', message: "{$created} grupo(s) sincronizado(s) para a fila.");
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', type: 'error', message: 'Erro: ' . $e->getMessage());
+        } finally {
+            $this->loading = false;
+        }
+    }
+
     private function makeService(): EvolutionApiService
     {
         // Sempre busca do banco para garantir chaves atualizadas

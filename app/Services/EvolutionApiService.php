@@ -276,6 +276,13 @@ class EvolutionApiService
         ]);
     }
 
+    // ─── Grupos ─────────────────────────────────────────────────────────────
+
+    public function fetchAllGroups(): array
+    {
+        return $this->get("/group/fetchAllGroups/{$this->instanceName}?getParticipants=false");
+    }
+
     // ─── Mídia ──────────────────────────────────────────────────────────────
 
     /**
