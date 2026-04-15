@@ -211,7 +211,13 @@ class ChatArea extends Component
             'delivery_status' => 'pending',
         ]);
 
-        $this->conversation->update(['last_message_at' => now()]);
+        // Auto-atribui a conversa ao agente que respondeu (tira da fila)
+        $updates = ['last_message_at' => now()];
+        if (!$this->conversation->assigned_to) {
+            $updates['assigned_to'] = Auth::id();
+            $updates['status']      = 'open';
+        }
+        $this->conversation->update($updates);
 
         try {
             SendWhatsAppMessage::dispatch($message);
@@ -295,7 +301,13 @@ class ChatArea extends Component
             'delivery_status' => 'pending',
         ]);
 
-        $this->conversation->update(['last_message_at' => now()]);
+        // Auto-atribui a conversa ao agente que respondeu (tira da fila)
+        $fileUpdates = ['last_message_at' => now()];
+        if (!$this->conversation->assigned_to) {
+            $fileUpdates['assigned_to'] = Auth::id();
+            $fileUpdates['status']      = 'open';
+        }
+        $this->conversation->update($fileUpdates);
 
         try {
             SendWhatsAppMessage::dispatch($message, $base64);
@@ -374,7 +386,13 @@ class ChatArea extends Component
             'delivery_status' => 'pending',
         ]);
 
-        $this->conversation->update(['last_message_at' => now()]);
+        // Auto-atribui a conversa ao agente que respondeu (tira da fila)
+        $audioUpdates = ['last_message_at' => now()];
+        if (!$this->conversation->assigned_to) {
+            $audioUpdates['assigned_to'] = Auth::id();
+            $audioUpdates['status']      = 'open';
+        }
+        $this->conversation->update($audioUpdates);
 
         try {
             SendWhatsAppMessage::dispatch($message, $zapiB64);
