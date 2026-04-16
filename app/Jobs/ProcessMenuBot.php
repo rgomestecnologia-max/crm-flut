@@ -47,8 +47,20 @@ class ProcessMenuBot implements ShouldQueue
                 ->exists();
             if ($alreadyResponded) return;
 
-            // Verifica horário de funcionamento (só para novas conversas, não para seleção de menu)
-            if (!$this->conversation->menu_awaiting && !$this->conversation->assigned_to) {
+            // Se a conversa já tem agente, o bot não deve enviar menu nem "opção inválida".
+            // Limpa o menu_awaiting (caso tenha ficado stale) e delega para a IA se ativa.
+            if ($this->conversation->assigned_to) {
+                if ($this->conversation->menu_awaiting) {
+                    $this->conversation->update(['menu_awaiting' => false]);
+                }
+                if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
+                    ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $this->triggerMessageId);
+                }
+                return;
+            }
+
+            // Verifica horário de funcionamento (só para conversas sem agente)
+            if (!$this->conversation->menu_awaiting) {
                 if (!$this->config->isWithinBusinessHours()) {
                     $this->sendOutsideHoursMessage();
                     return;
@@ -58,15 +70,7 @@ class ProcessMenuBot implements ShouldQueue
             if ($this->conversation->menu_awaiting) {
                 $this->processSelection($triggerMessage);
             } else {
-                // Envia menu se a conversa não tem agente atribuído (nova ou reaberta)
-                if (!$this->conversation->assigned_to) {
-                    $this->sendWelcomeMenu();
-                } else {
-                    // Já tem agente: delega para a IA se ativa
-                    if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
-                        ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $this->triggerMessageId);
-                    }
-                }
+                $this->sendWelcomeMenu();
             }
         } catch (\Throwable $e) {
             Log::error('MenuBot: exceção', [
