@@ -108,41 +108,35 @@ class ChatArea extends Component
         $msg = Message::where('conversation_id', $this->conversationId)->find($messageId);
         if (!$msg || !$msg->zapi_message_id) return;
 
-        $contact = $this->conversation->contact;
-        $remoteJid = $contact->chat_lid ?? $contact->phone;
-
-        // Envia a reação pro WhatsApp
-        $config = \App\Models\EvolutionApiConfig::current();
-        if ($config?->is_active) {
-            try {
-                $svc = new \App\Services\EvolutionApiService($config);
-                $svc->sendReaction($msg->zapi_message_id, $remoteJid, $emoji);
-            } catch (\Throwable $e) {
-                Log::warning('Reaction send failed', ['error' => $e->getMessage()]);
-            }
-        }
-
-        // Salva localmente
+        $config    = \App\Models\EvolutionApiConfig::current();
         $reactions = $msg->reactions ?? [];
         $myPhone   = $config?->phone_number ?? 'crm';
+        $contact   = $this->conversation->contact;
+        $remoteJid = $contact->chat_lid ?? $contact->phone;
 
-        // Verifica se já tenho essa mesma reação (toggle: remove se já existe)
+        // Verifica se já tenho essa mesma reação (toggle)
         $existing = collect($reactions)->first(fn($r) => ($r['phone'] ?? '') === $myPhone && ($r['emoji'] ?? '') === $emoji);
 
-        // Remove reação anterior minha (se existir)
+        // Remove reação anterior minha
         $reactions = array_values(array_filter($reactions, fn($r) => ($r['phone'] ?? '') !== $myPhone));
 
         if ($existing) {
-            // Mesma reação = remover (envia emoji vazio pro WhatsApp)
-            try {
-                if ($config?->is_active) {
-                    $svc = new \App\Services\EvolutionApiService($config);
-                    $svc->sendReaction($msg->zapi_message_id, $remoteJid, '');
-                }
-            } catch (\Throwable) {}
+            // Mesma reação = remover → envia vazio pro WhatsApp
+            $whatsappEmoji = '';
         } else {
-            // Nova reação ou troca
+            // Nova reação ou troca → envia o emoji pro WhatsApp
             $reactions[] = ['emoji' => $emoji, 'phone' => $myPhone, 'at' => now()->toISOString()];
+            $whatsappEmoji = $emoji;
+        }
+
+        // Envia pro WhatsApp (emoji ou vazio para remover)
+        if ($config?->is_active) {
+            try {
+                $svc = new \App\Services\EvolutionApiService($config);
+                $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji);
+            } catch (\Throwable $e) {
+                Log::warning('Reaction send failed', ['error' => $e->getMessage()]);
+            }
         }
 
         $msg->update(['reactions' => $reactions]);

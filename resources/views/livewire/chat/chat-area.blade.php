@@ -181,7 +181,20 @@
                 background: radial-gradient(ellipse at 20% 0%, rgba(178,255,0,0.02) 0%, transparent 60%),
                             radial-gradient(ellipse at 80% 100%, rgba(178,255,0,0.015) 0%, transparent 60%);
                 background-attachment:local;">
+        @php $lastDate = null; @endphp
         @foreach($messages as $msg)
+            @php
+                $msgDate = $msg->created_at->format('Y-m-d');
+                $showDateSep = $msgDate !== $lastDate;
+                $lastDate = $msgDate;
+            @endphp
+            @if($showDateSep)
+                <div style="display:flex; justify-content:center; margin:12px 0 8px;">
+                    <span style="background:rgba(88,101,124,0.7); color:rgba(255,255,255,0.85); font-size:11px; font-weight:600; padding:4px 14px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+                        {{ $msg->created_at->format('d/m/Y') }}
+                    </span>
+                </div>
+            @endif
             @if($msg->isSystem())
                 {{-- System message --}}
                 <div style="display:flex; justify-content:center; margin:4px 0;">
