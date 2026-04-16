@@ -323,13 +323,13 @@
                                 <audio src="{{ $msg->media_url }}" preload="auto" style="display:none"></audio>
                             </div>
                         @elseif($msg->type === 'video')
-                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); max-width:min(300px, 80vw);">
+                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); width:min(320px, 80vw);">
                                 @if($msg->sender_name)
                                     <p style="font-size:11px; font-weight:700; color:#b2ff00; padding:8px 10px 4px;">{{ $msg->sender_name }}</p>
                                 @endif
                                 <video src="{{ $msg->media_url }}" controls preload="metadata" playsinline
                                        @if($msg->media_thumb_url) poster="{{ $msg->media_thumb_url }}" @endif
-                                       style="width:100%; display:block; max-height:360px; background:#000;">
+                                       style="width:100%; min-height:180px; display:block; background:#000; object-fit:contain;">
                                 </video>
                                 @if($msg->content)
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6);">{{ $msg->content }}</p>
@@ -555,10 +555,10 @@
                                 <audio src="{{ $msg->media_url }}" preload="auto" style="display:none"></audio>
                             </div>
                         @elseif($msg->type === 'video')
-                            <div style="background:rgba(73,101,10,0.3); border-radius:18px 18px 4px 18px; overflow:hidden; box-shadow:0 2px 12px rgba(73,101,10,0.3); max-width:min(300px, 80vw);">
+                            <div style="background:rgba(73,101,10,0.3); border-radius:18px 18px 4px 18px; overflow:hidden; box-shadow:0 2px 12px rgba(73,101,10,0.3); width:min(320px, 80vw);">
                                 <video src="{{ $msg->media_url }}" controls preload="metadata" playsinline
                                        @if($msg->media_thumb_url) poster="{{ $msg->media_thumb_url }}" @endif
-                                       style="width:100%; display:block; max-height:360px; background:#000;">
+                                       style="width:100%; min-height:180px; display:block; background:#000; object-fit:contain;">
                                 </video>
                                 @if($msg->content)
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6);">{{ $msg->content }}</p>
