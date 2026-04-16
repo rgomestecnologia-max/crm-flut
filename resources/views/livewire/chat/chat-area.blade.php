@@ -396,10 +396,17 @@
 
                         {{-- Reactions --}}
                         @if(!empty($msg->reactions))
-                        @php $rxGrouped = collect($msg->reactions)->groupBy('emoji'); @endphp
+                        @php
+                            $rxGrouped = collect($msg->reactions)->groupBy('emoji');
+                            $myEmojis = collect($msg->reactions)->where('phone', $myReactionPhone)->pluck('emoji')->toArray();
+                        @endphp
                         <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:4px; margin-left:2px;">
                             @foreach($rxGrouped as $rxEmoji => $rxList)
-                            <span style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:2px 7px; font-size:13px; line-height:1.5; display:inline-flex; align-items:center; gap:3px;">{{ $rxEmoji }}@if($rxList->count() > 1)<span style="font-size:10px; color:rgba(255,255,255,0.4);">{{ $rxList->count() }}</span>@endif</span>
+                            @php $isMine = in_array($rxEmoji, $myEmojis); @endphp
+                            <button wire:click="reactToMessage({{ $msg->id }}, '{{ $rxEmoji }}')"
+                                    style="background:{{ $isMine ? 'rgba(178,255,0,0.15)' : 'rgba(255,255,255,0.07)' }}; border:1px solid {{ $isMine ? 'rgba(178,255,0,0.35)' : 'rgba(255,255,255,0.12)' }}; border-radius:20px; padding:2px 7px; font-size:13px; line-height:1.5; display:inline-flex; align-items:center; gap:3px; cursor:pointer; transition:all 0.15s;"
+                                    onmouseover="this.style.background='{{ $isMine ? 'rgba(178,255,0,0.25)' : 'rgba(255,255,255,0.12)' }}'"
+                                    onmouseout="this.style.background='{{ $isMine ? 'rgba(178,255,0,0.15)' : 'rgba(255,255,255,0.07)' }}'">{{ $rxEmoji }}@if($rxList->count() > 1)<span style="font-size:10px; color:{{ $isMine ? '#b2ff00' : 'rgba(255,255,255,0.4)' }};">{{ $rxList->count() }}</span>@endif</button>
                             @endforeach
                         </div>
                         @endif
@@ -623,10 +630,17 @@
 
                         {{-- Reactions (agent side, right-aligned) --}}
                         @if(!empty($msg->reactions))
-                        @php $rxGroupedA = collect($msg->reactions)->groupBy('emoji'); @endphp
+                        @php
+                            $rxGroupedA = collect($msg->reactions)->groupBy('emoji');
+                            $myEmojisA = collect($msg->reactions)->where('phone', $myReactionPhone)->pluck('emoji')->toArray();
+                        @endphp
                         <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; margin-top:4px; margin-right:2px;">
                             @foreach($rxGroupedA as $rxEmoji => $rxListA)
-                            <span style="background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.2); border-radius:20px; padding:2px 7px; font-size:13px; line-height:1.5; display:inline-flex; align-items:center; gap:3px;">{{ $rxEmoji }}@if($rxListA->count() > 1)<span style="font-size:10px; color:rgba(255,255,255,0.4);">{{ $rxListA->count() }}</span>@endif</span>
+                            @php $isMineA = in_array($rxEmoji, $myEmojisA); @endphp
+                            <button wire:click="reactToMessage({{ $msg->id }}, '{{ $rxEmoji }}')"
+                                    style="background:{{ $isMineA ? 'rgba(178,255,0,0.2)' : 'rgba(178,255,0,0.1)' }}; border:1px solid {{ $isMineA ? 'rgba(178,255,0,0.4)' : 'rgba(178,255,0,0.2)' }}; border-radius:20px; padding:2px 7px; font-size:13px; line-height:1.5; display:inline-flex; align-items:center; gap:3px; cursor:pointer; transition:all 0.15s;"
+                                    onmouseover="this.style.background='{{ $isMineA ? 'rgba(178,255,0,0.3)' : 'rgba(178,255,0,0.15)' }}'"
+                                    onmouseout="this.style.background='{{ $isMineA ? 'rgba(178,255,0,0.2)' : 'rgba(178,255,0,0.1)' }}'">{{ $rxEmoji }}@if($rxListA->count() > 1)<span style="font-size:10px; color:rgba(255,255,255,0.4);">{{ $rxListA->count() }}</span>@endif</button>
                             @endforeach
                         </div>
                         @endif

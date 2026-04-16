@@ -126,11 +126,22 @@ class ChatArea extends Component
         $reactions = $msg->reactions ?? [];
         $myPhone   = $config?->phone_number ?? 'crm';
 
+        // Verifica se já tenho essa mesma reação (toggle: remove se já existe)
+        $existing = collect($reactions)->first(fn($r) => ($r['phone'] ?? '') === $myPhone && ($r['emoji'] ?? '') === $emoji);
+
         // Remove reação anterior minha (se existir)
         $reactions = array_values(array_filter($reactions, fn($r) => ($r['phone'] ?? '') !== $myPhone));
 
-        // Adiciona nova (emoji vazio = remoção)
-        if ($emoji) {
+        if ($existing) {
+            // Mesma reação = remover (envia emoji vazio pro WhatsApp)
+            try {
+                if ($config?->is_active) {
+                    $svc = new \App\Services\EvolutionApiService($config);
+                    $svc->sendReaction($msg->zapi_message_id, $remoteJid, '');
+                }
+            } catch (\Throwable) {}
+        } else {
+            // Nova reação ou troca
             $reactions[] = ['emoji' => $emoji, 'phone' => $myPhone, 'at' => now()->toISOString()];
         }
 
@@ -788,9 +799,11 @@ class ChatArea extends Component
             }
         }
 
+        $myReactionPhone = \App\Models\EvolutionApiConfig::current()?->phone_number ?? 'crm';
+
         return view('livewire.chat.chat-area', compact(
             'messages', 'quickReplies', 'departments', 'transferAgents',
-            'crmPipelines', 'crmStages', 'crmCards'
+            'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone'
         ));
     }
 }
