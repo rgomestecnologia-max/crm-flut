@@ -42,8 +42,9 @@ COPY . .
 # Finaliza instalação do Composer (scripts, auto-discover)
 RUN composer dump-autoload --optimize
 
-# Permissões do storage
-RUN chown -R www-data:www-data storage bootstrap/cache \
+# Permissões do storage + diretório temporário do Livewire
+RUN mkdir -p storage/app/livewire-tmp \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 # Cria symlink do storage
