@@ -941,8 +941,12 @@
             fmtRec(s) { return Math.floor(s/60)+':'+(''+(s%60)).padStart(2,'0'); }
          }">
 
-        {{-- Loading durante upload --}}
-        <div wire:loading wire:target="pendingFile"
+        {{-- Loading durante upload (controlado via eventos Livewire) --}}
+        <div x-data="{ uploading: false }"
+             x-on:livewire-upload-start="uploading = true"
+             x-on:livewire-upload-finish="uploading = false"
+             x-on:livewire-upload-error="uploading = false"
+             x-show="uploading"
              style="display:flex; align-items:center; gap:10px; background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:10px 14px; margin-bottom:8px;">
             <svg style="animation:spin 1s linear infinite; flex-shrink:0;" width="18" height="18" fill="none" stroke="#b2ff00" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
