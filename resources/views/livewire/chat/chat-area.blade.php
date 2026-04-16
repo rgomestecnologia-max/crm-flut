@@ -373,13 +373,25 @@
                             </div>
                         @endif
                         {{-- Hover reaction bar --}}
-                        <div x-show="showMenu" x-transition.opacity style="display:flex; gap:2px; margin-top:4px; margin-left:2px;">
+                        <div x-show="showMenu" x-transition.opacity style="display:flex; gap:2px; margin-top:4px; margin-left:2px; align-items:center;">
                             @foreach(['👍','❤️','😂','😮','😢','🙏'] as $e)
                             <button wire:click="reactToMessage({{ $msg->id }}, '{{ $e }}')"
                                     style="font-size:16px; padding:2px 4px; border:none; background:rgba(255,255,255,0.05); border-radius:6px; cursor:pointer; transition:background 0.1s; line-height:1;"
                                     onmouseover="this.style.background='rgba(255,255,255,0.15)'"
                                     onmouseout="this.style.background='rgba(255,255,255,0.05)'">{{ $e }}</button>
                             @endforeach
+                            @if($conversation->is_group && $msg->sender_phone)
+                            <button wire:click="openPrivateChat({{ $msg->id }})"
+                                    title="Responder no particular"
+                                    style="display:flex; align-items:center; gap:4px; font-size:10px; font-weight:600; padding:3px 8px; border:none; background:rgba(59,130,246,0.15); color:#60a5fa; border-radius:6px; cursor:pointer; transition:all 0.15s; margin-left:4px; white-space:nowrap;"
+                                    onmouseover="this.style.background='rgba(59,130,246,0.3)'"
+                                    onmouseout="this.style.background='rgba(59,130,246,0.15)'">
+                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                Particular
+                            </button>
+                            @endif
                         </div>
 
                         {{-- Reactions --}}

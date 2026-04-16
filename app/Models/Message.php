@@ -11,7 +11,7 @@ class Message extends Model
     use BelongsToCompany;
 
     protected $fillable = [
-        'company_id', 'conversation_id', 'sender_type', 'sender_id', 'sender_name',
+        'company_id', 'conversation_id', 'sender_type', 'sender_id', 'sender_name', 'sender_phone',
         'content', 'type', 'media_url', 'media_filename', 'media_duration',
         'zapi_message_id', 'delivery_status', 'is_read', 'reactions',
     ];

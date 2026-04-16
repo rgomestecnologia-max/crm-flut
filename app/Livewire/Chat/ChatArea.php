@@ -5,6 +5,7 @@ namespace App\Livewire\Chat;
 use App\Events\ConversationStatusChanged;
 use App\Events\MessageReceived;
 use App\Jobs\SendWhatsAppMessage;
+use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\CrmCard;
 use App\Models\CrmCardActivity;
@@ -609,6 +610,51 @@ class ChatArea extends Component
     {
         // Limpa o agente selecionado quando o departamento muda
         $this->transferAgent = null;
+    }
+
+    /**
+     * Abre (ou cria) uma conversa particular com o remetente de uma mensagem de grupo.
+     */
+    public function openPrivateChat(int $messageId): void
+    {
+        $msg = Message::find($messageId);
+        if (!$msg || !$msg->sender_phone) {
+            $this->dispatch('toast', type: 'error', message: 'Telefone do remetente não disponível.');
+            return;
+        }
+
+        $phone = $msg->sender_phone;
+        $name  = $msg->sender_name;
+
+        // Busca ou cria o contato individual
+        $contact = Contact::where('phone', $phone)->first();
+        if (!$contact) {
+            $contact = Contact::create([
+                'phone' => $phone,
+                'name'  => $name,
+            ]);
+        }
+
+        // Busca conversa individual existente (não resolvida)
+        $conv = Conversation::where('contact_id', $contact->id)
+            ->where('is_group', false)
+            ->whereIn('status', ['open', 'pending', 'transferred'])
+            ->latest()
+            ->first();
+
+        if (!$conv) {
+            // Cria nova conversa individual no mesmo departamento
+            $conv = Conversation::create([
+                'contact_id'    => $contact->id,
+                'department_id' => $this->conversation->department_id ?? Department::active()->first()?->id,
+                'assigned_to'   => Auth::id(),
+                'status'        => 'open',
+                'is_group'      => false,
+            ]);
+        }
+
+        $this->dispatch('conversation-selected', id: $conv->id);
+        $this->dispatch('toast', type: 'success', message: "Conversa particular com {$contact->name} aberta.");
     }
 
     public function transferConversation(): void

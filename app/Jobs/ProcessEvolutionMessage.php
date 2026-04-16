@@ -222,6 +222,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                 'sender_type'     => $senderType,
                 'sender_id'       => null,
                 'sender_name'     => ($isGroup && !$fromMe) ? $senderName : null,
+                'sender_phone'    => ($isGroup && !$fromMe) ? $senderPhone : null,
                 'content'         => $content,
                 'type'            => $type,
                 'media_url'       => $mediaUrl,
