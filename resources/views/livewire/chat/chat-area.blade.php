@@ -322,6 +322,31 @@
                                 </div>
                                 <audio src="{{ $msg->media_url }}" preload="auto" style="display:none"></audio>
                             </div>
+                        @elseif($msg->type === 'video')
+                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); max-width:min(300px, 80vw);">
+                                @if($msg->sender_name)
+                                    <p style="font-size:11px; font-weight:700; color:#b2ff00; padding:8px 10px 4px;">{{ $msg->sender_name }}</p>
+                                @endif
+                                <div style="position:relative;">
+                                    @if($msg->media_thumb_url)
+                                    <img src="{{ $msg->media_thumb_url }}" alt="Vídeo" style="width:100%; display:block; cursor:pointer;"
+                                         @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })">
+                                    @endif
+                                    <video src="{{ $msg->media_url }}" controls preload="metadata" playsinline
+                                           style="width:100%; display:block; border-radius:0; {{ $msg->media_thumb_url ? 'display:none;' : '' }}"
+                                           @if($msg->media_thumb_url) x-ref="vid_{{ $msg->id }}" @endif>
+                                    </video>
+                                    @if($msg->media_thumb_url)
+                                    <button @click="$refs.vid_{{ $msg->id }}.style.display='block'; $refs.vid_{{ $msg->id }}.play(); $el.parentElement.querySelector('img').style.display='none'; $el.style.display='none'"
+                                            style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:48px; height:48px; border-radius:50%; background:rgba(0,0,0,0.6); border:2px solid rgba(255,255,255,0.3); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </button>
+                                    @endif
+                                </div>
+                                @if($msg->content)
+                                    <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6);">{{ $msg->content }}</p>
+                                @endif
+                            </div>
                         @elseif($msg->type === 'document')
                             @php
                                 $docFile  = $msg->media_filename ?? 'Documento';
@@ -541,7 +566,29 @@
                                 </div>
                                 <audio src="{{ $msg->media_url }}" preload="auto" style="display:none"></audio>
                             </div>
-                        @elseif($msg->type === 'document' || $msg->type === 'video')
+                        @elseif($msg->type === 'video')
+                            <div style="background:rgba(73,101,10,0.3); border-radius:18px 18px 4px 18px; overflow:hidden; box-shadow:0 2px 12px rgba(73,101,10,0.3); max-width:min(300px, 80vw);">
+                                <div style="position:relative;">
+                                    @if($msg->media_thumb_url)
+                                    <img src="{{ $msg->media_thumb_url }}" alt="Vídeo" style="width:100%; display:block; cursor:pointer;"
+                                         @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })">
+                                    @endif
+                                    <video src="{{ $msg->media_url }}" controls preload="metadata" playsinline
+                                           style="width:100%; display:block; border-radius:0; {{ $msg->media_thumb_url ? 'display:none;' : '' }}"
+                                           @if($msg->media_thumb_url) x-ref="avid_{{ $msg->id }}" @endif>
+                                    </video>
+                                    @if($msg->media_thumb_url)
+                                    <button @click="$refs.avid_{{ $msg->id }}.style.display='block'; $refs.avid_{{ $msg->id }}.play(); $el.parentElement.querySelector('img').style.display='none'; $el.style.display='none'"
+                                            style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:48px; height:48px; border-radius:50%; background:rgba(0,0,0,0.6); border:2px solid rgba(255,255,255,0.3); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </button>
+                                    @endif
+                                </div>
+                                @if($msg->content)
+                                    <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6);">{{ $msg->content }}</p>
+                                @endif
+                            </div>
+                        @elseif($msg->type === 'document')
                             @php
                                 $aDocFile  = $msg->media_filename ?? $msg->content ?? 'Arquivo';
                                 $aDocExt   = strtolower(pathinfo($aDocFile, PATHINFO_EXTENSION));
