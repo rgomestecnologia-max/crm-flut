@@ -135,7 +135,15 @@ class ChatArea extends Component
         if ($config?->is_active) {
             try {
                 $svc = new \App\Services\EvolutionApiService($config);
-                $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji, $fromMe);
+                $result = $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji, $fromMe);
+                Log::info('Reaction sent to WhatsApp', [
+                    'messageId' => $msg->zapi_message_id,
+                    'remoteJid' => $remoteJid,
+                    'emoji'     => $whatsappEmoji ?: '(vazio/remover)',
+                    'fromMe'    => $fromMe,
+                    'toggle'    => $existing ? 'REMOVE' : 'ADD',
+                    'response'  => $result,
+                ]);
             } catch (\Throwable $e) {
                 Log::warning('Reaction send failed', ['error' => $e->getMessage()]);
             }
