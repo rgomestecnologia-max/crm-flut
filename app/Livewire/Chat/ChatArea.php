@@ -130,10 +130,12 @@ class ChatArea extends Component
         }
 
         // Envia pro WhatsApp (emoji ou vazio para remover)
+        // fromMe = true se a mensagem original foi enviada por nós (agente), false se do contato
+        $fromMe = $msg->sender_type === 'agent';
         if ($config?->is_active) {
             try {
                 $svc = new \App\Services\EvolutionApiService($config);
-                $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji);
+                $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji, $fromMe);
             } catch (\Throwable $e) {
                 Log::warning('Reaction send failed', ['error' => $e->getMessage()]);
             }

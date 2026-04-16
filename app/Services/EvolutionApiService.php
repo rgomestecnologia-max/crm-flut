@@ -245,13 +245,13 @@ class EvolutionApiService
 
     // ─── Reações, edição e deleção ────────────────────────────────────────
 
-    public function sendReaction(string $messageId, string $remoteJid, string $emoji): array
+    public function sendReaction(string $messageId, string $remoteJid, string $emoji, bool $fromMe = true): array
     {
         return $this->post("/message/sendReaction/{$this->instanceName}", [
             'reactionMessage' => [
                 'key' => [
                     'remoteJid' => $remoteJid,
-                    'fromMe'    => true,
+                    'fromMe'    => $fromMe,
                     'id'        => $messageId,
                 ],
                 'reaction' => $emoji,
