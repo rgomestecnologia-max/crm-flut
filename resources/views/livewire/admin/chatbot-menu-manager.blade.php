@@ -124,6 +124,70 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
 
         </div>
 
+        {{-- Horário de Funcionamento --}}
+        <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,15,28,0.95) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; margin-bottom:16px; position:relative; overflow:hidden;">
+            <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, {{ $business_hours_enabled ? '#f59e0b80' : 'rgba(107,114,128,0.3)' }}, transparent); border-radius:16px 16px 0 0;"></div>
+
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                <button type="button" wire:click="$toggle('business_hours_enabled')"
+                        style="position:relative; display:inline-flex; width:44px; height:24px; border-radius:20px; border:none; cursor:pointer; transition:background 0.2s; flex-shrink:0; background:{{ $business_hours_enabled ? '#f59e0b' : 'rgba(255,255,255,0.1)' }};">
+                    <span style="position:absolute; top:2px; width:20px; height:20px; border-radius:50%; background:white; box-shadow:0 1px 4px rgba(0,0,0,0.3); transition:left 0.2s; left:{{ $business_hours_enabled ? '22px' : '2px' }};"></span>
+                </button>
+                <div>
+                    <p style="font-size:13px; font-weight:700; color:white;">Horário de Funcionamento</p>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3);">Quando ativado, mensagens fora do expediente recebem uma resposta automática.</p>
+                </div>
+            </div>
+
+            @if($business_hours_enabled)
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                @php
+                    $dayLabels = [
+                        'monday'    => 'Segunda-feira',
+                        'tuesday'   => 'Terça-feira',
+                        'wednesday' => 'Quarta-feira',
+                        'thursday'  => 'Quinta-feira',
+                        'friday'    => 'Sexta-feira',
+                        'saturday'  => 'Sábado',
+                        'sunday'    => 'Domingo',
+                    ];
+                @endphp
+                @foreach($dayLabels as $dayKey => $dayLabel)
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; min-width:140px;">
+                        <input type="checkbox"
+                               wire:model.live="business_hours.{{ $dayKey }}.active"
+                               style="width:16px; height:16px; accent-color:#f59e0b; cursor:pointer;">
+                        <span style="font-size:12px; font-weight:600; color:{{ ($business_hours[$dayKey]['active'] ?? false) ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.25)' }};">
+                            {{ $dayLabel }}
+                        </span>
+                    </label>
+                    @if($business_hours[$dayKey]['active'] ?? false)
+                    <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
+                        <input type="time"
+                               wire:model="business_hours.{{ $dayKey }}.start"
+                               style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; font-size:12px; color:white; outline:none; color-scheme:dark;">
+                        <span style="font-size:11px; color:rgba(255,255,255,0.2);">às</span>
+                        <input type="time"
+                               wire:model="business_hours.{{ $dayKey }}.end"
+                               style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:4px 8px; font-size:12px; color:white; outline:none; color-scheme:dark;">
+                    </div>
+                    @else
+                    <span style="font-size:11px; color:rgba(255,255,255,0.15); margin-left:auto;">Fechado</span>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+
+            <div>
+                <label style="{{ $labelStyle }}">Mensagem fora do horário * <span style="text-transform:none; font-weight:400; color:rgba(255,255,255,0.2);">use {empresa}</span></label>
+                <textarea wire:model="outside_hours_message" rows="3"
+                          placeholder="Olá! Nosso horário de atendimento é de segunda a sexta, das 08:00 às 18:00."
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+            </div>
+            @endif
+        </div>
+
         {{-- Save --}}
         <div style="display:flex; justify-content:flex-end;">
             <button type="submit"

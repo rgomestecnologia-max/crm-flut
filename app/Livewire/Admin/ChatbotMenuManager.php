@@ -16,6 +16,9 @@ class ChatbotMenuManager extends Component
     public string $menu_prompt            = '';
     public string $invalid_option_message = '';
     public string $after_selection_message = '';
+    public bool   $business_hours_enabled = false;
+    public array  $business_hours         = [];
+    public string $outside_hours_message  = '';
 
     public function mount(): void
     {
@@ -29,11 +32,16 @@ class ChatbotMenuManager extends Component
             $this->menu_prompt             = $config->menu_prompt;
             $this->invalid_option_message  = $config->invalid_option_message;
             $this->after_selection_message = $config->after_selection_message ?? '';
+            $this->business_hours_enabled  = $config->business_hours_enabled ?? false;
+            $this->business_hours          = $config->business_hours ?? $this->defaultBusinessHours();
+            $this->outside_hours_message   = $config->outside_hours_message ?? '';
         } else {
             $this->welcome_template       = "Olá {nome}!\nSeja muito bem-vindo(a) ao atendimento digital da {empresa}.";
             $this->menu_prompt            = 'Digite o *número* do setor que deseja falar:';
             $this->invalid_option_message = 'Opção inválida. Por favor, digite apenas o número correspondente ao setor desejado.';
             $this->after_selection_message = 'Perfeito! Direcionando você para o setor de *{departamento}*. Em breve um de nossos atendentes irá te responder. 😊';
+            $this->business_hours          = $this->defaultBusinessHours();
+            $this->outside_hours_message   = 'Olá! Nosso horário de atendimento é de segunda a sexta, das 08:00 às 18:00. Deixe sua mensagem que retornaremos assim que possível!';
         }
     }
 
@@ -76,8 +84,22 @@ class ChatbotMenuManager extends Component
             'welcome_template'        => $this->welcome_template,
             'menu_prompt'             => $this->menu_prompt,
             'invalid_option_message'  => $this->invalid_option_message,
-            'after_selection_message' => $this->after_selection_message ?: null,
+            'after_selection_message'  => $this->after_selection_message ?: null,
+            'business_hours_enabled'  => $this->business_hours_enabled,
+            'business_hours'          => $this->business_hours,
+            'outside_hours_message'   => $this->outside_hours_message ?: null,
         ]);
+    }
+
+    private function defaultBusinessHours(): array
+    {
+        $default = [];
+        foreach (['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as $day) {
+            $default[$day] = ['active' => true, 'start' => '08:00', 'end' => '18:00'];
+        }
+        $default['saturday'] = ['active' => false, 'start' => '08:00', 'end' => '12:00'];
+        $default['sunday']   = ['active' => false, 'start' => '08:00', 'end' => '12:00'];
+        return $default;
     }
 
     public function render()

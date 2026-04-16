@@ -47,6 +47,14 @@ class ProcessMenuBot implements ShouldQueue
                 ->exists();
             if ($alreadyResponded) return;
 
+            // Verifica horário de funcionamento (só para novas conversas, não para seleção de menu)
+            if (!$this->conversation->menu_awaiting && !$this->conversation->assigned_to) {
+                if (!$this->config->isWithinBusinessHours()) {
+                    $this->sendOutsideHoursMessage();
+                    return;
+                }
+            }
+
             if ($this->conversation->menu_awaiting) {
                 $this->processSelection($triggerMessage);
             } else {
@@ -148,6 +156,31 @@ class ProcessMenuBot implements ShouldQueue
             'conv' => $this->conversation->id,
             'dept' => $department->name,
         ]);
+    }
+
+    private function sendOutsideHoursMessage(): void
+    {
+        $message = $this->config->outside_hours_message;
+        if (!$message) {
+            $message = 'Olá! No momento estamos fora do horário de atendimento. Deixe sua mensagem que retornaremos assim que possível!';
+        }
+
+        $companyName = $this->config->company_name ?: config('app.name');
+        $message = str_replace('{empresa}', $companyName, $message);
+
+        // Evita enviar a mensagem de fora do horário mais de uma vez na mesma conversa
+        $alreadySent = Message::where('conversation_id', $this->conversation->id)
+            ->where('sender_type', 'agent')
+            ->whereNull('sender_id')
+            ->where('content', $message)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->exists();
+
+        if ($alreadySent) return;
+
+        $this->saveAndSend($message);
+
+        Log::info('MenuBot: mensagem fora do horário enviada', ['conv' => $this->conversation->id]);
     }
 
     private function sendInvalidOption(): void
