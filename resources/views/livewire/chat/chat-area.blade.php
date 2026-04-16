@@ -926,11 +926,25 @@
          }">
 
         {{-- Preview de arquivo pendente --}}
+        {{-- Upload loading indicator --}}
+        <div wire:loading wire:target="pendingFile"
+             style="display:flex; align-items:center; gap:10px; background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:10px 14px; margin-bottom:8px;">
+            <svg style="animation:spin 1s linear infinite; flex-shrink:0;" width="18" height="18" fill="none" stroke="#b2ff00" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span style="font-size:12px; color:rgba(178,255,0,0.7);">Carregando arquivo...</span>
+        </div>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
         @if($pendingFile)
         <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:8px 12px; margin-bottom:8px;">
             @php $mime = $pendingFile->getMimeType() ?? ''; @endphp
             @if(str_starts_with($mime, 'image/'))
                 <img src="{{ $pendingFile->temporaryUrl() }}" style="width:44px; height:44px; border-radius:8px; object-fit:cover; flex-shrink:0;">
+            @elseif(str_starts_with($mime, 'video/'))
+                <div style="width:44px; height:44px; border-radius:8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="18" height="18" fill="#60a5fa" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
             @else
                 <div style="width:36px; height:36px; border-radius:8px; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <svg width="16" height="16" fill="none" stroke="#b2ff00" viewBox="0 0 24 24">
@@ -1022,7 +1036,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
                             <span style="font-size:12px; color:rgba(255,255,255,0.6);">Foto / Vídeo</span>
-                            <input type="file" wire:model="pendingFile" @change="open=false" accept="image/*,video/*" class="hidden">
+                            <input type="file" wire:model="pendingFile" @change="open=false" accept="image/*,video/*,.mp4,.mov,.avi,.webm" class="hidden">
                         </label>
                         <label style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s; border-top:1px solid rgba(255,255,255,0.04);"
                                onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
