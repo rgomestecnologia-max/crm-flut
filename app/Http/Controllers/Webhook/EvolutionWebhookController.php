@@ -89,6 +89,46 @@ class EvolutionWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
+        // ── Mensagem excluída pelo remetente ──────────────────────────────
+        if ($event === 'messages.update') {
+            $data   = $payload['data'] ?? [];
+            $msgId  = $data['id'] ?? $data['key']['id'] ?? null;
+            $status = $data['status'] ?? null;
+
+            // Mensagem revogada/excluída (status REVOKE ou messageStubType)
+            if ($msgId && ($status === 'REVOKE' || ($data['messageStubType'] ?? null) === 'REVOKE')) {
+                $msg = \App\Models\Message::withoutGlobalScope(\App\Models\Scopes\CompanyScope::class)
+                    ->where('zapi_message_id', $msgId)
+                    ->first();
+
+                if ($msg) {
+                    Log::info('Mensagem excluída pelo remetente', ['message_id' => $msg->id, 'zapi_id' => $msgId]);
+                    $msg->delete();
+                }
+            }
+
+            return response()->json(['ok' => true]);
+        }
+
+        // ── Mensagem excluída (evento messages.delete) ────────────────────
+        if ($event === 'messages.delete') {
+            $data  = $payload['data'] ?? [];
+            $msgId = $data['id'] ?? $data['key']['id'] ?? null;
+
+            if ($msgId) {
+                $msg = \App\Models\Message::withoutGlobalScope(\App\Models\Scopes\CompanyScope::class)
+                    ->where('zapi_message_id', $msgId)
+                    ->first();
+
+                if ($msg) {
+                    Log::info('Mensagem excluída (messages.delete)', ['message_id' => $msg->id, 'zapi_id' => $msgId]);
+                    $msg->delete();
+                }
+            }
+
+            return response()->json(['ok' => true]);
+        }
+
         // ── Mensagens recebidas / enviadas ─────────────────────────────────
         if ($event === 'messages.upsert') {
             $data    = $payload['data'] ?? [];
