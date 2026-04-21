@@ -17,7 +17,7 @@
 
                     {{-- Foto --}}
                     @if($item->photo_path)
-                    <img src="/storage/{{ $item->photo_path }}" alt="{{ $item->name }}"
+                    <img src="{{ \App\Services\MediaStorage::url($item->photo_path) }}" alt="{{ $item->name }}"
                          style="width:36px; height:36px; object-fit:cover; border-radius:8px; flex-shrink:0;">
                     @else
                     <div style="width:36px; height:36px; background:rgba(31,41,55,0.8); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
@@ -178,7 +178,7 @@
 
                 @if($existingPhoto && !$photo)
                 <div class="flex items-center gap-3 mb-2">
-                    <img src="/storage/{{ $existingPhoto }}" alt="Foto atual"
+                    <img src="{{ \App\Services\MediaStorage::url($existingPhoto) }}" alt="Foto atual"
                          class="w-14 h-14 object-cover rounded-lg border border-surface-600">
                     <button type="button" wire:click="$set('existingPhoto', null)"
                             class="text-xs text-red-400 hover:text-red-300">Remover</button>
