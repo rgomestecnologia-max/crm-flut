@@ -388,46 +388,6 @@
                                 @endif
                             </div>
                         @endif
-                        {{-- Emoji + seta: posicionado fora do box, centralizado à direita --}}
-                        <div x-show="showMenu" x-transition.opacity
-                             style="position:absolute; right:-32px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:3px; z-index:10;">
-                            <button @click.stop="showMenu = 'react'"
-                                    style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
-                                    onmouseover="this.style.background='rgba(255,255,255,0.15)'"
-                                    onmouseout="this.style.background='rgba(255,255,255,0.08)'">😊</button>
-                            @if($conversation->is_group && $msg->sender_phone)
-                            <button @click.stop="showMenu = 'drop'"
-                                    style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); transition:all 0.15s;"
-                                    onmouseover="this.style.background='rgba(255,255,255,0.15)'"
-                                    onmouseout="this.style.background='rgba(255,255,255,0.08)'">
-                                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            @endif
-                        </div>
-                        {{-- Popup reações: acima do emoji --}}
-                        <div x-show="showMenu === 'react'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; right:-32px; top:50%; transform:translateY(calc(-100% - 20px)); z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
-                            @foreach(['👍','❤️','😂','😮','😢','🙏'] as $e)
-                            <button wire:click="reactToMessage({{ $msg->id }}, '{{ $e }}')" @click="showMenu = false"
-                                    style="font-size:18px; padding:3px 4px; border:none; background:transparent; border-radius:6px; cursor:pointer; transition:all 0.12s; line-height:1;"
-                                    onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='scale(1.15)'"
-                                    onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'">{{ $e }}</button>
-                            @endforeach
-                        </div>
-                        {{-- Dropdown seta --}}
-                        @if($conversation->is_group && $msg->sender_phone)
-                        <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; right:-32px; top:50%; transform:translateY(8px); z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
-                            <button wire:click="openPrivateChat({{ $msg->id }})" @click="showMenu = false"
-                                    style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
-                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
-                                    onmouseout="this.style.background='transparent'">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                Responder no particular
-                            </button>
-                        </div>
-                        @endif
-
                         {{-- Reactions --}}
                         @if(!empty($msg->reactions))
                         @php
@@ -447,6 +407,45 @@
                         <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:3px; margin-left:4px;">
                             {{ $msg->created_at->format('H:i') }}
                         </p>
+                    </div>
+                    {{-- Emoji + seta: como item flex colado ao conteúdo --}}
+                    <div x-show="showMenu" x-transition.opacity
+                         style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; align-self:center; position:relative;">
+                        <button @click.stop="showMenu = 'react'"
+                                style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+                                onmouseout="this.style.background='rgba(255,255,255,0.08)'">😊</button>
+                        @if($conversation->is_group && $msg->sender_phone)
+                        <button @click.stop="showMenu = 'drop'"
+                                style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); transition:all 0.15s;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+                                onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        @endif
+                        {{-- Popup reações acima --}}
+                        <div x-show="showMenu === 'react'" x-transition @click.outside="showMenu = true"
+                             style="position:absolute; bottom:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
+                            @foreach(['👍','❤️','😂','😮','😢','🙏'] as $e)
+                            <button wire:click="reactToMessage({{ $msg->id }}, '{{ $e }}')" @click="showMenu = false"
+                                    style="font-size:18px; padding:3px 4px; border:none; background:transparent; border-radius:6px; cursor:pointer; transition:all 0.12s; line-height:1;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='scale(1.15)'"
+                                    onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'">{{ $e }}</button>
+                            @endforeach
+                        </div>
+                        {{-- Dropdown seta --}}
+                        @if($conversation->is_group && $msg->sender_phone)
+                        <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
+                             style="position:absolute; top:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
+                            <button wire:click="openPrivateChat({{ $msg->id }})" @click="showMenu = false"
+                                    style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                Responder no particular
+                            </button>
+                        </div>
+                        @endif
                     </div>
                 </div>
             @else
