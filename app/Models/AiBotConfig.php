@@ -19,6 +19,7 @@ class AiBotConfig extends Model
         'department_routing_prompt',
         'initial_greeting',
         'max_bot_turns',
+        'handoff_message',
     ];
 
     protected $casts = [

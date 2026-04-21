@@ -91,55 +91,33 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
             </div>
         </div>
 
-        {{-- Roteamento --}}
-        <div style="{{ $cardStyle }}">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <div style="width:2px; height:16px; background:#3b82f6; border-radius:2px;"></div>
-                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Roteamento de Departamentos</h3>
-            </div>
-            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">O robô identifica o assunto e direciona para o departamento correto automaticamente.</p>
-
-            @if($departments->isNotEmpty())
-            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px; margin-bottom:14px;">
-                <p style="font-size:9px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Departamentos cadastrados</p>
-                <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                    @foreach($departments as $dept)
-                    <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:7px; padding:4px 10px; font-size:11px;">
-                        <span style="width:7px; height:7px; border-radius:50%; flex-shrink:0; background:{{ $dept->color }};"></span>
-                        <span style="color:rgba(255,255,255,0.4);">ID <strong style="color:rgba(255,255,255,0.7);">{{ $dept->id }}</strong>: {{ $dept->name }}</span>
-                    </span>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            <div>
-                <label style="{{ $labelStyle }}">Instruções de roteamento</label>
-                <textarea wire:model="department_routing_prompt" rows="5"
-                          placeholder="Exemplo: Analise o assunto e direcione. Vendas/compras → Vendas. Problemas técnicos → Suporte. Pagamentos → Financeiro. Use [DEPT:ID] no final quando identificar o departamento."
-                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
-                @error('department_routing_prompt') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
-            </div>
-        </div>
-
         {{-- Controles --}}
         <div style="{{ $cardStyle }}">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">
                 <div style="width:2px; height:16px; background:#a855f7; border-radius:2px;"></div>
                 <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Controles</h3>
             </div>
-            <div style="display:flex; align-items:flex-start; gap:20px;">
-                <div>
-                    <label style="{{ $labelStyle }}">Máx. turnos do robô por conversa</label>
-                    <input wire:model="max_bot_turns" type="number" min="1" max="50"
-                           style="width:96px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:13px; color:white; outline:none; transition:all 0.2s; font-family:inherit; text-align:center;"
-                           onfocus="this.style.borderColor='rgba(178,255,0,0.5)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.07)'"
-                           onblur="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.boxShadow='none'">
-                    @error('max_bot_turns') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; align-items:flex-start; gap:20px;">
+                    <div>
+                        <label style="{{ $labelStyle }}">Máx. turnos do robô por conversa</label>
+                        <input wire:model="max_bot_turns" type="number" min="1" max="50"
+                               style="width:96px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:13px; color:white; outline:none; transition:all 0.2s; font-family:inherit; text-align:center;"
+                               onfocus="this.style.borderColor='rgba(178,255,0,0.5)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.07)'"
+                               onblur="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.boxShadow='none'">
+                        @error('max_bot_turns') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                    </div>
+                    <div style="flex:1; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px;">
+                        <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Passagem para humano</p>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.2); line-height:1.5;">Ao atingir o limite de turnos, o robô envia a mensagem abaixo e para de responder. Um agente também pode assumir a qualquer momento.</p>
+                    </div>
                 </div>
-                <div style="flex:1; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px;">
-                    <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Passagem para humano</p>
-                    <p style="font-size:11px; color:rgba(255,255,255,0.2); line-height:1.5;">O robô para automaticamente quando um agente enviar qualquer mensagem manual na conversa.</p>
+                <div>
+                    <label style="{{ $labelStyle }}">Mensagem de transferência para atendente</label>
+                    <textarea wire:model="handoff_message" rows="2"
+                              placeholder="Vou transferir você para um de nossos atendentes. Em breve alguém irá te responder!"
+                              style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                    @error('handoff_message') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>

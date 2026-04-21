@@ -83,6 +83,27 @@ class ProcessBotResponse implements ShouldQueue
 
             if ($botTurns >= $this->config->max_bot_turns) {
                 Log::info('IA: limite de turnos atingido', ['conv' => $this->conversation->id, 'turns' => $botTurns]);
+
+                // Envia mensagem de handoff configurada
+                $handoffText = $this->config->handoff_message
+                    ?: 'Vou transferir você para um de nossos atendentes. Em breve alguém irá te responder!';
+
+                $handoffMsg = Message::create([
+                    'conversation_id' => $this->conversation->id,
+                    'sender_type'     => 'agent',
+                    'sender_id'       => null,
+                    'content'         => $handoffText,
+                    'type'            => 'text',
+                    'delivery_status' => 'pending',
+                ]);
+
+                $this->conversation->update(['last_message_at' => now()]);
+                SendWhatsAppMessage::dispatch($handoffMsg);
+
+                try {
+                    broadcast(new MessageReceived($handoffMsg));
+                } catch (\Throwable) {}
+
                 return;
             }
 

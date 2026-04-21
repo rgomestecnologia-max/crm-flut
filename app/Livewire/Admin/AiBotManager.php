@@ -15,6 +15,7 @@ class AiBotManager extends Component
     public string $department_routing_prompt = '';
     public string $initial_greeting          = '';
     public int    $max_bot_turns             = 5;
+    public string $handoff_message           = '';
 
     public function mount(): void
     {
@@ -25,6 +26,7 @@ class AiBotManager extends Component
             $this->department_routing_prompt = $config->department_routing_prompt ?? '';
             $this->initial_greeting          = $config->initial_greeting ?? '';
             $this->max_bot_turns             = $config->max_bot_turns ?? 5;
+            $this->handoff_message           = $config->handoff_message ?? '';
         }
     }
 
@@ -55,6 +57,7 @@ class AiBotManager extends Component
             'department_routing_prompt' => 'nullable|string|max:2000',
             'initial_greeting'          => 'nullable|string|max:1000',
             'max_bot_turns'             => 'required|integer|min:1|max:50',
+            'handoff_message'           => 'nullable|string|max:1000',
         ]);
 
         $data = [
@@ -62,6 +65,7 @@ class AiBotManager extends Component
             'department_routing_prompt' => $this->department_routing_prompt ?: null,
             'initial_greeting'          => $this->initial_greeting ?: null,
             'max_bot_turns'             => $this->max_bot_turns,
+            'handoff_message'           => $this->handoff_message ?: null,
         ];
 
         AiBotConfig::updateOrCreate(
