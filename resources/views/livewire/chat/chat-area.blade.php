@@ -624,51 +624,6 @@
                                 @endif
                             </div>
                         @endif
-                        {{-- Emoji + seta: posicionado fora do box, centralizado à esquerda (agent) --}}
-                        <div x-show="showMenu && !editing" x-transition.opacity
-                             style="position:absolute; left:-32px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:3px; z-index:10;">
-                            <button @click.stop="showMenu = 'react'"
-                                    style="width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
-                                    onmouseover="this.style.background='rgba(178,255,0,0.15)'"
-                                    onmouseout="this.style.background='rgba(178,255,0,0.08)'">😊</button>
-                            <button @click.stop="showMenu = 'drop'"
-                                    style="width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(178,255,0,0.5); transition:all 0.15s;"
-                                    onmouseover="this.style.background='rgba(178,255,0,0.15)'"
-                                    onmouseout="this.style.background='rgba(178,255,0,0.08)'">
-                                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                        </div>
-                        {{-- Popup reações acima (agent) --}}
-                        <div x-show="showMenu === 'react'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; left:-32px; top:50%; transform:translateY(calc(-100% - 20px)); z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
-                            @foreach(['👍','❤️','😂','😮','😢','🙏'] as $e)
-                            <button wire:click="reactToMessage({{ $msg->id }}, '{{ $e }}')" @click="showMenu = false"
-                                    style="font-size:18px; padding:3px 4px; border:none; background:transparent; border-radius:6px; cursor:pointer; transition:all 0.12s; line-height:1;"
-                                    onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='scale(1.15)'"
-                                    onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'">{{ $e }}</button>
-                            @endforeach
-                        </div>
-                        {{-- Dropdown seta (agent) --}}
-                        <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; left:-32px; top:50%; transform:translateY(8px); z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
-                            @if($msg->type === 'text')
-                            <button @click="showMenu = false; editing = true; editText = @js($msg->content)"
-                                    style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
-                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
-                                    onmouseout="this.style.background='transparent'">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                Editar
-                            </button>
-                            @endif
-                            <button wire:click="deleteMessage({{ $msg->id }})" wire:confirm="Excluir esta mensagem?"
-                                    style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:#f87171; transition:background 0.1s;"
-                                    onmouseover="this.style.background='rgba(239,68,68,0.05)'"
-                                    onmouseout="this.style.background='transparent'">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                Excluir
-                            </button>
-                        </div>
-
                         {{-- Inline edit form --}}
                         <div x-show="editing" x-transition style="margin-top:6px;">
                             <textarea x-model="editText" rows="2"
@@ -709,6 +664,50 @@
                                 <span style="color:#f87171; margin-left:2px;">!</span>
                             @endif
                         </p>
+                    </div>
+                    {{-- Emoji + seta: item flex à esquerda (row-reverse) --}}
+                    <div x-show="showMenu && !editing" x-transition.opacity
+                         style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; align-self:center; position:relative;">
+                        <button @click.stop="showMenu = 'react'"
+                                style="width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
+                                onmouseover="this.style.background='rgba(178,255,0,0.15)'"
+                                onmouseout="this.style.background='rgba(178,255,0,0.08)'">😊</button>
+                        <button @click.stop="showMenu = 'drop'"
+                                style="width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(178,255,0,0.5); transition:all 0.15s;"
+                                onmouseover="this.style.background='rgba(178,255,0,0.15)'"
+                                onmouseout="this.style.background='rgba(178,255,0,0.08)'">
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        {{-- Popup reações acima --}}
+                        <div x-show="showMenu === 'react'" x-transition @click.outside="showMenu = true"
+                             style="position:absolute; bottom:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
+                            @foreach(['👍','❤️','😂','😮','😢','🙏'] as $e)
+                            <button wire:click="reactToMessage({{ $msg->id }}, '{{ $e }}')" @click="showMenu = false"
+                                    style="font-size:18px; padding:3px 4px; border:none; background:transparent; border-radius:6px; cursor:pointer; transition:all 0.12s; line-height:1;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='scale(1.15)'"
+                                    onmouseout="this.style.background='transparent'; this.style.transform='scale(1)'">{{ $e }}</button>
+                            @endforeach
+                        </div>
+                        {{-- Dropdown seta --}}
+                        <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
+                             style="position:absolute; top:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
+                            @if($msg->type === 'text')
+                            <button @click="showMenu = false; editing = true; editText = @js($msg->content)"
+                                    style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                Editar
+                            </button>
+                            @endif
+                            <button wire:click="deleteMessage({{ $msg->id }})" wire:confirm="Excluir esta mensagem?"
+                                    style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:#f87171; transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(239,68,68,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Excluir
+                            </button>
+                        </div>
                     </div>
                 </div>
             @endif
