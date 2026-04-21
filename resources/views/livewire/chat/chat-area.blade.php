@@ -213,6 +213,12 @@
                     <div>
                         @if($msg->type === 'text')
                             <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word;">
+                                @if($msg->reply_to_id && $msg->replyTo)
+                                <div style="background:rgba(255,255,255,0.06); border-left:3px solid #b2ff00; border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; cursor:pointer;">
+                                    <p style="font-size:10px; font-weight:700; color:#b2ff00; margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
+                                    <p style="font-size:11px; color:rgba(255,255,255,0.4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($msg->replyTo->content ?? ($msg->replyTo->type === 'image' ? '📷 Foto' : '📎 Mídia'), 60) }}</p>
+                                </div>
+                                @endif
                                 @if($msg->sender_name)
                                     <p style="font-size:11px; font-weight:700; color:#b2ff00; margin-bottom:3px;">{{ $msg->sender_name }}</p>
                                 @endif
@@ -415,14 +421,12 @@
                                 style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
                                 onmouseover="this.style.background='rgba(255,255,255,0.15)'"
                                 onmouseout="this.style.background='rgba(255,255,255,0.08)'">😊</button>
-                        @if($conversation->is_group && $msg->sender_phone)
                         <button @click.stop="showMenu = 'drop'"
                                 style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); transition:all 0.15s;"
                                 onmouseover="this.style.background='rgba(255,255,255,0.15)'"
                                 onmouseout="this.style.background='rgba(255,255,255,0.08)'">
                             <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        @endif
                         {{-- Popup reações acima --}}
                         <div x-show="showMenu === 'react'" x-transition @click.outside="showMenu = true"
                              style="position:absolute; bottom:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
@@ -434,18 +438,25 @@
                             @endforeach
                         </div>
                         {{-- Dropdown seta --}}
-                        @if($conversation->is_group && $msg->sender_phone)
                         <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
                              style="position:absolute; top:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
-                            <button wire:click="openPrivateChat({{ $msg->id }})" @click="showMenu = false"
+                            <button wire:click="setReply({{ $msg->id }})" @click="showMenu = false"
                                     style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                Responder
+                            </button>
+                            @if($conversation->is_group && $msg->sender_phone)
+                            <button wire:click="openPrivateChat({{ $msg->id }})" @click="showMenu = false"
+                                    style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s; border-top:1px solid rgba(255,255,255,0.05);"
                                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
                                     onmouseout="this.style.background='transparent'">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                 Responder no particular
                             </button>
+                            @endif
                         </div>
-                        @endif
                     </div>
                 </div>
             @else
@@ -459,6 +470,12 @@
                     <div>
                         @if($msg->type === 'text')
                             <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3);">
+                                @if($msg->reply_to_id && $msg->replyTo)
+                                <div style="background:rgba(255,255,255,0.1); border-left:3px solid rgba(255,255,255,0.5); border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px;">
+                                    <p style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
+                                    <p style="font-size:11px; color:rgba(255,255,255,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($msg->replyTo->content ?? ($msg->replyTo->type === 'image' ? '📷 Foto' : '📎 Mídia'), 60) }}</p>
+                                </div>
+                                @endif
                                 @if($msg->sender?->name)
                                     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); margin-bottom:3px;">{{ $msg->sender->name }}</p>
                                 @endif
@@ -691,6 +708,13 @@
                         {{-- Dropdown seta --}}
                         <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
                              style="position:absolute; top:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
+                            <button wire:click="setReply({{ $msg->id }})" @click="showMenu = false"
+                                    style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                Responder
+                            </button>
                             @if($msg->type === 'text')
                             <button @click="showMenu = false; editing = true; editText = @js($msg->content)"
                                     style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
@@ -940,6 +964,33 @@
             },
             fmtRec(s) { return Math.floor(s/60)+':'+(''+(s%60)).padStart(2,'0'); }
          }">
+
+        {{-- Reply preview --}}
+        @if($replyToMessage)
+        <div style="display:flex; align-items:center; gap:10px; background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:8px 12px; margin-bottom:8px;">
+            <div style="width:3px; height:32px; background:#b2ff00; border-radius:2px; flex-shrink:0;"></div>
+            <div style="flex:1; min-width:0;">
+                <p style="font-size:10px; font-weight:700; color:#b2ff00; margin-bottom:2px;">
+                    {{ $replyToMessage->isFromContact() ? ($replyToMessage->sender_name ?? $conversation->contact->display_name) : ($replyToMessage->sender?->name ?? 'Você') }}
+                </p>
+                <p style="font-size:12px; color:rgba(255,255,255,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    @if($replyToMessage->type === 'image') 📷 Foto
+                    @elseif($replyToMessage->type === 'audio') 🎵 Áudio
+                    @elseif($replyToMessage->type === 'video') 🎬 Vídeo
+                    @elseif($replyToMessage->type === 'document') 📄 {{ $replyToMessage->media_filename ?? 'Documento' }}
+                    @else {{ \Illuminate\Support\Str::limit($replyToMessage->content, 80) }}
+                    @endif
+                </p>
+            </div>
+            <button wire:click="cancelReply"
+                    style="color:rgba(255,255,255,0.3); background:transparent; border:none; cursor:pointer; padding:4px; flex-shrink:0;"
+                    onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        @endif
 
         {{-- Loading durante upload (controlado via eventos Livewire) --}}
         <div x-data="{ uploading: false }"

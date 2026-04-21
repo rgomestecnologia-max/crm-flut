@@ -42,6 +42,9 @@ class ChatArea extends Component
     public ?int    $crmPipelineId    = null;
     public ?int    $crmStageId       = null;
 
+    // Responder mensagem (quote)
+    public ?int $replyToId = null;
+
     // Upload de mídia
     public $pendingFile = null;
 
@@ -225,6 +228,7 @@ class ChatArea extends Component
             'content'         => $this->messageText,
             'type'            => 'text',
             'delivery_status' => 'pending',
+            'reply_to_id'     => $this->replyToId,
         ]);
 
         // Auto-atribui a conversa ao agente que respondeu (tira da fila)
@@ -248,8 +252,19 @@ class ChatArea extends Component
         }
 
         $this->messageText = '';
+        $this->replyToId   = null;
         $this->dispatch('message-sent');
         $this->dispatch('scroll-to-bottom');
+    }
+
+    public function setReply(int $messageId): void
+    {
+        $this->replyToId = $messageId;
+    }
+
+    public function cancelReply(): void
+    {
+        $this->replyToId = null;
     }
 
     public function sendFile(): void
@@ -754,7 +769,7 @@ class ChatArea extends Component
 
         if ($this->conversationId) {
             $messages = Message::where('conversation_id', $this->conversationId)
-                ->with('sender')
+                ->with(['sender', 'replyTo'])
                 ->orderBy('created_at')
                 ->get();
 
@@ -804,10 +819,11 @@ class ChatArea extends Component
         }
 
         $myReactionPhone = \App\Models\EvolutionApiConfig::current()?->phone_number ?? 'crm';
+        $replyToMessage  = $this->replyToId ? Message::find($this->replyToId) : null;
 
         return view('livewire.chat.chat-area', compact(
             'messages', 'quickReplies', 'departments', 'transferAgents',
-            'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone'
+            'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone', 'replyToMessage'
         ));
     }
 }
