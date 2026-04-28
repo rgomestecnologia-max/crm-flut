@@ -128,6 +128,12 @@ class LeadController extends Controller
         if (!empty($data['notes'])) $contact->notes = $data['notes'];
         $contact->save();
 
+        // ── Salva também como Lead (broadcast_contacts) ──────────────
+        \App\Models\BroadcastContact::firstOrCreate(
+            ['phone' => $phone],
+            ['name' => $data['name'], 'tags' => ['site'], 'is_active' => true]
+        );
+
         // ── Cria ou move card ─────────────────────────────────────────
 
         $existing = CrmCard::where('contact_id', $contact->id)->latest()->first();
