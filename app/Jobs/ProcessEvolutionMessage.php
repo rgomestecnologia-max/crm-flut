@@ -292,6 +292,34 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             $conversation->update(['last_message_at' => now(), 'status' => 'open']);
 
+            // ── Mover card no CRM quando cliente responde (automação move_on_reply) ──
+            if (!$fromMe && !$isGroup && $conversation->source_automation_id) {
+                try {
+                    $sourceAuto = $conversation->sourceAutomation;
+                    if ($sourceAuto && $sourceAuto->move_on_reply_from_stage_id && $sourceAuto->move_on_reply_to_stage_id) {
+                        $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                            ->where('stage_id', $sourceAuto->move_on_reply_from_stage_id)
+                            ->first();
+                        if ($card) {
+                            $fromStage = $card->stage?->name ?? '—';
+                            $toStage = \App\Models\CrmStage::find($sourceAuto->move_on_reply_to_stage_id);
+                            $card->update(['stage_id' => $sourceAuto->move_on_reply_to_stage_id]);
+                            \App\Models\CrmCardActivity::create([
+                                'card_id' => $card->id,
+                                'user_id' => null,
+                                'type'    => 'stage_change',
+                                'content' => "Cliente respondeu: {$fromStage} → " . ($toStage->name ?? '?'),
+                            ]);
+                            Log::info('move_on_reply: card movido', [
+                                'card' => $card->id, 'from' => $fromStage, 'to' => $toStage->name ?? '?',
+                            ]);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('move_on_reply falhou', ['error' => $e->getMessage()]);
+                }
+            }
+
             // ── Bot de atendimento ────────────────────────────────────────────
             if (!$fromMe) {
                 try {
