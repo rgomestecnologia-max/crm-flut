@@ -42,7 +42,9 @@ class SendAutomationMessage implements ShouldQueue
             $evolutionConfig = EvolutionApiConfig::current();
             $useEvolution    = $evolutionConfig && $evolutionConfig->is_active;
 
-            $phone = $this->contact->chat_lid ?? $this->contact->phone;
+            // Prioriza telefone real (55...) sobre chat_lid (@lid)
+            $realPhone = ($this->contact->phone && preg_match('/^\d{10,15}$/', $this->contact->phone)) ? $this->contact->phone : null;
+            $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
 
             if ($useEvolution) {
                 $result = (new EvolutionApiService($evolutionConfig))->sendText($phone, $text);

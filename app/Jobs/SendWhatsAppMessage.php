@@ -30,8 +30,9 @@ class SendWhatsAppMessage implements ShouldQueue
         app(\App\Services\CurrentCompany::class)->set((int) $this->message->company_id, persist: false);
 
         $contact  = $this->message->conversation->contact;
-        // Usa o JID completo se disponível (ex: 237919864385661@lid), caso contrário usa o phone
-        $phone    = $contact->chat_lid ?? $contact->phone;
+        // Prioriza telefone real (55...) sobre chat_lid (@lid) — Evolution envia melhor com número real
+        $realPhone = ($contact->phone && preg_match('/^\d{10,15}$/', $contact->phone)) ? $contact->phone : null;
+        $phone     = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
         // Usa Evolution API se configurada e ativa; caso contrário cai para Z-API
