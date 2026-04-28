@@ -93,8 +93,10 @@ class SendAutomationMessage implements ShouldQueue
 
             // ── Modo IA direta: saudação + IA responde à dúvida ────────
             if ($this->automation->ai_first_response) {
-                // 1) Envia mensagem de saudação padrão via WhatsApp
-                $greeting = "Olá, {$this->contact->name}! 👋\nSeja bem-vindo(a) ao atendimento da OrangeXpress 😊\n\nRecebemos sua mensagem através do nosso site e, a partir de agora, seu atendimento continuará por aqui.\n\nEstou à disposição para ajudar no que precisar! 🚀";
+                // 1) Envia saudação via WhatsApp (usa message_template da automação)
+                $greeting = $this->automation->message_template
+                    ? str_replace('{nome}', $this->contact->name ?? '', $this->automation->message_template)
+                    : "Olá, {$this->contact->name}! 👋\nSeja bem-vindo(a)! Recebemos sua mensagem e seu atendimento continuará por aqui. 🚀";
 
                 $evolutionConfig = EvolutionApiConfig::current();
                 $realPhone = ($this->contact->phone && preg_match('/^55\d{10,11}$/', $this->contact->phone)) ? $this->contact->phone : null;
