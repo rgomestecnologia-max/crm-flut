@@ -27,7 +27,15 @@ class AiBotManager extends Component
         if ($config) {
             $this->is_active                 = $config->is_active;
             $this->system_prompt             = $config->system_prompt ?? '';
-            $this->voice_tones               = $config->voice_tones ? array_map('trim', explode(',', $config->voice_tones)) : [];
+            $tones = $config->voice_tones;
+            if (is_string($tones)) {
+                $decoded = json_decode($tones, true);
+                $this->voice_tones = is_array($decoded) ? $decoded : array_map('trim', explode(',', $tones));
+            } elseif (is_array($tones)) {
+                $this->voice_tones = $tones;
+            } else {
+                $this->voice_tones = [];
+            }
             $this->company_description       = $config->company_description ?? '';
             $this->website_url               = $config->website_url ?? '';
             $this->department_routing_prompt  = $config->department_routing_prompt ?? '';
@@ -89,7 +97,7 @@ class AiBotManager extends Component
 
         $data = [
             'system_prompt'             => $this->system_prompt ?: null,
-            'voice_tones'               => !empty($this->voice_tones) ? implode(', ', $this->voice_tones) : null,
+            'voice_tones'               => !empty($this->voice_tones) ? json_encode(array_values($this->voice_tones)) : null,
             'company_description'       => $this->company_description ?: null,
             'website_url'               => $this->website_url ?: null,
             'department_routing_prompt' => $this->department_routing_prompt ?: null,
