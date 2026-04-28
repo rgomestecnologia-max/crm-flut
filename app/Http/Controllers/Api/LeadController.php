@@ -233,6 +233,10 @@ class LeadController extends Controller
             'celular'     => 'phone',
             'observacoes' => 'notes',
             'observação'  => 'notes',
+            'mensagem'    => 'notes',
+            'message'     => 'notes',
+            'duvida'      => 'notes',
+            'msg'         => 'notes',
         ];
 
         foreach ($baseAliases as $alias => $canonical) {

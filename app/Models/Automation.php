@@ -20,12 +20,16 @@ class Automation extends Model
         'is_active',
         'delay_minutes',
         'enable_ai_on_reply',
+        'ai_first_response',
+        'move_on_reply_from_stage_id',
+        'move_on_reply_to_stage_id',
     ];
 
     protected $casts = [
         'is_active'          => 'boolean',
         'delay_minutes'      => 'integer',
         'enable_ai_on_reply' => 'boolean',
+        'ai_first_response'  => 'boolean',
     ];
 
     public function pipeline(): BelongsTo
