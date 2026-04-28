@@ -43,7 +43,8 @@ class SendAutomationMessage implements ShouldQueue
             $useEvolution    = $evolutionConfig && $evolutionConfig->is_active;
 
             // Prioriza telefone real (55...) sobre chat_lid (@lid)
-            $realPhone = ($this->contact->phone && preg_match('/^\d{10,15}$/', $this->contact->phone)) ? $this->contact->phone : null;
+            // Telefone real BR: começa com 55 e tem 12-13 dígitos
+            $realPhone = ($this->contact->phone && preg_match('/^55\d{10,11}$/', $this->contact->phone)) ? $this->contact->phone : null;
             $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
 
             if ($useEvolution) {

@@ -30,8 +30,9 @@ class SendWhatsAppMessage implements ShouldQueue
         app(\App\Services\CurrentCompany::class)->set((int) $this->message->company_id, persist: false);
 
         $contact  = $this->message->conversation->contact;
-        // Prioriza telefone real (55...) sobre chat_lid (@lid) — Evolution envia melhor com número real
-        $realPhone = ($contact->phone && preg_match('/^\d{10,15}$/', $contact->phone)) ? $contact->phone : null;
+        // Prioriza telefone real (55...) sobre chat_lid (@lid)
+        // Telefone real BR: começa com 55 e tem 12-13 dígitos (55 + DDD + número)
+        $realPhone = ($contact->phone && preg_match('/^55\d{10,11}$/', $contact->phone)) ? $contact->phone : null;
         $phone     = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
