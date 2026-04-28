@@ -101,10 +101,18 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
 
             <div style="display:flex; flex-direction:column; gap:14px;">
                 <div>
-                    <label style="{{ $labelStyle }}">Tom de voz</label>
-                    <textarea wire:model="voice_tones" rows="3"
-                              placeholder="Ex: Amigável e profissional, usar emojis moderadamente, tratar por 'você', evitar gírias..."
-                              style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                    <label style="{{ $labelStyle }}">Tom de voz <span style="font-weight:400; color:rgba(255,255,255,0.15);">— clique para selecionar</span></label>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        @foreach(\App\Livewire\Admin\AiBotManager::AVAILABLE_TONES as $tone)
+                        @php $selected = in_array($tone, $voice_tones); @endphp
+                        <button type="button" wire:click="toggleTone('{{ $tone }}')"
+                                style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px; cursor:pointer; transition:all 0.15s; font-size:12px; font-weight:600; border:1px solid {{ $selected ? 'rgba(178,255,0,0.4)' : 'rgba(255,255,255,0.08)' }}; background:{{ $selected ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.03)' }}; color:{{ $selected ? '#b2ff00' : 'rgba(255,255,255,0.45)' }};"
+                                onmouseover="this.style.background='{{ $selected ? 'rgba(178,255,0,0.15)' : 'rgba(255,255,255,0.06)' }}'"
+                                onmouseout="this.style.background='{{ $selected ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.03)' }}'">
+                            {{ $tone }}
+                        </button>
+                        @endforeach
+                    </div>
                     @error('voice_tones') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
                 </div>
                 <div>

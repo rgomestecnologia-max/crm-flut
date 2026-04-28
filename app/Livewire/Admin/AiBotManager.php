@@ -12,7 +12,7 @@ class AiBotManager extends Component
 {
     public bool   $is_active                 = false;
     public string $system_prompt             = '';
-    public string $voice_tones               = '';
+    public array  $voice_tones               = [];
     public string $company_description       = '';
     public string $website_url               = '';
     public string $department_routing_prompt  = '';
@@ -27,7 +27,7 @@ class AiBotManager extends Component
         if ($config) {
             $this->is_active                 = $config->is_active;
             $this->system_prompt             = $config->system_prompt ?? '';
-            $this->voice_tones               = $config->voice_tones ?? '';
+            $this->voice_tones               = $config->voice_tones ? array_map('trim', explode(',', $config->voice_tones)) : [];
             $this->company_description       = $config->company_description ?? '';
             $this->website_url               = $config->website_url ?? '';
             $this->department_routing_prompt  = $config->department_routing_prompt ?? '';
@@ -58,11 +58,26 @@ class AiBotManager extends Component
         }
     }
 
+    public const AVAILABLE_TONES = [
+        '😊 Amigável', '💼 Profissional', '🎯 Objetivo', '😄 Descontraído',
+        '🤝 Empático', '📋 Formal', '⚡ Dinâmico', '🌟 Entusiasmado',
+        '🧘 Calmo', '💡 Consultivo', '🛡️ Confiável', '🎨 Criativo',
+    ];
+
+    public function toggleTone(string $tone): void
+    {
+        if (in_array($tone, $this->voice_tones)) {
+            $this->voice_tones = array_values(array_diff($this->voice_tones, [$tone]));
+        } else {
+            $this->voice_tones[] = $tone;
+        }
+    }
+
     public function save(): void
     {
         $this->validate([
             'system_prompt'             => 'nullable|string|max:8000',
-            'voice_tones'               => 'nullable|string|max:2000',
+            'voice_tones'               => 'nullable|array',
             'company_description'       => 'nullable|string|max:4000',
             'website_url'               => 'nullable|string|max:500',
             'department_routing_prompt' => 'nullable|string|max:2000',
@@ -74,7 +89,7 @@ class AiBotManager extends Component
 
         $data = [
             'system_prompt'             => $this->system_prompt ?: null,
-            'voice_tones'               => $this->voice_tones ?: null,
+            'voice_tones'               => !empty($this->voice_tones) ? implode(', ', $this->voice_tones) : null,
             'company_description'       => $this->company_description ?: null,
             'website_url'               => $this->website_url ?: null,
             'department_routing_prompt' => $this->department_routing_prompt ?: null,
