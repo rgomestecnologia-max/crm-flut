@@ -107,12 +107,49 @@ class AiBotManager extends Component
             'handoff_message'           => $this->handoff_message ?: null,
         ];
 
+        // Extrai conteúdo do site se URL foi informada
+        if ($this->website_url) {
+            $content = $this->scrapeWebsite($this->website_url);
+            if ($content) {
+                $data['website_content'] = $content;
+            }
+        } else {
+            $data['website_content'] = null;
+        }
+
         AiBotConfig::updateOrCreate(
             ['company_id' => app(\App\Services\CurrentCompany::class)->id()],
             $data
         );
 
         $this->dispatch('toast', type: 'success', message: 'Configurações do robô salvas.');
+    }
+
+    private function scrapeWebsite(string $url): ?string
+    {
+        try {
+            $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'Mozilla/5.0']]);
+            $html = @file_get_contents($url, false, $ctx);
+            if (!$html) return null;
+
+            // Remove scripts, styles, noscript
+            $html = preg_replace('/<script[^>]*>.*?<\/script>/si', '', $html);
+            $html = preg_replace('/<style[^>]*>.*?<\/style>/si', '', $html);
+            $html = preg_replace('/<noscript[^>]*>.*?<\/noscript>/si', '', $html);
+
+            $text = strip_tags($html);
+            $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+            $text = preg_replace('/[ \t]+/', ' ', $text);
+            $text = preg_replace('/\n\s*\n/', "\n", $text);
+            $text = trim($text);
+
+            // Remove linhas vazias/curtas
+            $lines = array_filter(array_map('trim', explode("\n", $text)), fn($l) => strlen($l) > 2);
+            return implode("\n", $lines) ?: null;
+        } catch (\Throwable $e) {
+            \Log::warning('scrapeWebsite failed', ['url' => $url, 'error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     public function render()
