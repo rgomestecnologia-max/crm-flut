@@ -74,23 +74,6 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
             </div>
         </div>
 
-        {{-- Treinamento --}}
-        <div style="{{ $cardStyle }}">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <div style="width:2px; height:16px; background:#b2ff00; border-radius:2px;"></div>
-                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Treinamento da IA</h3>
-            </div>
-            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">Instruções internas — <strong style="color:rgba(255,255,255,0.4);">nunca enviadas ao contato</strong>. Defina persona, empresa, produtos, tom de voz.</p>
-
-            <div>
-                <label style="{{ $labelStyle }}">Instruções do sistema</label>
-                <textarea wire:model="system_prompt" rows="8"
-                          placeholder="Exemplo: Você é o assistente virtual da empresa XYZ, especializada em vendas de eletrônicos. Seu nome é ARIA. Seja sempre educado, objetivo e profissional. Responda em português brasileiro..."
-                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
-                @error('system_prompt') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
-            </div>
-        </div>
-
         {{-- Personalidade --}}
         <div style="{{ $cardStyle }}">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
@@ -129,6 +112,23 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
                            style="{{ $inputStyle }}" {!! $inputFocus !!}>
                     @error('website_url') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
                 </div>
+            </div>
+        </div>
+
+        {{-- Treinamento --}}
+        <div style="{{ $cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:2px; height:16px; background:#b2ff00; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Treinamento da IA</h3>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">Instruções internas — <strong style="color:rgba(255,255,255,0.4);">nunca enviadas ao contato</strong>. Defina persona, empresa, produtos, tom de voz.</p>
+
+            <div>
+                <label style="{{ $labelStyle }}">Instruções do sistema</label>
+                <textarea wire:model="system_prompt" rows="8"
+                          placeholder="Exemplo: Você é o assistente virtual da empresa XYZ, especializada em vendas de eletrônicos. Seu nome é ARIA. Seja sempre educado, objetivo e profissional. Responda em português brasileiro..."
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                @error('system_prompt') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
             </div>
         </div>
 
