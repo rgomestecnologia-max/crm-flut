@@ -67,7 +67,8 @@
             </div>
         </div>
 
-        {{-- Template da mensagem --}}
+        {{-- Template da mensagem (oculto quando ai_first_response ativo) --}}
+        @if(!$ai_first_response)
         <div class="mb-4">
             <label class="block text-xs text-gray-400 mb-1">Mensagem automática <span class="text-red-400">*</span></label>
             <textarea wire:model="message_template" rows="8"
@@ -75,6 +76,11 @@
                       class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none font-mono"></textarea>
             @error('message_template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
         </div>
+        @else
+        <div class="mb-4 p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+            <p class="text-xs text-blue-400">A IA vai responder diretamente à dúvida do lead. Nenhuma mensagem fixa será enviada.</p>
+        </div>
+        @endif
 
         {{-- Toggles: Ativo + IA --}}
         <div class="flex flex-col gap-3 mb-5">
@@ -97,7 +103,20 @@
                 </button>
                 <div>
                     <p class="text-sm text-gray-200 font-medium">Ativar IA de Atendimento na resposta do Cliente</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Quando o cliente responder à mensagem automática, a IA assume o atendimento automaticamente (requer IA configurada em <span class="text-accent">IA de Atendimento</span>).</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Quando o cliente responder à mensagem automática, a IA assume o atendimento automaticamente.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+                <button type="button" wire:click="$toggle('ai_first_response')"
+                        class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0 mt-0.5
+                               {{ $ai_first_response ? 'bg-blue-500' : 'bg-surface-600' }}">
+                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform
+                                 {{ $ai_first_response ? 'translate-x-4' : 'translate-x-1' }}"></span>
+                </button>
+                <div>
+                    <p class="text-sm text-gray-200 font-medium">IA responde direto à dúvida do lead</p>
+                    <p class="text-xs text-gray-500 mt-0.5">A IA responde automaticamente à mensagem/dúvida que veio do site, sem enviar mensagem fixa. A mensagem template abaixo não será usada.</p>
                 </div>
             </div>
         </div>

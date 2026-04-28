@@ -9,17 +9,18 @@ use Livewire\Component;
 
 class AutomationManager extends Component
 {
-    public bool    $showForm          = false;
-    public ?int    $editingId         = null;
-    public string  $name              = '';
-    public ?int    $pipeline_id       = null;
-    public string  $message_template  = '';
-    public bool    $is_active         = true;
+    public bool    $showForm           = false;
+    public ?int    $editingId          = null;
+    public string  $name               = '';
+    public ?int    $pipeline_id        = null;
+    public string  $message_template   = '';
+    public bool    $is_active          = true;
     public bool    $enable_ai_on_reply = false;
+    public bool    $ai_first_response  = false;
 
     public function openCreate(): void
     {
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'is_active', 'enable_ai_on_reply']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'is_active', 'enable_ai_on_reply', 'ai_first_response']);
         $this->is_active = true;
         $this->showForm  = true;
     }
@@ -31,27 +32,35 @@ class AutomationManager extends Component
         $this->editingId          = $id;
         $this->name               = $a->name;
         $this->pipeline_id        = $a->pipeline_id;
-        $this->message_template   = $a->message_template;
+        $this->message_template   = $a->message_template ?? '';
         $this->is_active          = $a->is_active;
-        $this->enable_ai_on_reply = $a->enable_ai_on_reply;
+        $this->enable_ai_on_reply = (bool) $a->enable_ai_on_reply;
+        $this->ai_first_response  = (bool) $a->ai_first_response;
         $this->showForm           = true;
     }
 
     public function save(): void
     {
-        $this->validate([
+        $rules = [
             'name'             => 'required|string|max:150',
             'pipeline_id'      => 'nullable|exists:crm_pipelines,id',
-            'message_template' => 'required|string|max:4096',
-        ]);
+        ];
+
+        // Mensagem template só é obrigatória se não usar IA direta
+        if (!$this->ai_first_response) {
+            $rules['message_template'] = 'required|string|max:4096';
+        }
+
+        $this->validate($rules);
 
         $data = [
-            'name'              => $this->name,
-            'pipeline_id'       => $this->pipeline_id ?: null,
-            'trigger'           => 'lead_created',
-            'message_template'  => $this->message_template,
-            'is_active'         => $this->is_active,
+            'name'               => $this->name,
+            'pipeline_id'        => $this->pipeline_id ?: null,
+            'trigger'            => 'lead_created',
+            'message_template'   => $this->message_template ?: null,
+            'is_active'          => $this->is_active,
             'enable_ai_on_reply' => $this->enable_ai_on_reply,
+            'ai_first_response'  => $this->ai_first_response,
         ];
 
         if ($this->editingId) {
@@ -63,7 +72,7 @@ class AutomationManager extends Component
         }
 
         $this->showForm = false;
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'is_active']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'is_active', 'enable_ai_on_reply', 'ai_first_response']);
     }
 
     public function toggleActive(int $id): void
