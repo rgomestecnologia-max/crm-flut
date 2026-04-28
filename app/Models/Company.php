@@ -29,9 +29,11 @@ class Company extends Model
      */
     public const AVAILABLE_MODULES = [
         'principal' => [
-            'dashboard' => 'Dashboard',
-            'chat'      => 'Atendimento',
-            'crm'       => 'CRM',
+            'dashboard'  => 'Dashboard',
+            'chat'       => 'Atendimento',
+            'crm'        => 'CRM',
+            'leads'      => 'Leads',
+            'broadcasts' => 'Disparos',
         ],
         'gestao' => [
             'admin.crm'        => 'Pipelines CRM',

@@ -223,6 +223,28 @@
             </a>
             @endif
 
+            @if($canSee('leads'))
+            <a href="{{ route('leads.index') }}"
+               class="nav-item {{ request()->routeIs('leads*') ? 'active' : '' }}"
+               style="color:{{ request()->routeIs('leads*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span x-show="sidebarOpen">Leads</span>
+            </a>
+            @endif
+
+            @if($canSee('broadcasts'))
+            <a href="{{ route('broadcasts.index') }}"
+               class="nav-item {{ request()->routeIs('broadcasts*') ? 'active' : '' }}"
+               style="color:{{ request()->routeIs('broadcasts*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                </svg>
+                <span x-show="sidebarOpen">Disparos</span>
+            </a>
+            @endif
+
             {{-- Gestão da empresa — admin + supervisor, filtrado por módulos contratados --}}
             @if(auth()->user()->canManageCompany())
             @php

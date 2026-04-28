@@ -49,6 +49,12 @@ Route::middleware(['auth', 'company'])->group(function () {
     // CRM
     Route::get('/crm', fn() => view('crm.index'))->middleware('module:crm')->name('crm.index');
 
+    // Leads
+    Route::get('/leads', fn() => view('leads.index'))->middleware('module:leads')->name('leads.index');
+
+    // Disparos (Broadcasts)
+    Route::get('/broadcasts', fn() => view('broadcasts.index'))->middleware('module:broadcasts')->name('broadcasts.index');
+
     // Admin — somente admin do sistema (empresas, config globais, integrações WhatsApp)
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('companies', fn() => view('admin.companies.index'))->name('companies.index');
