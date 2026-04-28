@@ -120,19 +120,69 @@ class ProcessEvolutionMessage implements ShouldQueue
                     // Busca por JID (chat_lid) ou phone
                     $contact = Contact::where('chat_lid', $remoteJid)->first()
                         ?? Contact::where('phone', $chatPhone)->first();
+
+                    // fromMe com LID: tenta vincular ao contato que tem phone real
+                    if (!$contact && str_contains($remoteJid, '@lid')) {
+                        // Busca por zapi_message_id da mensagem enviada pelo CRM
+                        $sentMsg = Message::where('zapi_message_id', $key['id'] ?? '')->first();
+                        if ($sentMsg) {
+                            $conv = Conversation::find($sentMsg->conversation_id);
+                            $contact = $conv ? Contact::find($conv->contact_id) : null;
+                            if ($contact && !$contact->chat_lid) {
+                                $contact->update(['chat_lid' => $remoteJid]);
+                            }
+                        }
+                    }
+
                     if (!$contact) return;
                 } else {
                     $contact = Contact::where('chat_lid', $remoteJid)->first()
-                        ?? Contact::firstOrCreate(
-                            ['phone' => $chatPhone],
-                            ['name'  => $senderName]
-                        );
+                        ?? Contact::where('phone', $chatPhone)->first();
+
+                    // Se não encontrou e o chatPhone é real (55...), tenta achar
+                    // contato que tenha LID como phone mas mesmo pushName
+                    // (resolve duplicação LID ↔ número real)
+                    if (!$contact && $senderName && str_starts_with($chatPhone, '55')) {
+                        $contact = Contact::where('name', $senderName)
+                            ->whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'")
+                            ->first();
+                        if ($contact) {
+                            // Encontrou contato com LID — atualiza com telefone real
+                            $contact->update([
+                                'phone'    => $chatPhone,
+                                'chat_lid' => $contact->chat_lid ?: $contact->phone . '@lid',
+                            ]);
+                            Log::info('Contact LID→real unificado', [
+                                'contact' => $contact->id,
+                                'name'    => $contact->name,
+                                'old_phone' => $contact->getOriginal('phone'),
+                                'new_phone' => $chatPhone,
+                            ]);
+                        }
+                    }
+
+                    if (!$contact) {
+                        $contact = Contact::create([
+                            'phone' => $chatPhone,
+                            'name'  => $senderName,
+                        ]);
+                    }
+
                     if ($senderName && !$contact->name) {
                         $contact->update(['name' => $senderName]);
                     }
                     // Salva o JID completo para poder responder corretamente
                     if (!$contact->chat_lid) {
                         $contact->update(['chat_lid' => $remoteJid]);
+                    }
+                    // Se o contato tinha LID como phone e agora temos o real, atualiza
+                    if ($contact->phone && !str_starts_with($contact->phone, '55')
+                        && strlen($contact->phone) > 14 && str_starts_with($chatPhone, '55')) {
+                        $oldLid = $contact->phone;
+                        $contact->update([
+                            'phone'    => $chatPhone,
+                            'chat_lid' => $contact->chat_lid ?: $oldLid . '@lid',
+                        ]);
                     }
                 }
             }
