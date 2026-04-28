@@ -16,15 +16,21 @@ class AiBotConfig extends Model
         'openai_api_key',
         'model',
         'system_prompt',
+        'voice_tones',
+        'company_description',
+        'website_url',
+        'website_content',
         'department_routing_prompt',
         'initial_greeting',
         'max_bot_turns',
+        'response_delay',
         'handoff_message',
     ];
 
     protected $casts = [
-        'is_active'     => 'boolean',
-        'max_bot_turns' => 'integer',
+        'is_active'      => 'boolean',
+        'max_bot_turns'  => 'integer',
+        'response_delay' => 'integer',
     ];
 
     public static function current(): ?self
