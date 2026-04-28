@@ -154,17 +154,11 @@ class LeadController extends Controller
             $card    = $existing->fresh();
             $created = false;
         } else {
-            // Monta descrição com email e mensagem se disponíveis
-            $descParts = [];
-            if (!empty($contact->email)) $descParts[] = "Email: {$contact->email}";
-            if (!empty($contact->notes)) $descParts[] = "Mensagem: {$contact->notes}";
-
             $card = CrmCard::create([
                 'pipeline_id' => $pipelineId,
                 'stage_id'    => $stageId,
                 'contact_id'  => $contact->id,
                 'title'       => $contact->name,
-                'description' => !empty($descParts) ? implode("\n", $descParts) : null,
                 'sort_order'  => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
             ]);
 
@@ -179,6 +173,14 @@ class LeadController extends Controller
         }
 
         // ── Salva campos personalizados ───────────────────────────────
+
+        // Disponibiliza email e mensagem como campos personalizados também
+        if (!empty($data['email']) && !isset($data['email_custom'])) {
+            $data['email'] = $data['email']; // já existe
+        }
+        if (!empty($data['notes'])) {
+            $data['mensagem'] = $data['notes']; // alias notes → mensagem para custom field
+        }
 
         foreach ($customFields as $key => $field) {
             if (isset($data[$key]) && $data[$key] !== null && $data[$key] !== '') {
