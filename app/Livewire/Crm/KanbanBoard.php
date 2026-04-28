@@ -27,6 +27,7 @@ class KanbanBoard extends Component
     public ?int   $card_assigned_to = null;
     public array  $customValues     = []; // field_id => value
     public string $newNote          = '';
+    public string $contact_phone    = '';
 
     public function mount(): void
     {
@@ -79,6 +80,7 @@ class KanbanBoard extends Component
         $this->card_priority    = $card->priority ?? '';
         $this->card_contact_id  = $card->contact_id;
         $this->card_assigned_to = $card->assigned_to;
+        $this->contact_phone    = $card->contact?->phone ?? '';
         $this->showCardPanel    = true;
         $this->newNote          = '';
 
@@ -124,6 +126,15 @@ class KanbanBoard extends Component
             }
 
             $card->update($data);
+
+            // Atualiza telefone do contato se alterado
+            if ($card->contact_id && trim($this->contact_phone)) {
+                $contact = Contact::find($card->contact_id);
+                if ($contact && $contact->phone !== $this->contact_phone) {
+                    $contact->update(['phone' => preg_replace('/\D/', '', $this->contact_phone)]);
+                }
+            }
+
             $this->dispatch('toast', type: 'success', message: 'Card atualizado.');
         } else {
             $data['sort_order'] = CrmCard::where('stage_id', $this->card_stage_id)->max('sort_order') + 1;
@@ -179,7 +190,7 @@ class KanbanBoard extends Component
     {
         $this->reset([
             'editingCardId', 'card_stage_id', 'card_title', 'card_description',
-            'card_priority', 'card_contact_id', 'card_assigned_to', 'newNote', 'customValues',
+            'card_priority', 'card_contact_id', 'card_assigned_to', 'newNote', 'customValues', 'contact_phone',
         ]);
     }
 

@@ -330,6 +330,16 @@
                             @endforeach
                         </select>
                     </div>
+
+                    {{-- Telefone do contato (editável) --}}
+                    @if($card_contact_id)
+                    <div class="col-span-2">
+                        <label class="{{ $labelClass }}" style="{{ $labelStyle }}">Telefone do contato</label>
+                        <input type="text" wire:model="contact_phone"
+                               class="{{ $inputClass }}" style="{{ $inputStyle }}" {!! $inputFocus !!}
+                               placeholder="5511999999999">
+                    </div>
+                    @endif
                 </div>
             </div>
 
