@@ -96,6 +96,16 @@
     @endif
 
     {{-- Form de adição/edição --}}
+    {{-- Loading overlay --}}
+    <div wire:loading wire:target="save, document, photo"
+         style="position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;">
+        <div style="width:40px; height:40px; border:3px solid rgba(178,255,0,0.2); border-top-color:#b2ff00; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+        <p style="color:#b2ff00; font-size:13px; font-weight:600;" wire:loading wire:target="document">Enviando arquivo...</p>
+        <p style="color:#b2ff00; font-size:13px; font-weight:600;" wire:loading wire:target="save">Processando e extraindo texto do documento...</p>
+        <p style="color:rgba(255,255,255,0.4); font-size:11px;">Isso pode levar alguns segundos</p>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
     @if($showForm)
     <div class="bg-surface-700/40 border border-accent/30 rounded-2xl p-5 space-y-4">
         <h4 class="text-sm font-semibold text-white flex items-center gap-2">
@@ -228,9 +238,16 @@
                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    <span class="text-xs text-gray-500">{{ $document ? 'Trocar documento' : 'Anexar documento (PDF/TXT)' }}</span>
+                    <span class="text-xs text-gray-500" wire:loading.remove wire:target="document">{{ $document ? 'Trocar documento' : 'Anexar documento (PDF/TXT)' }}</span>
+                    <span class="text-xs text-blue-400" wire:loading wire:target="document">Enviando arquivo...</span>
                     <input wire:model="document" type="file" accept=".pdf,.txt,.doc,.docx" class="sr-only">
                 </label>
+                <div wire:loading wire:target="document" class="mt-2">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:16px; height:16px; border:2px solid rgba(59,130,246,0.3); border-top-color:#60a5fa; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+                        <span class="text-xs text-blue-400">Carregando arquivo...</span>
+                    </div>
+                </div>
                 @if($document)
                 <p class="text-xs text-green-400 mt-1">{{ $document->getClientOriginalName() }} — texto será extraído ao salvar</p>
                 @endif
@@ -269,7 +286,7 @@
                     </svg>
                 </span>
                 <span wire:loading.remove wire:target="save">{{ $editingId ? 'Salvar alterações' : 'Salvar' }}</span>
-                <span wire:loading wire:target="save">Salvando...</span>
+                <span wire:loading wire:target="save">{{ $document ? 'Extraindo texto e salvando...' : 'Salvando...' }}</span>
             </button>
             <button wire:click="cancel"
                     class="px-5 py-2 bg-surface-700 hover:bg-surface-600 text-gray-300 text-sm font-medium rounded-xl transition-colors">
