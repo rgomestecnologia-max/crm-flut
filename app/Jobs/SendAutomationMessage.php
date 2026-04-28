@@ -86,12 +86,38 @@ class SendAutomationMessage implements ShouldQueue
                 $conversation->update(['source_automation_id' => $this->automation->id]);
             }
 
-            // ── Modo IA direta: a IA responde à dúvida do lead ──────────
+            // ── Modo IA direta: saudação + IA responde à dúvida ────────
             if ($this->automation->ai_first_response) {
-                $clientMessage = $this->contact->notes;
+                // 1) Envia mensagem de saudação padrão via WhatsApp
+                $greeting = "Olá, {$this->contact->name}! 👋\nSeja bem-vindo(a) ao atendimento da OrangeXpress 😊\n\nRecebemos sua mensagem através do nosso site e, a partir de agora, seu atendimento continuará por aqui.\n\nEstou à disposição para ajudar no que precisar! 🚀";
 
+                $evolutionConfig = EvolutionApiConfig::current();
+                $realPhone = ($this->contact->phone && preg_match('/^55\d{10,11}$/', $this->contact->phone)) ? $this->contact->phone : null;
+                $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
+
+                if ($evolutionConfig && $evolutionConfig->is_active) {
+                    $result = (new EvolutionApiService($evolutionConfig))->sendText($phone, $greeting);
+                    $zapiId = $result['key']['id'] ?? null;
+                } else {
+                    $result = $zapi->sendTextMessage($this->contact->phone, $greeting);
+                    $zapiId = $result['messageId'] ?? null;
+                }
+
+                Message::create([
+                    'conversation_id' => $conversation->id,
+                    'sender_type'     => 'agent',
+                    'sender_id'       => null,
+                    'content'         => $greeting,
+                    'type'            => 'text',
+                    'zapi_message_id' => $zapiId,
+                    'delivery_status' => 'sent',
+                ]);
+                $conversation->update(['last_message_at' => now()]);
+
+                // 2) Registra a dúvida do cliente como mensagem na conversa
+                $clientMessage = $this->contact->notes;
+                $contactMsg = null;
                 if ($clientMessage) {
-                    // Registra a dúvida do cliente como mensagem na conversa
                     $contactMsg = Message::create([
                         'conversation_id' => $conversation->id,
                         'sender_type'     => 'contact',
@@ -102,20 +128,18 @@ class SendAutomationMessage implements ShouldQueue
                     $conversation->update(['last_message_at' => now()]);
                 }
 
-                // Dispara a IA para responder
+                // 3) Dispara a IA para responder à dúvida
                 $botConfig = \App\Models\AiBotConfig::current();
-                if ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
+                if ($botConfig && $botConfig->is_active && $botConfig->hasKey() && $contactMsg) {
                     \App\Jobs\ProcessBotResponse::dispatch(
-                        $conversation, $botConfig, $contactMsg->id ?? null
+                        $conversation, $botConfig, $contactMsg->id
                     );
-                    Log::info('ai_first_response: IA disparada para lead', [
-                        'contact' => $this->contact->name,
-                        'message' => $clientMessage,
-                    ]);
-                } else {
-                    Log::warning('ai_first_response: IA não ativa, enviando template padrão');
-                    $this->sendTemplateMessage($conversation, $zapi);
                 }
+
+                Log::info('ai_first_response: saudação + IA', [
+                    'contact' => $this->contact->name,
+                    'message' => $clientMessage,
+                ]);
 
                 return;
             }
