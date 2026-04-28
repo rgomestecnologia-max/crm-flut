@@ -97,11 +97,10 @@
 
     {{-- Form de adição/edição --}}
     {{-- Loading overlay --}}
-    <div wire:loading wire:target="save, document, photo"
-         style="position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;">
+    <div wire:loading.flex wire:target="save, document, photo"
+         style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; flex-direction:column; gap:12px;">
         <div style="width:40px; height:40px; border:3px solid rgba(178,255,0,0.2); border-top-color:#b2ff00; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
-        <p style="color:#b2ff00; font-size:13px; font-weight:600;" wire:loading wire:target="document">Enviando arquivo...</p>
-        <p style="color:#b2ff00; font-size:13px; font-weight:600;" wire:loading wire:target="save">Processando e extraindo texto do documento...</p>
+        <p style="color:#b2ff00; font-size:13px; font-weight:600;">Processando...</p>
         <p style="color:rgba(255,255,255,0.4); font-size:11px;">Isso pode levar alguns segundos</p>
     </div>
     <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
