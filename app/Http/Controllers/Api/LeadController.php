@@ -154,11 +154,17 @@ class LeadController extends Controller
             $card    = $existing->fresh();
             $created = false;
         } else {
+            // Monta descrição com email e mensagem se disponíveis
+            $descParts = [];
+            if (!empty($contact->email)) $descParts[] = "Email: {$contact->email}";
+            if (!empty($contact->notes)) $descParts[] = "Mensagem: {$contact->notes}";
+
             $card = CrmCard::create([
                 'pipeline_id' => $pipelineId,
                 'stage_id'    => $stageId,
                 'contact_id'  => $contact->id,
                 'title'       => $contact->name,
+                'description' => !empty($descParts) ? implode("\n", $descParts) : null,
                 'sort_order'  => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
             ]);
 
