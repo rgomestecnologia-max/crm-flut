@@ -31,6 +31,15 @@
                 <livewire:admin.api-token-manager />
             </div>
 
+            {{-- ══════════════════════════════════════════ --}}
+            {{-- ROTEAMENTO POR DDD (exibido se houver regras) --}}
+            {{-- ══════════════════════════════════════════ --}}
+            @if(\App\Models\DddRoutingRule::where('company_id', app(\App\Services\CurrentCompany::class)->id())->exists())
+            <div class="bg-surface-800 border border-surface-700 rounded-2xl p-6">
+                <livewire:admin.ddd-routing-manager />
+            </div>
+            @endif
+
             @if(app(\App\Services\CurrentCompany::class)->id() === 3)
             {{-- ══════════════════════════════════════════ --}}
             {{-- REGRAS DE NEGÓCIO — ORANGEXPRESS           --}}

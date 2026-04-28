@@ -49,13 +49,39 @@ class SendAutomationMessage implements ShouldQueue
                     return;
                 }
 
+                // Roteamento por DDD — atribui agente e departamento conforme telefone
+                $assignedTo = null;
+                $phone = $this->contact->phone;
+                if ($phone && str_starts_with($phone, '55') && strlen($phone) >= 12) {
+                    $ddd = substr($phone, 2, 2);
+                    $rule = \App\Models\DddRoutingRule::where('ddd', $ddd)->where('is_active', true)->first();
+                    if ($rule) {
+                        $assignedTo = $rule->agent_id;
+                        Log::info('DDD routing: ' . $ddd . ' → agent ' . $rule->agent_id, [
+                            'contact' => $this->contact->name,
+                        ]);
+                    }
+                }
+
                 $conversation = Conversation::create([
                     'contact_id'           => $this->contact->id,
                     'department_id'        => $department->id,
+                    'assigned_to'          => $assignedTo,
                     'status'               => 'open',
                     'is_group'             => false,
                     'source_automation_id' => $this->automation->id,
                 ]);
+
+                if ($assignedTo) {
+                    $agentName = \App\Models\User::find($assignedTo)?->name ?? '?';
+                    Message::create([
+                        'conversation_id' => $conversation->id,
+                        'sender_type'     => 'system',
+                        'content'         => "Roteamento DDD: atribuído a {$agentName}",
+                        'type'            => 'text',
+                        'delivery_status' => 'sent',
+                    ]);
+                }
             } elseif (!$conversation->source_automation_id) {
                 $conversation->update(['source_automation_id' => $this->automation->id]);
             }
