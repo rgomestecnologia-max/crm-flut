@@ -212,9 +212,9 @@
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(255,255,255,0.08);">
                     <div>
                         @if($msg->type === 'text')
-                            <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word;">
+                            <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word; white-space:pre-wrap;">
                                 @if($msg->reply_to_id && $msg->replyTo)
-                                <div style="background:rgba(255,255,255,0.06); border-left:3px solid #b2ff00; border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; cursor:pointer;">
+                                <div style="background:rgba(255,255,255,0.06); border-left:3px solid #b2ff00; border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; cursor:pointer; white-space:normal;">
                                     <p style="font-size:10px; font-weight:700; color:#b2ff00; margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
                                     <p style="font-size:11px; color:rgba(255,255,255,0.4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($msg->replyTo->content ?? ($msg->replyTo->type === 'image' ? '📷 Foto' : '📎 Mídia'), 60) }}</p>
                                 </div>
@@ -222,7 +222,7 @@
                                 @if($msg->sender_name)
                                     <p style="font-size:11px; font-weight:700; color:#b2ff00; margin-bottom:3px;">{{ $msg->sender_name }}</p>
                                 @endif
-                                {{ $msg->content }}
+                                {!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}
                             </div>
                         @elseif($msg->type === 'image')
                             <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid rgba(255,255,255,0.06);">
@@ -236,7 +236,7 @@
                                      style="max-width:min(260px, 70vw); display:block; cursor:zoom-in; transition:opacity 0.2s;"
                                      onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                                 @if($msg->content)
-                                    <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6);">{{ $msg->content }}</p>
+                                    <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6); white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</p>
                                 @endif
                             </div>
                         @elseif($msg->type === 'audio')
@@ -469,9 +469,9 @@
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
                     <div>
                         @if($msg->type === 'text')
-                            <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3);">
+                            <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3); white-space:pre-wrap;">
                                 @if($msg->reply_to_id && $msg->replyTo)
-                                <div style="background:rgba(255,255,255,0.1); border-left:3px solid rgba(255,255,255,0.5); border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px;">
+                                <div style="background:rgba(255,255,255,0.1); border-left:3px solid rgba(255,255,255,0.5); border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; white-space:normal;">
                                     <p style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
                                     <p style="font-size:11px; color:rgba(255,255,255,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($msg->replyTo->content ?? ($msg->replyTo->type === 'image' ? '📷 Foto' : '📎 Mídia'), 60) }}</p>
                                 </div>
@@ -479,7 +479,7 @@
                                 @if($msg->sender?->name)
                                     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); margin-bottom:3px;">{{ $msg->sender->name }}</p>
                                 @endif
-                                {{ $msg->content }}
+                                {!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}
                             </div>
                         @elseif($msg->type === 'image')
                             <div style="background:rgba(178,255,0,0.12); border-radius:18px 18px 4px 18px; overflow:hidden; border:1px solid rgba(178,255,0,0.25);">
@@ -490,7 +490,7 @@
                                      style="max-width:min(260px, 70vw); display:block; cursor:zoom-in; transition:opacity 0.2s;"
                                      onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                                 @if($msg->content)
-                                    <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.7);">{{ $msg->content }}</p>
+                                    <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.7); white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</p>
                                 @endif
                             </div>
                         @elseif($msg->type === 'audio')
