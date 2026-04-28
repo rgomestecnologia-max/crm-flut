@@ -321,7 +321,8 @@ class ProcessEvolutionMessage implements ShouldQueue
             }
 
             // ── Bot de atendimento ────────────────────────────────────────────
-            if (!$fromMe) {
+            // Não dispara IA se conversa está aguardando atendente humano
+            if (!$fromMe && !$conversation->waiting_human_reason) {
                 try {
                     $menuConfig = ChatbotMenuConfig::current();
                     $botConfig  = AiBotConfig::current();

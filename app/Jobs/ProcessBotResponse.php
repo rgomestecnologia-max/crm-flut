@@ -97,8 +97,19 @@ class ProcessBotResponse implements ShouldQueue
                     'delivery_status' => 'pending',
                 ]);
 
-                $this->conversation->update(['last_message_at' => now()]);
+                $this->conversation->update([
+                    'last_message_at'      => now(),
+                    'waiting_human_reason' => 'Limite de turnos da IA atingido',
+                ]);
                 SendWhatsAppMessage::dispatch($handoffMsg);
+
+                Message::create([
+                    'conversation_id' => $this->conversation->id,
+                    'sender_type'     => 'system',
+                    'content'         => '🔔 Handoff: limite de turnos da IA atingido',
+                    'type'            => 'text',
+                    'delivery_status' => 'sent',
+                ]);
 
                 try {
                     broadcast(new MessageReceived($handoffMsg));
@@ -188,11 +199,51 @@ class ProcessBotResponse implements ShouldQueue
                 return;
             }
 
+            // Detecta [HANDOFF] — IA não sabe responder ou cliente pediu humano
+            $isHandoff = str_contains($aiContent, '[HANDOFF]');
+
             $departmentId = $this->extractDepartmentId($aiContent);
             $photoUrl     = $this->extractPhotoUrl($aiContent);
             $cleanContent = $this->cleanContent($aiContent);
 
-            if (!$cleanContent && !$photoUrl) return;
+            if (!$cleanContent && !$photoUrl && !$isHandoff) return;
+
+            if ($isHandoff) {
+                // Remove a tag [HANDOFF] do conteúdo
+                $cleanContent = trim(str_replace('[HANDOFF]', '', $cleanContent));
+
+                // Envia a mensagem da IA (sem a tag) + handoff
+                $handoffText = $cleanContent ?: ($this->config->handoff_message
+                    ?: 'Vou transferir você para um de nossos atendentes. Em breve alguém irá te responder!');
+
+                $handoffMsg = Message::create([
+                    'conversation_id' => $this->conversation->id,
+                    'sender_type'     => 'agent',
+                    'sender_id'       => null,
+                    'content'         => $handoffText,
+                    'type'            => 'text',
+                    'delivery_status' => 'pending',
+                ]);
+
+                $this->conversation->update([
+                    'last_message_at'      => now(),
+                    'waiting_human_reason' => 'IA não possui informação suficiente',
+                ]);
+
+                SendWhatsAppMessage::dispatch($handoffMsg);
+
+                Message::create([
+                    'conversation_id' => $this->conversation->id,
+                    'sender_type'     => 'system',
+                    'content'         => '🔔 Handoff: IA não possui informação suficiente',
+                    'type'            => 'text',
+                    'delivery_status' => 'sent',
+                ]);
+
+                $this->broadcastMessage($handoffMsg);
+                Log::info('IA: handoff detectado', ['conv' => $this->conversation->id]);
+                return;
+            }
 
             // Mensagem de texto
             if ($cleanContent) {
@@ -299,6 +350,8 @@ class ProcessBotResponse implements ShouldQueue
         $prompt .= "- NUNCA repita sua descrição ou apresentação a não ser na primeira mensagem.\n";
         $prompt .= "- Responda de forma direta e natural, como uma conversa humana.\n";
         $prompt .= "- Mantenha respostas objetivas e no contexto da conversa atual.\n";
+        $prompt .= "- Quando NÃO souber responder algo ou não tiver informação suficiente, inclua EXATAMENTE [HANDOFF] ao final da sua resposta. A resposta antes do [HANDOFF] deve informar educadamente que vai transferir para um atendente.\n";
+        $prompt .= "- Quando o cliente pedir para falar com um humano, atendente, ou pessoa real, inclua [HANDOFF] ao final.\n";
 
         // Catálogo de produtos e serviços ativos
         $products = AiBotProduct::where('is_active', true)->orderBy('type')->orderBy('name')->get();

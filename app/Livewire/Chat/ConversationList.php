@@ -230,8 +230,9 @@ class ConversationList extends Component
         if (!$conv) return;
 
         $conv->update([
-            'assigned_to' => $user->id,
-            'status'      => 'open',
+            'assigned_to'          => $user->id,
+            'status'               => 'open',
+            'waiting_human_reason' => null,
         ]);
 
         // Troca pro filtro "Minhas Conversas" pra o agente ver a conversa assumida
@@ -264,6 +265,9 @@ class ConversationList extends Component
                 });
             }),
 
+            // Aguardando: conversas onde a IA pediu handoff (aguardando humano)
+            'waiting'  => $query->whereNotNull('waiting_human_reason'),
+
             // Todos: todas as conversas dos departamentos do usuário
             'all'      => $query,
 
@@ -289,6 +293,7 @@ class ConversationList extends Component
                     $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
                 });
             })->count(),
+            'waiting'  => (clone $baseQuery)->whereNotNull('waiting_human_reason')->count(),
             'all'      => (clone $baseQuery)->count(),
         ];
 
