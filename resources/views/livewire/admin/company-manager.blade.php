@@ -115,7 +115,8 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                         @php $checked = in_array($key, $modules, true); @endphp
                         <label style="display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border-radius:9px; cursor:pointer; transition:all 0.15s;
                                       background:{{ $checked ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.03)' }};
-                                      border:1px solid {{ $checked ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.07)' }};">
+                                      border:1px solid {{ $checked ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.07)' }};"
+                               wire:key="module-{{ $key }}">
                             <input type="checkbox"
                                    value="{{ $key }}"
                                    wire:model.live="modules"

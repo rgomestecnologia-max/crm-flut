@@ -31,6 +31,7 @@ class CompanyProvisioner
                 'color'     => $attributes['color']     ?? '#b2ff00',
                 'logo'      => $attributes['logo']      ?? null,
                 'is_active' => $attributes['is_active'] ?? true,
+                'modules'   => $attributes['modules']   ?? [],
             ]);
 
             $this->seedMinimalTemplate($company);
