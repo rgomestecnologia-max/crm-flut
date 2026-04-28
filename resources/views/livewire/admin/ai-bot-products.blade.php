@@ -42,6 +42,12 @@
                         @if($item->show_price && $item->price)
                         <p class="text-xs text-accent font-semibold mt-0.5">{{ $item->getPriceFormatted() }}</p>
                         @endif
+                        @if($item->document_path)
+                        <p class="text-[10px] text-blue-400 mt-0.5 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Documento anexado ({{ number_format(strlen($item->document_content ?? '') / 1024, 1) }}KB texto)
+                        </p>
+                        @endif
                     </div>
 
                     {{-- Badge ativo --}}
@@ -200,6 +206,35 @@
                     <input wire:model="photo" type="file" accept="image/*" class="sr-only">
                 </label>
                 @error('photo') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Documento (PDF/TXT) --}}
+            <div class="md:col-span-2">
+                <p class="text-xs text-gray-400 mb-2">
+                    Documento <span class="text-gray-600 font-normal">(PDF ou TXT, máx. 10MB — texto será extraído para a IA)</span>
+                </p>
+
+                @if($existingDocument && !$document)
+                <div class="flex items-center gap-3 mb-2">
+                    <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px;">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span class="text-xs text-blue-400">Documento anexado</span>
+                    </div>
+                    <button wire:click="removeDocument" type="button" class="text-xs text-red-400 hover:text-red-300">Remover</button>
+                </div>
+                @endif
+
+                <label class="flex items-center gap-2 cursor-pointer px-3 py-2 bg-surface-700 border border-surface-600 border-dashed rounded-lg hover:border-blue-500/50 transition-colors w-fit">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-xs text-gray-500">{{ $document ? 'Trocar documento' : 'Anexar documento (PDF/TXT)' }}</span>
+                    <input wire:model="document" type="file" accept=".pdf,.txt,.doc,.docx" class="sr-only">
+                </label>
+                @if($document)
+                <p class="text-xs text-green-400 mt-1">{{ $document->getClientOriginalName() }} — texto será extraído ao salvar</p>
+                @endif
+                @error('document') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- Ativo --}}

@@ -12,6 +12,7 @@ class AiBotProduct extends Model
 
     protected $fillable = [
         'company_id', 'type', 'name', 'description', 'photo_path',
+        'document_path', 'document_content',
         'show_price', 'price', 'is_active',
     ];
 
@@ -52,6 +53,7 @@ class AiBotProduct extends Model
         if ($this->description) $line .= ": {$this->description}";
         if ($this->show_price && $this->price) $line .= " | Valor: {$this->getPriceFormatted()}";
         if ($this->photo_path) $line .= " | FOTO: " . $this->getPhotoAbsoluteUrl();
+        if ($this->document_content) $line .= "\n  DOCUMENTO ANEXO:\n  " . str_replace("\n", "\n  ", $this->document_content);
         return $line;
     }
 }

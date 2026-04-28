@@ -22,12 +22,14 @@ class AiBotProducts extends Component
     public bool    $show_price  = false;
     public string  $price       = '';
     public bool    $is_active   = true;
-    public         $photo       = null;   // uploaded file
-    public ?string $existingPhoto = null; // path of current saved photo
+    public         $photo       = null;
+    public ?string $existingPhoto = null;
+    public         $document    = null;
+    public ?string $existingDocument = null;
 
     public function openCreate(): void
     {
-        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto']);
+        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','document','existingDocument']);
         $this->type      = 'produto';
         $this->is_active = true;
         $this->showForm  = true;
@@ -36,16 +38,18 @@ class AiBotProducts extends Component
     public function openEdit(int $id): void
     {
         $item = AiBotProduct::findOrFail($id);
-        $this->editingId     = $id;
-        $this->type          = $item->type;
-        $this->name          = $item->name;
-        $this->description   = $item->description ?? '';
-        $this->show_price    = $item->show_price;
-        $this->price         = $item->price ? (string) $item->price : '';
-        $this->is_active     = $item->is_active;
-        $this->photo         = null;
-        $this->existingPhoto = $item->photo_path;
-        $this->showForm      = true;
+        $this->editingId        = $id;
+        $this->type             = $item->type;
+        $this->name             = $item->name;
+        $this->description      = $item->description ?? '';
+        $this->show_price       = $item->show_price;
+        $this->price            = $item->price ? (string) $item->price : '';
+        $this->is_active        = $item->is_active;
+        $this->photo            = null;
+        $this->existingPhoto    = $item->photo_path;
+        $this->document         = null;
+        $this->existingDocument = $item->document_path;
+        $this->showForm         = true;
     }
 
     public function save(): void
@@ -57,6 +61,7 @@ class AiBotProducts extends Component
             'show_price'  => 'boolean',
             'price'       => 'nullable|numeric|min:0',
             'photo'       => 'nullable|image|max:4096',
+            'document'    => 'nullable|file|mimes:pdf,txt,doc,docx|max:10240',
             'is_active'   => 'boolean',
         ]);
 
@@ -71,14 +76,23 @@ class AiBotProducts extends Component
 
         // Foto
         if ($this->photo) {
-            // Remove foto anterior se houver
             if ($this->existingPhoto) {
                 MediaStorage::delete($this->existingPhoto);
             }
             $data['photo_path'] = MediaStorage::store($this->photo, 'ai-bot/products');
         } elseif ($this->editingId) {
-            // Mantém foto existente
             $data['photo_path'] = $this->existingPhoto;
+        }
+
+        // Documento (PDF/TXT)
+        if ($this->document) {
+            if ($this->existingDocument) {
+                MediaStorage::delete($this->existingDocument);
+            }
+            $data['document_path'] = MediaStorage::store($this->document, 'ai-bot/documents');
+            $data['document_content'] = $this->extractText($this->document);
+        } elseif ($this->editingId) {
+            $data['document_path'] = $this->existingDocument;
         }
 
         if ($this->editingId) {
@@ -90,7 +104,19 @@ class AiBotProducts extends Component
         }
 
         $this->showForm = false;
-        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto']);
+        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','document','existingDocument']);
+    }
+
+    public function removeDocument(): void
+    {
+        if (!$this->editingId) return;
+        $item = AiBotProduct::findOrFail($this->editingId);
+        if ($item->document_path) {
+            MediaStorage::delete($item->document_path);
+            $item->update(['document_path' => null, 'document_content' => null]);
+        }
+        $this->existingDocument = null;
+        $this->dispatch('toast', type: 'success', message: 'Documento removido.');
     }
 
     public function toggleActive(int $id): void
@@ -102,9 +128,8 @@ class AiBotProducts extends Component
     public function delete(int $id): void
     {
         $item = AiBotProduct::findOrFail($id);
-        if ($item->photo_path) {
-            MediaStorage::delete($item->photo_path);
-        }
+        if ($item->photo_path) MediaStorage::delete($item->photo_path);
+        if ($item->document_path) MediaStorage::delete($item->document_path);
         $item->delete();
         $this->dispatch('toast', type: 'success', message: 'Item removido.');
     }
@@ -112,7 +137,36 @@ class AiBotProducts extends Component
     public function cancel(): void
     {
         $this->showForm = false;
-        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto']);
+        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','document','existingDocument']);
+    }
+
+    /**
+     * Extrai texto de um arquivo PDF ou TXT.
+     */
+    private function extractText($file): ?string
+    {
+        try {
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            if ($ext === 'txt') {
+                return file_get_contents($file->getRealPath());
+            }
+
+            if ($ext === 'pdf') {
+                $parser = new \Smalot\PdfParser\Parser();
+                $pdf = $parser->parseFile($file->getRealPath());
+                $text = $pdf->getText();
+                // Limpa espaços excessivos
+                $text = preg_replace('/[ \t]+/', ' ', $text);
+                $text = preg_replace('/\n{3,}/', "\n\n", $text);
+                return trim($text);
+            }
+
+            return null;
+        } catch (\Throwable $e) {
+            \Log::warning('extractText failed', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     public function render()
