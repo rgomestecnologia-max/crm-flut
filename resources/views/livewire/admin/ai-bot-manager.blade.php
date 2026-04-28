@@ -91,6 +91,39 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
             </div>
         </div>
 
+        {{-- Personalidade --}}
+        <div style="{{ $cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:2px; height:16px; background:#f59e0b; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Personalidade</h3>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">Tom de voz e descrição da empresa para contexto da IA.</p>
+
+            <div style="display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <label style="{{ $labelStyle }}">Tom de voz</label>
+                    <textarea wire:model="voice_tones" rows="3"
+                              placeholder="Ex: Amigável e profissional, usar emojis moderadamente, tratar por 'você', evitar gírias..."
+                              style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                    @error('voice_tones') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label style="{{ $labelStyle }}">Descrição da empresa</label>
+                    <textarea wire:model="company_description" rows="4"
+                              placeholder="Descreva a empresa, produtos/serviços, diferenciais, horário de atendimento..."
+                              style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                    @error('company_description') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label style="{{ $labelStyle }}">URL do site (para contexto adicional)</label>
+                    <input wire:model="website_url" type="text"
+                           placeholder="https://www.suaempresa.com.br"
+                           style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    @error('website_url') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </div>
+
         {{-- Controles --}}
         <div style="{{ $cardStyle }}">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">
@@ -98,18 +131,27 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
                 <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Controles</h3>
             </div>
             <div style="display:flex; flex-direction:column; gap:16px;">
-                <div style="display:flex; align-items:flex-start; gap:20px;">
+                <div style="display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap;">
                     <div>
-                        <label style="{{ $labelStyle }}">Máx. turnos do robô por conversa</label>
+                        <label style="{{ $labelStyle }}">Máx. turnos por conversa</label>
                         <input wire:model="max_bot_turns" type="number" min="1" max="50"
                                style="width:96px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:13px; color:white; outline:none; transition:all 0.2s; font-family:inherit; text-align:center;"
                                onfocus="this.style.borderColor='rgba(178,255,0,0.5)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.07)'"
                                onblur="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.boxShadow='none'">
                         @error('max_bot_turns') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
                     </div>
-                    <div style="flex:1; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px;">
+                    <div>
+                        <label style="{{ $labelStyle }}">Delay de resposta (seg)</label>
+                        <input wire:model="response_delay" type="number" min="0" max="120"
+                               style="width:96px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:13px; color:white; outline:none; transition:all 0.2s; font-family:inherit; text-align:center;"
+                               onfocus="this.style.borderColor='rgba(178,255,0,0.5)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.07)'"
+                               onblur="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.boxShadow='none'">
+                        <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">0 = imediato</p>
+                        @error('response_delay') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                    </div>
+                    <div style="flex:1; min-width:200px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px;">
                         <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Passagem para humano</p>
-                        <p style="font-size:11px; color:rgba(255,255,255,0.2); line-height:1.5;">Ao atingir o limite de turnos, o robô envia a mensagem abaixo e para de responder. Um agente também pode assumir a qualquer momento.</p>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.2); line-height:1.5;">Ao atingir o limite de turnos, o robô envia a mensagem abaixo e para de responder.</p>
                     </div>
                 </div>
                 <div>

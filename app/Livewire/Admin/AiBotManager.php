@@ -12,9 +12,13 @@ class AiBotManager extends Component
 {
     public bool   $is_active                 = false;
     public string $system_prompt             = '';
-    public string $department_routing_prompt = '';
+    public string $voice_tones               = '';
+    public string $company_description       = '';
+    public string $website_url               = '';
+    public string $department_routing_prompt  = '';
     public string $initial_greeting          = '';
     public int    $max_bot_turns             = 5;
+    public int    $response_delay            = 0;
     public string $handoff_message           = '';
 
     public function mount(): void
@@ -23,9 +27,13 @@ class AiBotManager extends Component
         if ($config) {
             $this->is_active                 = $config->is_active;
             $this->system_prompt             = $config->system_prompt ?? '';
-            $this->department_routing_prompt = $config->department_routing_prompt ?? '';
+            $this->voice_tones               = $config->voice_tones ?? '';
+            $this->company_description       = $config->company_description ?? '';
+            $this->website_url               = $config->website_url ?? '';
+            $this->department_routing_prompt  = $config->department_routing_prompt ?? '';
             $this->initial_greeting          = $config->initial_greeting ?? '';
             $this->max_bot_turns             = $config->max_bot_turns ?? 5;
+            $this->response_delay            = $config->response_delay ?? 0;
             $this->handoff_message           = $config->handoff_message ?? '';
         }
     }
@@ -54,17 +62,25 @@ class AiBotManager extends Component
     {
         $this->validate([
             'system_prompt'             => 'nullable|string|max:8000',
+            'voice_tones'               => 'nullable|string|max:2000',
+            'company_description'       => 'nullable|string|max:4000',
+            'website_url'               => 'nullable|string|max:500',
             'department_routing_prompt' => 'nullable|string|max:2000',
             'initial_greeting'          => 'nullable|string|max:1000',
             'max_bot_turns'             => 'required|integer|min:1|max:50',
+            'response_delay'            => 'required|integer|min:0|max:120',
             'handoff_message'           => 'nullable|string|max:1000',
         ]);
 
         $data = [
             'system_prompt'             => $this->system_prompt ?: null,
+            'voice_tones'               => $this->voice_tones ?: null,
+            'company_description'       => $this->company_description ?: null,
+            'website_url'               => $this->website_url ?: null,
             'department_routing_prompt' => $this->department_routing_prompt ?: null,
             'initial_greeting'          => $this->initial_greeting ?: null,
             'max_bot_turns'             => $this->max_bot_turns,
+            'response_delay'            => $this->response_delay,
             'handoff_message'           => $this->handoff_message ?: null,
         ];
 
