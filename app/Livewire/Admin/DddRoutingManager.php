@@ -3,14 +3,16 @@
 namespace App\Livewire\Admin;
 
 use App\Models\DddRoutingRule;
+use App\Models\Department;
 use App\Models\User;
 use App\Services\CurrentCompany;
 use Livewire\Component;
 
 class DddRoutingManager extends Component
 {
-    public array $rules = []; // ddd => agent_id
-    public ?int  $selectedAgent = null;
+    public array  $rules = []; // ddd => agent_id
+    public ?int   $selectedAgent = null;
+    public ?int   $selectedDepartment = null;
     public string $newDdds = '';
 
     public function mount(): void
@@ -35,7 +37,11 @@ class DddRoutingManager extends Component
         foreach ($ddds as $ddd) {
             DddRoutingRule::updateOrCreate(
                 ['ddd' => $ddd],
-                ['agent_id' => $this->selectedAgent, 'is_active' => true]
+                [
+                    'agent_id'      => $this->selectedAgent,
+                    'department_id' => $this->selectedDepartment,
+                    'is_active'     => true,
+                ]
             );
         }
 
@@ -58,12 +64,24 @@ class DddRoutingManager extends Component
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $departments = Department::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         // Group DDDs by agent
+        $allRules = DddRoutingRule::where('is_active', true)->get();
         $grouped = [];
-        foreach ($this->rules as $ddd => $agentId) {
-            $grouped[$agentId][] = $ddd;
+        foreach ($allRules as $rule) {
+            $grouped[$rule->agent_id][] = $rule->ddd;
         }
 
-        return view('livewire.admin.ddd-routing-manager', compact('agents', 'grouped'));
+        // Department names by agent
+        $agentDepts = $allRules->unique('agent_id')->mapWithKeys(function ($rule) use ($departments) {
+            $dept = $departments->firstWhere('id', $rule->department_id);
+            return [$rule->agent_id => $dept->name ?? null];
+        })->toArray();
+
+        return view('livewire.admin.ddd-routing-manager', compact('agents', 'departments', 'grouped', 'agentDepts'));
     }
 }

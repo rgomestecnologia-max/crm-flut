@@ -50,14 +50,18 @@ class SendAutomationMessage implements ShouldQueue
                 }
 
                 // Roteamento por DDD — atribui agente e departamento conforme telefone
-                $assignedTo = null;
-                $phone = $this->contact->phone;
+                $assignedTo  = null;
+                $deptId      = $department->id;
+                $phone       = $this->contact->phone;
                 if ($phone && str_starts_with($phone, '55') && strlen($phone) >= 12) {
                     $ddd = substr($phone, 2, 2);
                     $rule = \App\Models\DddRoutingRule::where('ddd', $ddd)->where('is_active', true)->first();
                     if ($rule) {
                         $assignedTo = $rule->agent_id;
-                        Log::info('DDD routing: ' . $ddd . ' → agent ' . $rule->agent_id, [
+                        if ($rule->department_id) {
+                            $deptId = $rule->department_id;
+                        }
+                        Log::info('DDD routing: ' . $ddd . ' → agent ' . $rule->agent_id . ' dept ' . $deptId, [
                             'contact' => $this->contact->name,
                         ]);
                     }
@@ -65,7 +69,7 @@ class SendAutomationMessage implements ShouldQueue
 
                 $conversation = Conversation::create([
                     'contact_id'           => $this->contact->id,
-                    'department_id'        => $department->id,
+                    'department_id'        => $deptId,
                     'assigned_to'          => $assignedTo,
                     'status'               => 'open',
                     'is_group'             => false,
@@ -74,10 +78,11 @@ class SendAutomationMessage implements ShouldQueue
 
                 if ($assignedTo) {
                     $agentName = \App\Models\User::find($assignedTo)?->name ?? '?';
+                    $deptName  = Department::find($deptId)?->name ?? '?';
                     Message::create([
                         'conversation_id' => $conversation->id,
                         'sender_type'     => 'system',
-                        'content'         => "Roteamento DDD: atribuído a {$agentName}",
+                        'content'         => "Roteamento DDD: atribuído a {$agentName} ({$deptName})",
                         'type'            => 'text',
                         'delivery_status' => 'sent',
                     ]);

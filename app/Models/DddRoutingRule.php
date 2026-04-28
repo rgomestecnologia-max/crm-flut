@@ -10,7 +10,7 @@ class DddRoutingRule extends Model
 {
     use BelongsToCompany;
 
-    protected $fillable = ['company_id', 'ddd', 'agent_id', 'is_active'];
+    protected $fillable = ['company_id', 'ddd', 'agent_id', 'department_id', 'is_active'];
 
     protected $casts = [
         'is_active' => 'boolean',

@@ -14,6 +14,13 @@
             <option value="{{ $agent->id }}">{{ $agent->name }}</option>
             @endforeach
         </select>
+        <select wire:model="selectedDepartment"
+                style="padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; min-width:160px;">
+            <option value="">Departamento...</option>
+            @foreach($departments as $dept)
+            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+            @endforeach
+        </select>
         <input wire:model="newDdds" type="text" placeholder="DDDs separados por vírgula (ex: 11, 12, 13)"
                style="flex:1; min-width:200px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
         <button wire:click="addDdds"
@@ -32,10 +39,14 @@
                     <span style="font-size:11px; font-weight:700; color:#60a5fa;">{{ mb_substr($agent->name ?? '?', 0, 1) }}</span>
                 </div>
                 <p style="font-size:13px; font-weight:600; color:white;">{{ $agent->name ?? 'Agente #'.$agentId }}</p>
+                @if(!empty($agentDepts[$agentId]))
+                <span style="font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; background:rgba(59,130,246,0.1); color:#60a5fa; border:1px solid rgba(59,130,246,0.2);">{{ $agentDepts[$agentId] }}</span>
+                @endif
                 <span style="font-size:10px; color:rgba(255,255,255,0.3); margin-left:4px;">{{ count($ddds) }} DDDs</span>
             </div>
             <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                @foreach(sort($ddds) ?: $ddds as $ddd)
+                @php sort($ddds); @endphp
+                @foreach($ddds as $ddd)
                 <div style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px;">
                     <span style="font-size:12px; font-weight:600; color:#60a5fa;">{{ $ddd }}</span>
                     <button wire:click="removeDdd('{{ $ddd }}')" wire:confirm="Remover DDD {{ $ddd }}?"
