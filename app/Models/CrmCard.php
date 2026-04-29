@@ -14,7 +14,7 @@ class CrmCard extends Model
 
     protected $fillable = [
         'company_id', 'pipeline_id', 'stage_id', 'contact_id', 'assigned_to',
-        'title', 'description', 'priority', 'sort_order',
+        'title', 'description', 'external_id', 'priority', 'sort_order',
     ];
 
     public function pipeline(): BelongsTo

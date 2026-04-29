@@ -134,22 +134,50 @@ class LeadController extends Controller
             ['name' => $data['name'], 'tags' => ['site'], 'is_active' => true]
         );
 
-        // ── Cria card (sempre novo — permite múltiplos por contato) ──
+        // ── Cria ou atualiza card ─────────────────────────────────────
+        $isUpdate = false;
+        $externalId = $data['external_id'] ?? null;
 
-        $card = CrmCard::create([
-            'pipeline_id' => $pipelineId,
-            'stage_id'    => $stageId,
-            'contact_id'  => $contact->id,
-            'title'       => $contact->name,
-            'sort_order'  => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
-        ]);
+        // Se tem external_id, busca card existente para atualizar
+        if ($externalId) {
+            $existing = CrmCard::where('external_id', $externalId)->first();
+        } else {
+            $existing = null;
+        }
 
-        CrmCardActivity::create([
-            'card_id' => $card->id,
-            'user_id' => null,
-            'type'    => 'note',
-            'content' => "Lead criado via API ({$apiToken->name})",
-        ]);
+        if ($existing) {
+            // Atualiza card existente
+            $existing->update([
+                'title'       => $contact->name,
+                'contact_id'  => $contact->id,
+            ]);
+            $card = $existing;
+            $isUpdate = true;
+
+            CrmCardActivity::create([
+                'card_id' => $card->id,
+                'user_id' => null,
+                'type'    => 'note',
+                'content' => "Agendamento atualizado via API ({$apiToken->name})",
+            ]);
+        } else {
+            // Cria novo card (permite múltiplos por contato)
+            $card = CrmCard::create([
+                'pipeline_id'  => $pipelineId,
+                'stage_id'     => $stageId,
+                'contact_id'   => $contact->id,
+                'title'        => $contact->name,
+                'external_id'  => $externalId,
+                'sort_order'   => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
+            ]);
+
+            CrmCardActivity::create([
+                'card_id' => $card->id,
+                'user_id' => null,
+                'type'    => 'note',
+                'content' => "Lead criado via API ({$apiToken->name})",
+            ]);
+        }
 
         // ── Salva campos personalizados ───────────────────────────────
 
@@ -170,7 +198,24 @@ class LeadController extends Controller
             }
         }
 
-        // ── Dispara automações ────────────────────────────────────────
+        // ── Dispara automações (somente na criação, não na atualização) ──
+        if ($isUpdate) {
+            Log::info('API /leads: card atualizado (sem disparo de automação)', [
+                'card_id'     => $card->id,
+                'external_id' => $externalId,
+            ]);
+
+            return response()->json([
+                'success'     => true,
+                'created'     => false,
+                'updated'     => true,
+                'contact_id'  => $contact->id,
+                'card_id'     => $card->id,
+                'pipeline'    => $pipeline->name,
+                'stage'       => $stage->name,
+                'message'     => "Agendamento atualizado em {$pipeline->name} / {$stage->name}.",
+            ], 200);
+        }
 
         $automations = Automation::where('is_active', true)
             ->where(function ($q) use ($pipelineId) {
@@ -237,10 +282,13 @@ class LeadController extends Controller
             'celular'     => 'phone',
             'observacoes' => 'notes',
             'observação'  => 'notes',
-            'mensagem'    => 'notes',
-            'message'     => 'notes',
-            'duvida'      => 'notes',
-            'msg'         => 'notes',
+            'mensagem'       => 'notes',
+            'message'        => 'notes',
+            'duvida'         => 'notes',
+            'msg'            => 'notes',
+            'agendamento_id' => 'external_id',
+            'id_externo'     => 'external_id',
+            'booking_id'     => 'external_id',
         ];
 
         foreach ($baseAliases as $alias => $canonical) {
