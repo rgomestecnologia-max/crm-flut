@@ -140,22 +140,42 @@ class ProcessEvolutionMessage implements ShouldQueue
                         ?? Contact::where('phone', $chatPhone)->first();
 
                     // Se não encontrou e o chatPhone é real (55...), tenta achar
-                    // contato que tenha LID como phone mas mesmo pushName
-                    // (resolve duplicação LID ↔ número real)
-                    if (!$contact && $senderName && str_starts_with($chatPhone, '55')) {
-                        $contact = Contact::where('name', $senderName)
-                            ->whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'")
-                            ->first();
+                    // contato que tenha LID como phone (resolve duplicação LID ↔ número real)
+                    if (!$contact && str_starts_with($chatPhone, '55')) {
+                        // 1) Busca por nome exato
+                        if ($senderName) {
+                            $contact = Contact::where('name', $senderName)
+                                ->whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'")
+                                ->first();
+                        }
+
+                        // 2) Busca por conversas recentes com mensagens do mesmo remetente
+                        if (!$contact) {
+                            $recentConvs = Conversation::where('is_group', false)
+                                ->whereIn('status', ['open', 'pending', 'resolved'])
+                                ->latest('last_message_at')
+                                ->limit(50)
+                                ->pluck('contact_id');
+                            if ($recentConvs->isNotEmpty()) {
+                                $contact = Contact::whereIn('id', $recentConvs)
+                                    ->whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'")
+                                    ->where(function ($q) use ($senderName) {
+                                        if ($senderName) $q->where('name', $senderName);
+                                    })
+                                    ->first();
+                            }
+                        }
+
                         if ($contact) {
-                            // Encontrou contato com LID — atualiza com telefone real
+                            $oldPhone = $contact->phone;
                             $contact->update([
                                 'phone'    => $chatPhone,
-                                'chat_lid' => $contact->chat_lid ?: $contact->phone . '@lid',
+                                'chat_lid' => $contact->chat_lid ?: $oldPhone . '@lid',
                             ]);
                             Log::info('Contact LID→real unificado', [
                                 'contact' => $contact->id,
                                 'name'    => $contact->name,
-                                'old_phone' => $contact->getOriginal('phone'),
+                                'old_phone' => $oldPhone,
                                 'new_phone' => $chatPhone,
                             ]);
                         }
