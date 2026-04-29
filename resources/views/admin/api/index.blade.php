@@ -149,10 +149,32 @@
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Agendamento via API externa</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            O sistema externo envia os dados via API (<strong style="color:rgba(255,255,255,0.6);">POST /api/leads</strong>).
+                            O agendamento cria um card no <strong style="color:rgba(255,255,255,0.6);">Pipeline Agendamento → Etapa Novo</strong>
+                            com campos: Cliente, Profissional, Serviços, Total, Data/Hora.
+                            Suporta <strong style="color:rgba(255,255,255,0.6);">agendamento_id</strong> para atualizar cards existentes.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
                             <p style="font-size:13px; font-weight:600; color:white;">Confirmação automática 24h antes</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
                             O sistema calcula <strong style="color:rgba(255,255,255,0.6);">24 horas antes</strong> do horário agendado e dispara mensagem de confirmação via WhatsApp.
+                            Se o agendamento é em menos de 24h, envia imediatamente.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Agendamento retroativo não envia mensagem</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Se o agendamento tem <strong style="color:rgba(255,255,255,0.6);">data/hora no passado</strong>, o card é criado normalmente mas <strong style="color:rgba(255,255,255,0.6);">nenhuma mensagem</strong> é enviada.
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
@@ -161,8 +183,38 @@
                             <p style="font-size:13px; font-weight:600; color:white;">Resposta SIM/NÃO move etapa automaticamente</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            ✅ <strong style="color:#4ade80;">SIM</strong> → move para <strong style="color:rgba(255,255,255,0.6);">Confirmados</strong><br>
-                            ❌ <strong style="color:#f87171;">NÃO</strong> → move para <strong style="color:rgba(255,255,255,0.6);">Remarcar</strong>
+                            ✅ <strong style="color:#4ade80;">SIM</strong> (sim, confirmo, confirmado, s) → move para <strong style="color:rgba(255,255,255,0.6);">Confirmados</strong><br>
+                            ❌ <strong style="color:#f87171;">NÃO</strong> (não, nao, remarcar, cancelar, n) → move para <strong style="color:rgba(255,255,255,0.6);">Remarcar</strong>
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Atualização de agendamento via API</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Se o sistema externo envia o mesmo <strong style="color:rgba(255,255,255,0.6);">agendamento_id</strong>, o card é atualizado.
+                            Se a mensagem de confirmação <strong style="color:rgba(255,255,255,0.6);">já foi enviada</strong>, não reenvia.
+                            Se <strong style="color:rgba(255,255,255,0.6);">ainda não foi enviada</strong>, dispara normalmente com os dados atualizados.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Múltiplos cards por cliente</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            A mesma cliente pode ter <strong style="color:rgba(255,255,255,0.6);">vários cards</strong> (agendamentos diferentes).
+                            Cada agendamento tem seu próprio card e disparo independente.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Conversão de timezone UTC → BRT</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Datas recebidas em <strong style="color:rgba(255,255,255,0.6);">UTC (Z)</strong> são convertidas automaticamente para <strong style="color:rgba(255,255,255,0.6);">horário de Brasília</strong>.
                         </p>
                     </div>
                 </div>

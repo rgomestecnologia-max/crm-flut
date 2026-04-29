@@ -259,6 +259,15 @@ class LeadController extends Controller
             if (!empty($data['data_hora'])) {
                 try {
                     $agendamento = \Carbon\Carbon::parse($data['data_hora']);
+
+                    // Agendamento retroativo (data passada) — não envia mensagem
+                    if ($agendamento->isPast()) {
+                        Log::info('API /leads: agendamento retroativo, sem disparo', [
+                            'agendamento' => $agendamento->format('d/m/Y H:i'),
+                        ]);
+                        continue; // pula esta automação
+                    }
+
                     $disparo = $agendamento->copy()->subHours(24);
                     if ($disparo->isFuture()) {
                         $delay = $disparo;
@@ -267,7 +276,7 @@ class LeadController extends Controller
                             'disparo'     => $disparo->format('d/m/Y H:i'),
                         ]);
                     }
-                    // Se agendamento em menos de 24h, envia imediatamente ($delay = null)
+                    // Se agendamento em menos de 24h (mas futuro), envia imediatamente
                 } catch (\Throwable $e) {
                     Log::warning('API /leads: erro ao calcular delay', ['error' => $e->getMessage()]);
                 }
