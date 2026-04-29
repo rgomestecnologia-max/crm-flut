@@ -31,6 +31,79 @@
                 <livewire:admin.api-token-manager />
             </div>
 
+            @if(app(\App\Services\CurrentCompany::class)->id() === 2)
+            {{-- ══════════════════════════════════════════ --}}
+            {{-- REGRAS DE NEGÓCIO — PARE SEGURO            --}}
+            {{-- ══════════════════════════════════════════ --}}
+            <div class="bg-surface-800 border border-surface-700 rounded-2xl p-6">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                    <svg width="18" height="18" fill="none" stroke="#fbbf24" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+                    <h2 style="font-size:15px; font-weight:700; color:white; font-family:'Syne',sans-serif;">Regras de Negócio Ativas</h2>
+                </div>
+                <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:16px;">Regras customizadas para a Pare Seguro Estacionamento.</p>
+
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Lead do site via API + delay 3 min</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Lead chega via <strong style="color:rgba(255,255,255,0.6);">POST /api/leads</strong>, card criado em <strong style="color:rgba(255,255,255,0.6);">Vendas → Novo</strong>.
+                            Mensagem automática enviada com delay de 3 minutos.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">IA atende apenas clientes do site</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            A IA só responde clientes que vieram pela <strong style="color:rgba(255,255,255,0.6);">automação do site</strong> (receberam a primeira mensagem).
+                            Clientes que mandam direto no WhatsApp vão automaticamente para <strong style="color:rgba(255,255,255,0.6);">Aguardando</strong> (atendimento humano).
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Mover Novo → Em negociação ao responder</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Quando o cliente responde e o card está na etapa <strong style="color:rgba(255,255,255,0.6);">Novo</strong>,
+                            move automaticamente para <strong style="color:rgba(255,255,255,0.6);">Em negociação</strong>.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Handoff automático para atendente</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Quando a IA não sabe responder ou o cliente pede atendente humano, a conversa vai para o filtro <strong style="color:rgba(255,255,255,0.6);">Aguardando</strong> e a IA para de responder.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Lead salvo no menu Leads</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Todo lead via API é salvo no menu <strong style="color:rgba(255,255,255,0.6);">Leads</strong> com tag <strong style="color:rgba(255,255,255,0.6);">site</strong>.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Anti-duplicata de cards</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Se o mesmo contato já tem card no mesmo pipeline/etapa, <strong style="color:rgba(255,255,255,0.6);">atualiza</strong> em vez de criar duplicata.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             {{-- ══════════════════════════════════════════ --}}
             {{-- ROTEAMENTO POR DDD (exibido se houver regras) --}}
             {{-- ══════════════════════════════════════════ --}}
