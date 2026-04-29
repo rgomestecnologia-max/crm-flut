@@ -178,16 +178,21 @@
                             </div>
                             @endif
 
-                            {{-- Footer: responsável --}}
-                            <div class="flex items-center mt-2 pt-2 border-t border-surface-700/60">
-                                @if($card->assignedTo)
-                                <img src="{{ $card->assignedTo->avatar_url ?? '' }}" alt="{{ $card->assignedTo->name }}"
-                                     class="w-5 h-5 rounded-full object-cover ring-1 ring-surface-600"
-                                     title="{{ $card->assignedTo->name }}">
-                                <span class="text-[10px] text-gray-500 ml-1.5 truncate">{{ $card->assignedTo->name }}</span>
-                                @else
-                                <div class="w-5 h-5 rounded-full bg-surface-700 border border-dashed border-surface-600"></div>
-                                @endif
+                            {{-- Footer: responsável + data de criação --}}
+                            <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-700/60">
+                                <div class="flex items-center">
+                                    @if($card->assignedTo)
+                                    <img src="{{ $card->assignedTo->avatar_url ?? '' }}" alt="{{ $card->assignedTo->name }}"
+                                         class="w-5 h-5 rounded-full object-cover ring-1 ring-surface-600"
+                                         title="{{ $card->assignedTo->name }}">
+                                    <span class="text-[10px] text-gray-500 ml-1.5 truncate">{{ $card->assignedTo->name }}</span>
+                                    @else
+                                    <div class="w-5 h-5 rounded-full bg-surface-700 border border-dashed border-surface-600"></div>
+                                    @endif
+                                </div>
+                                <span class="text-[9px] text-gray-600 shrink-0" title="Criado em {{ $card->created_at->format('d/m/Y H:i') }}">
+                                    {{ $card->created_at->format('d/m/Y H:i') }}
+                                </span>
                             </div>
                         </div>
                     </div>
