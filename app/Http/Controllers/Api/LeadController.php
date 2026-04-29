@@ -198,23 +198,36 @@ class LeadController extends Controller
             }
         }
 
-        // ── Dispara automações (somente na criação, não na atualização) ──
+        // ── Se é update, verifica se a mensagem já foi enviada ──────
         if ($isUpdate) {
-            Log::info('API /leads: card atualizado (sem disparo de automação)', [
+            // Verifica se já existe conversa com mensagem de automação enviada
+            $alreadySent = \App\Models\Conversation::where('contact_id', $contact->id)
+                ->whereNotNull('source_automation_id')
+                ->whereHas('messages', fn($q) => $q->where('sender_type', 'agent')->whereNull('sender_id'))
+                ->exists();
+
+            if ($alreadySent) {
+                Log::info('API /leads: card atualizado (mensagem já enviada)', [
+                    'card_id'     => $card->id,
+                    'external_id' => $externalId,
+                ]);
+
+                return response()->json([
+                    'success'     => true,
+                    'created'     => false,
+                    'updated'     => true,
+                    'contact_id'  => $contact->id,
+                    'card_id'     => $card->id,
+                    'pipeline'    => $pipeline->name,
+                    'stage'       => $stage->name,
+                    'message'     => "Agendamento atualizado em {$pipeline->name} / {$stage->name}.",
+                ], 200);
+            }
+
+            Log::info('API /leads: card atualizado (mensagem ainda não enviada, disparando)', [
                 'card_id'     => $card->id,
                 'external_id' => $externalId,
             ]);
-
-            return response()->json([
-                'success'     => true,
-                'created'     => false,
-                'updated'     => true,
-                'contact_id'  => $contact->id,
-                'card_id'     => $card->id,
-                'pipeline'    => $pipeline->name,
-                'stage'       => $stage->name,
-                'message'     => "Agendamento atualizado em {$pipeline->name} / {$stage->name}.",
-            ], 200);
         }
 
         $automations = Automation::where('is_active', true)
