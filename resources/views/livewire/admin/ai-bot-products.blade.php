@@ -226,11 +226,6 @@
 
                 <input wire:model="document" type="file" accept=".pdf"
                        style="font-size:12px; color:rgba(255,255,255,0.5); padding:8px; background:rgba(255,255,255,0.04); border:1px dashed rgba(59,130,246,0.3); border-radius:8px; width:100%; cursor:pointer;">
-                <div wire:loading wire:target="document" style="margin-top:6px; display:flex; align-items:center; gap:6px;">
-                    <div style="width:14px; height:14px; border:2px solid rgba(59,130,246,0.3); border-top-color:#60a5fa; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
-                    <span style="font-size:11px; color:#60a5fa;">Enviando PDF...</span>
-                </div>
-                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
                 @if($document)
                 <p style="font-size:11px; color:#4ade80; margin-top:4px;">{{ $document->getClientOriginalName() }} — pronto para salvar</p>
                 @endif
