@@ -131,11 +131,12 @@
     {{-- Filter tabs --}}
     <div style="display:flex; padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0; overflow-x:auto;">
         @php
+        $aiActive = \App\Models\AiBotConfig::current()?->is_active ?? false;
         $tabs = [
             ['key' => 'mine',     'label' => 'Minhas Conversas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
             ['key' => 'queue',    'label' => 'Fila',      'count' => $counts['queue'],   'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)',  'activeColor' => '#fbbf24'],
         ];
-        if (($counts['waiting'] ?? 0) > 0 || $filter === 'waiting') {
+        if ($aiActive) {
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
