@@ -179,6 +179,20 @@ class LeadController extends Controller
             ]);
         }
 
+        // ── Converte campos datetime de UTC para timezone local ──────
+        foreach ($customFields as $key => $field) {
+            if (in_array($field->type, ['datetime']) && !empty($data[$key])) {
+                try {
+                    $parsed = \Carbon\Carbon::parse($data[$key]);
+                    // Se veio com Z (UTC) ou offset, converte para timezone local
+                    if (str_contains($data[$key], 'Z') || str_contains($data[$key], '+') || str_contains($data[$key], 'T')) {
+                        $parsed = $parsed->setTimezone(config('app.timezone'));
+                    }
+                    $data[$key] = $parsed->format('Y-m-d H:i:s');
+                } catch (\Throwable) {}
+            }
+        }
+
         // ── Salva campos personalizados ───────────────────────────────
 
         // Disponibiliza email e mensagem como campos personalizados também
