@@ -146,7 +146,7 @@ class LeadController extends Controller
         }
 
         if ($existing) {
-            // Atualiza card existente
+            // Atualiza card existente (encontrado por external_id)
             $existing->update([
                 'title'       => $contact->name,
                 'contact_id'  => $contact->id,
@@ -161,22 +161,45 @@ class LeadController extends Controller
                 'content' => "Agendamento atualizado via API ({$apiToken->name})",
             ]);
         } else {
-            // Cria novo card (permite múltiplos por contato)
-            $card = CrmCard::create([
-                'pipeline_id'  => $pipelineId,
-                'stage_id'     => $stageId,
-                'contact_id'   => $contact->id,
-                'title'        => $contact->name,
-                'external_id'  => $externalId,
-                'sort_order'   => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
-            ]);
+            // Sem external_id: busca card existente do mesmo contato no mesmo pipeline
+            // para evitar duplicatas (ex: lead reenviado pelo site)
+            if (!$externalId) {
+                $existingCard = CrmCard::where('contact_id', $contact->id)
+                    ->where('pipeline_id', $pipelineId)
+                    ->where('stage_id', $stageId)
+                    ->first();
+                if ($existingCard) {
+                    $existingCard->update(['title' => $contact->name]);
+                    $card = $existingCard;
+                    $isUpdate = true;
 
-            CrmCardActivity::create([
-                'card_id' => $card->id,
-                'user_id' => null,
-                'type'    => 'note',
-                'content' => "Lead criado via API ({$apiToken->name})",
-            ]);
+                    CrmCardActivity::create([
+                        'card_id' => $card->id,
+                        'user_id' => null,
+                        'type'    => 'note',
+                        'content' => "Lead atualizado via API ({$apiToken->name})",
+                    ]);
+                }
+            }
+
+            // Cria novo card se não encontrou existente
+            if (!isset($card)) {
+                $card = CrmCard::create([
+                    'pipeline_id'  => $pipelineId,
+                    'stage_id'     => $stageId,
+                    'contact_id'   => $contact->id,
+                    'title'        => $contact->name,
+                    'external_id'  => $externalId,
+                    'sort_order'   => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
+                ]);
+
+                CrmCardActivity::create([
+                    'card_id' => $card->id,
+                    'user_id' => null,
+                    'type'    => 'note',
+                    'content' => "Lead criado via API ({$apiToken->name})",
+                ]);
+            }
         }
 
         // ── Converte campos datetime de UTC para timezone local ──────
