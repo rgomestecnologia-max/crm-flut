@@ -208,24 +208,39 @@
                 @error('photo') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            {{-- Documento / Base de conhecimento --}}
+            {{-- Arquivo PDF (para a IA enviar ao cliente) --}}
             <div class="md:col-span-2">
                 <p class="text-xs text-gray-400 mb-2">
-                    Base de conhecimento <span class="text-gray-600 font-normal">(cole o conteúdo de um PDF, catálogo ou qualquer texto que a IA deve usar como referência)</span>
+                    Arquivo PDF <span class="text-gray-600 font-normal">(catálogo, ficha técnica — a IA envia ao cliente quando solicitado)</span>
                 </p>
 
                 @if($existingDocument)
                 <div class="flex items-center gap-3 mb-2">
                     <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px;">
                         <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span class="text-xs text-blue-400">Documento anexado</span>
+                        <span class="text-xs text-blue-400">PDF anexado</span>
                     </div>
                     <button wire:click="removeDocument" type="button" class="text-xs text-red-400 hover:text-red-300">Remover</button>
                 </div>
                 @endif
 
+                <label class="flex items-center gap-2 cursor-pointer px-3 py-2 bg-surface-700 border border-surface-600 border-dashed rounded-lg hover:border-blue-500/50 transition-colors w-fit">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-xs text-gray-500">{{ $document ? $document->getClientOriginalName() : 'Anexar PDF' }}</span>
+                    <input wire:model="document" type="file" accept=".pdf" class="sr-only">
+                </label>
+                @error('document') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Base de conhecimento (texto) --}}
+            <div class="md:col-span-2">
+                <p class="text-xs text-gray-400 mb-2">
+                    Base de conhecimento <span class="text-gray-600 font-normal">(cole o conteúdo do PDF ou informações extras que a IA deve usar como referência)</span>
+                </p>
                 <textarea wire:model="documentText" rows="6"
-                          placeholder="Cole aqui o conteúdo do catálogo, PDF, ou qualquer informação que a IA deve conhecer sobre este produto/serviço..."
+                          placeholder="Cole aqui o conteúdo do catálogo, ficha técnica, ou qualquer informação que a IA deve conhecer..."
                           class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 resize-none font-mono"></textarea>
                 @error('documentText') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>

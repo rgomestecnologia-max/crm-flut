@@ -204,9 +204,10 @@ class ProcessBotResponse implements ShouldQueue
 
             $departmentId = $this->extractDepartmentId($aiContent);
             $photoUrl     = $this->extractPhotoUrl($aiContent);
+            $docUrl       = $this->extractDocUrl($aiContent);
             $cleanContent = $this->cleanContent($aiContent);
 
-            if (!$cleanContent && !$photoUrl && !$isHandoff) return;
+            if (!$cleanContent && !$photoUrl && !$docUrl && !$isHandoff) return;
 
             if ($isHandoff) {
                 // Remove a tag [HANDOFF] do conteúdo
@@ -274,6 +275,23 @@ class ProcessBotResponse implements ShouldQueue
                 $this->conversation->update(['last_message_at' => now()]);
                 SendWhatsAppMessage::dispatch($imageMessage);
                 $this->broadcastMessage($imageMessage);
+            }
+
+            // Mensagem de documento (quando a IA inclui [DOC:url])
+            if ($docUrl) {
+                $docMessage = Message::create([
+                    'conversation_id' => $this->conversation->id,
+                    'sender_type'     => 'agent',
+                    'sender_id'       => null,
+                    'content'         => null,
+                    'type'            => 'document',
+                    'media_url'       => $docUrl,
+                    'media_filename'  => 'catalogo.pdf',
+                    'delivery_status' => 'pending',
+                ]);
+                $this->conversation->update(['last_message_at' => now()]);
+                SendWhatsAppMessage::dispatch($docMessage);
+                $this->broadcastMessage($docMessage);
             }
 
             // Roteamento de departamento
@@ -365,6 +383,10 @@ class ProcessBotResponse implements ShouldQueue
             if ($hasPhotos) {
                 $prompt .= "\nQuando o cliente pedir para ver um produto ou quando for relevante mostrar a imagem, inclua exatamente [FOTO:URL] na sua resposta, onde URL é a URL da foto listada no catálogo acima. Use no máximo UMA foto por resposta.";
             }
+            $hasDocs = $products->where('document_path', '!=', null)->where('document_path', '!=', 'text-input')->isNotEmpty();
+            if ($hasDocs) {
+                $prompt .= "\nQuando o cliente pedir catálogo, ficha técnica, PDF ou documento de um produto, inclua exatamente [DOC:URL] na sua resposta, onde URL é a URL do PDF listado no catálogo acima.";
+            }
         }
 
         if ($this->config->department_routing_prompt && $departments) {
@@ -392,10 +414,20 @@ class ProcessBotResponse implements ShouldQueue
         return null;
     }
 
+    private function extractDocUrl(string $content): ?string
+    {
+        if (preg_match('/\[DOC:(https?:\/\/[^\]]+)\]/i', $content, $m)) {
+            return trim($m[1]);
+        }
+        return null;
+    }
+
     private function cleanContent(string $content): string
     {
         $content = preg_replace('/\[DEPT:\d+\]/i', '', $content);
         $content = preg_replace('/\[FOTO:https?:\/\/[^\]]+\]/i', '', $content);
+        $content = preg_replace('/\[DOC:https?:\/\/[^\]]+\]/i', '', $content);
+        $content = preg_replace('/\[HANDOFF\]/i', '', $content);
         return trim($content);
     }
 }

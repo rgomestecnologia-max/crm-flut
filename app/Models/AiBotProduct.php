@@ -46,6 +46,13 @@ class AiBotProduct extends Model
         return 'R$ ' . number_format($this->price, 2, ',', '.');
     }
 
+    public function getDocumentAbsoluteUrl(): ?string
+    {
+        if (!$this->document_path || $this->document_path === 'text-input') return null;
+        $url = \App\Services\MediaStorage::url($this->document_path);
+        return str_starts_with($url, 'http') ? $url : url($url);
+    }
+
     /** Descrição compacta para incluir no system prompt da IA */
     public function toPromptLine(): string
     {
@@ -53,7 +60,8 @@ class AiBotProduct extends Model
         if ($this->description) $line .= ": {$this->description}";
         if ($this->show_price && $this->price) $line .= " | Valor: {$this->getPriceFormatted()}";
         if ($this->photo_path) $line .= " | FOTO: " . $this->getPhotoAbsoluteUrl();
-        if ($this->document_content) $line .= "\n  DOCUMENTO ANEXO:\n  " . str_replace("\n", "\n  ", $this->document_content);
+        if ($this->document_path && $this->document_path !== 'text-input') $line .= " | PDF: " . $this->getDocumentAbsoluteUrl();
+        if ($this->document_content) $line .= "\n  CONTEÚDO DO DOCUMENTO:\n  " . str_replace("\n", "\n  ", $this->document_content);
         return $line;
     }
 }
