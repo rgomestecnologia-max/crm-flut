@@ -214,12 +214,14 @@
                     Arquivo PDF <span class="text-gray-600 font-normal">(catálogo, ficha técnica — a IA envia ao cliente quando solicitado)</span>
                 </p>
 
-                @if($existingDocument)
+                @if($existingDocument && $existingDocument !== 'text-input')
                 <div class="flex items-center gap-3 mb-2">
-                    <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px;">
+                    <a href="{{ \App\Services\MediaStorage::url($existingDocument) }}" target="_blank" rel="noopener"
+                       style="display:flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px; text-decoration:none; transition:all 0.15s;"
+                       onmouseover="this.style.background='rgba(59,130,246,0.15)'" onmouseout="this.style.background='rgba(59,130,246,0.08)'">
                         <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span class="text-xs text-blue-400">PDF anexado</span>
-                    </div>
+                        <span class="text-xs text-blue-400">PDF anexado — clique para abrir</span>
+                    </a>
                     <button wire:click="removeDocument" type="button" class="text-xs text-red-400 hover:text-red-300">Remover</button>
                 </div>
                 @endif
