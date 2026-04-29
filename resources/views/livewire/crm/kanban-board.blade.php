@@ -167,6 +167,8 @@
                                                  {{ $isCurrency ? 'text-emerald-400' : ($isDatetime ? 'text-accent' : 'text-gray-300') }}">
                                         @if($isCurrency)
                                             R$ {{ number_format((float)$fv->value, 2, ',', '.') }}
+                                        @elseif($isDatetime && $fv->value)
+                                            {{ \Carbon\Carbon::parse($fv->value)->format($fv->field?->type === 'time' ? 'H:i' : ($fv->field?->type === 'date' ? 'd/m/Y' : 'd/m/Y H:i')) }}
                                         @else
                                             {{ $fv->value }}
                                         @endif
