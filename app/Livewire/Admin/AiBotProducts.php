@@ -24,12 +24,12 @@ class AiBotProducts extends Component
     public bool    $is_active   = true;
     public         $photo       = null;
     public ?string $existingPhoto = null;
-    public         $document    = null;
+    public string  $documentText = '';
     public ?string $existingDocument = null;
 
     public function openCreate(): void
     {
-        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','document','existingDocument']);
+        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','documentText','existingDocument']);
         $this->type      = 'produto';
         $this->is_active = true;
         $this->showForm  = true;
@@ -47,7 +47,7 @@ class AiBotProducts extends Component
         $this->is_active        = $item->is_active;
         $this->photo            = null;
         $this->existingPhoto    = $item->photo_path;
-        $this->document         = null;
+        $this->documentText     = $item->document_content ?? '';
         $this->existingDocument = $item->document_path;
         $this->showForm         = true;
     }
@@ -61,7 +61,7 @@ class AiBotProducts extends Component
             'show_price'  => 'boolean',
             'price'       => 'nullable|numeric|min:0',
             'photo'       => 'nullable|image|max:4096',
-            'document'    => 'nullable|file|mimes:pdf,txt,doc,docx|max:10240',
+            'documentText' => 'nullable|string|max:50000',
             'is_active'   => 'boolean',
         ]);
 
@@ -84,16 +84,9 @@ class AiBotProducts extends Component
             $data['photo_path'] = $this->existingPhoto;
         }
 
-        // Documento (PDF/TXT)
-        if ($this->document) {
-            if ($this->existingDocument) {
-                MediaStorage::delete($this->existingDocument);
-            }
-            $data['document_path'] = MediaStorage::store($this->document, 'ai-bot/documents');
-            $data['document_content'] = $this->extractText($this->document);
-        } elseif ($this->editingId) {
-            $data['document_path'] = $this->existingDocument;
-        }
+        // Base de conhecimento (texto colado)
+        $data['document_content'] = trim($this->documentText) ?: null;
+        $data['document_path'] = $data['document_content'] ? 'text-input' : null;
 
         if ($this->editingId) {
             AiBotProduct::findOrFail($this->editingId)->update($data);
@@ -104,7 +97,7 @@ class AiBotProducts extends Component
         }
 
         $this->showForm = false;
-        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','document','existingDocument']);
+        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','documentText','existingDocument']);
     }
 
     public function removeDocument(): void
@@ -137,7 +130,7 @@ class AiBotProducts extends Component
     public function cancel(): void
     {
         $this->showForm = false;
-        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','document','existingDocument']);
+        $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','documentText','existingDocument']);
     }
 
     /**

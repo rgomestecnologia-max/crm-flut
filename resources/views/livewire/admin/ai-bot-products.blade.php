@@ -96,15 +96,6 @@
     @endif
 
     {{-- Form de adição/edição --}}
-    {{-- Loading overlay --}}
-    <div wire:loading.flex wire:target="save, document, photo"
-         style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; flex-direction:column; gap:12px;">
-        <div style="width:40px; height:40px; border:3px solid rgba(178,255,0,0.2); border-top-color:#b2ff00; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
-        <p style="color:#b2ff00; font-size:13px; font-weight:600;">Processando...</p>
-        <p style="color:rgba(255,255,255,0.4); font-size:11px;">Isso pode levar alguns segundos</p>
-    </div>
-    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-
     @if($showForm)
     <div class="bg-surface-700/40 border border-accent/30 rounded-2xl p-5 space-y-4">
         <h4 class="text-sm font-semibold text-white flex items-center gap-2">
@@ -217,13 +208,13 @@
                 @error('photo') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            {{-- Documento (PDF/TXT) --}}
+            {{-- Documento / Base de conhecimento --}}
             <div class="md:col-span-2">
                 <p class="text-xs text-gray-400 mb-2">
-                    Documento <span class="text-gray-600 font-normal">(PDF ou TXT, máx. 10MB — texto será extraído para a IA)</span>
+                    Base de conhecimento <span class="text-gray-600 font-normal">(cole o conteúdo de um PDF, catálogo ou qualquer texto que a IA deve usar como referência)</span>
                 </p>
 
-                @if($existingDocument && !$document)
+                @if($existingDocument)
                 <div class="flex items-center gap-3 mb-2">
                     <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px;">
                         <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -233,24 +224,10 @@
                 </div>
                 @endif
 
-                <label class="flex items-center gap-2 cursor-pointer px-3 py-2 bg-surface-700 border border-surface-600 border-dashed rounded-lg hover:border-blue-500/50 transition-colors w-fit">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <span class="text-xs text-gray-500" wire:loading.remove wire:target="document">{{ $document ? 'Trocar documento' : 'Anexar documento (PDF/TXT)' }}</span>
-                    <span class="text-xs text-blue-400" wire:loading wire:target="document">Enviando arquivo...</span>
-                    <input wire:model="document" type="file" accept=".pdf,.txt,.doc,.docx" class="sr-only">
-                </label>
-                <div wire:loading wire:target="document" class="mt-2">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="width:16px; height:16px; border:2px solid rgba(59,130,246,0.3); border-top-color:#60a5fa; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
-                        <span class="text-xs text-blue-400">Carregando arquivo...</span>
-                    </div>
-                </div>
-                @if($document)
-                <p class="text-xs text-green-400 mt-1">{{ $document->getClientOriginalName() }} — texto será extraído ao salvar</p>
-                @endif
-                @error('document') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                <textarea wire:model="documentText" rows="6"
+                          placeholder="Cole aqui o conteúdo do catálogo, PDF, ou qualquer informação que a IA deve conhecer sobre este produto/serviço..."
+                          class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 resize-none font-mono"></textarea>
+                @error('documentText') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- Ativo --}}
