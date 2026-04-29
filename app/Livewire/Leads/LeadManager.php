@@ -147,7 +147,7 @@ class LeadManager extends Component
             $query->whereJsonContains('tags', $this->filterTag);
         }
 
-        $leads = $query->orderByDesc('created_at')->paginate(25);
+        $leads = $query->orderByDesc('created_at')->paginate(15);
 
         // Coleta todas as tags únicas para o filtro
         $allTags = BroadcastContact::whereNotNull('tags')

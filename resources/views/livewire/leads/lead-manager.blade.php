@@ -1,4 +1,4 @@
-<div>
+<div style="display:flex; flex-direction:column; height:100%; overflow:hidden;">
     {{-- Header --}}
     <div style="height:60px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; padding:0 24px; flex-shrink:0; background:rgba(11,15,28,0.5); backdrop-filter:blur(6px);">
         <div class="flex items-center gap-3">
@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div style="padding:20px 24px;">
+    <div style="padding:20px 24px; flex:1; overflow-y:auto;">
         {{-- Filtros --}}
         <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
             <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar por nome ou telefone..."

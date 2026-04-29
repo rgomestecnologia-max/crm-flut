@@ -1,6 +1,6 @@
 <x-layouts.app>
     <x-slot:title>Leads — {{ config('app.name') }}</x-slot:title>
-    <div class="flex-1 overflow-auto">
+    <div style="display:flex; flex-direction:column; height:100%; overflow:hidden;">
         <livewire:leads.lead-manager />
     </div>
 </x-layouts.app>
