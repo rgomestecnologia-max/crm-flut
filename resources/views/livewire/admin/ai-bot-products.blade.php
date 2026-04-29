@@ -224,25 +224,17 @@
                 </div>
                 @endif
 
-                <div x-data="{ uploading: false, progress: 0, fileName: '' }"
-                     x-on:livewire-upload-start="uploading = true"
-                     x-on:livewire-upload-finish="uploading = false"
-                     x-on:livewire-upload-error="uploading = false"
-                     x-on:livewire-upload-progress="progress = $event.detail.progress">
-                    <label class="flex items-center gap-2 cursor-pointer px-3 py-2 bg-surface-700 border border-surface-600 border-dashed rounded-lg hover:border-blue-500/50 transition-colors w-fit">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                        <span class="text-xs text-gray-500" x-show="!uploading">Anexar PDF</span>
-                        <span class="text-xs text-blue-400" x-show="uploading">Enviando... <span x-text="progress"></span>%</span>
-                        <input wire:model="document" type="file" accept=".pdf" class="sr-only"
-                               x-on:change="fileName = $event.target.files[0]?.name || ''">
-                    </label>
-                    @if($document)
-                    <p class="text-xs text-green-400 mt-1">{{ $document->getClientOriginalName() }} — pronto para salvar</p>
-                    @endif
+                <input wire:model="document" type="file" accept=".pdf"
+                       style="font-size:12px; color:rgba(255,255,255,0.5); padding:8px; background:rgba(255,255,255,0.04); border:1px dashed rgba(59,130,246,0.3); border-radius:8px; width:100%; cursor:pointer;">
+                <div wire:loading wire:target="document" style="margin-top:6px; display:flex; align-items:center; gap:6px;">
+                    <div style="width:14px; height:14px; border:2px solid rgba(59,130,246,0.3); border-top-color:#60a5fa; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+                    <span style="font-size:11px; color:#60a5fa;">Enviando PDF...</span>
                 </div>
-                @error('document') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                @if($document)
+                <p style="font-size:11px; color:#4ade80; margin-top:4px;">{{ $document->getClientOriginalName() }} — pronto para salvar</p>
+                @endif
+                @error('document') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
             </div>
 
             {{-- Base de conhecimento (texto) --}}
