@@ -179,10 +179,10 @@
             $isSupervisor  = auth()->user()->isSupervisor();
             $companyModules = app(\App\Services\CurrentCompany::class)->model()?->modules ?? [];
             $userModules = auth()->user()->modules; // null = todos, array = restritos
-            // Admin vê tudo. Supervisor vê módulos de gestão (admin.*) automaticamente + módulos da empresa.
+            // Admin vê tudo. Supervisor vê todos os módulos da empresa.
             // Agentes seguem a restrição de $userModules.
             $canSee = fn(string $mod) => $isSystemAdmin
-                || ($isSupervisor && in_array($mod, $companyModules, true) && (str_starts_with($mod, 'admin.') || $userModules === null || in_array($mod, $userModules, true)))
+                || ($isSupervisor && in_array($mod, $companyModules, true))
                 || (!$isSupervisor && in_array($mod, $companyModules, true) && ($userModules === null || in_array($mod, $userModules, true)));
         @endphp
         <nav style="flex:1; padding:10px 8px; overflow-y:auto; display:flex; flex-direction:column; gap:2px;">
