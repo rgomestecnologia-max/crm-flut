@@ -323,8 +323,15 @@ class ProcessEvolutionMessage implements ShouldQueue
             // ── Bot de atendimento ────────────────────────────────────────────
             // Recarrega conversa do banco para pegar waiting_human_reason atualizado
             $conversation->refresh();
-            // Não dispara IA se conversa está aguardando atendente humano ou já tem agente
-            if (!$fromMe && !$conversation->waiting_human_reason && !$conversation->assigned_to) {
+            // Não dispara IA se conversa está aguardando atendente humano
+            // ou se agente humano já ENVIOU mensagem na conversa
+            $humanSent = $conversation->assigned_to
+                ? Message::where('conversation_id', $conversation->id)
+                    ->where('sender_type', 'agent')
+                    ->whereNotNull('sender_id')
+                    ->exists()
+                : false;
+            if (!$fromMe && !$conversation->waiting_human_reason && !$humanSent) {
                 try {
                     $menuConfig = ChatbotMenuConfig::current();
                     $botConfig  = AiBotConfig::current();
