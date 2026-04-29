@@ -86,17 +86,25 @@ class AiBotProducts extends Component
             $data['photo_path'] = $this->existingPhoto;
         }
 
-        // Upload PDF (arquivo para enviar ao cliente)
+        // Upload PDF (arquivo para enviar ao cliente + extrai texto)
         if ($this->document) {
             if ($this->existingDocument && $this->existingDocument !== 'text-input') {
                 MediaStorage::delete($this->existingDocument);
             }
             $data['document_path'] = MediaStorage::store($this->document, 'ai-bot/documents');
+
+            // Extrai texto do PDF para a base de conhecimento (se textarea vazio)
+            if (!trim($this->documentText)) {
+                $extracted = $this->extractText($this->document);
+                if ($extracted) {
+                    $this->documentText = $extracted;
+                }
+            }
         } elseif ($this->editingId) {
             $data['document_path'] = $this->existingDocument;
         }
 
-        // Base de conhecimento (texto para a IA usar como referência)
+        // Base de conhecimento (texto colado ou extraído do PDF)
         $data['document_content'] = trim($this->documentText) ?: null;
 
         if ($this->editingId) {
@@ -160,10 +168,11 @@ class AiBotProducts extends Component
                 $parser = new \Smalot\PdfParser\Parser();
                 $pdf = $parser->parseFile($file->getRealPath());
                 $text = $pdf->getText();
-                // Limpa espaços excessivos
                 $text = preg_replace('/[ \t]+/', ' ', $text);
                 $text = preg_replace('/\n{3,}/', "\n\n", $text);
-                return trim($text);
+                $text = mb_convert_encoding(trim($text), 'UTF-8', 'UTF-8');
+                $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $text);
+                return $text;
             }
 
             return null;
