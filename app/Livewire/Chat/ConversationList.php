@@ -254,13 +254,11 @@ class ConversationList extends Component
             // Meus atendimentos: atribuídas a mim, status open
             'mine'     => $query->where('assigned_to', $user->id)->where('status', 'open'),
 
-            // Fila: conversas sem agente + grupos do setor (grupos sempre ficam visíveis na fila)
-            'queue'    => $query->where(function ($q) {
+            // Fila: conversas sem agente + grupos (exclui as que estão em Aguardando)
+            'queue'    => $query->whereNull('waiting_human_reason')->where(function ($q) {
                 $q->where(function ($q2) {
-                    // Conversas individuais sem agente
                     $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
                 })->orWhere(function ($q2) {
-                    // Grupos sempre aparecem na fila do setor
                     $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
                 });
             }),
@@ -286,7 +284,7 @@ class ConversationList extends Component
 
         $counts = [
             'mine'     => (clone $baseQuery)->where('assigned_to', $user->id)->where('status', 'open')->count(),
-            'queue'    => (clone $baseQuery)->where(function ($q) {
+            'queue'    => (clone $baseQuery)->whereNull('waiting_human_reason')->where(function ($q) {
                 $q->where(function ($q2) {
                     $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
                 })->orWhere(function ($q2) {
