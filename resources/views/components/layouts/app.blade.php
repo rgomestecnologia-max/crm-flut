@@ -120,20 +120,6 @@
 
 <div style="display:flex; height:100vh; height:100dvh; overflow:hidden;">
 
-    {{-- Mobile menu button --}}
-    <button @click="mobileMenu = true; sidebarOpen = true"
-            x-show="!mobileMenu"
-            class="mobile-menu-btn"
-            style="display:none; position:fixed; top:12px; left:12px; z-index:39; width:40px; height:40px; border-radius:10px; background:rgba(17,24,39,0.95); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); cursor:pointer; align-items:center; justify-content:center;">
-        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-    </button>
-    <style>
-        @media (max-width: 768px) {
-            .mobile-menu-btn { display: flex !important; }
-        }
-    </style>
 
     {{-- Mobile overlay (só fecha ao clicar no overlay, não na sidebar) --}}
     <template x-if="mobileMenu && window.innerWidth <= 768">
