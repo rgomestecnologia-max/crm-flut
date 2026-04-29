@@ -134,43 +134,22 @@ class LeadController extends Controller
             ['name' => $data['name'], 'tags' => ['site'], 'is_active' => true]
         );
 
-        // ── Cria ou move card ─────────────────────────────────────────
+        // ── Cria card (sempre novo — permite múltiplos por contato) ──
 
-        $existing = CrmCard::where('contact_id', $contact->id)->latest()->first();
+        $card = CrmCard::create([
+            'pipeline_id' => $pipelineId,
+            'stage_id'    => $stageId,
+            'contact_id'  => $contact->id,
+            'title'       => $contact->name,
+            'sort_order'  => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
+        ]);
 
-        if ($existing) {
-            $oldPipeline = $existing->pipeline?->name ?? '—';
-            $oldStage    = $existing->stage?->name    ?? '—';
-
-            $existing->update(['pipeline_id' => $pipelineId, 'stage_id' => $stageId]);
-
-            CrmCardActivity::create([
-                'card_id' => $existing->id,
-                'user_id' => null,
-                'type'    => 'stage_change',
-                'content' => "Atualizado via API: {$oldPipeline}/{$oldStage} → {$pipeline->name}/{$stage->name}",
-            ]);
-
-            $card    = $existing->fresh();
-            $created = false;
-        } else {
-            $card = CrmCard::create([
-                'pipeline_id' => $pipelineId,
-                'stage_id'    => $stageId,
-                'contact_id'  => $contact->id,
-                'title'       => $contact->name,
-                'sort_order'  => CrmCard::where('stage_id', $stageId)->max('sort_order') + 1,
-            ]);
-
-            CrmCardActivity::create([
-                'card_id' => $card->id,
-                'user_id' => null,
-                'type'    => 'note',
-                'content' => "Lead criado via API ({$apiToken->name})",
-            ]);
-
-            $created = true;
-        }
+        CrmCardActivity::create([
+            'card_id' => $card->id,
+            'user_id' => null,
+            'type'    => 'note',
+            'content' => "Lead criado via API ({$apiToken->name})",
+        ]);
 
         // ── Salva campos personalizados ───────────────────────────────
 
@@ -202,28 +181,45 @@ class LeadController extends Controller
             ->get();
 
         foreach ($automations as $automation) {
-            SendAutomationMessage::dispatch($automation, $contact, $card);
+            $delay = null;
+
+            // Se o lead tem campo data_hora, calcula disparo 24h antes
+            if (!empty($data['data_hora'])) {
+                try {
+                    $agendamento = \Carbon\Carbon::parse($data['data_hora']);
+                    $disparo = $agendamento->copy()->subHours(24);
+                    if ($disparo->isFuture()) {
+                        $delay = $disparo;
+                        Log::info('API /leads: disparo 24h antes', [
+                            'agendamento' => $agendamento->format('d/m/Y H:i'),
+                            'disparo'     => $disparo->format('d/m/Y H:i'),
+                        ]);
+                    }
+                    // Se agendamento em menos de 24h, envia imediatamente ($delay = null)
+                } catch (\Throwable $e) {
+                    Log::warning('API /leads: erro ao calcular delay', ['error' => $e->getMessage()]);
+                }
+            }
+
+            SendAutomationMessage::dispatch($automation, $contact, $card)->delay($delay);
         }
 
         Log::info('API /leads processado com sucesso', [
             'contact_id' => $contact->id,
             'card_id'    => $card->id,
-            'created'    => $created,
             'pipeline'   => $pipeline->name,
             'stage'      => $stage->name,
         ]);
 
         return response()->json([
-            'success'    => true,
-            'created'    => $created,
-            'contact_id' => $contact->id,
-            'card_id'    => $card->id,
-            'pipeline'   => $pipeline->name,
-            'stage'      => $stage->name,
-            'message'    => $created
-                ? "Lead criado em {$pipeline->name} / {$stage->name}."
-                : "Lead atualizado para {$pipeline->name} / {$stage->name}.",
-        ], $created ? 201 : 200);
+            'success'     => true,
+            'created'     => true,
+            'contact_id'  => $contact->id,
+            'card_id'     => $card->id,
+            'pipeline'    => $pipeline->name,
+            'stage'       => $stage->name,
+            'message'     => "Lead criado em {$pipeline->name} / {$stage->name}.",
+        ], 201);
     }
 
     /**
