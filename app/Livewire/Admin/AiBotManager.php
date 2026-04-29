@@ -81,6 +81,29 @@ class AiBotManager extends Component
         }
     }
 
+    public function scrapeNow(): void
+    {
+        if (!$this->website_url) {
+            $this->dispatch('toast', type: 'error', message: 'Informe a URL do site primeiro.');
+            return;
+        }
+
+        $content = $this->scrapeWebsite($this->website_url);
+        if ($content) {
+            $pages = substr_count($content, '===');
+            $chars = strlen($content);
+
+            AiBotConfig::updateOrCreate(
+                ['company_id' => app(\App\Services\CurrentCompany::class)->id()],
+                ['website_url' => $this->website_url, 'website_content' => $content]
+            );
+
+            $this->dispatch('toast', type: 'success', message: "Site lido com sucesso! {$pages} páginas, {$chars} caracteres extraídos.");
+        } else {
+            $this->dispatch('toast', type: 'error', message: 'Não foi possível ler o site. Verifique a URL.');
+        }
+    }
+
     public function save(): void
     {
         $this->validate([

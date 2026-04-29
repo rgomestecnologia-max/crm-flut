@@ -107,9 +107,19 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
                 </div>
                 <div>
                     <label style="{{ $labelStyle }}">URL do site (para contexto adicional)</label>
-                    <input wire:model="website_url" type="text"
-                           placeholder="https://www.suaempresa.com.br"
-                           style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input wire:model="website_url" type="text"
+                               placeholder="https://www.suaempresa.com.br"
+                               style="{{ $inputStyle }} flex:1;" {!! $inputFocus !!}>
+                        <button type="button" wire:click="scrapeNow"
+                                wire:loading.attr="disabled"
+                                wire:target="scrapeNow"
+                                style="padding:9px 16px; font-size:11px; font-weight:700; color:#111; background:linear-gradient(135deg, #3b82f6, #2563eb); border:none; border-radius:10px; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all 0.15s;"
+                                onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            <span wire:loading.remove wire:target="scrapeNow">Ler site</span>
+                            <span wire:loading wire:target="scrapeNow">Lendo...</span>
+                        </button>
+                    </div>
                     @error('website_url') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
                 </div>
             </div>
