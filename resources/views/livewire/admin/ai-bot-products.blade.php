@@ -224,21 +224,23 @@
                 </div>
                 @endif
 
-                <div x-data="{ uploading: false, fileName: '' }">
+                <div x-data="{ uploading: false, progress: 0, fileName: '' }"
+                     x-on:livewire-upload-start="uploading = true"
+                     x-on:livewire-upload-finish="uploading = false"
+                     x-on:livewire-upload-error="uploading = false"
+                     x-on:livewire-upload-progress="progress = $event.detail.progress">
                     <label class="flex items-center gap-2 cursor-pointer px-3 py-2 bg-surface-700 border border-surface-600 border-dashed rounded-lg hover:border-blue-500/50 transition-colors w-fit">
                         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <span class="text-xs text-gray-500" x-show="!uploading" x-text="fileName || 'Anexar PDF'"></span>
-                        <span class="text-xs text-blue-400" x-show="uploading">Enviando...</span>
-                        <input type="file" accept=".pdf" class="sr-only"
-                               x-on:change="
-                                   uploading = true;
-                                   fileName = $event.target.files[0]?.name || '';
-                                   @this.upload('document', $event.target.files[0], () => { uploading = false; }, () => { uploading = false; })
-                               ">
+                        <span class="text-xs text-gray-500" x-show="!uploading">Anexar PDF</span>
+                        <span class="text-xs text-blue-400" x-show="uploading">Enviando... <span x-text="progress"></span>%</span>
+                        <input wire:model="document" type="file" accept=".pdf" class="sr-only"
+                               x-on:change="fileName = $event.target.files[0]?.name || ''">
                     </label>
-                    <p class="text-xs text-green-400 mt-1" x-show="fileName && !uploading" x-text="fileName + ' — pronto para salvar'"></p>
+                    @if($document)
+                    <p class="text-xs text-green-400 mt-1">{{ $document->getClientOriginalName() }} — pronto para salvar</p>
+                    @endif
                 </div>
                 @error('document') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
