@@ -59,7 +59,18 @@ class Automation extends Model
 
         // Custom field values: {field_key}
         foreach ($card->fieldValues as $fv) {
-            $vars['{' . $fv->field->key . '}'] = $fv->value ?? '';
+            $value = $fv->value ?? '';
+            // Formata datas para padrão brasileiro
+            if ($value && in_array($fv->field?->type, ['datetime', 'date', 'time'])) {
+                try {
+                    $value = match ($fv->field->type) {
+                        'datetime' => \Carbon\Carbon::parse($value)->format('d/m/Y H:i'),
+                        'date'     => \Carbon\Carbon::parse($value)->format('d/m/Y'),
+                        'time'     => $value, // já vem como HH:mm
+                    };
+                } catch (\Throwable) {}
+            }
+            $vars['{' . $fv->field->key . '}'] = $value;
         }
 
         return str_replace(array_keys($vars), array_values($vars), $this->message_template);
