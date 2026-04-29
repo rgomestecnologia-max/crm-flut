@@ -357,9 +357,22 @@ class ProcessEvolutionMessage implements ShouldQueue
                     $botConfig  = AiBotConfig::current();
 
                     $automationAi = false;
+                    $aiOnlyForAutomation = false;
                     if (!$isGroup && $conversation->source_automation_id) {
                         $sourceAutomation = $conversation->sourceAutomation;
                         $automationAi = $sourceAutomation?->enable_ai_on_reply === true;
+                    }
+
+                    // Verifica se a empresa tem automação com enable_ai_on_reply
+                    // Se sim, IA só atende conversas que vieram da automação
+                    // Conversas diretas (sem automação) vão para Aguardando
+                    if (!$isGroup && !$conversation->source_automation_id && $botConfig && $botConfig->is_active) {
+                        $hasAiAutomation = \App\Models\Automation::where('is_active', true)
+                            ->where('enable_ai_on_reply', true)
+                            ->exists();
+                        if ($hasAiAutomation) {
+                            $aiOnlyForAutomation = true;
+                        }
                     }
 
                     $skipMenu = $automationAi && $botConfig && $botConfig->is_active && $botConfig->hasKey();
@@ -367,7 +380,17 @@ class ProcessEvolutionMessage implements ShouldQueue
                     // Não envia chatbot em grupos se reply_in_groups está desativado
                     $skipGroups = $isGroup && $menuConfig && !$menuConfig->reply_in_groups;
 
-                    if ($menuConfig && $menuConfig->is_active && !$skipMenu && !$skipGroups) {
+                    if ($aiOnlyForAutomation) {
+                        // Conversa direta em empresa com IA restrita → Aguardando
+                        $conversation->update(['waiting_human_reason' => 'Atendimento direto - aguardando humano']);
+                        Message::create([
+                            'conversation_id' => $conversation->id,
+                            'sender_type'     => 'system',
+                            'content'         => '🔔 Cliente entrou em contato direto (fora da automação) — aguardando atendente',
+                            'type'            => 'text',
+                            'delivery_status' => 'sent',
+                        ]);
+                    } elseif ($menuConfig && $menuConfig->is_active && !$skipMenu && !$skipGroups) {
                         \App\Jobs\ProcessMenuBot::dispatch($conversation, $menuConfig, $botConfig, $message->id);
                     } elseif ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
                         \App\Jobs\ProcessBotResponse::dispatch($conversation, $botConfig, $message->id);
