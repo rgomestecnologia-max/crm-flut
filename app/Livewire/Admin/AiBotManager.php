@@ -128,24 +128,45 @@ class AiBotManager extends Component
     private function scrapeWebsite(string $url): ?string
     {
         try {
+            $baseUrl = rtrim($url, '/');
             $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'Mozilla/5.0']]);
+
+            // Busca página principal e extrai links internos
             $html = @file_get_contents($url, false, $ctx);
             if (!$html) return null;
 
-            // Remove scripts, styles, noscript
-            $html = preg_replace('/<script[^>]*>.*?<\/script>/si', '', $html);
-            $html = preg_replace('/<style[^>]*>.*?<\/style>/si', '', $html);
-            $html = preg_replace('/<noscript[^>]*>.*?<\/noscript>/si', '', $html);
+            preg_match_all('/href=["\']([^"\']+)["\']/i', $html, $matches);
+            $pages = [$baseUrl . '/'];
+            foreach (array_unique($matches[1] ?? []) as $link) {
+                if (str_starts_with($link, '/') && !str_contains($link, '#') && !str_contains($link, '.') && strlen($link) > 1) {
+                    $pages[] = $baseUrl . $link;
+                }
+            }
+            $pages = array_unique(array_slice($pages, 0, 10)); // máx 10 páginas
 
-            $text = strip_tags($html);
-            $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-            $text = preg_replace('/[ \t]+/', ' ', $text);
-            $text = preg_replace('/\n\s*\n/', "\n", $text);
-            $text = trim($text);
+            // Extrai texto de cada página
+            $allText = '';
+            foreach ($pages as $pageUrl) {
+                $pageHtml = @file_get_contents($pageUrl, false, $ctx);
+                if (!$pageHtml) continue;
 
-            // Remove linhas vazias/curtas
-            $lines = array_filter(array_map('trim', explode("\n", $text)), fn($l) => strlen($l) > 2);
-            return implode("\n", $lines) ?: null;
+                $pageHtml = preg_replace('/<script[^>]*>.*?<\/script>/si', '', $pageHtml);
+                $pageHtml = preg_replace('/<style[^>]*>.*?<\/style>/si', '', $pageHtml);
+                $pageHtml = preg_replace('/<noscript[^>]*>.*?<\/noscript>/si', '', $pageHtml);
+
+                $text = strip_tags($pageHtml);
+                $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+                $text = preg_replace('/[ \t]+/', ' ', $text);
+                $text = preg_replace('/\n\s*\n/', "\n", $text);
+                $lines = array_filter(array_map('trim', explode("\n", trim($text))), fn($l) => strlen($l) > 2);
+                $pageText = implode("\n", $lines);
+
+                if ($pageText) {
+                    $allText .= "\n\n=== {$pageUrl} ===\n{$pageText}";
+                }
+            }
+
+            return trim($allText) ?: null;
         } catch (\Throwable $e) {
             \Log::warning('scrapeWebsite failed', ['url' => $url, 'error' => $e->getMessage()]);
             return null;
