@@ -148,18 +148,23 @@ class ProcessEvolutionMessage implements ShouldQueue
                         // 1) Match exato de nome
                         $contact = (clone $lidContacts)->where('name', $senderName)->first();
 
-                        // 2) Match parcial — primeiro + último nome do pushName contidos no nome do contato
+                        // 2) Match parcial — todas as palavras do pushName contidas no nome do contato
                         if (!$contact) {
-                            $nameParts = explode(' ', trim($senderName));
-                            if (count($nameParts) >= 2) {
-                                $firstName = $nameParts[0];
-                                $lastName  = end($nameParts);
-                                $contact = (clone $lidContacts)
-                                    ->where('name', 'like', "{$firstName}%")
-                                    ->where('name', 'like', "%{$lastName}%")
-                                    ->first();
-                            } elseif (count($nameParts) === 1 && mb_strlen($nameParts[0]) > 3) {
-                                // Nome único — busca contato com LID que começa com esse nome
+                            $nameParts = preg_split('/\s+/', trim($senderName));
+                            // Filtra palavras curtas (preposições, emojis)
+                            $searchWords = array_filter($nameParts, fn($w) => mb_strlen($w) >= 3);
+
+                            if (count($searchWords) >= 2) {
+                                // Todas as palavras do pushName devem existir no nome do contato
+                                $q = clone $lidContacts;
+                                foreach ($searchWords as $word) {
+                                    $q->where('name', 'like', "%{$word}%");
+                                }
+                                $contact = $q->first();
+                            }
+
+                            // Se não achou com todas, tenta com primeiro nome (>= 4 chars)
+                            if (!$contact && !empty($nameParts[0]) && mb_strlen($nameParts[0]) >= 4) {
                                 $contact = (clone $lidContacts)
                                     ->where('name', 'like', "{$nameParts[0]}%")
                                     ->first();
