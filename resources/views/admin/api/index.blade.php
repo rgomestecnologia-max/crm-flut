@@ -257,7 +257,9 @@
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
                             ✅ <strong style="color:#4ade80;">SIM</strong> (sim, confirmo, confirmado, s) → move para <strong style="color:rgba(255,255,255,0.6);">Confirmados</strong><br>
-                            ❌ <strong style="color:#f87171;">NÃO</strong> (não, nao, remarcar, cancelar, n) → move para <strong style="color:rgba(255,255,255,0.6);">Remarcar</strong>
+                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Resposta: "Perfeito, agendamento confirmado 💖 Qualquer imprevisto, só avisar por favor! ✨ Vai ser um prazer te atender!"</span><br><br>
+                            ❌ <strong style="color:#f87171;">NÃO</strong> (não, nao, remarcar, cancelar, n) → move para <strong style="color:rgba(255,255,255,0.6);">Remarcar</strong><br>
+                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Resposta: "Tudo bem, obrigada por me avisar 💖 Quer que eu já te envie alguns horários disponíveis pra reagendarmos?"</span>
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">

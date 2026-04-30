@@ -327,6 +327,52 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             $conversation->update(['last_message_at' => now(), 'status' => 'open']);
 
+            // ── Studio Ana Cardoso: confirmação de agendamento (SIM/NÃO) ──
+            if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content && $companyId === 5) {
+                $reply = mb_strtolower(trim($content));
+                $isYes = in_array($reply, ['sim', 'yes', 's', 'confirmo', 'confirmado', 'confirmar']);
+                $isNo  = in_array($reply, ['nao', 'não', 'no', 'n', 'remarcar', 'cancelar', 'cancela']);
+
+                if ($isYes || $isNo) {
+                    $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                        ->where('pipeline_id', 8)
+                        ->where('stage_id', 17) // Novo
+                        ->first();
+
+                    if ($card) {
+                        $newStageId = $isYes ? 18 : 19; // 18=Confirmados, 19=Remarcar
+                        $newStageName = $isYes ? 'Confirmados' : 'Remarcar';
+                        $card->update(['stage_id' => $newStageId]);
+                        \App\Models\CrmCardActivity::create([
+                            'card_id' => $card->id,
+                            'user_id' => null,
+                            'type'    => 'stage_change',
+                            'content' => 'Cliente respondeu ' . ($isYes ? 'SIM' : 'NÃO') . ': Novo → ' . $newStageName,
+                        ]);
+
+                        // Envia resposta automática
+                        $replyText = $isYes
+                            ? "Perfeito, agendamento confirmado 💖\nQualquer imprevisto, só avisar por favor! ✨\nVai ser um prazer te atender!"
+                            : "Tudo bem, obrigada por me avisar 💖\nQuer que eu já te envie alguns horários disponíveis pra reagendarmos?";
+
+                        $replyMsg = Message::create([
+                            'conversation_id' => $conversation->id,
+                            'sender_type'     => 'agent',
+                            'sender_id'       => null,
+                            'content'         => $replyText,
+                            'type'            => 'text',
+                            'delivery_status' => 'pending',
+                        ]);
+                        $conversation->update(['last_message_at' => now()]);
+                        \App\Jobs\SendWhatsAppMessage::dispatch($replyMsg);
+
+                        Log::info('Studio Ana Cardoso: confirmação agendamento', [
+                            'contact' => $contact->name, 'reply' => $reply, 'stage' => $newStageName,
+                        ]);
+                    }
+                }
+            }
+
             // ── Mover card no CRM quando cliente responde (automação move_on_reply) ──
             if (!$fromMe && !$isGroup && $conversation->source_automation_id) {
                 try {
