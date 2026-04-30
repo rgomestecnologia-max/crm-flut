@@ -68,8 +68,7 @@
             </svg>
             Resolver
         </button>
-        <button wire:click="deleteSelected"
-                wire:confirm="Excluir {{ count($selected) }} conversa(s) e todas as mensagens? Esta ação não pode ser desfeita."
+        <button onclick="if(confirm('Excluir {{ count($selected) }} conversa(s) e todas as mensagens? Esta ação não pode ser desfeita.')) { @this.deleteSelected() }"
                 style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#ef4444; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
                 onmouseover="this.style.background='#dc2626'"
                 onmouseout="this.style.background='#ef4444'">
