@@ -34,49 +34,35 @@
 
     {{-- Barra de ações em modo seleção --}}
     @if($selectMode)
-    <div style="padding:8px 12px; background:rgba(239,68,68,0.06); border-bottom:1px solid rgba(239,68,68,0.15); display:flex; align-items:center; gap:8px; flex-shrink:0;">
-        <span style="font-size:11px; color:#f87171; flex:1;">{{ count($selected) }} selecionada(s)</span>
-        <button wire:click="selectAll({{ json_encode($conversations->pluck('id')->toArray()) }})"
-                style="font-size:11px; color:rgba(255,255,255,0.4); padding:4px 8px; border-radius:6px; border:none; background:transparent; cursor:pointer; transition:all 0.15s;"
-                onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.color='white'"
-                onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.4)'">
-            Todas
-        </button>
-        <button wire:click="deselectAll"
-                style="font-size:11px; color:rgba(255,255,255,0.4); padding:4px 8px; border-radius:6px; border:none; background:transparent; cursor:pointer; transition:all 0.15s;"
-                onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.color='white'"
-                onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.4)'">
-            Limpar
-        </button>
+    <div style="padding:8px 12px; background:rgba(239,68,68,0.06); border-bottom:1px solid rgba(239,68,68,0.15); flex-shrink:0; position:relative; z-index:10;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+            <span style="font-size:11px; color:#f87171;">{{ count($selected) }} selecionada(s)</span>
+            <button wire:click="selectAll({{ json_encode($conversations->pluck('id')->toArray()) }})"
+                    style="font-size:10px; color:rgba(255,255,255,0.4); padding:3px 6px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
+                Todas
+            </button>
+            <button wire:click="deselectAll"
+                    style="font-size:10px; color:rgba(255,255,255,0.4); padding:3px 6px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
+                Limpar
+            </button>
+        </div>
         @if(count($selected) > 0)
-        <button wire:click="$toggle('showBulkTransfer')"
-                style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#3b82f6; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
-                onmouseover="this.style.background='#2563eb'"
-                onmouseout="this.style.background='#3b82f6'">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-            </svg>
-            Transferir
-        </button>
-        <button wire:click="resolveSelected"
-                wire:confirm="Resolver {{ count($selected) }} conversa(s)? Elas serão movidas para Resolvidos."
-                style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#22c55e; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
-                onmouseover="this.style.background='#16a34a'"
-                onmouseout="this.style.background='#22c55e'">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Resolver
-        </button>
-        <button x-on:click="if(confirm('Excluir {{ count($selected) }} conversa(s) e todas as mensagens?')) { $wire.deleteSelected() }"
-                style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#ef4444; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
-                onmouseover="this.style.background='#dc2626'"
-                onmouseout="this.style.background='#ef4444'">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-            </svg>
-            Excluir
-        </button>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button wire:click="$toggle('showBulkTransfer')"
+                    style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; background:#3b82f6; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer;">
+                Transferir
+            </button>
+            <button wire:click="resolveSelected"
+                    style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; background:#22c55e; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer;">
+                Resolver
+            </button>
+            <button wire:click="deleteSelected"
+                    style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; background:#ef4444; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer;">
+                Excluir
+            </button>
+        </div>
         @endif
     </div>
 
