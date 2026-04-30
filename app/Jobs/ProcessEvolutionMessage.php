@@ -141,29 +141,38 @@ class ProcessEvolutionMessage implements ShouldQueue
 
                     // Se não encontrou e o chatPhone é real (55...), tenta achar
                     // contato que tenha LID como phone (resolve duplicação LID ↔ número real)
-                    if (!$contact && str_starts_with($chatPhone, '55')) {
-                        // 1) Busca por nome exato
-                        if ($senderName) {
-                            $contact = Contact::where('name', $senderName)
-                                ->whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'")
-                                ->first();
-                        }
+                    if (!$contact && str_starts_with($chatPhone, '55') && $senderName) {
+                        // Contatos com LID como phone (não começa com 55, phone longo)
+                        $lidContacts = Contact::whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'");
 
-                        // 2) Busca por conversas recentes com mensagens do mesmo remetente
+                        // 1) Match exato de nome
+                        $contact = (clone $lidContacts)->where('name', $senderName)->first();
+
+                        // 2) Match parcial — primeiro + último nome do pushName contidos no nome do contato
                         if (!$contact) {
-                            $recentConvs = Conversation::where('is_group', false)
-                                ->whereIn('status', ['open', 'pending', 'resolved'])
-                                ->latest('last_message_at')
-                                ->limit(50)
-                                ->pluck('contact_id');
-                            if ($recentConvs->isNotEmpty()) {
-                                $contact = Contact::whereIn('id', $recentConvs)
-                                    ->whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'")
-                                    ->where(function ($q) use ($senderName) {
-                                        if ($senderName) $q->where('name', $senderName);
-                                    })
+                            $nameParts = explode(' ', trim($senderName));
+                            if (count($nameParts) >= 2) {
+                                $firstName = $nameParts[0];
+                                $lastName  = end($nameParts);
+                                $contact = (clone $lidContacts)
+                                    ->where('name', 'like', "{$firstName}%")
+                                    ->where('name', 'like', "%{$lastName}%")
+                                    ->first();
+                            } elseif (count($nameParts) === 1 && mb_strlen($nameParts[0]) > 3) {
+                                // Nome único — busca contato com LID que começa com esse nome
+                                $contact = (clone $lidContacts)
+                                    ->where('name', 'like', "{$nameParts[0]}%")
                                     ->first();
                             }
+                        }
+
+                        // 3) Busca contato com LID que tem conversa aberta recente
+                        if (!$contact) {
+                            $contact = Contact::whereRaw("LENGTH(phone) > 14 AND phone NOT LIKE '55%'")
+                                ->whereHas('conversations', fn($q) => $q->whereIn('status', ['open', 'pending']))
+                                ->where('name', 'like', explode(' ', $senderName)[0] . '%')
+                                ->latest('updated_at')
+                                ->first();
                         }
 
                         if ($contact) {
@@ -175,6 +184,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                             Log::info('Contact LID→real unificado', [
                                 'contact' => $contact->id,
                                 'name'    => $contact->name,
+                                'pushName' => $senderName,
                                 'old_phone' => $oldPhone,
                                 'new_phone' => $chatPhone,
                             ]);
