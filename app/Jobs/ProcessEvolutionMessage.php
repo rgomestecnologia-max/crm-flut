@@ -330,7 +330,7 @@ class ProcessEvolutionMessage implements ShouldQueue
             // ── Studio Ana Cardoso: confirmação de agendamento (SIM/NÃO) ──
             if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content && $companyId === 5) {
                 $reply = mb_strtolower(trim($content));
-                $isYes = in_array($reply, ['sim', 'yes', 's', 'confirmo', 'confirmado', 'confirmar']);
+                $isYes = in_array($reply, ['sim', 'yes', 's', 'confirmo', 'confirmado', 'confirmar', '✅']);
                 $isNo  = in_array($reply, ['nao', 'não', 'no', 'n', 'remarcar', 'cancelar', 'cancela']);
 
                 if ($isYes || $isNo) {
