@@ -105,6 +105,11 @@ class SendAutomationMessage implements ShouldQueue
                 if ($evolutionConfig && $evolutionConfig->is_active) {
                     $result = (new EvolutionApiService($evolutionConfig))->sendText($phone, $greeting);
                     $zapiId = $result['key']['id'] ?? null;
+                    // Captura LID do remoteJid para vincular ao contato
+                    $returnedJid = $result['key']['remoteJid'] ?? null;
+                    if ($returnedJid && str_contains($returnedJid, '@lid') && !$this->contact->chat_lid) {
+                        $this->contact->update(['chat_lid' => $returnedJid]);
+                    }
                 } else {
                     $result = $zapi->sendTextMessage($this->contact->phone, $greeting);
                     $zapiId = $result['messageId'] ?? null;
@@ -182,6 +187,11 @@ class SendAutomationMessage implements ShouldQueue
         if ($useEvolution) {
             $result = (new EvolutionApiService($evolutionConfig))->sendText($phone, $text);
             $zapiId = $result['key']['id'] ?? $result['id'] ?? null;
+            // Captura LID
+            $returnedJid = $result['key']['remoteJid'] ?? null;
+            if ($returnedJid && str_contains($returnedJid, '@lid') && !$this->contact->chat_lid) {
+                $this->contact->update(['chat_lid' => $returnedJid]);
+            }
         } else {
             $result = $zapi->sendTextMessage($this->contact->phone, $text);
             $zapiId = $result['messageId'] ?? null;

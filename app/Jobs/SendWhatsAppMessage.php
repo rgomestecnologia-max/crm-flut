@@ -66,6 +66,12 @@ class SendWhatsAppMessage implements ShouldQueue
                 'delivery_status' => 'sent',
                 'zapi_message_id' => $msgId,
             ]);
+
+            // Captura LID do remoteJid retornado para vincular ao contato
+            $returnedJid = $result['key']['remoteJid'] ?? null;
+            if ($returnedJid && str_contains($returnedJid, '@lid') && $contact && !$contact->chat_lid) {
+                $contact->update(['chat_lid' => $returnedJid]);
+            }
         } else {
             Log::error('SendWhatsAppMessage (Evolution) failed', [
                 'message_id' => $this->message->id,
