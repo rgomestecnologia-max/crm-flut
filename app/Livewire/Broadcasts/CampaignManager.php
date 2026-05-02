@@ -25,6 +25,9 @@ class CampaignManager extends Component
     public string $htmlContent      = '';
     public int    $interval_seconds = 10;
     public        $campaignImage     = null;
+    public        $emailLogo        = null;
+    public        $emailImage       = null;
+    public string $emailColor       = '#2563eb';
     public string $filterTag        = '';
     public string $recipientMode    = 'all';
 
@@ -33,7 +36,8 @@ class CampaignManager extends Component
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'channel', 'name', 'message', 'subject', 'htmlContent', 'campaignImage', 'interval_seconds', 'filterTag', 'recipientMode');
+        $this->reset('editingId', 'channel', 'name', 'message', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode');
+        $this->emailColor = '#2563eb';
         $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
         $this->recipientMode    = 'all';
@@ -53,7 +57,9 @@ class CampaignManager extends Component
             $rules['campaignImage'] = 'nullable|image|max:5120';
         } else {
             $rules['subject'] = 'required|string|max:200';
-            $rules['htmlContent'] = 'required|string|max:100000';
+            $rules['message'] = 'required|string|max:4000';
+            $rules['emailLogo'] = 'nullable|image|max:2048';
+            $rules['emailImage'] = 'nullable|image|max:5120';
         }
 
         $this->validate($rules);
@@ -69,12 +75,50 @@ class CampaignManager extends Component
             $imagePath = \App\Services\MediaStorage::store($this->campaignImage, 'broadcasts');
         }
 
+        $htmlContent = null;
+        if ($this->channel === 'email') {
+            // Upload logo e imagem
+            $logoUrl = '';
+            if ($this->emailLogo) {
+                $logoPath = \App\Services\MediaStorage::store($this->emailLogo, 'broadcasts/logos');
+                $logoUrl = \App\Services\MediaStorage::url($logoPath);
+                if (!str_starts_with($logoUrl, 'http')) $logoUrl = url($logoUrl);
+            }
+            $imgUrl = '';
+            if ($this->emailImage) {
+                $imgPath = \App\Services\MediaStorage::store($this->emailImage, 'broadcasts/images');
+                $imgUrl = \App\Services\MediaStorage::url($imgPath);
+                if (!str_starts_with($imgUrl, 'http')) $imgUrl = url($imgUrl);
+            }
+
+            $color = $this->emailColor ?: '#2563eb';
+            $body = nl2br(e($this->message));
+
+            $htmlContent = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;">';
+            // Header
+            $htmlContent .= '<div style="background:' . $color . ';padding:25px;text-align:center;">';
+            if ($logoUrl) {
+                $htmlContent .= '<img src="' . $logoUrl . '" alt="Logo" style="max-height:60px;max-width:200px;margin-bottom:10px;"/>';
+            }
+            $htmlContent .= '<h1 style="color:#ffffff;margin:0;font-size:20px;">' . e($this->subject) . '</h1>';
+            $htmlContent .= '</div>';
+            // Image
+            if ($imgUrl) {
+                $htmlContent .= '<div style="text-align:center;"><img src="' . $imgUrl . '" alt="Imagem" style="width:100%;max-width:600px;display:block;"/></div>';
+            }
+            // Body
+            $htmlContent .= '<div style="padding:30px;"><p style="font-size:14px;color:#333;line-height:1.6;">' . $body . '</p></div>';
+            // Footer
+            $htmlContent .= '<div style="padding:15px;text-align:center;border-top:1px solid #eee;"><p style="font-size:11px;color:#999;">Se não deseja mais receber, ignore este email.</p></div>';
+            $htmlContent .= '</div>';
+        }
+
         BroadcastCampaign::create([
             'name'             => $this->name,
             'channel'          => $this->channel,
-            'message'          => $this->channel === 'whatsapp' ? $this->message : null,
+            'message'          => $this->message ?: null,
             'subject'          => $this->channel === 'email' ? $this->subject : null,
-            'html_content'     => $this->channel === 'email' ? $this->htmlContent : null,
+            'html_content'     => $htmlContent,
             'image_path'       => $imagePath,
             'status'           => 'draft',
             'interval_seconds' => $this->interval_seconds,
