@@ -369,11 +369,6 @@
             @endif
         </nav>
 
-        {{-- Notifications --}}
-        <div style="padding:6px 8px; display:flex; justify-content:center;">
-            <livewire:notification-bell />
-        </div>
-
         {{-- User info --}}
         <div style="padding:10px 8px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0;">
             <div style="display:flex; align-items:center; gap:10px; padding:8px 6px; border-radius:10px; background:rgba(255,255,255,0.02);">
@@ -403,7 +398,11 @@
     </aside>
 
     {{-- MAIN CONTENT --}}
-    <main style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column;">
+    <main style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; position:relative;">
+        {{-- Global notification bell --}}
+        <div style="position:absolute; top:12px; right:16px; z-index:20;">
+            <livewire:notification-bell />
+        </div>
         {{ $slot }}
     </main>
 </div>
