@@ -716,7 +716,7 @@
                                 Responder
                             </button>
                             @if($msg->type === 'text')
-                            <button @click="showMenu = false; editing = true; editText = @js($msg->content)"
+                            <button @click="showMenu = false; $wire.startEditing({{ $msg->id }})"
                                     style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
                                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
                                     onmouseout="this.style.background='transparent'">
@@ -1133,14 +1133,23 @@
                 </svg>
             </button>
 
+            {{-- Editing indicator --}}
+            @if($editingMessageId)
+            <div style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:10px; margin-bottom:4px;">
+                <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span style="font-size:11px; color:#60a5fa; flex:1;">Editando mensagem</span>
+                <button wire:click="cancelEditing" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px;">&times;</button>
+            </div>
+            @endif
+
             {{-- Text input --}}
-            <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; overflow:hidden; display:flex; align-items:flex-end; transition:all 0.2s;"
+            <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid {{ $editingMessageId ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.08)' }}; border-radius:14px; overflow:hidden; display:flex; align-items:flex-end; transition:all 0.2s;"
                  onfocusin="this.style.borderColor='rgba(178,255,0,0.4)'; this.style.background='rgba(178,255,0,0.03)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.06)'"
                  onfocusout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'">
                 <textarea
                     wire:model="messageText"
                     wire:keydown.enter.prevent="sendMessage"
-                    placeholder="Digite uma mensagem..."
+                    placeholder="{{ $editingMessageId ? 'Edite a mensagem...' : 'Digite uma mensagem...' }}"
                     rows="1"
                     style="flex:1; background:transparent; padding:10px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:128px; font-family:inherit; line-height:1.5;"
                     x-data

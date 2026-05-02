@@ -28,6 +28,7 @@ class ChatArea extends Component
 
     public ?int    $conversationId   = null;
     public string  $messageText      = '';
+    public ?int    $editingMessageId = null;
     public bool    $showQuickReplies = false;
     public string  $quickReplySearch = '';
     public bool    $showTransfer     = false;
@@ -155,6 +156,25 @@ class ChatArea extends Component
         $msg->update(['reactions' => $reactions]);
     }
 
+    public function startEditing(int $messageId): void
+    {
+        $msg = Message::where('conversation_id', $this->conversationId)
+            ->where('sender_type', 'agent')
+            ->find($messageId);
+
+        if ($msg) {
+            $this->editingMessageId = $messageId;
+            $this->messageText = $msg->content ?? '';
+            $this->dispatch('focus-message-input');
+        }
+    }
+
+    public function cancelEditing(): void
+    {
+        $this->editingMessageId = null;
+        $this->messageText = '';
+    }
+
     public function editMessage(int $messageId, string $newText): void
     {
         if (!trim($newText)) return;
@@ -218,6 +238,14 @@ class ChatArea extends Component
     public function sendMessage(): void
     {
         if (!$this->conversationId || !trim($this->messageText)) return;
+
+        // Se está editando, chama editMessage
+        if ($this->editingMessageId) {
+            $this->editMessage($this->editingMessageId, trim($this->messageText));
+            $this->editingMessageId = null;
+            $this->messageText = '';
+            return;
+        }
 
         $this->validate(['messageText' => 'required|string|max:4096']);
 
