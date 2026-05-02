@@ -1192,14 +1192,15 @@
                  onfocusout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'">
                 <textarea
                     wire:model="messageText"
+                    wire:ignore
                     x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); $wire.sendMessage(); }"
                     placeholder="{{ $editingMessageId ? 'Edite a mensagem...' : 'Digite uma mensagem...' }}"
                     rows="1"
-                    style="flex:1; background:transparent; padding:10px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:128px; font-family:inherit; line-height:1.5;"
+                    style="flex:1; background:transparent; padding:10px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:200px; font-family:inherit; line-height:1.5; overflow-y:auto;"
                     x-data
-                    x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
-                    x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $el.focus()"
-                    x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'; $el.focus(); })"
+                    x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'"
+                    x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $wire.set('messageText', ''); $el.focus()"
+                    x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'; $el.focus(); })"
                 ></textarea>
                 {{-- Emoji button --}}
                 <button type="button" @click.stop="const r=$el.getBoundingClientRect(); emojiPos={bottom: window.innerHeight - r.top + 8, right: window.innerWidth - r.right}; showEmoji=!showEmoji" title="Emojis"
