@@ -1155,6 +1155,7 @@
                     x-data
                     x-on:input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
                     x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $el.focus()"
+                    x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'; $el.focus(); })"
                 ></textarea>
                 {{-- Emoji button --}}
                 <button type="button" @click.stop="const r=$el.getBoundingClientRect(); emojiPos={bottom: window.innerHeight - r.top + 8, right: window.innerWidth - r.right}; showEmoji=!showEmoji" title="Emojis"
