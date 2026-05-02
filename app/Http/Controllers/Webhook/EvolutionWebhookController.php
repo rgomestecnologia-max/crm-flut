@@ -92,7 +92,7 @@ class EvolutionWebhookController extends Controller
         // ── Mensagem excluída pelo remetente ──────────────────────────────
         if ($event === 'messages.update') {
             $data   = $payload['data'] ?? [];
-            $msgId  = $data['id'] ?? $data['key']['id'] ?? null;
+            $msgId  = $data['keyId'] ?? $data['id'] ?? $data['key']['id'] ?? null;
             $status = $data['status'] ?? null;
 
             // Mensagem revogada/excluída (status REVOKE ou messageStubType)
@@ -113,7 +113,7 @@ class EvolutionWebhookController extends Controller
         // ── Mensagem excluída (evento messages.delete) ────────────────────
         if ($event === 'messages.delete') {
             $data  = $payload['data'] ?? [];
-            $msgId = $data['id'] ?? $data['key']['id'] ?? null;
+            $msgId = $data['keyId'] ?? $data['id'] ?? $data['key']['id'] ?? null;
 
             if ($msgId) {
                 $msg = \App\Models\Message::withoutGlobalScope(\App\Models\Scopes\CompanyScope::class)
