@@ -783,37 +783,6 @@
     </div>
 
     {{-- Quick replies dropdown --}}
-    @if($showQuickReplies)
-    <div style="border-top:1px solid rgba(255,255,255,0.05); background:rgba(11,15,28,0.9); backdrop-filter:blur(8px); padding:12px 16px; max-height:200px; overflow-y:auto; flex-shrink:0;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-            <div style="display:flex; align-items:center; gap:6px;">
-                <div style="width:2px; height:12px; background:#b2ff00; border-radius:2px;"></div>
-                <p style="font-size:10px; font-weight:700; color:#b2ff00; text-transform:uppercase; letter-spacing:0.08em;">Respostas Rápidas</p>
-            </div>
-            <button wire:click="$set('showQuickReplies', false)"
-                    style="color:rgba(255,255,255,0.25); background:transparent; border:none; cursor:pointer; padding:2px; transition:color 0.15s;"
-                    onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.25)'">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        <input wire:model.live.debounce.200ms="quickReplySearch" type="text" placeholder="Buscar..."
-               style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:7px 12px; font-size:12px; color:white; outline:none; transition:all 0.2s; font-family:inherit; box-sizing:border-box; margin-bottom:6px;"
-               onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.07)'">
-        @forelse($quickReplies as $qr)
-            <button wire:click="useQuickReply('{{ addslashes($qr->content) }}')"
-                    style="width:100%; text-align:left; padding:8px 10px; border-radius:8px; border:none; background:transparent; cursor:pointer; transition:background 0.15s; margin-bottom:2px;"
-                    onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
-                <p style="font-size:11px; font-weight:600; color:#b2ff00;">{{ $qr->title }}</p>
-                <p style="font-size:11px; color:rgba(255,255,255,0.35); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">{{ $qr->content }}</p>
-            </button>
-        @empty
-            <p style="font-size:11px; color:rgba(255,255,255,0.2); text-align:center; padding:8px;">Nenhuma resposta rápida encontrada</p>
-        @endforelse
-    </div>
-    @endif
-
     {{-- CRM Panel --}}
     @if($showCrmPanel)
     <div style="border-top:1px solid rgba(255,255,255,0.05); background:rgba(11,15,28,0.9); backdrop-filter:blur(8px); padding:14px 16px; flex-shrink:0;">
@@ -1164,18 +1133,6 @@
                     </div>
                 </template>
             </div>
-
-            {{-- Quick replies btn --}}
-            <button wire:click="$toggle('showQuickReplies')" title="Respostas rápidas"
-                    style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:none; cursor:pointer; transition:all 0.15s; flex-shrink:0; margin-bottom:2px;
-                           background:{{ $showQuickReplies ? 'rgba(178,255,0,0.15)' : 'rgba(255,255,255,0.04)' }};
-                           color:{{ $showQuickReplies ? '#b2ff00' : 'rgba(255,255,255,0.3)' }};"
-                    onmouseover="if(!{{ $showQuickReplies ? 'true' : 'false' }}) { this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.7)'; }"
-                    onmouseout="if(!{{ $showQuickReplies ? 'true' : 'false' }}) { this.style.background='rgba(255,255,255,0.04)'; this.style.color='rgba(255,255,255,0.3)'; }">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </button>
 
             {{-- Editing indicator --}}
             @if($editingMessageId)
