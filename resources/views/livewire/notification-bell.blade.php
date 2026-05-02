@@ -15,7 +15,7 @@
 
     {{-- Dropdown --}}
     @if($showDropdown)
-    <div style="position:absolute; top:44px; right:0; z-index:50; width:360px; max-height:450px; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.6); overflow:hidden;">
+    <div style="position:fixed; top:60px; left:70px; z-index:9999; width:360px; max-height:450px; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.6); overflow:hidden;">
         {{-- Header --}}
         <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:13px; font-weight:700; color:white; font-family:Syne,sans-serif;">Notificações</span>
