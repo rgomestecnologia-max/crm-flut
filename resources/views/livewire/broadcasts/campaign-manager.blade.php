@@ -90,7 +90,7 @@
     {{-- Modal: Nova Campanha --}}
     @if($showForm)
     <div style="position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);" wire:click.self="$set('showForm', false)">
-        <div style="background:#0f1320; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:100%; max-width:520px;">
+        <div style="background:#0f1320; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:100%; max-width:620px; max-height:90vh; overflow-y:auto;">
             <h2 style="font-size:15px; font-weight:700; color:white; margin-bottom:16px; font-family:Syne,sans-serif;">Nova Campanha</h2>
             <div style="display:flex; flex-direction:column; gap:12px;">
                 {{-- Canal --}}
