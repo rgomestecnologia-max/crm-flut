@@ -54,6 +54,36 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 </div>
             </div>
 
+            {{-- SendGrid --}}
+            <div style="margin-top:28px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+                    <div style="width:2px; height:16px; background:#3b82f6; border-radius:2px;"></div>
+                    <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">SendGrid (Disparo de Email)</h3>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;" class="mobile-grid-1">
+                    <div>
+                        <label style="{{ $labelStyle }}">API Key SendGrid {{ $sendgridKeySaved ? '(em branco = manter)' : '' }}</label>
+                        <input wire:model="sendgrid_api_key" type="password"
+                               placeholder="{{ $sendgridKeySaved ? '••••••••••••••••••' : 'SG.xxxxxxxx...' }}"
+                               style="{{ $inputStyle }} font-family:monospace;" {!! $inputFocus !!}>
+                    </div>
+                    <div>
+                        <label style="{{ $labelStyle }}">Email remetente</label>
+                        <input wire:model="sendgrid_from_email" type="email"
+                               placeholder="contato@suaempresa.com.br"
+                               style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                        @error('sendgrid_from_email') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div>
+                    <label style="{{ $labelStyle }}">Nome remetente</label>
+                    <input wire:model="sendgrid_from_name" type="text"
+                           placeholder="Sua Empresa"
+                           style="{{ $inputStyle }} max-width:300px;" {!! $inputFocus !!}>
+                </div>
+            </div>
+
             <div style="margin-top:20px;">
                 <button type="submit"
                         style="padding:9px 24px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; font-size:12px; font-weight:700; border-radius:9px; border:none; cursor:pointer; transition:all 0.2s;"

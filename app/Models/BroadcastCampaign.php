@@ -12,8 +12,8 @@ class BroadcastCampaign extends Model
     use BelongsToCompany;
 
     protected $fillable = [
-        'company_id', 'name', 'message', 'image_path', 'status',
-        'interval_seconds', 'scheduled_at', 'total_recipients',
+        'company_id', 'name', 'channel', 'message', 'subject', 'html_content',
+        'image_path', 'status', 'interval_seconds', 'scheduled_at', 'total_recipients',
         'sent_count', 'failed_count', 'started_at', 'completed_at', 'created_by',
     ];
 

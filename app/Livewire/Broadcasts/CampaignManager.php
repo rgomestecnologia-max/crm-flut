@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Broadcasts;
 
+use App\Jobs\SendBroadcastEmail;
 use App\Jobs\SendBroadcastMessage;
 use App\Models\BroadcastCampaign;
 use App\Models\BroadcastCampaignRecipient;
@@ -17,18 +18,22 @@ class CampaignManager extends Component
     // Form
     public bool   $showForm         = false;
     public ?int   $editingId        = null;
+    public string $channel          = 'whatsapp';
     public string $name             = '';
     public string $message          = '';
+    public string $subject          = '';
+    public string $htmlContent      = '';
     public int    $interval_seconds = 10;
     public string $filterTag        = '';
-    public string $recipientMode    = 'all'; // all, tag
+    public string $recipientMode    = 'all';
 
     // Detail
     public ?int $viewingCampaignId = null;
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'message', 'interval_seconds', 'filterTag', 'recipientMode');
+        $this->reset('editingId', 'channel', 'name', 'message', 'subject', 'htmlContent', 'interval_seconds', 'filterTag', 'recipientMode');
+        $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
         $this->recipientMode    = 'all';
         $this->showForm         = true;
@@ -36,23 +41,33 @@ class CampaignManager extends Component
 
     public function save(): void
     {
-        $this->validate([
+        $rules = [
             'name'             => 'required|string|max:200',
-            'message'          => 'required|string|max:4000',
-            'interval_seconds' => 'required|integer|min:3|max:120',
-        ]);
+            'channel'          => 'required|in:whatsapp,email',
+            'interval_seconds' => 'required|integer|min:1|max:120',
+        ];
 
-        // Count recipients
+        if ($this->channel === 'whatsapp') {
+            $rules['message'] = 'required|string|max:4000';
+        } else {
+            $rules['subject'] = 'required|string|max:200';
+            $rules['htmlContent'] = 'required|string|max:100000';
+        }
+
+        $this->validate($rules);
+
         $recipientCount = $this->getRecipientsQuery()->count();
-
         if ($recipientCount === 0) {
             $this->dispatch('toast', type: 'error', message: 'Nenhum lead encontrado para os filtros selecionados.');
             return;
         }
 
-        $campaign = BroadcastCampaign::create([
+        BroadcastCampaign::create([
             'name'             => $this->name,
-            'message'          => $this->message,
+            'channel'          => $this->channel,
+            'message'          => $this->channel === 'whatsapp' ? $this->message : null,
+            'subject'          => $this->channel === 'email' ? $this->subject : null,
+            'html_content'     => $this->channel === 'email' ? $this->htmlContent : null,
             'status'           => 'draft',
             'interval_seconds' => $this->interval_seconds,
             'total_recipients' => $recipientCount,
@@ -60,14 +75,13 @@ class CampaignManager extends Component
         ]);
 
         $this->showForm = false;
-        $this->dispatch('toast', type: 'success', message: "Campanha criada com {$recipientCount} destinatários.");
+        $this->dispatch('toast', type: 'success', message: "Campanha {$this->channel} criada com {$recipientCount} destinatários.");
     }
 
     public function send(int $campaignId): void
     {
         $campaign = BroadcastCampaign::findOrFail($campaignId);
 
-        // Create a new run
         $recipients = $this->getAllActiveContacts();
         $run = BroadcastCampaignRun::create([
             'campaign_id'      => $campaign->id,
@@ -79,7 +93,6 @@ class CampaignManager extends Component
             'created_by'       => auth()->id(),
         ]);
 
-        // Create recipients
         foreach ($recipients as $contact) {
             BroadcastCampaignRecipient::create([
                 'campaign_id'          => $campaign->id,
@@ -92,10 +105,13 @@ class CampaignManager extends Component
 
         $campaign->update(['status' => 'sending', 'started_at' => now()]);
 
-        // Dispatch job
-        SendBroadcastMessage::dispatch($run);
+        if ($campaign->channel === 'email') {
+            SendBroadcastEmail::dispatch($run);
+        } else {
+            SendBroadcastMessage::dispatch($run);
+        }
 
-        $this->dispatch('toast', type: 'success', message: "Disparando para {$recipients->count()} leads...");
+        $this->dispatch('toast', type: 'success', message: "Disparando {$campaign->channel} para {$recipients->count()} leads...");
     }
 
     public function viewRuns(int $campaignId): void
@@ -115,7 +131,6 @@ class CampaignManager extends Component
             $this->dispatch('toast', type: 'error', message: 'Não é possível excluir campanha em andamento.');
             return;
         }
-        // Delete recipients and runs
         BroadcastCampaignRecipient::where('campaign_id', $id)->delete();
         BroadcastCampaignRun::where('campaign_id', $id)->delete();
         $campaign->delete();
@@ -128,6 +143,9 @@ class CampaignManager extends Component
         if ($this->recipientMode === 'tag' && $this->filterTag) {
             $query->whereJsonContains('tags', $this->filterTag);
         }
+        if ($this->channel === 'email') {
+            $query->whereNotNull('email')->where('email', '!=', '');
+        }
         return $query;
     }
 
@@ -139,23 +157,17 @@ class CampaignManager extends Component
     public function render()
     {
         $campaigns = BroadcastCampaign::orderByDesc('created_at')->paginate(15);
-
         $runs = $this->viewingCampaignId
-            ? BroadcastCampaignRun::where('campaign_id', $this->viewingCampaignId)
-                ->orderByDesc('created_at')->get()
+            ? BroadcastCampaignRun::where('campaign_id', $this->viewingCampaignId)->orderByDesc('created_at')->get()
             : collect();
-
-        $viewingCampaign = $this->viewingCampaignId
-            ? BroadcastCampaign::find($this->viewingCampaignId)
-            : null;
-
-        $allTags = BroadcastContact::whereNotNull('tags')
-            ->pluck('tags')->flatten()->unique()->sort()->values();
-
+        $viewingCampaign = $this->viewingCampaignId ? BroadcastCampaign::find($this->viewingCampaignId) : null;
+        $allTags = BroadcastContact::whereNotNull('tags')->pluck('tags')->flatten()->unique()->sort()->values();
         $activeLeadCount = BroadcastContact::where('is_active', true)->count();
+        $emailLeadCount = BroadcastContact::where('is_active', true)->whereNotNull('email')->where('email', '!=', '')->count();
+        $sendgridConfigured = !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
 
         return view('livewire.broadcasts.campaign-manager', compact(
-            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'activeLeadCount'
+            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured'
         ));
     }
 }

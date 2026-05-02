@@ -33,8 +33,13 @@
                     @forelse($campaigns as $campaign)
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
                         <td style="padding:10px 16px;">
-                            <p style="font-size:12px; font-weight:600; color:white;">{{ $campaign->name }}</p>
-                            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px;">{{ Str::limit($campaign->message, 60) }}</p>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <p style="font-size:12px; font-weight:600; color:white;">{{ $campaign->name }}</p>
+                                <span style="font-size:9px; font-weight:700; padding:1px 6px; border-radius:20px; background:{{ ($campaign->channel ?? 'whatsapp') === 'email' ? 'rgba(59,130,246,0.12)' : 'rgba(34,197,94,0.12)' }}; color:{{ ($campaign->channel ?? 'whatsapp') === 'email' ? '#60a5fa' : '#4ade80' }}; border:1px solid {{ ($campaign->channel ?? 'whatsapp') === 'email' ? 'rgba(59,130,246,0.2)' : 'rgba(34,197,94,0.2)' }};">
+                                    {{ ($campaign->channel ?? 'whatsapp') === 'email' ? 'EMAIL' : 'WHATSAPP' }}
+                                </span>
+                            </div>
+                            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px;">{{ Str::limit($campaign->message ?? $campaign->subject, 60) }}</p>
                         </td>
                         <td style="padding:10px 16px; text-align:center;">
                             @php
@@ -88,18 +93,59 @@
         <div style="background:#0f1320; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:100%; max-width:520px;">
             <h2 style="font-size:15px; font-weight:700; color:white; margin-bottom:16px; font-family:Syne,sans-serif;">Nova Campanha</h2>
             <div style="display:flex; flex-direction:column; gap:12px;">
+                {{-- Canal --}}
+                <div>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:6px; display:block;">Canal de disparo</label>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" wire:click="$set('channel', 'whatsapp')"
+                                style="flex:1; padding:10px; border-radius:10px; cursor:pointer; text-align:center; font-size:12px; font-weight:600; transition:all 0.15s;
+                                       background:{{ $channel === 'whatsapp' ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.03)' }};
+                                       border:1px solid {{ $channel === 'whatsapp' ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.08)' }};
+                                       color:{{ $channel === 'whatsapp' ? '#4ade80' : 'rgba(255,255,255,0.4)' }};">
+                            WhatsApp
+                        </button>
+                        <button type="button" wire:click="$set('channel', 'email')"
+                                style="flex:1; padding:10px; border-radius:10px; cursor:pointer; text-align:center; font-size:12px; font-weight:600; transition:all 0.15s;
+                                       background:{{ $channel === 'email' ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.03)' }};
+                                       border:1px solid {{ $channel === 'email' ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.08)' }};
+                                       color:{{ $channel === 'email' ? '#60a5fa' : 'rgba(255,255,255,0.4)' }};"
+                                {{ !$sendgridConfigured ? 'disabled' : '' }}>
+                            Email {{ !$sendgridConfigured ? '(Configure o SendGrid)' : '' }}
+                        </button>
+                    </div>
+                </div>
+
                 <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Nome da campanha *</label>
                     <input wire:model="name" type="text" placeholder="Ex: Promoção de Natal"
                            style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
                     @error('name') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
                 </div>
+
+                @if($channel === 'whatsapp')
+                {{-- WhatsApp: mensagem texto --}}
                 <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Mensagem * <span style="color:rgba(255,255,255,0.2); font-weight:400;">(use {nome} para o nome do lead)</span></label>
                     <textarea wire:model="message" rows="5" placeholder="Olá {nome}! Temos uma oferta especial..."
                               style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical;"></textarea>
                     @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
                 </div>
+                @else
+                {{-- Email: assunto + HTML --}}
+                <div>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Assunto do email *</label>
+                    <input wire:model="subject" type="text" placeholder="Ex: Novidades especiais para você, {nome}!"
+                           style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
+                    @error('subject') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Conteúdo HTML * <span style="color:rgba(255,255,255,0.2); font-weight:400;">(cole o HTML do email ou escreva o texto)</span></label>
+                    <textarea wire:model="htmlContent" rows="10" placeholder="<h1>Olá {nome}!</h1><p>Temos novidades...</p>"
+                              style="width:100%; margin-top:4px; padding:8px 12px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical; font-family:monospace;"></textarea>
+                    @error('htmlContent') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">Variáveis: {nome}, {email}. Leads sem email serão ignorados ({{ $emailLeadCount }} leads com email).</p>
+                </div>
+                @endif
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div>
                         <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Intervalo entre envios (seg)</label>

@@ -9,7 +9,7 @@ class BroadcastContact extends Model
 {
     use BelongsToCompany;
 
-    protected $fillable = ['company_id', 'name', 'phone', 'tags', 'is_active'];
+    protected $fillable = ['company_id', 'name', 'phone', 'email', 'tags', 'is_active'];
 
     protected function casts(): array
     {

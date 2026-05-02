@@ -16,6 +16,12 @@ class GlobalSettingsManager extends Component
     public string $gemini_model   = 'gemini-2.0-flash';
     public bool   $keyAlreadySaved = false;
 
+    // SendGrid
+    public string $sendgrid_api_key    = '';
+    public string $sendgrid_from_email = '';
+    public string $sendgrid_from_name  = '';
+    public bool   $sendgridKeySaved    = false;
+
     public function mount(): void
     {
         if (!Auth::user()?->isAdmin()) {
@@ -25,12 +31,19 @@ class GlobalSettingsManager extends Component
         $existingKey        = GlobalSetting::get('gemini_api_key');
         $this->gemini_model = GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
         $this->keyAlreadySaved = !empty($existingKey);
+
+        // SendGrid
+        $this->sendgrid_from_email = GlobalSetting::get('sendgrid_from_email', '');
+        $this->sendgrid_from_name  = GlobalSetting::get('sendgrid_from_name', '');
+        $this->sendgridKeySaved    = !empty(GlobalSetting::get('sendgrid_api_key'));
     }
 
     public function save(): void
     {
         $rules = [
-            'gemini_model' => 'required|string',
+            'gemini_model'         => 'required|string',
+            'sendgrid_from_email'  => 'nullable|email|max:200',
+            'sendgrid_from_name'   => 'nullable|string|max:100',
         ];
 
         if (!$this->keyAlreadySaved || !empty($this->gemini_api_key)) {
@@ -44,10 +57,23 @@ class GlobalSettingsManager extends Component
         }
         GlobalSetting::set('gemini_model', $this->gemini_model);
 
-        $this->gemini_api_key  = '';
-        $this->keyAlreadySaved = true;
+        // SendGrid
+        if (!empty($this->sendgrid_api_key)) {
+            GlobalSetting::set('sendgrid_api_key', $this->sendgrid_api_key);
+            $this->sendgridKeySaved = true;
+        }
+        if ($this->sendgrid_from_email) {
+            GlobalSetting::set('sendgrid_from_email', $this->sendgrid_from_email);
+        }
+        if ($this->sendgrid_from_name) {
+            GlobalSetting::set('sendgrid_from_name', $this->sendgrid_from_name);
+        }
 
-        $this->dispatch('toast', type: 'success', message: 'Configurações globais salvas. Todas as empresas usarão estes valores.');
+        $this->gemini_api_key   = '';
+        $this->sendgrid_api_key = '';
+        $this->keyAlreadySaved  = true;
+
+        $this->dispatch('toast', type: 'success', message: 'Configurações globais salvas.');
     }
 
     public function render()
