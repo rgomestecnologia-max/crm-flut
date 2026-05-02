@@ -141,9 +141,13 @@
             <img src="/images/logo-flut.webp" alt="CRM Flut"
                  :style="sidebarOpen ? 'height:28px; width:auto;' : 'height:24px; width:24px; object-fit:contain; object-position:left;'"
                  style="flex-shrink:0; transition:all 0.25s;">
+            {{-- Notification bell --}}
+            <div style="margin-left:auto; flex-shrink:0;">
+                <livewire:notification-bell />
+            </div>
             {{-- Desktop: toggle sidebar | Mobile: fechar menu --}}
             <button @click="window.innerWidth <= 768 ? (mobileMenu = false) : (sidebarOpen = !sidebarOpen)"
-                    style="margin-left:auto; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; border-radius:6px; transition:all 0.15s; flex-shrink:0;"
+                    style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; border-radius:6px; transition:all 0.15s; flex-shrink:0;"
                     onmouseover="this.style.color='rgba(255,255,255,0.6)'; this.style.background='rgba(255,255,255,0.05)'"
                     onmouseout="this.style.color='rgba(255,255,255,0.2)'; this.style.background='transparent'">
                 <svg x-show="window.innerWidth > 768" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -398,11 +402,7 @@
     </aside>
 
     {{-- MAIN CONTENT --}}
-    <main style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; position:relative;">
-        {{-- Global notification bell --}}
-        <div style="position:absolute; top:12px; right:16px; z-index:20;">
-            <livewire:notification-bell />
-        </div>
+    <main style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column;">
         {{ $slot }}
     </main>
 </div>
