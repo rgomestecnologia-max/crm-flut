@@ -194,7 +194,6 @@
                     <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">Variáveis: {nome}, {email}. Leads sem email serão ignorados ({{ $emailLeadCount }} com email).</p>
                 </div>
                 @endif
-                @endif
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div>
                         <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Intervalo entre envios (seg)</label>
