@@ -39,6 +39,18 @@ class EvolutionWebhookController extends Controller
                     $updates['pairing_code'] = null;
                 }
                 $config->update($updates);
+
+                // Notificação automática ao desconectar
+                if ($state === 'close') {
+                    $company = \App\Models\Company::find($config->company_id);
+                    \App\Models\Notification::create([
+                        'company_id' => $config->company_id,
+                        'type'       => 'whatsapp_disconnected',
+                        'title'      => 'WhatsApp desconectado: ' . ($company->name ?? $instanceName),
+                        'message'    => 'A conexão WhatsApp da instância ' . $instanceName . ' caiu. Reconecte em Configurações > WhatsApp.',
+                        'data'       => ['instance' => $instanceName],
+                    ]);
+                }
             }
             return response()->json(['ok' => true]);
         }

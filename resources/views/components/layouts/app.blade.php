@@ -369,6 +369,11 @@
             @endif
         </nav>
 
+        {{-- Notifications --}}
+        <div style="padding:6px 8px; display:flex; justify-content:center;">
+            <livewire:notification-bell />
+        </div>
+
         {{-- User info --}}
         <div style="padding:10px 8px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0;">
             <div style="display:flex; align-items:center; gap:10px; padding:8px 6px; border-radius:10px; background:rgba(255,255,255,0.02);">
