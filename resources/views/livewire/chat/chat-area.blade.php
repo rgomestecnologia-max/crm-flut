@@ -1192,7 +1192,7 @@
                  onfocusout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'">
                 <textarea
                     wire:model="messageText"
-                    wire:keydown.enter.prevent="sendMessage"
+                    x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); $wire.sendMessage(); }"
                     placeholder="{{ $editingMessageId ? 'Edite a mensagem...' : 'Digite uma mensagem...' }}"
                     rows="1"
                     style="flex:1; background:transparent; padding:10px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:128px; font-family:inherit; line-height:1.5;"
