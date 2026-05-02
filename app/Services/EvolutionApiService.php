@@ -256,7 +256,7 @@ class EvolutionApiService
 
     public function updateMessage(string $messageId, string $remoteJid, string $text): array
     {
-        return $this->put("/message/updateMessage/{$this->instanceName}", [
+        return $this->post("/chat/updateMessage/{$this->instanceName}", [
             'number' => $remoteJid,
             'key'    => ['id' => $messageId, 'fromMe' => true, 'remoteJid' => $remoteJid],
             'text'   => $text,
