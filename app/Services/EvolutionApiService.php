@@ -107,22 +107,26 @@ class EvolutionApiService
         }
 
         return $this->post("/webhook/set/{$this->instanceName}", [
-            'enabled'          => true,
-            'url'              => $url,
-            'webhookByEvents'  => $byEvents,
-            'webhookBase64'    => $base64,
-            'events'           => $events,
+            'webhook' => [
+                'enabled'          => true,
+                'url'              => $url,
+                'webhookByEvents'  => $byEvents,
+                'webhookBase64'    => $base64,
+                'events'           => $events,
+            ],
         ]);
     }
 
     public function disableWebhook(): array
     {
         return $this->post("/webhook/set/{$this->instanceName}", [
-            'enabled'          => false,
-            'url'              => '',
-            'webhookByEvents'  => false,
-            'webhookBase64'    => false,
-            'events'           => [],
+            'webhook' => [
+                'enabled'          => false,
+                'url'              => '',
+                'webhookByEvents'  => false,
+                'webhookBase64'    => false,
+                'events'           => [],
+            ],
         ]);
     }
 
@@ -133,8 +137,8 @@ class EvolutionApiService
         $number = $this->normalizePhone($phone);
 
         $body = [
-            'number'      => $number,
-            'textMessage' => ['text' => $text],
+            'number' => $number,
+            'text'   => $text,
         ];
 
         if ($quotedId) {
@@ -149,14 +153,12 @@ class EvolutionApiService
         [$media, $mime] = $this->extractMedia($mediaUrlOrBase64, 'image/jpeg');
 
         return $this->post("/message/sendMedia/{$this->instanceName}", [
-            'number'       => $this->normalizePhone($phone),
-            'mediaMessage' => [
-                'mediatype' => 'image',
-                'mimetype'  => $mime,
-                'caption'   => $caption,
-                'media'     => $media,
-                'fileName'  => 'image.' . $this->mimeToExt($mime),
-            ],
+            'number'    => $this->normalizePhone($phone),
+            'mediatype' => 'image',
+            'mimetype'  => $mime,
+            'caption'   => $caption,
+            'media'     => $media,
+            'fileName'  => 'image.' . $this->mimeToExt($mime),
         ]);
     }
 
@@ -165,29 +167,24 @@ class EvolutionApiService
         [$media, $mime] = $this->extractMedia($mediaUrlOrBase64, $mimetype);
 
         return $this->post("/message/sendMedia/{$this->instanceName}", [
-            'number'       => $this->normalizePhone($phone),
-            'mediaMessage' => [
-                'mediatype' => 'document',
-                'mimetype'  => $mime,
-                'caption'   => $fileName,
-                'media'     => $media,
-                'fileName'  => $fileName,
-            ],
+            'number'    => $this->normalizePhone($phone),
+            'mediatype' => 'document',
+            'mimetype'  => $mime,
+            'caption'   => $fileName,
+            'media'     => $media,
+            'fileName'  => $fileName,
         ]);
     }
 
     public function sendAudio(string $phone, string $audioUrlOrBase64): array
     {
         [$audio, $mime] = $this->extractMedia($audioUrlOrBase64, 'audio/ogg');
-
-        // Se for ogg/opus (gravado no browser ou convertido localmente), envia direto
-        // Se for outro formato (webm), deixa o ffmpeg do Evolution API converter (encoding=true)
         $isOgg = str_contains($mime, 'ogg');
 
         return $this->post("/message/sendWhatsAppAudio/{$this->instanceName}", [
-            'number'       => $this->normalizePhone($phone),
-            'audioMessage' => ['audio' => $audio],
-            'options'      => ['encoding' => !$isOgg],
+            'number'   => $this->normalizePhone($phone),
+            'audio'    => $audio,
+            'encoding' => !$isOgg,
         ]);
     }
 
@@ -196,14 +193,12 @@ class EvolutionApiService
         [$media, $mime] = $this->extractMedia($videoUrlOrBase64, 'video/mp4');
 
         return $this->post("/message/sendMedia/{$this->instanceName}", [
-            'number'       => $this->normalizePhone($phone),
-            'mediaMessage' => [
-                'mediatype' => 'video',
-                'mimetype'  => $mime,
-                'caption'   => $caption,
-                'media'     => $media,
-                'fileName'  => 'video.' . $this->mimeToExt($mime),
-            ],
+            'number'    => $this->normalizePhone($phone),
+            'mediatype' => 'video',
+            'mimetype'  => $mime,
+            'caption'   => $caption,
+            'media'     => $media,
+            'fileName'  => 'video.' . $this->mimeToExt($mime),
         ]);
     }
 
