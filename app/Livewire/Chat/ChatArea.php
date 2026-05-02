@@ -244,6 +244,7 @@ class ChatArea extends Component
             $this->editMessage($this->editingMessageId, trim($this->messageText));
             $this->editingMessageId = null;
             $this->messageText = '';
+            $this->dispatch('message-sent');
             return;
         }
 
