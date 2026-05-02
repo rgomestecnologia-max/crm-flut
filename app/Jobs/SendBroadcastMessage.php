@@ -58,7 +58,16 @@ class SendBroadcastMessage implements ShouldQueue
                     $campaign->message
                 );
 
-                $result = $api->sendText($recipient->phone, $text);
+                // Envia imagem com caption ou texto puro
+                if ($campaign->image_path) {
+                    $imageUrl = \App\Services\MediaStorage::url($campaign->image_path);
+                    if (!str_starts_with($imageUrl, 'http')) {
+                        $imageUrl = url($imageUrl);
+                    }
+                    $result = $api->sendImage($recipient->phone, $imageUrl, $text);
+                } else {
+                    $result = $api->sendText($recipient->phone, $text);
+                }
 
                 if ($result['success'] ?? false) {
                     $recipient->update(['status' => 'sent', 'sent_at' => now()]);

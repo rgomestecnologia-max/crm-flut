@@ -13,7 +13,7 @@ use Livewire\WithPagination;
 
 class CampaignManager extends Component
 {
-    use WithPagination;
+    use WithPagination, \Livewire\WithFileUploads;
 
     // Form
     public bool   $showForm         = false;
@@ -24,6 +24,7 @@ class CampaignManager extends Component
     public string $subject          = '';
     public string $htmlContent      = '';
     public int    $interval_seconds = 10;
+    public        $campaignImage     = null;
     public string $filterTag        = '';
     public string $recipientMode    = 'all';
 
@@ -32,7 +33,7 @@ class CampaignManager extends Component
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'channel', 'name', 'message', 'subject', 'htmlContent', 'interval_seconds', 'filterTag', 'recipientMode');
+        $this->reset('editingId', 'channel', 'name', 'message', 'subject', 'htmlContent', 'campaignImage', 'interval_seconds', 'filterTag', 'recipientMode');
         $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
         $this->recipientMode    = 'all';
@@ -49,6 +50,7 @@ class CampaignManager extends Component
 
         if ($this->channel === 'whatsapp') {
             $rules['message'] = 'required|string|max:4000';
+            $rules['campaignImage'] = 'nullable|image|max:5120';
         } else {
             $rules['subject'] = 'required|string|max:200';
             $rules['htmlContent'] = 'required|string|max:100000';
@@ -62,12 +64,18 @@ class CampaignManager extends Component
             return;
         }
 
+        $imagePath = null;
+        if ($this->channel === 'whatsapp' && $this->campaignImage) {
+            $imagePath = \App\Services\MediaStorage::store($this->campaignImage, 'broadcasts');
+        }
+
         BroadcastCampaign::create([
             'name'             => $this->name,
             'channel'          => $this->channel,
             'message'          => $this->channel === 'whatsapp' ? $this->message : null,
             'subject'          => $this->channel === 'email' ? $this->subject : null,
             'html_content'     => $this->channel === 'email' ? $this->htmlContent : null,
+            'image_path'       => $imagePath,
             'status'           => 'draft',
             'interval_seconds' => $this->interval_seconds,
             'total_recipients' => $recipientCount,

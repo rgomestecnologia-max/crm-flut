@@ -108,9 +108,8 @@
                                 style="flex:1; padding:10px; border-radius:10px; cursor:pointer; text-align:center; font-size:12px; font-weight:600; transition:all 0.15s;
                                        background:{{ $channel === 'email' ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.03)' }};
                                        border:1px solid {{ $channel === 'email' ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.08)' }};
-                                       color:{{ $channel === 'email' ? '#60a5fa' : 'rgba(255,255,255,0.4)' }};"
-                                {{ !$sendgridConfigured ? 'disabled' : '' }}>
-                            Email {{ !$sendgridConfigured ? '(Configure o SendGrid)' : '' }}
+                                       color:{{ $channel === 'email' ? '#60a5fa' : 'rgba(255,255,255,0.4)' }};">
+                            Email {{ !$sendgridConfigured ? '(configure SendGrid nas Config. Globais)' : '' }}
                         </button>
                     </div>
                 </div>
@@ -123,9 +122,20 @@
                 </div>
 
                 @if($channel === 'whatsapp')
-                {{-- WhatsApp: mensagem texto --}}
+                {{-- WhatsApp: imagem + mensagem --}}
                 <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Mensagem * <span style="color:rgba(255,255,255,0.2); font-weight:400;">(use {nome} para o nome do lead)</span></label>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Imagem <span style="color:rgba(255,255,255,0.2); font-weight:400;">(opcional — enviada com a mensagem como legenda)</span></label>
+                    <input wire:model="campaignImage" type="file" accept="image/*"
+                           style="width:100%; margin-top:4px; padding:8px; font-size:12px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.04); border:1px dashed rgba(34,197,94,0.3); border-radius:8px; cursor:pointer;">
+                    @if($campaignImage)
+                    <div style="margin-top:6px;">
+                        <img src="{{ $campaignImage->temporaryUrl() }}" alt="Preview" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                    </div>
+                    @endif
+                    @error('campaignImage') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">{{ $campaignImage ? 'Legenda da imagem *' : 'Mensagem *' }} <span style="color:rgba(255,255,255,0.2); font-weight:400;">(use {nome} para o nome do lead)</span></label>
                     <textarea wire:model="message" rows="5" placeholder="Olá {nome}! Temos uma oferta especial..."
                               style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical;"></textarea>
                     @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
