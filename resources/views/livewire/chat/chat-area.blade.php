@@ -1077,8 +1077,7 @@
              x-transition:enter="transition ease-out duration-100"
              x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
              @click.outside="showEmoji=false"
-             :style="emojiPos ? `position:fixed; bottom:${emojiPos.bottom}px; right:${emojiPos.right}px; z-index:9999;` : 'position:fixed; bottom:80px; right:16px; z-index:9999;'"
-             style="background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.7); padding:12px; width:min(300px, 90vw);">
+             :style="emojiPos ? `position:fixed; bottom:${emojiPos.bottom}px; right:${emojiPos.right}px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.7); padding:12px; width:min(300px, 90vw);` : 'position:fixed; bottom:80px; right:16px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.7); padding:12px; width:min(300px, 90vw);'">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                 <p style="font-size:9px; color:rgba(255,255,255,0.25); font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Emojis</p>
                 <button @click="showEmoji=false" style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer;">
@@ -1112,8 +1111,7 @@
                 </button>
                 <template x-teleport="body">
                     <div x-show="open" x-transition @click.outside="open=false"
-                         :style="clipPos ? `position:fixed; bottom:${clipPos.bottom}px; left:${clipPos.left}px; z-index:9999;` : 'position:fixed; bottom:80px; left:80px; z-index:9999;'"
-                         style="background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;">
+                         :style="clipPos ? `position:fixed; bottom:${clipPos.bottom}px; left:${clipPos.left}px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;` : 'position:fixed; bottom:80px; left:80px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;'">
                         <label style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s;"
                                onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
                             <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24">
