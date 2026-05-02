@@ -38,6 +38,10 @@ class ChatArea extends Component
     public ?int    $transferAgent    = null;
     public string  $transferReason   = '';
 
+    // Group members
+    public bool    $showGroupMembers = false;
+    public array   $groupMembers     = [];
+
     // CRM
     public bool    $showCrmPanel     = false;
     public ?int    $crmPipelineId    = null;
@@ -154,6 +158,111 @@ class ChatArea extends Component
         }
 
         $msg->update(['reactions' => $reactions]);
+    }
+
+    public function loadGroupMembers(): void
+    {
+        $this->showGroupMembers = !$this->showGroupMembers;
+        if (!$this->showGroupMembers) return;
+
+        $conv = $this->conversation;
+        if (!$conv || !$conv->is_group) return;
+
+        $contact = $conv->contact;
+        $groupJid = $contact->chat_lid ?? $contact->phone . '@g.us';
+
+        try {
+            $config = \App\Models\EvolutionApiConfig::current();
+            if (!$config?->is_active) return;
+
+            $api = new \App\Services\EvolutionApiService($config);
+            $http = \Illuminate\Support\Facades\Http::withHeaders([
+                'apikey' => $config->instance_api_key ?: $config->global_api_key,
+            ]);
+            $result = $http->get($config->serverUrl() . "/group/findGroupInfos/{$config->instance_name}?groupJid={$groupJid}")->json();
+
+            $participants = $result['participants'] ?? [];
+            $members = [];
+
+            foreach ($participants as $p) {
+                $jid = $p['id'] ?? '';
+                $phone = preg_replace('/@.*/', '', $jid);
+                $role = $p['admin'] ?? 'member';
+
+                // Try to find name from contacts or messages
+                $name = null;
+                $contactInfo = \App\Models\Contact::withoutGlobalScopes()
+                    ->where(function ($q) use ($jid, $phone) {
+                        $q->where('chat_lid', $jid)
+                          ->orWhere('phone', $phone);
+                    })->first();
+
+                if ($contactInfo) {
+                    $name = $contactInfo->name;
+                    $phone = $contactInfo->phone;
+                }
+
+                // Try pushName from messages
+                if (!$name) {
+                    $msg = \App\Models\Message::where('conversation_id', $conv->id)
+                        ->where('sender_phone', $phone)
+                        ->whereNotNull('sender_name')
+                        ->latest()->first();
+                    if ($msg) $name = $msg->sender_name;
+                }
+
+                $members[] = [
+                    'jid'   => $jid,
+                    'phone' => $phone,
+                    'name'  => $name ?: $phone,
+                    'role'  => $role,
+                ];
+            }
+
+            $this->groupMembers = $members;
+        } catch (\Throwable $e) {
+            Log::warning('loadGroupMembers failed', ['error' => $e->getMessage()]);
+            $this->groupMembers = [];
+        }
+    }
+
+    public function chatWithMember(string $phone): void
+    {
+        if (!$phone || strlen($phone) < 8) return;
+
+        // Normaliza phone
+        $realPhone = preg_replace('/\D/', '', preg_replace('/@.*/', '', $phone));
+        if (strlen($realPhone) <= 11 && !str_starts_with($realPhone, '55')) {
+            $realPhone = '55' . $realPhone;
+        }
+
+        // Busca ou cria contato
+        $contact = \App\Models\Contact::where('phone', $realPhone)->first();
+        if (!$contact) {
+            $contact = \App\Models\Contact::create([
+                'phone' => $realPhone,
+                'chat_lid' => str_contains($phone, '@') ? $phone : null,
+            ]);
+        }
+
+        // Busca ou cria conversa individual
+        $conv = \App\Models\Conversation::where('contact_id', $contact->id)
+            ->where('is_group', false)
+            ->whereIn('status', ['open', 'pending', 'resolved'])
+            ->latest()->first();
+
+        if (!$conv) {
+            $dept = \App\Models\Department::active()->first();
+            $conv = \App\Models\Conversation::create([
+                'contact_id'    => $contact->id,
+                'department_id' => $dept->id,
+                'status'        => 'open',
+                'is_group'      => false,
+            ]);
+        }
+
+        $this->showGroupMembers = false;
+        $this->dispatch('conversation-selected', id: $conv->id);
     }
 
     public function startEditing(int $messageId): void

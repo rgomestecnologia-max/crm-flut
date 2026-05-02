@@ -36,6 +36,14 @@
                     </svg>
                     GRUPO
                 </span>
+                <button wire:click="loadGroupMembers"
+                        style="flex-shrink:0; display:inline-flex; align-items:center; gap:3px; font-size:9px; font-weight:600; padding:2px 7px; border-radius:20px; background:rgba(59,130,246,0.1); color:#60a5fa; border:1px solid rgba(59,130,246,0.25); cursor:pointer;"
+                        onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'">
+                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    Membros
+                </button>
                 @endif
                 {{-- CRM badges --}}
                 @foreach($crmCards as $crmCard)
@@ -57,6 +65,42 @@
                 <span>#{{ $conversation->protocol }}</span>
             </p>
         </div>
+
+        {{-- Group members panel --}}
+        @if($showGroupMembers && !empty($groupMembers))
+        <div style="position:absolute; top:60px; right:12px; z-index:30; width:320px; max-height:400px; overflow-y:auto; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:700; color:white;">Membros do grupo ({{ count($groupMembers) }})</span>
+                <button wire:click="$set('showGroupMembers', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px;">&times;</button>
+            </div>
+            @foreach($groupMembers as $member)
+            <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.03); transition:background 0.1s;"
+                 onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+                <div style="width:32px; height:32px; border-radius:50%; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span style="font-size:11px; font-weight:700; color:#60a5fa;">{{ mb_substr($member['name'], 0, 1) }}</span>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <p style="font-size:12px; font-weight:600; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $member['name'] }}</p>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.3);">
+                        {{ $member['phone'] }}
+                        @if($member['role'] === 'superadmin')
+                        <span style="color:#fbbf24; margin-left:4px;">Admin</span>
+                        @elseif($member['role'] === 'admin')
+                        <span style="color:#4ade80; margin-left:4px;">Admin</span>
+                        @endif
+                    </p>
+                </div>
+                @if(!str_contains($member['jid'], '@g.us'))
+                <button wire:click="chatWithMember('{{ $member['jid'] }}')"
+                        style="flex-shrink:0; padding:4px 10px; font-size:10px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;"
+                        onmouseover="this.style.background='rgba(178,255,0,0.15)'" onmouseout="this.style.background='rgba(178,255,0,0.08)'">
+                    Conversar
+                </button>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        @endif
 
         {{-- Search button --}}
         <button @click="searchOpen = !searchOpen; if(!searchOpen) clearSearch(); else $nextTick(() => $refs.searchInput?.focus())"
