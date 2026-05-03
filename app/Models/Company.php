@@ -12,7 +12,7 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'slug', 'color', 'logo', 'is_active', 'modules',
+        'name', 'slug', 'color', 'logo', 'is_active', 'modules', 'whatsapp_provider',
     ];
 
     protected function casts(): array

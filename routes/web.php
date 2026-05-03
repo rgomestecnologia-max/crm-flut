@@ -5,7 +5,6 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\AgentController;
-use App\Http\Controllers\Admin\ZapiConfigController;
 use App\Livewire\Auth\SelectCompany;
 use Illuminate\Support\Facades\Route;
 
@@ -59,10 +58,8 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('companies', fn() => view('admin.companies.index'))->name('companies.index');
         Route::get('global-settings', fn() => view('admin.global-settings.index'))->name('global-settings.index');
-        Route::get('zapi', [ZapiConfigController::class, 'index'])->name('zapi.index');
-        Route::post('zapi', [ZapiConfigController::class, 'update'])->name('zapi.update');
-        Route::post('zapi/test', [ZapiConfigController::class, 'testConnection'])->name('zapi.test');
         Route::get('evolution', fn() => view('admin.evolution.index'))->name('evolution.index');
+        Route::get('meta-whatsapp', fn() => view('admin.meta-whatsapp.index'))->name('meta-whatsapp.index');
     });
 
     // Exportação CRM

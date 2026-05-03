@@ -116,9 +116,8 @@ class ChatArea extends Component
         $msg = Message::where('conversation_id', $this->conversationId)->find($messageId);
         if (!$msg || !$msg->zapi_message_id) return;
 
-        $config    = \App\Models\EvolutionApiConfig::current();
+        $myPhone   = $this->resolveMyPhone();
         $reactions = $msg->reactions ?? [];
-        $myPhone   = $config?->phone_number ?? 'crm';
         $contact   = $this->conversation->contact;
         $remoteJid = $contact->chat_lid ?? $contact->phone;
 
@@ -129,27 +128,24 @@ class ChatArea extends Component
         $reactions = array_values(array_filter($reactions, fn($r) => ($r['phone'] ?? '') !== $myPhone));
 
         if ($existing) {
-            // Mesma reação = remover → envia vazio pro WhatsApp
             $whatsappEmoji = '';
         } else {
-            // Nova reação ou troca → envia o emoji pro WhatsApp
             $reactions[] = ['emoji' => $emoji, 'phone' => $myPhone, 'at' => now()->toISOString()];
             $whatsappEmoji = $emoji;
         }
 
-        // Envia pro WhatsApp (emoji ou vazio para remover)
-        // fromMe = true se a mensagem original foi enviada por nós (agente), false se do contato
         $fromMe = $msg->sender_type === 'agent';
-        if ($config?->is_active) {
+        $svc = \App\Services\WhatsAppProvider::service();
+        if ($svc) {
             try {
-                $svc = new \App\Services\EvolutionApiService($config);
-                $result = $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji, $fromMe);
+                if ($svc instanceof \App\Services\EvolutionApiService) {
+                    $result = $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji, $fromMe);
+                } else {
+                    $result = $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji);
+                }
                 Log::info('Reaction sent to WhatsApp', [
                     'messageId' => $msg->zapi_message_id,
-                    'remoteJid' => $remoteJid,
                     'emoji'     => $whatsappEmoji ?: '(vazio/remover)',
-                    'fromMe'    => $fromMe,
-                    'toggle'    => $existing ? 'REMOVE' : 'ADD',
                     'response'  => $result,
                 ]);
             } catch (\Throwable $e) {
@@ -172,10 +168,10 @@ class ChatArea extends Component
         $groupJid = $contact->chat_lid ?? $contact->phone . '@g.us';
 
         try {
+            if (\App\Services\WhatsAppProvider::isMeta()) return; // Meta não suporta grupos
+
             $config = \App\Models\EvolutionApiConfig::current();
             if (!$config?->is_active) return;
-
-            $api = new \App\Services\EvolutionApiService($config);
             $http = \Illuminate\Support\Facades\Http::withHeaders([
                 'apikey' => $config->instance_api_key ?: $config->global_api_key,
             ]);
@@ -294,15 +290,13 @@ class ChatArea extends Component
 
         if (!$msg) return;
 
-        // Edita no WhatsApp (se tiver zapi_message_id)
-        if ($msg->zapi_message_id) {
+        // Edita no WhatsApp (se tiver zapi_message_id) — apenas Evolution suporta
+        if ($msg->zapi_message_id && \App\Services\WhatsAppProvider::isEvolution()) {
             $contact = $this->conversation->contact;
             $remoteJid = $contact->chat_lid ?? $contact->phone;
-
-            $config = \App\Models\EvolutionApiConfig::current();
-            if ($config?->is_active) {
+            $svc = \App\Services\WhatsAppProvider::service();
+            if ($svc) {
                 try {
-                    $svc = new \App\Services\EvolutionApiService($config);
                     $svc->updateMessage($msg->zapi_message_id, $remoteJid, $newText);
                 } catch (\Throwable $e) {
                     Log::warning('Edit message failed', ['error' => $e->getMessage()]);
@@ -322,15 +316,13 @@ class ChatArea extends Component
 
         if (!$msg) return;
 
-        // Deleta no WhatsApp (se tiver zapi_message_id)
-        if ($msg->zapi_message_id) {
+        // Deleta no WhatsApp (se tiver zapi_message_id) — apenas Evolution suporta
+        if ($msg->zapi_message_id && \App\Services\WhatsAppProvider::isEvolution()) {
             $contact = $this->conversation->contact;
             $remoteJid = $contact->chat_lid ?? $contact->phone;
-
-            $config = \App\Models\EvolutionApiConfig::current();
-            if ($config?->is_active) {
+            $svc = \App\Services\WhatsAppProvider::service();
+            if ($svc) {
                 try {
-                    $svc = new \App\Services\EvolutionApiService($config);
                     $svc->deleteMessage($msg->zapi_message_id, $remoteJid);
                 } catch (\Throwable $e) {
                     Log::warning('Delete message failed', ['error' => $e->getMessage()]);
@@ -576,6 +568,14 @@ class ChatArea extends Component
         }
 
         $this->dispatch('scroll-to-bottom');
+    }
+
+    private function resolveMyPhone(): string
+    {
+        if (\App\Services\WhatsAppProvider::isMeta()) {
+            return \App\Models\MetaWhatsAppConfig::current()?->phone_display ?? 'crm';
+        }
+        return \App\Models\EvolutionApiConfig::current()?->phone_number ?? 'crm';
     }
 
     private function ffmpegAvailable(): bool
@@ -956,7 +956,7 @@ class ChatArea extends Component
             }
         }
 
-        $myReactionPhone = \App\Models\EvolutionApiConfig::current()?->phone_number ?? 'crm';
+        $myReactionPhone = $this->resolveMyPhone();
         $replyToMessage  = $this->replyToId ? Message::find($this->replyToId) : null;
 
         return view('livewire.chat.chat-area', compact(

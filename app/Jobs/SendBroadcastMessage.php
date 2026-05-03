@@ -4,8 +4,7 @@ namespace App\Jobs;
 
 use App\Models\BroadcastCampaignRecipient;
 use App\Models\BroadcastCampaignRun;
-use App\Models\EvolutionApiConfig;
-use App\Services\EvolutionApiService;
+use App\Services\WhatsAppProvider;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -34,15 +33,13 @@ class SendBroadcastMessage implements ShouldQueue
 
         app(\App\Services\CurrentCompany::class)->set((int) $campaign->company_id, persist: false);
 
-        $evolutionConfig = EvolutionApiConfig::current();
-        if (!$evolutionConfig || !$evolutionConfig->is_active) {
+        $api = WhatsAppProvider::service();
+        if (!$api) {
             $run->update(['status' => 'failed']);
             $campaign->update(['status' => 'failed']);
-            Log::error('SendBroadcastMessage: Evolution API não configurada');
+            Log::error('SendBroadcastMessage: nenhum provider WhatsApp ativo');
             return;
         }
-
-        $api = new EvolutionApiService($evolutionConfig);
         $recipients = BroadcastCampaignRecipient::where('run_id', $run->id)
             ->where('status', 'pending')
             ->get();

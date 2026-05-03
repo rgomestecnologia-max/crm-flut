@@ -7,10 +7,10 @@ use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\CrmCard;
 use App\Models\Department;
-use App\Models\EvolutionApiConfig;
 use App\Models\Message;
 use App\Services\EvolutionApiService;
-use App\Services\ZapiService;
+use App\Services\MetaWhatsAppService;
+use App\Services\WhatsAppProvider;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -30,12 +30,11 @@ class SendAutomationMessage implements ShouldQueue
         public CrmCard    $card,
     ) {}
 
-    public function handle(ZapiService $zapi): void
+    public function handle(): void
     {
         app(\App\Services\CurrentCompany::class)->set((int) $this->automation->company_id, persist: false);
 
         try {
-            // Cria/reabre conversa primeiro (necessário para ambos os fluxos)
             $conversation = Conversation::where('contact_id', $this->contact->id)
                 ->where('is_group', false)
                 ->whereIn('status', ['open', 'pending'])
@@ -49,7 +48,6 @@ class SendAutomationMessage implements ShouldQueue
                     return;
                 }
 
-                // Roteamento por DDD — atribui agente e departamento conforme telefone
                 $assignedTo  = null;
                 $deptId      = $department->id;
                 $phone       = $this->contact->phone;
@@ -93,26 +91,17 @@ class SendAutomationMessage implements ShouldQueue
 
             // ── Modo IA direta: saudação + IA responde à dúvida ────────
             if ($this->automation->ai_first_response) {
-                // 1) Envia saudação via WhatsApp (usa message_template da automação)
                 $greeting = $this->automation->message_template
                     ? str_replace('{nome}', $this->contact->name ?? '', $this->automation->message_template)
                     : "Olá, {$this->contact->name}! 👋\nSeja bem-vindo(a)! Recebemos sua mensagem e seu atendimento continuará por aqui. 🚀";
 
-                $evolutionConfig = EvolutionApiConfig::current();
-                $realPhone = ($this->contact->phone && preg_match('/^55\d{10,11}$/', $this->contact->phone)) ? $this->contact->phone : null;
-                $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
+                $result = $this->sendWhatsApp($greeting);
+                $zapiId = $result['key']['id'] ?? $result['messageId'] ?? null;
 
-                if ($evolutionConfig && $evolutionConfig->is_active) {
-                    $result = (new EvolutionApiService($evolutionConfig))->sendText($phone, $greeting);
-                    $zapiId = $result['key']['id'] ?? null;
-                    // Captura LID do remoteJid para vincular ao contato
-                    $returnedJid = $result['key']['remoteJid'] ?? null;
-                    if ($returnedJid && str_contains($returnedJid, '@lid') && !$this->contact->chat_lid) {
-                        $this->contact->update(['chat_lid' => $returnedJid]);
-                    }
-                } else {
-                    $result = $zapi->sendTextMessage($this->contact->phone, $greeting);
-                    $zapiId = $result['messageId'] ?? null;
+                // Captura LID (apenas Evolution)
+                $returnedJid = $result['key']['remoteJid'] ?? null;
+                if ($returnedJid && str_contains($returnedJid, '@lid') && !$this->contact->chat_lid) {
+                    $this->contact->update(['chat_lid' => $returnedJid]);
                 }
 
                 Message::create([
@@ -126,7 +115,7 @@ class SendAutomationMessage implements ShouldQueue
                 ]);
                 $conversation->update(['last_message_at' => now()]);
 
-                // 2) Registra a dúvida do cliente como mensagem na conversa
+                // Registra a dúvida do cliente como mensagem na conversa
                 $clientMessage = $this->contact->notes;
                 $contactMsg = null;
                 if ($clientMessage) {
@@ -140,7 +129,7 @@ class SendAutomationMessage implements ShouldQueue
                     $conversation->update(['last_message_at' => now()]);
                 }
 
-                // 3) Dispara a IA para responder à dúvida
+                // Dispara a IA para responder à dúvida
                 $botConfig = \App\Models\AiBotConfig::current();
                 if ($botConfig && $botConfig->is_active && $botConfig->hasKey() && $contactMsg) {
                     \App\Jobs\ProcessBotResponse::dispatch(
@@ -157,7 +146,7 @@ class SendAutomationMessage implements ShouldQueue
             }
 
             // ── Modo padrão: envia mensagem template fixa ────────────────
-            $this->sendTemplateMessage($conversation, $zapi);
+            $this->sendTemplateMessage($conversation);
 
             Log::info('Automação disparada', [
                 'automation' => $this->automation->name,
@@ -173,28 +162,18 @@ class SendAutomationMessage implements ShouldQueue
         }
     }
 
-    private function sendTemplateMessage(Conversation $conversation, ZapiService $zapi): void
+    private function sendTemplateMessage(Conversation $conversation): void
     {
         $card = $this->card->load(['pipeline', 'stage', 'fieldValues.field']);
         $text = $this->automation->renderMessage($this->contact, $card);
 
-        $evolutionConfig = EvolutionApiConfig::current();
-        $useEvolution    = $evolutionConfig && $evolutionConfig->is_active;
+        $result = $this->sendWhatsApp($text);
+        $zapiId = $result['key']['id'] ?? $result['messageId'] ?? null;
 
-        $realPhone = ($this->contact->phone && preg_match('/^55\d{10,11}$/', $this->contact->phone)) ? $this->contact->phone : null;
-        $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
-
-        if ($useEvolution) {
-            $result = (new EvolutionApiService($evolutionConfig))->sendText($phone, $text);
-            $zapiId = $result['key']['id'] ?? $result['id'] ?? null;
-            // Captura LID
-            $returnedJid = $result['key']['remoteJid'] ?? null;
-            if ($returnedJid && str_contains($returnedJid, '@lid') && !$this->contact->chat_lid) {
-                $this->contact->update(['chat_lid' => $returnedJid]);
-            }
-        } else {
-            $result = $zapi->sendTextMessage($this->contact->phone, $text);
-            $zapiId = $result['messageId'] ?? null;
+        // Captura LID (apenas Evolution)
+        $returnedJid = $result['key']['remoteJid'] ?? null;
+        if ($returnedJid && str_contains($returnedJid, '@lid') && !$this->contact->chat_lid) {
+            $this->contact->update(['chat_lid' => $returnedJid]);
         }
 
         Message::create([
@@ -208,5 +187,22 @@ class SendAutomationMessage implements ShouldQueue
         ]);
 
         $conversation->update(['last_message_at' => now(), 'status' => 'open']);
+    }
+
+    /**
+     * Envia texto via provider ativo (Evolution ou Meta).
+     */
+    private function sendWhatsApp(string $text): array
+    {
+        $service = WhatsAppProvider::service();
+        if (!$service) {
+            Log::error('SendAutomationMessage: nenhum provider WhatsApp ativo');
+            return ['success' => false];
+        }
+
+        $realPhone = ($this->contact->phone && preg_match('/^55\d{10,11}$/', $this->contact->phone)) ? $this->contact->phone : null;
+        $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
+
+        return $service->sendText($phone, $text);
     }
 }
