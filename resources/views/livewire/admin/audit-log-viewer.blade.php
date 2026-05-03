@@ -91,7 +91,11 @@
                                 <p style="font-size:9px; font-weight:700; color:rgba(239,68,68,0.6); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Antes</p>
                                 @foreach($log->old_values as $key => $value)
                                     <div style="display:flex; gap:6px; margin-bottom:3px;">
-                                        <span style="font-size:10px; color:rgba(255,255,255,0.3); min-width:100px;">{{ $key }}:</span>
+                                        @php
+                                        $fieldLabels = ['name'=>'Nome','phone'=>'Telefone','email'=>'Email','title'=>'Título','description'=>'Descrição','is_active'=>'Ativo','status'=>'Status','stage_id'=>'Etapa','pipeline_id'=>'Pipeline','assigned_to'=>'Responsável','department_id'=>'Departamento','contact_id'=>'Contato','priority'=>'Prioridade','color'=>'Cor','sort_order'=>'Ordem','channel'=>'Canal','subject'=>'Assunto','message'=>'Mensagem','ddd'=>'DDD','agent_id'=>'Agente','delay_minutes'=>'Delay (min)','max_bot_turns'=>'Máx turnos','response_delay'=>'Delay resposta','interval_seconds'=>'Intervalo (seg)','waiting_human_reason'=>'Aguardando humano','external_id'=>'ID Externo','tags'=>'Tags','website_url'=>'URL Site'];
+                                        $label = $fieldLabels[$key] ?? $key;
+                                        @endphp
+                                        <span style="font-size:10px; color:rgba(255,255,255,0.3); min-width:100px;">{{ $label }}:</span>
                                         <span style="font-size:10px; color:rgba(255,255,255,0.5); word-break:break-all;">{{ is_array($value) ? json_encode($value) : \Illuminate\Support\Str::limit((string)$value, 80) }}</span>
                                     </div>
                                 @endforeach
@@ -102,7 +106,11 @@
                                 <p style="font-size:9px; font-weight:700; color:rgba(34,197,94,0.6); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Depois</p>
                                 @foreach($log->new_values as $key => $value)
                                     <div style="display:flex; gap:6px; margin-bottom:3px;">
-                                        <span style="font-size:10px; color:rgba(255,255,255,0.3); min-width:100px;">{{ $key }}:</span>
+                                        @php
+                                        $fieldLabels = ['name'=>'Nome','phone'=>'Telefone','email'=>'Email','title'=>'Título','description'=>'Descrição','is_active'=>'Ativo','status'=>'Status','stage_id'=>'Etapa','pipeline_id'=>'Pipeline','assigned_to'=>'Responsável','department_id'=>'Departamento','contact_id'=>'Contato','priority'=>'Prioridade','color'=>'Cor','sort_order'=>'Ordem','channel'=>'Canal','subject'=>'Assunto','message'=>'Mensagem','ddd'=>'DDD','agent_id'=>'Agente','delay_minutes'=>'Delay (min)','max_bot_turns'=>'Máx turnos','response_delay'=>'Delay resposta','interval_seconds'=>'Intervalo (seg)','waiting_human_reason'=>'Aguardando humano','external_id'=>'ID Externo','tags'=>'Tags','website_url'=>'URL Site'];
+                                        $label = $fieldLabels[$key] ?? $key;
+                                        @endphp
+                                        <span style="font-size:10px; color:rgba(255,255,255,0.3); min-width:100px;">{{ $label }}:</span>
                                         <span style="font-size:10px; color:rgba(255,255,255,0.5); word-break:break-all;">{{ is_array($value) ? json_encode($value) : \Illuminate\Support\Str::limit((string)$value, 80) }}</span>
                                     </div>
                                 @endforeach

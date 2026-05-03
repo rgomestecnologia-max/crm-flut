@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BroadcastCampaign extends Model
 {
-    use BelongsToCompany;
+    use Auditable, BelongsToCompany;
 
     protected $fillable = [
         'company_id', 'name', 'channel', 'message', 'subject', 'html_content',

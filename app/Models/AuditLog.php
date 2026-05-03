@@ -63,6 +63,11 @@ class AuditLog extends Model
             'App\\Models\\EvolutionApiConfig'=> 'Config Evolution',
             'App\\Models\\TransferLog'       => 'Transferência',
             'App\\Models\\ApiToken'          => 'Token API',
+            'App\\Models\\BroadcastCampaign' => 'Campanha Disparo',
+            'App\\Models\\BroadcastContact'  => 'Lead (Disparo)',
+            'App\\Models\\DddRoutingRule'    => 'Regra DDD',
+            'App\\Models\\Company'           => 'Empresa',
+            'App\\Models\\Notification'      => 'Notificação',
             default => class_basename($this->auditable_type),
         };
     }

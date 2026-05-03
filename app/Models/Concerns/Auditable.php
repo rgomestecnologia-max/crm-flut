@@ -51,7 +51,9 @@ trait Auditable
 
         // Remove campos volumosos/binários que não agregam valor no log
         $exclude = ['qr_code', 'pairing_code', 'reactions', 'menu_prompt', 'system_prompt',
-                     'welcome_template', 'department_routing_prompt', 'message_template'];
+                     'welcome_template', 'department_routing_prompt', 'message_template',
+                     'html_content', 'website_content', 'document_content', 'voice_tones',
+                     'company_description', 'base64', 'content'];
         $old = array_diff_key($old, array_flip($exclude));
         $new = array_diff_key($new, array_flip($exclude));
 
