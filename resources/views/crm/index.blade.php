@@ -9,17 +9,6 @@
             <h1 style="font-size:15px; font-weight:800; color:white; font-family:Syne,sans-serif; letter-spacing:-0.02em;">CRM</h1>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-            {{-- Botão Exportar Excel --}}
-            <a href="{{ route('crm.export') }}"
-               style="display:flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px; font-weight:600; color:#10b981; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:8px; text-decoration:none; transition:all 0.15s;"
-               onmouseover="this.style.background='rgba(16,185,129,0.16)'"
-               onmouseout="this.style.background='rgba(16,185,129,0.08)'">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Exportar Excel
-            </a>
-
             @if(auth()->user()->canManageCompany())
             <a href="{{ route('admin.crm.index') }}"
                style="display:flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:8px; text-decoration:none; transition:all 0.15s;"
