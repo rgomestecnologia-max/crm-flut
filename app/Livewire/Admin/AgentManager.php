@@ -144,7 +144,6 @@ class AgentManager extends Component
         $companyId = app(CurrentCompany::class)->id();
 
         $agents = User::with(['department', 'departments'])
-            ->where('role', '!=', 'admin')
             ->where('company_id', $companyId)
             ->latest()
             ->get();
@@ -179,7 +178,6 @@ class AgentManager extends Component
 
         return User::where('id', $id)
             ->where('company_id', $companyId)
-            ->where('role', '!=', 'admin')
             ->firstOrFail();
     }
 }
