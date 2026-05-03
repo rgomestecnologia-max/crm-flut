@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\BroadcastCampaign;
+use App\Models\BroadcastCampaignRecipient;
+use App\Models\BroadcastContact;
 use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\CrmCard;
@@ -141,5 +144,66 @@ class DashboardService
         }
 
         return $pipelines;
+    }
+
+    /**
+     * Stats do CRM: cards ativos, valor total, criados hoje.
+     */
+    public function crmStats(): array
+    {
+        $activeCards = CrmCard::count();
+        $createdToday = CrmCard::whereDate('created_at', today())->count();
+
+        // Valor total dos cards ativos
+        $valorField = CrmCustomField::where('key', 'valor_da_reserva')->first();
+        $totalValue = 0;
+        if ($valorField) {
+            $totalValue = CrmCardFieldValue::where('field_id', $valorField->id)
+                ->sum(DB::raw('CAST(value AS DECIMAL(10,2))'));
+        }
+
+        // Pipelines ativos
+        $pipelinesCount = CrmPipeline::active()->count();
+
+        return [
+            'active_cards'   => $activeCards,
+            'created_today'  => $createdToday,
+            'total_value'    => $totalValue,
+            'pipelines'      => $pipelinesCount,
+        ];
+    }
+
+    /**
+     * Stats de Leads (BroadcastContacts): hoje, semana, mês.
+     */
+    public function leadsStats(): array
+    {
+        return [
+            'today' => BroadcastContact::whereDate('created_at', today())->count(),
+            'week'  => BroadcastContact::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'month' => BroadcastContact::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
+            'total' => BroadcastContact::count(),
+        ];
+    }
+
+    /**
+     * Stats de Disparos (Broadcasts): campanhas, enviados, taxa sucesso.
+     */
+    public function broadcastStats(): array
+    {
+        $campaigns = BroadcastCampaign::count();
+        $activeCampaigns = BroadcastCampaign::whereIn('status', ['draft', 'running'])->count();
+        $totalSent = BroadcastCampaign::sum('sent_count');
+        $totalFailed = BroadcastCampaign::sum('failed_count');
+        $successRate = ($totalSent + $totalFailed) > 0
+            ? round(($totalSent / ($totalSent + $totalFailed)) * 100, 1)
+            : 0;
+
+        return [
+            'total_campaigns'  => $campaigns,
+            'active_campaigns' => $activeCampaigns,
+            'total_sent'       => (int) $totalSent,
+            'success_rate'     => $successRate,
+        ];
     }
 }
