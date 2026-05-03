@@ -167,7 +167,14 @@ class SendAutomationMessage implements ShouldQueue
         $card = $this->card->load(['pipeline', 'stage', 'fieldValues.field']);
         $text = $this->automation->renderMessage($this->contact, $card);
 
-        $result = $this->sendWhatsApp($text);
+        // Se provider é Meta e tem template configurado, envia via template
+        if (WhatsAppProvider::isMeta() && $this->automation->meta_template_name) {
+            $result = $this->sendMetaTemplate();
+            // Usa o texto renderizado como conteúdo local da mensagem
+        } else {
+            $result = $this->sendWhatsApp($text);
+        }
+
         $zapiId = $result['key']['id'] ?? $result['messageId'] ?? null;
 
         // Captura LID (apenas Evolution)
@@ -187,6 +194,38 @@ class SendAutomationMessage implements ShouldQueue
         ]);
 
         $conversation->update(['last_message_at' => now(), 'status' => 'open']);
+    }
+
+    /**
+     * Envia mensagem via template Meta WhatsApp.
+     */
+    private function sendMetaTemplate(): array
+    {
+        $service = WhatsAppProvider::service();
+        if (!$service || !($service instanceof MetaWhatsAppService)) {
+            return ['success' => false];
+        }
+
+        $realPhone = ($this->contact->phone && preg_match('/^55\d{10,11}$/', $this->contact->phone)) ? $this->contact->phone : null;
+        $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
+
+        // Monta parâmetros do body com dados do contato
+        $bodyParams = [];
+        $template = \App\Models\MetaMessageTemplate::where('name', $this->automation->meta_template_name)->first();
+        if ($template) {
+            $paramCount = $template->body_parameter_count;
+            // Preenche automaticamente: {{1}} = nome, {{2}} = telefone, etc.
+            if ($paramCount >= 1) $bodyParams[] = $this->contact->name ?? '';
+            if ($paramCount >= 2) $bodyParams[] = $this->contact->phone ?? '';
+            if ($paramCount >= 3) $bodyParams[] = $this->contact->email ?? '';
+        }
+
+        return $service->sendTemplate(
+            $phone,
+            $this->automation->meta_template_name,
+            $template->language ?? 'pt_BR',
+            $bodyParams,
+        );
     }
 
     /**

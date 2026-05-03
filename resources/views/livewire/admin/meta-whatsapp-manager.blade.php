@@ -189,4 +189,65 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             </button>
         </div>
     </form>
+
+    {{-- Templates --}}
+    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, #8b5cf680, transparent);"></div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div style="width:2px; height:16px; background:#8b5cf6; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Templates de Mensagem</h3>
+                <span style="font-size:10px; color:rgba(255,255,255,0.2); font-weight:400;">(aprovados pela Meta)</span>
+            </div>
+            <button wire:click="syncTemplates" type="button"
+                    style="display:flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); border-radius:8px; color:#a78bfa; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.15s;"
+                    onmouseover="this.style.background='rgba(139,92,246,0.2)'"
+                    onmouseout="this.style.background='rgba(139,92,246,0.12)'">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span wire:loading.remove wire:target="syncTemplates">Sincronizar</span>
+                <span wire:loading wire:target="syncTemplates">Sincronizando...</span>
+            </button>
+        </div>
+
+        @if(!$whatsapp_business_account_id)
+        <div style="padding:20px; text-align:center; color:rgba(255,255,255,0.2); font-size:12px;">
+            Preencha o WABA ID nas credenciais para sincronizar os templates.
+        </div>
+        @elseif($templates->isEmpty())
+        <div style="padding:20px; text-align:center; color:rgba(255,255,255,0.2); font-size:12px;">
+            Nenhum template sincronizado. Clique em "Sincronizar" para buscar da Meta.
+        </div>
+        @else
+        <div style="display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto;">
+            @foreach($templates as $tpl)
+            <div style="padding:12px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:10px; transition:all 0.15s;"
+                 onmouseover="this.style.background='rgba(255,255,255,0.04)'"
+                 onmouseout="this.style.background='rgba(255,255,255,0.02)'">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                    <span style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.8); font-family:monospace;">{{ $tpl->name }}</span>
+                    <span style="font-size:9px; padding:2px 6px; border-radius:4px; font-weight:600;
+                        background:{{ $tpl->status === 'APPROVED' ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)' }};
+                        color:{{ $tpl->status === 'APPROVED' ? '#22c55e' : '#f59e0b' }};
+                        border:1px solid {{ $tpl->status === 'APPROVED' ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)' }};">
+                        {{ $tpl->status }}
+                    </span>
+                    <span style="font-size:9px; color:rgba(255,255,255,0.2);">{{ $tpl->language }}</span>
+                    @if($tpl->category)
+                    <span style="font-size:9px; color:rgba(255,255,255,0.15);">{{ $tpl->category }}</span>
+                    @endif
+                </div>
+                @if($tpl->body_text)
+                <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.5; white-space:pre-wrap;">{{ \Illuminate\Support\Str::limit($tpl->body_text, 200) }}</p>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        <div style="margin-top:10px; font-size:10px; color:rgba(255,255,255,0.15);">
+            {{ $templates->count() }} template(s) aprovado(s)
+        </div>
+        @endif
+    </div>
 </div>

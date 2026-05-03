@@ -125,6 +125,85 @@ class MetaWhatsAppService
     }
 
     /**
+     * Envia mensagem usando template aprovado.
+     *
+     * @param  string  $phone          Telefone destino
+     * @param  string  $templateName   Nome do template (ex: "hello_world")
+     * @param  string  $language       Código do idioma (ex: "pt_BR")
+     * @param  array   $bodyParams     Parâmetros do body [["text" => "João"], ["text" => "10/05"]]
+     * @param  array   $headerParams   Parâmetros do header (opcional)
+     */
+    public function sendTemplate(
+        string $phone,
+        string $templateName,
+        string $language = 'pt_BR',
+        array  $bodyParams = [],
+        array  $headerParams = [],
+    ): array {
+        $components = [];
+
+        if (!empty($headerParams)) {
+            $params = array_map(fn($p) => is_array($p) ? $p : ['type' => 'text', 'text' => $p], $headerParams);
+            $components[] = ['type' => 'header', 'parameters' => $params];
+        }
+
+        if (!empty($bodyParams)) {
+            $params = array_map(fn($p) => is_array($p) ? $p : ['type' => 'text', 'text' => $p], $bodyParams);
+            $components[] = ['type' => 'body', 'parameters' => $params];
+        }
+
+        $body = [
+            'messaging_product' => 'whatsapp',
+            'to'                => $this->normalizePhone($phone),
+            'type'              => 'template',
+            'template'          => [
+                'name'     => $templateName,
+                'language' => ['code' => $language],
+            ],
+        ];
+
+        if (!empty($components)) {
+            $body['template']['components'] = $components;
+        }
+
+        return $this->postMessage($body);
+    }
+
+    /**
+     * Busca todos os templates de mensagem da conta WABA.
+     */
+    public function fetchTemplates(string $wabaId): array
+    {
+        try {
+            $templates = [];
+            $url = "https://graph.facebook.com/v21.0/{$wabaId}/message_templates?limit=100&fields=id,name,language,status,category,components";
+
+            while ($url) {
+                $response = Http::withToken($this->accessToken)
+                    ->timeout(20)
+                    ->get($url);
+
+                if (!$response->successful()) {
+                    $error = $response->json()['error']['message'] ?? $response->body();
+                    Log::error('MetaWhatsApp: fetchTemplates failed', ['error' => $error]);
+                    return ['success' => false, 'error' => $error, 'data' => []];
+                }
+
+                $json = $response->json();
+                $templates = array_merge($templates, $json['data'] ?? []);
+
+                // Paginação
+                $url = $json['paging']['next'] ?? null;
+            }
+
+            return ['success' => true, 'data' => $templates];
+        } catch (\Exception $e) {
+            Log::error('MetaWhatsApp: fetchTemplates exception', ['error' => $e->getMessage()]);
+            return ['success' => false, 'error' => $e->getMessage(), 'data' => []];
+        }
+    }
+
+    /**
      * Meta Cloud API não suporta edição de mensagens.
      */
     public function updateMessage(string $messageId, string $phone, string $text): array

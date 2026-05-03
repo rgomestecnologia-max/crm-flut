@@ -134,6 +134,19 @@
                     @endif
                     @error('campaignImage') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
                 </div>
+                @if($isMeta && $metaTemplates->isNotEmpty())
+                <div>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Template Meta WhatsApp</label>
+                    <select wire:model="meta_template_name"
+                            style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
+                        <option value="">Nenhum (texto livre)</option>
+                        @foreach($metaTemplates as $tpl)
+                            <option value="{{ $tpl->name }}">{{ $tpl->name }} ({{ $tpl->language }})</option>
+                        @endforeach
+                    </select>
+                    <p style="font-size:9px; color:rgba(255,255,255,0.15); margin-top:3px;">Obrigatório para mensagens fora da janela de 24h. Sincronize em Meta WhatsApp > Templates.</p>
+                </div>
+                @endif
                 <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">{{ $campaignImage ? 'Legenda da imagem *' : 'Mensagem *' }} <span style="color:rgba(255,255,255,0.2); font-weight:400;">(use {nome} para o nome do lead)</span></label>
                     <textarea wire:model="message" rows="5" placeholder="Olá {nome}! Temos uma oferta especial..."

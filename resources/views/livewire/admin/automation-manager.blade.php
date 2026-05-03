@@ -69,13 +69,31 @@
 
         {{-- Template da mensagem (oculto quando ai_first_response ativo) --}}
         @if(!$ai_first_response)
-        <div class="mb-4">
-            <label class="block text-xs text-gray-400 mb-1">Mensagem automática <span class="text-red-400">*</span></label>
-            <textarea wire:model="message_template" rows="8"
-                      placeholder="Olá {nome}! 👋&#10;Percebemos que você solicitou uma cotação. Podemos ajudar?&#10;&#10;Entre em contato conosco!"
-                      class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none font-mono"></textarea>
-            @error('message_template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-        </div>
+            @if($isMeta && $metaTemplates->isNotEmpty())
+            {{-- Seletor de template Meta --}}
+            <div class="mb-4">
+                <label class="block text-xs text-gray-400 mb-1">Template Meta WhatsApp <span class="text-red-400">*</span></label>
+                <select wire:model="meta_template_name"
+                        class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
+                    <option value="">Selecione um template...</option>
+                    @foreach($metaTemplates as $tpl)
+                        <option value="{{ $tpl->name }}">{{ $tpl->name }} ({{ $tpl->language }}) — {{ \Illuminate\Support\Str::limit($tpl->body_text, 60) }}</option>
+                    @endforeach
+                </select>
+                <p class="text-[10px] text-gray-500 mt-1">Templates aprovados pela Meta para mensagens fora da janela de 24h. Sincronize em Meta WhatsApp > Templates.</p>
+            </div>
+            @endif
+
+            <div class="mb-4">
+                <label class="block text-xs text-gray-400 mb-1">
+                    Mensagem automática
+                    @if(!$isMeta) <span class="text-red-400">*</span> @else <span class="text-gray-500">(usada dentro da janela de 24h)</span> @endif
+                </label>
+                <textarea wire:model="message_template" rows="8"
+                          placeholder="Olá {nome}! 👋&#10;Percebemos que você solicitou uma cotação. Podemos ajudar?&#10;&#10;Entre em contato conosco!"
+                          class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none font-mono"></textarea>
+                @error('message_template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
         @else
         <div class="mb-4 p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
             <p class="text-xs text-blue-400">A IA vai responder diretamente à dúvida do lead. Nenhuma mensagem fixa será enviada.</p>

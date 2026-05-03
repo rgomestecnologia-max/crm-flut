@@ -3,7 +3,9 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Company;
+use App\Models\MetaMessageTemplate;
 use App\Models\MetaWhatsAppConfig;
+use App\Services\MetaWhatsAppService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -128,8 +130,56 @@ class MetaWhatsAppManager extends Component
         $this->verify_token = Str::random(32);
     }
 
+    public function syncTemplates(): void
+    {
+        if (!$this->whatsapp_business_account_id || !$this->access_token) {
+            $this->dispatch('toast', type: 'error', message: 'Preencha o WABA ID e Access Token primeiro.');
+            return;
+        }
+
+        $config = MetaWhatsAppConfig::current();
+        if (!$config) {
+            $this->dispatch('toast', type: 'error', message: 'Salve a configuração primeiro.');
+            return;
+        }
+
+        $service = new MetaWhatsAppService($config);
+        $result = $service->fetchTemplates($this->whatsapp_business_account_id);
+
+        if (!($result['success'] ?? false)) {
+            $this->dispatch('toast', type: 'error', message: 'Erro ao buscar templates: ' . ($result['error'] ?? 'desconhecido'));
+            return;
+        }
+
+        $companyId = app(\App\Services\CurrentCompany::class)->id();
+        $synced = 0;
+
+        foreach ($result['data'] as $tpl) {
+            MetaMessageTemplate::updateOrCreate(
+                [
+                    'company_id' => $companyId,
+                    'name'       => $tpl['name'],
+                    'language'   => $tpl['language'],
+                ],
+                [
+                    'template_id' => $tpl['id'] ?? null,
+                    'category'    => $tpl['category'] ?? null,
+                    'status'      => $tpl['status'] ?? 'UNKNOWN',
+                    'components'  => $tpl['components'] ?? [],
+                ]
+            );
+            $synced++;
+        }
+
+        $this->dispatch('toast', type: 'success', message: "{$synced} templates sincronizados.");
+    }
+
     public function render()
     {
-        return view('livewire.admin.meta-whatsapp-manager');
+        $templates = MetaMessageTemplate::approved()
+            ->orderBy('name')
+            ->get();
+
+        return view('livewire.admin.meta-whatsapp-manager', compact('templates'));
     }
 }

@@ -17,6 +17,7 @@ class Automation extends Model
         'pipeline_id',
         'trigger',
         'message_template',
+        'meta_template_name',
         'is_active',
         'delay_minutes',
         'enable_ai_on_reply',

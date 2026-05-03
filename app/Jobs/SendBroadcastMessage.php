@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\BroadcastCampaignRecipient;
 use App\Models\BroadcastCampaignRun;
+use App\Models\MetaMessageTemplate;
+use App\Services\MetaWhatsAppService;
 use App\Services\WhatsAppProvider;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -49,14 +51,27 @@ class SendBroadcastMessage implements ShouldQueue
 
         foreach ($recipients as $recipient) {
             try {
+                $contactName = $recipient->broadcastContact?->name ?? '';
                 $text = str_replace(
                     ['{nome}', '{name}'],
-                    [$recipient->broadcastContact?->name ?? '', $recipient->broadcastContact?->name ?? ''],
+                    [$contactName, $contactName],
                     $campaign->message
                 );
 
-                // Envia imagem com caption ou texto puro
-                if ($campaign->image_path) {
+                // Se Meta com template, envia via template
+                if ($campaign->meta_template_name && $api instanceof MetaWhatsAppService) {
+                    $tpl = MetaMessageTemplate::where('name', $campaign->meta_template_name)->first();
+                    $bodyParams = [];
+                    if ($tpl && $tpl->body_parameter_count >= 1) {
+                        $bodyParams[] = $contactName;
+                    }
+                    $result = $api->sendTemplate(
+                        $recipient->phone,
+                        $campaign->meta_template_name,
+                        $tpl->language ?? 'pt_BR',
+                        $bodyParams,
+                    );
+                } elseif ($campaign->image_path) {
                     $imageUrl = \App\Services\MediaStorage::url($campaign->image_path);
                     if (!str_starts_with($imageUrl, 'http')) {
                         $imageUrl = url($imageUrl);

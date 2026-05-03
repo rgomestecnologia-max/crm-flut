@@ -8,6 +8,8 @@ use App\Models\BroadcastCampaign;
 use App\Models\BroadcastCampaignRecipient;
 use App\Models\BroadcastCampaignRun;
 use App\Models\BroadcastContact;
+use App\Models\MetaMessageTemplate;
+use App\Services\WhatsAppProvider;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -28,15 +30,16 @@ class CampaignManager extends Component
     public        $emailLogo        = null;
     public        $emailImage       = null;
     public string $emailColor       = '#2563eb';
-    public string $filterTag        = '';
-    public string $recipientMode    = 'all';
+    public string $filterTag            = '';
+    public string $recipientMode        = 'all';
+    public string $meta_template_name   = '';
 
     // Detail
     public ?int $viewingCampaignId = null;
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'channel', 'name', 'message', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode');
+        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode');
         $this->emailColor = '#2563eb';
         $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
@@ -114,9 +117,10 @@ class CampaignManager extends Component
         }
 
         BroadcastCampaign::create([
-            'name'             => $this->name,
-            'channel'          => $this->channel,
-            'message'          => $this->message ?: null,
+            'name'                => $this->name,
+            'channel'             => $this->channel,
+            'message'             => $this->message ?: null,
+            'meta_template_name'  => ($this->channel === 'whatsapp' && $this->meta_template_name) ? $this->meta_template_name : null,
             'subject'          => $this->channel === 'email' ? $this->subject : null,
             'html_content'     => $htmlContent,
             'image_path'       => $imagePath,
@@ -217,9 +221,11 @@ class CampaignManager extends Component
         $activeLeadCount = BroadcastContact::where('is_active', true)->count();
         $emailLeadCount = BroadcastContact::where('is_active', true)->whereNotNull('email')->where('email', '!=', '')->count();
         $sendgridConfigured = !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
+        $isMeta        = WhatsAppProvider::isMeta();
+        $metaTemplates = $isMeta ? MetaMessageTemplate::approved()->orderBy('name')->get() : collect();
 
         return view('livewire.broadcasts.campaign-manager', compact(
-            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured'
+            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured', 'isMeta', 'metaTemplates'
         ));
     }
 }
