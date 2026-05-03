@@ -67,10 +67,10 @@
         {{-- Filtro de data + Export --}}
         <div style="margin-left:auto; display:flex; align-items:center; gap:6px; padding-bottom:8px; flex-shrink:0;">
             <input wire:model.live="dateFrom" type="date"
-                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none;">
+                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
             <span style="font-size:10px; color:rgba(255,255,255,0.3);">até</span>
             <input wire:model.live="dateTo" type="date"
-                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none;">
+                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
             @if($dateFrom || $dateTo)
             <button wire:click="$set('dateFrom', ''); $wire.set('dateTo', '')"
                     style="padding:4px 8px; font-size:10px; color:#f87171; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">
