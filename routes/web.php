@@ -68,9 +68,11 @@ Route::middleware(['auth', 'company'])->group(function () {
     // Exportação CRM
     Route::get('/crm/export', function (\Illuminate\Http\Request $request) {
         $pipelineId = $request->query('pipeline_id');
+        $dateFrom   = $request->query('date_from');
+        $dateTo     = $request->query('date_to');
         $filename   = 'crm-cards-' . now()->format('Y-m-d-His') . '.xlsx';
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\CrmCardsExport($pipelineId),
+            new \App\Exports\CrmCardsExport($pipelineId, $dateFrom, $dateTo),
             $filename
         );
     })->middleware('module:crm')->name('crm.export');

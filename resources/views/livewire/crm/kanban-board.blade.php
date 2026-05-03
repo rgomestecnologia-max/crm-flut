@@ -34,7 +34,7 @@
 
     @else
 
-    {{-- ── Tabs de Pipelines ─────────────────────────────── --}}
+    {{-- ── Tabs de Pipelines + Filtro de Data ──────────────── --}}
     <div class="shrink-0 flex items-end gap-1 px-6 pt-4 border-b border-surface-700 overflow-x-auto">
         @foreach($pipelines as $pl)
         <button wire:click="selectPipeline({{ $pl->id }})"
@@ -63,6 +63,26 @@
             Gerenciar
         </a>
         @endif
+
+        {{-- Filtro de data + Export --}}
+        <div style="margin-left:auto; display:flex; align-items:center; gap:6px; padding-bottom:8px; flex-shrink:0;">
+            <input wire:model.live="dateFrom" type="date"
+                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none;">
+            <span style="font-size:10px; color:rgba(255,255,255,0.3);">até</span>
+            <input wire:model.live="dateTo" type="date"
+                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none;">
+            @if($dateFrom || $dateTo)
+            <button wire:click="$set('dateFrom', ''); $wire.set('dateTo', '')"
+                    style="padding:4px 8px; font-size:10px; color:#f87171; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">
+                Limpar
+            </button>
+            @endif
+            <a href="{{ route('crm.export', ['pipeline_id' => $selectedPipelineId, 'date_from' => $dateFrom, 'date_to' => $dateTo]) }}"
+               style="padding:4px 10px; font-size:10px; font-weight:600; color:#10b981; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:6px; text-decoration:none;"
+               onmouseover="this.style.background='rgba(16,185,129,0.16)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
+                Excel
+            </a>
+        </div>
     </div>
 
     {{-- ── Board ─────────────────────────────────────────── --}}

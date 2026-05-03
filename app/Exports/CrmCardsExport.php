@@ -15,8 +15,11 @@ class CrmCardsExport implements FromCollection, WithHeadings, WithMapping, Shoul
 {
     protected $customFields;
 
-    public function __construct(protected ?int $pipelineId = null)
-    {
+    public function __construct(
+        protected ?int $pipelineId = null,
+        protected ?string $dateFrom = null,
+        protected ?string $dateTo = null,
+    ) {
         $this->customFields = CrmCustomField::orderBy('sort_order')->get();
     }
 
@@ -29,6 +32,12 @@ class CrmCardsExport implements FromCollection, WithHeadings, WithMapping, Shoul
 
         if ($this->pipelineId) {
             $query->where('pipeline_id', $this->pipelineId);
+        }
+        if ($this->dateFrom) {
+            $query->whereDate('created_at', '>=', $this->dateFrom);
+        }
+        if ($this->dateTo) {
+            $query->whereDate('created_at', '<=', $this->dateTo);
         }
 
         return $query->get();

@@ -16,6 +16,10 @@ class KanbanBoard extends Component
 {
     public ?int $selectedPipelineId = null;
 
+    // Date filter
+    public string $dateFrom = '';
+    public string $dateTo   = '';
+
     // Card panel
     public bool   $showCardPanel    = false;
     public ?int   $editingCardId    = null;
@@ -207,9 +211,17 @@ class KanbanBoard extends Component
             $stages = CrmStage::where('pipeline_id', $this->selectedPipelineId)
                 ->orderBy('sort_order')->get();
 
-            $cards = CrmCard::where('pipeline_id', $this->selectedPipelineId)
-                ->with(['contact', 'assignedTo', 'fieldValues.field'])
-                ->orderBy('sort_order')
+            $cardsQuery = CrmCard::where('pipeline_id', $this->selectedPipelineId)
+                ->with(['contact', 'assignedTo', 'fieldValues.field']);
+
+            if ($this->dateFrom) {
+                $cardsQuery->whereDate('created_at', '>=', $this->dateFrom);
+            }
+            if ($this->dateTo) {
+                $cardsQuery->whereDate('created_at', '<=', $this->dateTo);
+            }
+
+            $cards = $cardsQuery->orderBy('sort_order')
                 ->get()
                 ->groupBy('stage_id');
         }
