@@ -92,9 +92,6 @@ class Conversation extends Model
 
     public function scopeForUser($query, User $user)
     {
-        if ($user->isAdmin()) {
-            return $query;
-        }
         return $query->whereIn('department_id', $user->departmentIds());
     }
 
