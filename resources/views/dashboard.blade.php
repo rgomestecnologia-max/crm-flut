@@ -141,7 +141,7 @@
             @endif
 
             @if($isManager && $hasCrm)
-            <a href="{{ route('crm') }}" style="display:flex; align-items:center; gap:12px; padding:16px; background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(109,40,217,0.04)); border:1px solid rgba(139,92,246,0.2); border-radius:14px; text-decoration:none; transition:all 0.2s;"
+            <a href="{{ route('crm.index') }}" style="display:flex; align-items:center; gap:12px; padding:16px; background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(109,40,217,0.04)); border:1px solid rgba(139,92,246,0.2); border-radius:14px; text-decoration:none; transition:all 0.2s;"
                onmouseover="this.style.borderColor='rgba(139,92,246,0.4)'; this.style.transform='translateY(-1px)'"
                onmouseout="this.style.borderColor='rgba(139,92,246,0.2)'; this.style.transform='translateY(0)'">
                 <div style="width:38px; height:38px; border-radius:10px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.25); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
