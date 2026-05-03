@@ -10,6 +10,8 @@ class MetaWhatsAppConfig extends Model
 {
     use Auditable, BelongsToCompany;
 
+    protected $table = 'meta_whatsapp_configs';
+
     protected $fillable = [
         'company_id',
         'phone_number_id',
