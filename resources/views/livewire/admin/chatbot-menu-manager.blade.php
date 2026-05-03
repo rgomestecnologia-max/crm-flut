@@ -95,7 +95,10 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                                 $previewWelcome = str_replace(['{nome}', '{empresa}'], [$previewName, $previewCompany], $welcome_template ?: '');
                                 $lines = array_filter([$previewWelcome]);
                                 if ($menu_prompt) $lines[] = "\n" . $menu_prompt;
-                                foreach ($departments as $i => $dept) {
+                                $previewDepts = !empty($menu_departments)
+                                    ? $departments->filter(fn($d) => in_array($d->id, $menu_departments))
+                                    : $departments;
+                                foreach ($previewDepts->values() as $i => $dept) {
                                     $lines[] = ($i + 1) . ' - ' . $dept->name;
                                 }
                                 echo nl2br(e(implode("\n", $lines)));
@@ -117,11 +120,45 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     <svg width="13" height="13" fill="none" stroke="#b2ff00" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    O menu usa os <strong style="color:rgba(255,255,255,0.5);">{{ $departments->count() }} departamentos ativos</strong> em ordem alfabética.
+                    @if(!empty($menu_departments))
+                        O menu usa <strong style="color:rgba(255,255,255,0.5);">{{ count($menu_departments) }} de {{ $departments->count() }} departamentos</strong> selecionados.
+                    @else
+                        O menu usa os <strong style="color:rgba(255,255,255,0.5);">{{ $departments->count() }} departamentos ativos</strong> em ordem alfabética.
+                    @endif
                 </div>
                 @endif
             </div>
 
+        </div>
+
+        {{-- Departamentos no Menu --}}
+        <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,15,28,0.95) 100%); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+                <div style="width:2px; height:16px; background:#3b82f6; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Departamentos no Menu</h3>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:14px;">Selecione quais departamentos aparecem no chatbot. Se nenhum for selecionado, todos os ativos serão exibidos.</p>
+
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                @foreach($departments as $dept)
+                <label style="display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:all 0.15s;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.04)'"
+                       onmouseout="this.style.background='rgba(255,255,255,0.02)'">
+                    <input type="checkbox"
+                           value="{{ $dept->id }}"
+                           @if(in_array($dept->id, $menu_departments)) checked @endif
+                           wire:model.live="menu_departments"
+                           style="width:16px; height:16px; accent-color:#3b82f6; cursor:pointer;">
+                    <span style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.8);">{{ $dept->name }}</span>
+                </label>
+                @endforeach
+            </div>
+
+            @if(!empty($menu_departments))
+            <div style="margin-top:10px; font-size:11px; color:rgba(59,130,246,0.7);">
+                {{ count($menu_departments) }} departamento(s) selecionado(s)
+            </div>
+            @endif
         </div>
 
         {{-- Horário de Funcionamento --}}

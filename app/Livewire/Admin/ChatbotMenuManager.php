@@ -16,6 +16,7 @@ class ChatbotMenuManager extends Component
     public string $menu_prompt            = '';
     public string $invalid_option_message = '';
     public string $after_selection_message = '';
+    public array  $menu_departments       = [];
     public bool   $business_hours_enabled = false;
     public array  $business_hours         = [];
     public string $outside_hours_message  = '';
@@ -32,6 +33,7 @@ class ChatbotMenuManager extends Component
             $this->menu_prompt             = $config->menu_prompt;
             $this->invalid_option_message  = $config->invalid_option_message;
             $this->after_selection_message = $config->after_selection_message ?? '';
+            $this->menu_departments        = $config->menu_departments ?? [];
             $this->business_hours_enabled  = $config->business_hours_enabled ?? false;
             $this->business_hours          = $config->business_hours ?? $this->defaultBusinessHours();
             $this->outside_hours_message   = $config->outside_hours_message ?? '';
@@ -85,6 +87,7 @@ class ChatbotMenuManager extends Component
             'menu_prompt'             => $this->menu_prompt,
             'invalid_option_message'  => $this->invalid_option_message,
             'after_selection_message'  => $this->after_selection_message ?: null,
+            'menu_departments'        => !empty($this->menu_departments) ? array_map('intval', $this->menu_departments) : null,
             'business_hours_enabled'  => $this->business_hours_enabled,
             'business_hours'          => $this->business_hours,
             'outside_hours_message'   => $this->outside_hours_message ?: null,

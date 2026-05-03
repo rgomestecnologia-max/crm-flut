@@ -82,7 +82,7 @@ class ProcessMenuBot implements ShouldQueue
 
     private function sendWelcomeMenu(): void
     {
-        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
+        $departments = $this->getMenuDepartments();
         if ($departments->isEmpty()) return;
 
         $contactName = $this->conversation->contact->name ?? 'cliente';
@@ -120,7 +120,7 @@ class ProcessMenuBot implements ShouldQueue
         }
 
         $choice = (int) $input;
-        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
+        $departments = $this->getMenuDepartments();
 
         if ($choice < 1 || $choice > $departments->count()) {
             $this->sendInvalidOption();
@@ -189,7 +189,7 @@ class ProcessMenuBot implements ShouldQueue
 
     private function sendInvalidOption(): void
     {
-        $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
+        $departments = $this->getMenuDepartments();
 
         $lines = [$this->config->invalid_option_message, '', $this->config->menu_prompt, ''];
         foreach ($departments as $index => $dept) {
@@ -215,6 +215,17 @@ class ProcessMenuBot implements ShouldQueue
         $this->broadcast($msg);
 
         return $msg;
+    }
+
+    private function getMenuDepartments()
+    {
+        $query = Department::active()->orderBy('sort_order')->orderBy('name');
+
+        if (!empty($this->config->menu_departments)) {
+            $query->whereIn('id', $this->config->menu_departments);
+        }
+
+        return $query->get();
     }
 
     private function broadcast(Message $message): void

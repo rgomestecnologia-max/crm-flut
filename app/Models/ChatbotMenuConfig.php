@@ -19,6 +19,7 @@ class ChatbotMenuConfig extends Model
         'menu_prompt',
         'invalid_option_message',
         'after_selection_message',
+        'menu_departments',
         'business_hours_enabled',
         'business_hours',
         'outside_hours_message',
@@ -29,6 +30,7 @@ class ChatbotMenuConfig extends Model
         'reply_in_groups'        => 'boolean',
         'business_hours_enabled' => 'boolean',
         'business_hours'         => 'array',
+        'menu_departments'       => 'array',
     ];
 
     public static function current(): ?self
