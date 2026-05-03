@@ -28,7 +28,13 @@ class DashboardService
 
         return [
             'mine'           => (clone $base)->where('assigned_to', $user->id)->where('status', 'open')->count(),
-            'queue'          => (clone $base)->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred'])->count(),
+            'queue'          => (clone $base)->whereNull('waiting_human_reason')->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
+                })->orWhere(function ($q2) {
+                    $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
+                });
+            })->count(),
             'resolved_today' => (clone $base)->where('status', 'resolved')->whereDate('updated_at', today())->count(),
             'total_open'     => (clone $base)->whereIn('status', ['open', 'pending', 'transferred'])->count(),
         ];
