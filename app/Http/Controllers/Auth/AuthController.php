@@ -29,7 +29,7 @@ class AuthController extends Controller
 
         if (Auth::attempt(array_merge($credentials, ['is_active' => true]), $remember)) {
             $request->session()->regenerate();
-            Auth::user()->update(['status' => 'online']);
+            Auth::user()->update(['status' => 'online', 'last_seen_at' => now()]);
             return $this->redirectAfterLogin();
         }
 
@@ -40,7 +40,7 @@ class AuthController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
-        Auth::user()?->update(['status' => 'offline']);
+        Auth::user()?->update(['status' => 'offline', 'last_seen_at' => null]);
         Auth::logout();
         // Limpa também a empresa atual da sessão antes de invalidar.
         app(\App\Services\CurrentCompany::class)->clear();

@@ -27,6 +27,9 @@ class EnsureCurrentCompany
             return $next($request);
         }
 
+        // Heartbeat: atualiza last_seen_at (no máximo 1x por minuto)
+        $user->touchLastSeen();
+
         // Agente/supervisor: empresa fixa, vinda do próprio user.
         if (!$user->isAdmin()) {
             if ($user->company_id) {

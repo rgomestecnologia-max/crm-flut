@@ -95,15 +95,14 @@ class DashboardService
     {
         $companyId = app(CurrentCompany::class)->id();
 
-        return User::where('role', '!=', 'admin')
-            ->where('is_active', true)
+        return User::where('is_active', true)
             ->where('company_id', $companyId)
             ->withCount([
                 'assignedConversations as active_count' => fn($q) => $q->where('status', 'open'),
                 'assignedConversations as resolved_today' => fn($q) => $q->where('status', 'resolved')->whereDate('updated_at', today()),
             ])
             ->orderByDesc('active_count')
-            ->get(['id', 'name', 'avatar', 'status', 'role', 'department_id']);
+            ->get(['id', 'name', 'avatar', 'status', 'role', 'department_id', 'last_seen_at']);
     }
 
     /**

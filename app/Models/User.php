@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'password', 'role', 'department_id', 'company_id',
-        'avatar', 'status', 'is_active', 'modules',
+        'avatar', 'status', 'is_active', 'modules', 'last_seen_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -30,6 +30,7 @@ class User extends Authenticatable
             'password'          => 'hashed',
             'is_active'         => 'boolean',
             'modules'           => 'array',
+            'last_seen_at'      => 'datetime',
         ];
     }
 
@@ -155,5 +156,25 @@ class User extends Authenticatable
         }
         $initials = urlencode(substr($this->name, 0, 1));
         return "https://ui-avatars.com/api/?name={$initials}&background=14B8A6&color=fff&size=64";
+    }
+
+    /**
+     * Verifica se o usuário está online (ativo nos últimos 5 minutos).
+     */
+    public function isOnline(): bool
+    {
+        return $this->last_seen_at && $this->last_seen_at->greaterThan(now()->subMinutes(5));
+    }
+
+    /**
+     * Atualiza o heartbeat (no máximo 1x por minuto para não sobrecarregar).
+     */
+    public function touchLastSeen(): void
+    {
+        if (!$this->last_seen_at || $this->last_seen_at->lt(now()->subMinute())) {
+            $this->timestamps = false;
+            $this->update(['last_seen_at' => now(), 'status' => 'online']);
+            $this->timestamps = true;
+        }
     }
 }

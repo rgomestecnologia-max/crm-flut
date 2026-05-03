@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.30s>
     <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:auto; -webkit-overflow-scrolling:touch;">
         <div style="padding:20px 20px 0;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
@@ -26,7 +26,7 @@
                             <img src="{{ $agent->avatar_url }}" alt="" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.08);">
                             <div>
                                 <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.8);">{{ $agent->name }}</p>
-                                <p style="font-size:10px; color:rgba(255,255,255,0.25);">{{ $agent->role === 'supervisor' ? 'Supervisor' : 'Agente' }}</p>
+                                <p style="font-size:10px; color:rgba(255,255,255,0.25);">{{ match($agent->role) { 'admin' => 'Admin', 'supervisor' => 'Supervisor', default => 'Agente' } }}</p>
                             </div>
                         </div>
                     </td>
@@ -38,16 +38,9 @@
                     </td>
                     <td style="text-align:center; padding:10px 16px;">
                         @php
-                            $statusColor = match($agent->status) {
-                                'online' => '#22c55e',
-                                'busy'   => '#eab308',
-                                default  => '#6b7280',
-                            };
-                            $statusLabel = match($agent->status) {
-                                'online' => 'Online',
-                                'busy'   => 'Ocupado',
-                                default  => 'Offline',
-                            };
+                            $isOnline = $agent->isOnline();
+                            $statusColor = $isOnline ? '#22c55e' : '#6b7280';
+                            $statusLabel = $isOnline ? 'Online' : 'Offline';
                         @endphp
                         <span style="font-size:10px; font-weight:600; padding:3px 8px; border-radius:20px; background:{{ $statusColor }}18; color:{{ $statusColor }}; border:1px solid {{ $statusColor }}30;">
                             {{ $statusLabel }}
