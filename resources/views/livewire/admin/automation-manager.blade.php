@@ -86,11 +86,18 @@
 
             <div class="mb-4">
                 <label class="block text-xs text-gray-400 mb-1">
-                    Mensagem automática
-                    @if(!$isMeta) <span class="text-red-400">*</span> @else <span class="text-gray-500">(usada dentro da janela de 24h)</span> @endif
+                    @if($ai_greeting)
+                        Instrução para a IA (referência da saudação)
+                    @else
+                        Mensagem automática
+                        @if(!$isMeta) <span class="text-red-400">*</span> @else <span class="text-gray-500">(usada dentro da janela de 24h)</span> @endif
+                    @endif
                 </label>
+                @if($ai_greeting)
+                <p class="text-[10px] text-amber-400/60 mb-2">A IA vai usar este texto como referência para gerar uma saudação única a cada envio, evitando mensagens repetitivas.</p>
+                @endif
                 <textarea wire:model="message_template" rows="8"
-                          placeholder="Olá {nome}! 👋&#10;Percebemos que você solicitou uma cotação. Podemos ajudar?&#10;&#10;Entre em contato conosco!"
+                          placeholder="{{ $ai_greeting ? 'Ex: Cumprimente o cliente {nome}, diga que recebemos o contato dele pelo site e que vamos ajudá-lo com a cotação. Seja cordial e use emojis.' : 'Olá {nome}! 👋\nPercebemos que você solicitou uma cotação. Podemos ajudar?\n\nEntre em contato conosco!' }}"
                           class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none font-mono"></textarea>
                 @error('message_template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
@@ -135,6 +142,19 @@
                 <div>
                     <p class="text-sm text-gray-200 font-medium">IA responde direto à dúvida do lead</p>
                     <p class="text-xs text-gray-500 mt-0.5">A IA responde automaticamente à mensagem/dúvida que veio do site, sem enviar mensagem fixa. A mensagem template abaixo não será usada.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+                <button type="button" wire:click="$toggle('ai_greeting')"
+                        class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0 mt-0.5
+                               {{ $ai_greeting ? 'bg-amber-500' : 'bg-surface-600' }}">
+                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform
+                                 {{ $ai_greeting ? 'translate-x-4' : 'translate-x-1' }}"></span>
+                </button>
+                <div>
+                    <p class="text-sm text-gray-200 font-medium">Saudação via IA</p>
+                    <p class="text-xs text-gray-500 mt-0.5">A IA gera a primeira mensagem com variações, usando o texto acima como referência. Evita mensagens repetitivas que podem causar bloqueio pelo WhatsApp.</p>
                 </div>
             </div>
         </div>

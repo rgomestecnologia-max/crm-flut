@@ -22,6 +22,7 @@ class Automation extends Model
         'delay_minutes',
         'enable_ai_on_reply',
         'ai_first_response',
+        'ai_greeting',
         'move_on_reply_from_stage_id',
         'move_on_reply_to_stage_id',
     ];
@@ -31,6 +32,7 @@ class Automation extends Model
         'delay_minutes'      => 'integer',
         'enable_ai_on_reply' => 'boolean',
         'ai_first_response'  => 'boolean',
+        'ai_greeting'        => 'boolean',
     ];
 
     public function pipeline(): BelongsTo

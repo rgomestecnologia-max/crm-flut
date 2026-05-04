@@ -19,11 +19,12 @@ class AutomationManager extends Component
     public bool    $is_active          = true;
     public bool    $enable_ai_on_reply = false;
     public bool    $ai_first_response  = false;
+    public bool    $ai_greeting        = false;
     public string  $meta_template_name = '';
 
     public function openCreate(): void
     {
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting']);
         $this->is_active = true;
         $this->showForm  = true;
     }
@@ -39,6 +40,7 @@ class AutomationManager extends Component
         $this->is_active          = $a->is_active;
         $this->enable_ai_on_reply = (bool) $a->enable_ai_on_reply;
         $this->ai_first_response  = (bool) $a->ai_first_response;
+        $this->ai_greeting        = (bool) $a->ai_greeting;
         $this->meta_template_name = $a->meta_template_name ?? '';
         $this->showForm           = true;
     }
@@ -65,6 +67,7 @@ class AutomationManager extends Component
             'is_active'           => $this->is_active,
             'enable_ai_on_reply'  => $this->enable_ai_on_reply,
             'ai_first_response'   => $this->ai_first_response,
+            'ai_greeting'         => $this->ai_greeting,
             'meta_template_name'  => $this->meta_template_name ?: null,
         ];
 
@@ -77,7 +80,7 @@ class AutomationManager extends Component
         }
 
         $this->showForm = false;
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting']);
     }
 
     public function toggleActive(int $id): void

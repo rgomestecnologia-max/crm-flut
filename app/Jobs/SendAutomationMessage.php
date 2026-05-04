@@ -11,6 +11,7 @@ use App\Models\Message;
 use App\Services\EvolutionApiService;
 use App\Services\MetaWhatsAppService;
 use App\Services\WhatsAppProvider;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -167,10 +168,17 @@ class SendAutomationMessage implements ShouldQueue
         $card = $this->card->load(['pipeline', 'stage', 'fieldValues.field']);
         $text = $this->automation->renderMessage($this->contact, $card);
 
+        // Saudação via IA: usa o texto como instrução para gerar mensagem única
+        if ($this->automation->ai_greeting && $text) {
+            $aiText = $this->generateAiGreeting($text);
+            if ($aiText) {
+                $text = $aiText;
+            }
+        }
+
         // Se provider é Meta e tem template configurado, envia via template
         if (WhatsAppProvider::isMeta() && $this->automation->meta_template_name) {
             $result = $this->sendMetaTemplate();
-            // Usa o texto renderizado como conteúdo local da mensagem
         } else {
             $result = $this->sendWhatsApp($text);
         }
@@ -243,5 +251,70 @@ class SendAutomationMessage implements ShouldQueue
         $phone = $realPhone ?? $this->contact->chat_lid ?? $this->contact->phone;
 
         return $service->sendText($phone, $text);
+    }
+
+    /**
+     * Gera saudação via IA (Gemini) usando o texto como instrução.
+     * Retorna o texto gerado ou null se falhar.
+     */
+    private function generateAiGreeting(string $instruction): ?string
+    {
+        $apiKey = \App\Models\GlobalSetting::get('gemini_api_key');
+        $model  = \App\Models\GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
+
+        if (!$apiKey) {
+            Log::warning('SendAutomationMessage: ai_greeting ativo mas sem API key do Gemini');
+            return null;
+        }
+
+        $contactName = $this->contact->name ?? 'cliente';
+
+        $prompt = "Você é um assistente que gera mensagens de saudação para WhatsApp Business.\n\n"
+            . "INSTRUÇÃO DO OPERADOR (use como base, mas NÃO copie literalmente — reescreva com variações naturais):\n"
+            . $instruction . "\n\n"
+            . "DADOS DO CONTATO:\n"
+            . "- Nome: {$contactName}\n"
+            . "- Telefone: " . ($this->contact->phone ?? '') . "\n"
+            . "- Email: " . ($this->contact->email ?? '') . "\n\n"
+            . "REGRAS:\n"
+            . "- Escreva UMA mensagem curta de saudação (máximo 3 parágrafos)\n"
+            . "- Use o nome do contato naturalmente\n"
+            . "- Varie a estrutura, palavras e emojis a cada geração\n"
+            . "- Mantenha o mesmo objetivo/sentido da instrução\n"
+            . "- Formato WhatsApp: use *negrito* e emojis quando adequado\n"
+            . "- Responda APENAS com a mensagem, sem explicações\n"
+            . "- Seja natural, como se um humano estivesse escrevendo";
+
+        try {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+            $response = Http::timeout(15)->post($url, [
+                'contents' => [
+                    ['role' => 'user', 'parts' => [['text' => $prompt]]],
+                ],
+                'generationConfig' => [
+                    'temperature'    => 1.0,
+                    'maxOutputTokens' => 300,
+                ],
+            ]);
+
+            $json = $response->json();
+            $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+            if ($text) {
+                Log::info('ai_greeting gerado', [
+                    'automation' => $this->automation->name,
+                    'contact'    => $contactName,
+                    'length'     => strlen($text),
+                ]);
+                return trim($text);
+            }
+
+            Log::warning('ai_greeting: resposta vazia do Gemini', ['response' => $json]);
+            return null;
+        } catch (\Throwable $e) {
+            Log::error('ai_greeting falhou', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 }
