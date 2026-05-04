@@ -302,19 +302,33 @@ class SendAutomationMessage implements ShouldQueue
                 ],
                 'generationConfig' => [
                     'temperature'     => 1.0,
-                    'maxOutputTokens' => 1024,
+                    'maxOutputTokens' => 4096,
                 ],
             ]);
 
             $json = $response->json();
             $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            $finishReason = $json['candidates'][0]['finishReason'] ?? 'unknown';
 
             if ($text) {
                 Log::info('ai_greeting gerado', [
-                    'automation' => $this->automation->name,
-                    'contact'    => $contactName,
-                    'length'     => strlen($text),
+                    'automation'    => $this->automation->name,
+                    'contact'       => $contactName,
+                    'length'        => strlen($text),
+                    'finishReason'  => $finishReason,
+                    'instructionLen'=> $charCount,
                 ]);
+
+                // Se cortou (MAX_TOKENS ou tamanho muito menor que original), retorna null para usar fallback
+                if ($finishReason === 'MAX_TOKENS' || strlen($text) < ($charCount * 0.5)) {
+                    Log::warning('ai_greeting truncado, usando mensagem original', [
+                        'finishReason' => $finishReason,
+                        'generated'    => strlen($text),
+                        'expected'     => $charCount,
+                    ]);
+                    return null;
+                }
+
                 return trim($text);
             }
 
