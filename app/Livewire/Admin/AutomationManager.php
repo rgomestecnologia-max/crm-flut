@@ -20,15 +20,18 @@ class AutomationManager extends Component
     public bool    $enable_ai_on_reply = false;
     public bool    $ai_first_response  = false;
     public bool    $ai_greeting        = false;
-    public string  $reply_yes_message  = '';
-    public string  $reply_no_message   = '';
+    public string  $follow_up_message       = '';
+    public int     $follow_up_delay_minutes = 120;
+    public string  $reply_yes_message       = '';
+    public string  $reply_no_message        = '';
     public ?int    $reply_yes_stage_id = null;
     public ?int    $reply_no_stage_id  = null;
     public string  $meta_template_name = '';
 
     public function openCreate(): void
     {
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'follow_up_message', 'follow_up_delay_minutes', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id']);
+        $this->follow_up_delay_minutes = 120;
         $this->is_active = true;
         $this->showForm  = true;
     }
@@ -45,8 +48,10 @@ class AutomationManager extends Component
         $this->enable_ai_on_reply = (bool) $a->enable_ai_on_reply;
         $this->ai_first_response  = (bool) $a->ai_first_response;
         $this->ai_greeting        = (bool) $a->ai_greeting;
-        $this->reply_yes_message  = $a->reply_yes_message ?? '';
-        $this->reply_no_message   = $a->reply_no_message ?? '';
+        $this->follow_up_message       = $a->follow_up_message ?? '';
+        $this->follow_up_delay_minutes = $a->follow_up_delay_minutes ?? 120;
+        $this->reply_yes_message       = $a->reply_yes_message ?? '';
+        $this->reply_no_message        = $a->reply_no_message ?? '';
         $this->reply_yes_stage_id = $a->reply_yes_stage_id;
         $this->reply_no_stage_id  = $a->reply_no_stage_id;
         $this->meta_template_name = $a->meta_template_name ?? '';
@@ -76,8 +81,10 @@ class AutomationManager extends Component
             'enable_ai_on_reply'  => $this->enable_ai_on_reply,
             'ai_first_response'   => $this->ai_first_response,
             'ai_greeting'         => $this->ai_greeting,
-            'reply_yes_message'   => $this->reply_yes_message ?: null,
-            'reply_no_message'    => $this->reply_no_message ?: null,
+            'follow_up_message'        => $this->follow_up_message ?: null,
+            'follow_up_delay_minutes'  => $this->follow_up_message ? $this->follow_up_delay_minutes : null,
+            'reply_yes_message'        => $this->reply_yes_message ?: null,
+            'reply_no_message'         => $this->reply_no_message ?: null,
             'reply_yes_stage_id'  => $this->reply_yes_stage_id ?: null,
             'reply_no_stage_id'   => $this->reply_no_stage_id ?: null,
             'meta_template_name'  => $this->meta_template_name ?: null,
@@ -92,7 +99,8 @@ class AutomationManager extends Component
         }
 
         $this->showForm = false;
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'follow_up_message', 'follow_up_delay_minutes', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id']);
+        $this->follow_up_delay_minutes = 120;
     }
 
     public function toggleActive(int $id): void

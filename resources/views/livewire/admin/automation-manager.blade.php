@@ -159,6 +159,30 @@
             </div>
         </div>
 
+        {{-- Follow-up (lembrete se não responder) --}}
+        <div class="mb-5 p-4 bg-sky-500/5 border border-sky-500/20 rounded-lg">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-0.5 h-4 bg-sky-500 rounded"></div>
+                <p class="text-sm text-gray-200 font-semibold">Lembrete (follow-up)</p>
+            </div>
+            <p class="text-[10px] text-gray-500 mb-3">Se o cliente não responder a primeira mensagem, envia um lembrete após o tempo configurado. Só envia se o card ainda estiver na etapa inicial.</p>
+
+            <div class="grid grid-cols-4 gap-3 mb-3">
+                <div class="col-span-3">
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Mensagem de lembrete (referência para IA)</label>
+                    <textarea wire:model="follow_up_message" rows="3"
+                              placeholder="Ex: Oi {nome}! Passando pra te lembrar da sua reserva... ainda dá tempo de garantir sua vaga 😉"
+                              class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-sky-500 resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Delay (min)</label>
+                    <input wire:model="follow_up_delay_minutes" type="number" min="10" max="1440"
+                           class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <p class="text-[9px] text-gray-600 mt-1">120 = 2 horas</p>
+                </div>
+            </div>
+        </div>
+
         {{-- Resposta automática SIM/NÃO --}}
         <div class="mb-5 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
             <div class="flex items-center gap-2 mb-3">

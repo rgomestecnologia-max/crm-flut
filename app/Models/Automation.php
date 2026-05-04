@@ -23,6 +23,8 @@ class Automation extends Model
         'enable_ai_on_reply',
         'ai_first_response',
         'ai_greeting',
+        'follow_up_message',
+        'follow_up_delay_minutes',
         'reply_yes_message',
         'reply_no_message',
         'reply_yes_stage_id',
