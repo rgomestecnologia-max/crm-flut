@@ -311,19 +311,44 @@ class LeadController extends Controller
             }
         }
 
-        // ── Se é update, verifica se a mensagem já foi enviada ──────
+        // ── Se é update (card movido para etapa avançada), confirma reserva e para IA ──
         if ($isUpdate) {
-            // Verifica se já existe conversa com mensagem de automação enviada
-            $alreadySent = \App\Models\Conversation::where('contact_id', $contact->id)
-                ->whereNotNull('source_automation_id')
-                ->whereHas('messages', fn($q) => $q->where('sender_type', 'agent')->whereNull('sender_id'))
-                ->exists();
+            $firstStageId = $firstStageId ?? CrmStage::where('pipeline_id', $pipelineId)->orderBy('sort_order')->value('id');
+            $isReservation = $stageId != $firstStageId;
 
-            if ($alreadySent) {
-                Log::info('API /leads: card atualizado (mensagem já enviada)', [
-                    'card_id'     => $card->id,
-                    'external_id' => $externalId,
-                ]);
+            if ($isReservation) {
+                // Busca conversa aberta do contato e envia confirmação + resolve
+                $openConv = \App\Models\Conversation::where('contact_id', $contact->id)
+                    ->where('is_group', false)
+                    ->whereIn('status', ['open', 'pending'])
+                    ->latest()
+                    ->first();
+
+                if ($openConv) {
+                    $confirmMsg = "Recebemos sua reserva pelo site! ✅🎉\nSeu estacionamento está confirmado. Qualquer dúvida, estamos à disposição. Boa viagem! ✈️";
+
+                    // Gera variação via IA se possível
+                    $automation = Automation::where('is_active', true)->where('ai_greeting', true)->first();
+                    if ($automation) {
+                        $aiVariation = $this->generateConfirmationMessage($confirmMsg, $contact->name ?? 'cliente');
+                        if ($aiVariation) $confirmMsg = $aiVariation;
+                    }
+
+                    $msg = \App\Models\Message::create([
+                        'conversation_id' => $openConv->id,
+                        'sender_type'     => 'agent',
+                        'sender_id'       => null,
+                        'content'         => $confirmMsg,
+                        'type'            => 'text',
+                        'delivery_status' => 'pending',
+                    ]);
+                    $openConv->update(['last_message_at' => now(), 'status' => 'resolved']);
+                    \App\Jobs\SendWhatsAppMessage::dispatch($msg);
+
+                    Log::info('API /leads: reserva confirmada, conversa resolvida', [
+                        'contact' => $contact->name, 'conv' => $openConv->id,
+                    ]);
+                }
 
                 return response()->json([
                     'success'     => true,
@@ -333,14 +358,25 @@ class LeadController extends Controller
                     'card_id'     => $card->id,
                     'pipeline'    => $pipeline->name,
                     'stage'       => $stage->name,
-                    'message'     => "Agendamento atualizado em {$pipeline->name} / {$stage->name}.",
+                    'message'     => "Reserva confirmada em {$pipeline->name} / {$stage->name}.",
                 ], 200);
             }
 
-            Log::info('API /leads: card atualizado (mensagem ainda não enviada, disparando)', [
-                'card_id'     => $card->id,
-                'external_id' => $externalId,
-            ]);
+            // Simulação atualizada (mesma etapa) — verifica se já enviou mensagem
+            $alreadySent = \App\Models\Conversation::where('contact_id', $contact->id)
+                ->whereNotNull('source_automation_id')
+                ->whereHas('messages', fn($q) => $q->where('sender_type', 'agent')->whereNull('sender_id'))
+                ->exists();
+
+            if ($alreadySent) {
+                Log::info('API /leads: card atualizado (mensagem já enviada)', ['card_id' => $card->id]);
+                return response()->json([
+                    'success' => true, 'created' => false, 'updated' => true,
+                    'contact_id' => $contact->id, 'card_id' => $card->id,
+                    'pipeline' => $pipeline->name, 'stage' => $stage->name,
+                    'message' => "Agendamento atualizado em {$pipeline->name} / {$stage->name}.",
+                ], 200);
+            }
         }
 
         $automations = Automation::where('is_active', true)
@@ -411,6 +447,31 @@ class LeadController extends Controller
      * Normaliza aliases de campos para as chaves canônicas esperadas.
      * Permite que o site externo use nomes de campo diferentes sem precisar alterar o código.
      */
+    private function generateConfirmationMessage(string $baseText, string $contactName): ?string
+    {
+        $apiKey = \App\Models\GlobalSetting::get('gemini_api_key');
+        $model  = \App\Models\GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
+        if (!$apiKey) return null;
+
+        $charCount = mb_strlen($baseText);
+        $prompt = "Reescreva a mensagem abaixo para WhatsApp com variações naturais.\n\n"
+            . "MENSAGEM ORIGINAL ({$charCount} chars):\n---\n{$baseText}\n---\n\n"
+            . "Nome do cliente: {$contactName}\n\n"
+            . "REGRAS: Reescreva INTEIRA, mesmo tamanho, varie palavras/emojis, mantenha dados. Responda APENAS com a mensagem.";
+
+        try {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+            $response = \Illuminate\Support\Facades\Http::timeout(15)->post($url, [
+                'contents' => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['temperature' => 1.0, 'maxOutputTokens' => 4096],
+            ]);
+            $text = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            return $text ? trim($text) : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     private function normalizeFields(array $data): array
     {
         // Aliases de campos base
