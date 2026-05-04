@@ -248,6 +248,16 @@ class LeadController extends Controller
 
         // ── Salva campos personalizados ───────────────────────────────
 
+        // Mapeia valor_da_reserva para o campo correto baseado no tipo de vaga
+        if (!empty($data['valor_da_reserva'])) {
+            $tipoVaga = mb_strtolower($data['tipo_de_vaga'] ?? '');
+            if (str_contains($tipoVaga, 'cobert') || str_contains($tipoVaga, 'sombread')) {
+                $data['valor_sombreada'] = $data['valor_sombreada'] ?? $data['valor_da_reserva'];
+            } else {
+                $data['valor_descoberta'] = $data['valor_descoberta'] ?? $data['valor_da_reserva'];
+            }
+        }
+
         // Disponibiliza email e mensagem como campos personalizados também
         if (!empty($data['email']) && !isset($data['email_custom'])) {
             $data['email'] = $data['email']; // já existe
@@ -400,6 +410,7 @@ class LeadController extends Controller
             'horario_entrada' => 'data_de_entrada',
             'horario_saida'   => 'data_de_saida',
             'valor_coberta'   => 'valor_sombreada',
+            'tipo_vaga'       => 'tipo_de_vaga',
         ];
 
         foreach ($fieldAliases as $alias => $canonical) {
