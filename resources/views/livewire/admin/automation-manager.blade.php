@@ -216,6 +216,40 @@
             <p class="text-[10px] text-gray-600 mt-2">Se "Saudação via IA" estiver ativo, as respostas SIM/NÃO também serão geradas pela IA com variações.</p>
         </div>
 
+        {{-- Regras automáticas do sistema --}}
+        <div class="mb-5 p-4 bg-surface-800/50 border border-surface-600/50 rounded-lg">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-0.5 h-4 bg-gray-500 rounded"></div>
+                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Regras automáticas do sistema</p>
+            </div>
+            <div class="flex flex-col gap-2 text-[11px] text-gray-500 leading-relaxed">
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">1.</span>
+                    <span><strong class="text-gray-400">Saudação via IA:</strong> quando ativo, a mensagem automática é usada como referência e a IA gera variações a cada envio (evita bloqueio por repetição).</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">2.</span>
+                    <span><strong class="text-gray-400">Delay:</strong> se configurado, a mensagem só é enviada após o tempo definido (ex: 5 minutos).</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">3.</span>
+                    <span><strong class="text-gray-400">Detecção SIM/NÃO:</strong> reconhece confirmações em frases maiores (ex: "pode sim", "beleza", "combinado") e também por reações (👍❤️✅🙏 = SIM, 👎❌ = NÃO).</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">4.</span>
+                    <span><strong class="text-gray-400">Simulação (mesmo dia):</strong> se o cliente simula novamente no mesmo dia, atualiza o card existente sem duplicar.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">5.</span>
+                    <span><strong class="text-gray-400">Reserva via site:</strong> quando o cliente faz reserva, o card é movido automaticamente para a etapa de reservado, os duplicados do dia são removidos, e a IA envia confirmação e encerra a conversa.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">6.</span>
+                    <span><strong class="text-gray-400">Dias diferentes:</strong> simulações em dias diferentes criam cards novos (jornadas independentes).</span>
+                </div>
+            </div>
+        </div>
+
         <div class="flex gap-2">
 
             <button wire:click="save"
