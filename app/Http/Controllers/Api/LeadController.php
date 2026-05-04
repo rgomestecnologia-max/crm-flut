@@ -176,22 +176,38 @@ class LeadController extends Controller
             ]);
         } else {
             // Sem external_id: busca card existente do mesmo contato no mesmo pipeline
-            // para evitar duplicatas (ex: lead reenviado pelo site)
+            // para evitar duplicatas (ex: lead reenviado pelo site ou reserva após simulação)
             if (!$externalId) {
+                // Primeiro tenta mesma etapa (duplicata exata)
                 $existingCard = CrmCard::where('contact_id', $contact->id)
                     ->where('pipeline_id', $pipelineId)
                     ->where('stage_id', $stageId)
                     ->first();
+
+                // Se não encontrou na mesma etapa, busca em qualquer etapa do pipeline
+                // e move para a nova etapa (ex: simulação → reserva)
+                if (!$existingCard) {
+                    $existingCard = CrmCard::where('contact_id', $contact->id)
+                        ->where('pipeline_id', $pipelineId)
+                        ->first();
+                }
+
                 if ($existingCard) {
-                    $existingCard->update(['title' => $contact->name]);
+                    $oldStageName = $existingCard->stage?->name ?? '?';
+                    $moved = $existingCard->stage_id !== $stageId;
+                    $existingCard->update(['title' => $contact->name, 'stage_id' => $stageId]);
                     $card = $existingCard;
                     $isUpdate = true;
+
+                    $activityMsg = $moved
+                        ? "Lead movido via API ({$apiToken->name}): {$oldStageName} → {$stage->name}"
+                        : "Lead atualizado via API ({$apiToken->name})";
 
                     CrmCardActivity::create([
                         'card_id' => $card->id,
                         'user_id' => null,
-                        'type'    => 'note',
-                        'content' => "Lead atualizado via API ({$apiToken->name})",
+                        'type'    => $moved ? 'stage_change' : 'note',
+                        'content' => $activityMsg,
                     ]);
                 }
             }
