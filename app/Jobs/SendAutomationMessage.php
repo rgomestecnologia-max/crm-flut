@@ -96,6 +96,14 @@ class SendAutomationMessage implements ShouldQueue
                     ? str_replace('{nome}', $this->contact->name ?? '', $this->automation->message_template)
                     : "Olá, {$this->contact->name}! 👋\nSeja bem-vindo(a)! Recebemos sua mensagem e seu atendimento continuará por aqui. 🚀";
 
+                // Saudação via IA: gera variação da mensagem
+                if ($this->automation->ai_greeting && $greeting) {
+                    $aiGreeting = $this->generateAiGreeting($greeting);
+                    if ($aiGreeting) {
+                        $greeting = $aiGreeting;
+                    }
+                }
+
                 $result = $this->sendWhatsApp($greeting);
                 $zapiId = $result['key']['id'] ?? $result['messageId'] ?? null;
 
