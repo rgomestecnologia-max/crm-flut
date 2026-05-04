@@ -788,24 +788,42 @@ class ProcessEvolutionMessage implements ShouldQueue
 
         if (!$apiKey) return null;
 
-        $prompt = "Reescreva a mensagem abaixo para WhatsApp com variações naturais. "
-            . "Mantenha o mesmo sentido, tom e emojis similares, mas mude as palavras e estrutura. "
-            . "O nome do cliente é: {$contactName}. "
-            . "Responda APENAS com a mensagem reescrita, sem explicações.\n\n"
-            . "MENSAGEM ORIGINAL:\n{$baseText}";
+        $charCount = mb_strlen($baseText);
+
+        $prompt = "Você é um assistente que reescreve mensagens para WhatsApp Business com variações naturais.\n\n"
+            . "MENSAGEM ORIGINAL ({$charCount} caracteres — sua reescrita DEVE ter tamanho similar):\n"
+            . "---\n" . $baseText . "\n---\n\n"
+            . "DADOS DO CONTATO:\n"
+            . "- Nome: {$contactName}\n\n"
+            . "REGRAS OBRIGATÓRIAS:\n"
+            . "- Reescreva a mensagem INTEIRA mantendo TODAS as informações, dados, valores, datas, horários e serviços\n"
+            . "- A mensagem reescrita deve ter aproximadamente o MESMO TAMANHO ({$charCount} caracteres)\n"
+            . "- NÃO resuma, NÃO encurte, NÃO omita nenhuma informação\n"
+            . "- Varie apenas a forma de escrever: troque palavras, reorganize frases, mude emojis\n"
+            . "- Mantenha dados exatos como valores, datas, horários, nomes de serviços inalterados\n"
+            . "- Formato WhatsApp: use *negrito* e emojis\n"
+            . "- Responda APENAS com a mensagem reescrita, sem explicações";
 
         try {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
             $response = \Illuminate\Support\Facades\Http::timeout(30)->post($url, [
                 'contents' => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
-                'generationConfig' => ['temperature' => 1.2, 'maxOutputTokens' => 1024],
+                'generationConfig' => ['temperature' => 1.0, 'maxOutputTokens' => 4096],
             ]);
 
-            $text = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            $json = $response->json();
+            $text = $json['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            $finishReason = $json['candidates'][0]['finishReason'] ?? 'unknown';
 
             if ($text) {
-                Log::info('AI variation gerada', ['length' => strlen($text)]);
+                if ($finishReason === 'MAX_TOKENS' || strlen($text) < ($charCount * 0.5)) {
+                    Log::warning('AI variation truncada, usando original', [
+                        'finishReason' => $finishReason, 'generated' => strlen($text), 'expected' => $charCount,
+                    ]);
+                    return null;
+                }
+                Log::info('AI variation gerada', ['length' => strlen($text), 'finishReason' => $finishReason]);
                 return trim($text);
             }
             return null;
