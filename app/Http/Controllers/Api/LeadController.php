@@ -319,6 +319,11 @@ class LeadController extends Controller
                 }
             }
 
+            // Se não tem delay calculado por data_hora, usa delay_minutes da automação
+            if (!$delay && $automation->delay_minutes > 0) {
+                $delay = now()->addMinutes($automation->delay_minutes);
+            }
+
             SendAutomationMessage::dispatch($automation, $contact, $card)->delay($delay);
         }
 
