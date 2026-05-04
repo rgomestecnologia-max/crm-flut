@@ -175,40 +175,62 @@ class LeadController extends Controller
                 'content' => "Agendamento atualizado via API ({$apiToken->name})",
             ]);
         } else {
-            // Sem external_id: busca card existente do mesmo contato no mesmo pipeline
-            // para evitar duplicatas (ex: lead reenviado pelo site ou reserva após simulação)
+            // Sem external_id: lógica anti-duplicata
             if (!$externalId) {
-                // Primeiro tenta mesma etapa (duplicata exata)
-                $existingCard = CrmCard::where('contact_id', $contact->id)
-                    ->where('pipeline_id', $pipelineId)
-                    ->where('stage_id', $stageId)
-                    ->first();
+                $firstStageId = CrmStage::where('pipeline_id', $pipelineId)->orderBy('sort_order')->value('id');
+                $isFirstStage = $stageId == $firstStageId;
 
-                // Se não encontrou na mesma etapa, busca em qualquer etapa do pipeline
-                // e move para a nova etapa (ex: simulação → reserva)
-                if (!$existingCard) {
+                if ($isFirstStage) {
+                    // Simulação (etapa Novo): sempre cria novo card — permite múltiplas simulações
+                    // Não busca existente
+                } else {
+                    // Reserva ou etapa avançada: busca card existente e move
+                    // Prioriza card mais recente do contato no pipeline
                     $existingCard = CrmCard::where('contact_id', $contact->id)
                         ->where('pipeline_id', $pipelineId)
+                        ->latest()
                         ->first();
-                }
 
-                if ($existingCard) {
-                    $oldStageName = $existingCard->stage?->name ?? '?';
-                    $moved = $existingCard->stage_id !== $stageId;
-                    $existingCard->update(['title' => $contact->name, 'stage_id' => $stageId]);
-                    $card = $existingCard;
-                    $isUpdate = true;
+                    if ($existingCard) {
+                        $oldStageName = $existingCard->stage?->name ?? '?';
+                        $moved = $existingCard->stage_id !== $stageId;
+                        $existingCard->update(['title' => $contact->name, 'stage_id' => $stageId]);
+                        $card = $existingCard;
+                        $isUpdate = true;
 
-                    $activityMsg = $moved
-                        ? "Lead movido via API ({$apiToken->name}): {$oldStageName} → {$stage->name}"
-                        : "Lead atualizado via API ({$apiToken->name})";
+                        CrmCardActivity::create([
+                            'card_id' => $card->id,
+                            'user_id' => null,
+                            'type'    => $moved ? 'stage_change' : 'note',
+                            'content' => $moved
+                                ? "Lead movido via API ({$apiToken->name}): {$oldStageName} → {$stage->name}"
+                                : "Lead atualizado via API ({$apiToken->name})",
+                        ]);
 
-                    CrmCardActivity::create([
-                        'card_id' => $card->id,
-                        'user_id' => null,
-                        'type'    => $moved ? 'stage_change' : 'note',
-                        'content' => $activityMsg,
-                    ]);
+                        // Remove outros cards do mesmo contato no pipeline (evita duplicata em etapas anteriores)
+                        $otherCards = CrmCard::where('contact_id', $contact->id)
+                            ->where('pipeline_id', $pipelineId)
+                            ->where('id', '!=', $existingCard->id)
+                            ->get();
+
+                        foreach ($otherCards as $other) {
+                            CrmCardActivity::create([
+                                'card_id' => $other->id,
+                                'user_id' => null,
+                                'type'    => 'note',
+                                'content' => "Card removido: cliente movido para {$stage->name}",
+                            ]);
+                            $other->delete();
+                        }
+
+                        if ($otherCards->count() > 0) {
+                            Log::info('API /leads: removidos cards duplicados', [
+                                'contact'  => $contact->name,
+                                'removed'  => $otherCards->pluck('id'),
+                                'kept'     => $existingCard->id,
+                            ]);
+                        }
+                    }
                 }
             }
 
