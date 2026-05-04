@@ -130,13 +130,8 @@ class AiBotManager extends Component
             'handoff_message'           => $this->handoff_message ?: null,
         ];
 
-        // Extrai conteúdo do site se URL foi informada
-        if ($this->website_url) {
-            $content = $this->scrapeWebsite($this->website_url);
-            if ($content) {
-                $data['website_content'] = $content;
-            }
-        } else {
+        // Se URL foi removida, limpa o conteúdo do site
+        if (!$this->website_url) {
             $data['website_content'] = null;
         }
 
@@ -201,6 +196,7 @@ class AiBotManager extends Component
         $departments    = Department::active()->get();
         $globalKeySet   = !empty(GlobalSetting::get('gemini_api_key'));
         $globalModel    = GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
-        return view('livewire.admin.ai-bot-manager', compact('departments', 'globalKeySet', 'globalModel'));
+        $websiteChars   = strlen(AiBotConfig::current()?->website_content ?? '');
+        return view('livewire.admin.ai-bot-manager', compact('departments', 'globalKeySet', 'globalModel', 'websiteChars'));
     }
 }

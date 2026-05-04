@@ -121,6 +121,11 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
                         </button>
                     </div>
                     @error('website_url') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                    @if($websiteChars > 0)
+                    <p style="font-size:10px; color:rgba(59,130,246,0.6); margin-top:4px;">Site armazenado: {{ number_format($websiteChars, 0, ',', '.') }} caracteres</p>
+                    @elseif($website_url)
+                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">Clique em "Ler site" para extrair o conteudo</p>
+                    @endif
                 </div>
             </div>
         </div>
