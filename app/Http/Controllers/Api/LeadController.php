@@ -102,6 +102,20 @@ class LeadController extends Controller
             ?? $apiToken->default_stage_id
             ?? CrmStage::where('pipeline_id', $pipelineId)->orderBy('sort_order')->value('id');
 
+        // Mapeia tipo_vaga para etapa quando não vem stage_id explícito
+        if (empty($data['stage_id'])) {
+            $tipoVaga = $data['tipo_vaga'] ?? null;
+            if ($tipoVaga && !str_contains(mb_strtolower($tipoVaga), 'simulação') && !str_contains(mb_strtolower($tipoVaga), 'lead')) {
+                // Tipo diferente de simulação/lead = reserva confirmada → busca etapa "Reservado"
+                $reservadoStage = CrmStage::where('pipeline_id', $pipelineId)
+                    ->where('name', 'like', '%reserv%')
+                    ->value('id');
+                if ($reservadoStage) {
+                    $stageId = $reservadoStage;
+                }
+            }
+        }
+
         $stage = $stageId ? CrmStage::find($stageId) : null;
         if (!$stage) {
             return response()->json(['error' => 'Nenhuma etapa encontrada no pipeline selecionado.'], 422);
