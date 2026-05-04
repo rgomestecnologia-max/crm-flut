@@ -92,14 +92,22 @@ class Conversation extends Model
 
     public function scopeForUser($query, User $user)
     {
-        // Admin vê todas as conversas da empresa (CompanyScope já filtra)
+        // Admin na própria empresa: filtra por departamentos (como supervisor)
+        // Admin em outra empresa: vê tudo (ajuda a gerenciar)
         if ($user->isAdmin()) {
+            $currentCompanyId = app(\App\Services\CurrentCompany::class)->id();
+            $isOwnCompany = $currentCompanyId && $currentCompanyId === $user->company_id;
+
+            if ($isOwnCompany) {
+                $deptIds = $user->departmentIds();
+                return !empty($deptIds) ? $query->whereIn('department_id', $deptIds) : $query;
+            }
+
             return $query;
         }
 
         $deptIds = $user->departmentIds();
 
-        // Se o usuário não tem departamentos, mostra tudo (retrocompat)
         if (empty($deptIds)) {
             return $query;
         }
