@@ -144,6 +144,24 @@ class ProcessEvolutionMessage implements ShouldQueue
                     $contact = Contact::where('chat_lid', $remoteJid)->first()
                         ?? Contact::where('phone', $chatPhone)->first();
 
+                    // Busca variação com/sem 9° dígito (55+DDD+8dig ↔ 55+DDD+9dig)
+                    if (!$contact && str_starts_with($chatPhone, '55') && strlen($chatPhone) >= 12) {
+                        $ddd = substr($chatPhone, 2, 2);
+                        $num = substr($chatPhone, 4);
+                        if (strlen($num) === 8) {
+                            // Sem 9° dígito → tenta com 9
+                            $contact = Contact::where('phone', '55' . $ddd . '9' . $num)->first();
+                        } elseif (strlen($num) === 9 && $num[0] === '9') {
+                            // Com 9° dígito → tenta sem 9
+                            $contact = Contact::where('phone', '55' . $ddd . substr($num, 1))->first();
+                        }
+                        if ($contact) {
+                            Log::info('Contato encontrado por variação 9° dígito', [
+                                'chatPhone' => $chatPhone, 'matched' => $contact->phone,
+                            ]);
+                        }
+                    }
+
                     // Se não encontrou e o chatPhone é real (55...), tenta achar
                     // contato que tenha LID como phone (resolve duplicação LID ↔ número real)
                     if (!$contact && str_starts_with($chatPhone, '55') && $senderName) {
