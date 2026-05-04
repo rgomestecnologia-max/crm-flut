@@ -277,21 +277,21 @@ class SendAutomationMessage implements ShouldQueue
 
         $contactName = $this->contact->name ?? 'cliente';
 
-        $prompt = "Você é um assistente que gera mensagens de saudação para WhatsApp Business.\n\n"
-            . "INSTRUÇÃO DO OPERADOR (use como base, mas NÃO copie literalmente — reescreva com variações naturais):\n"
-            . $instruction . "\n\n"
+        $charCount = mb_strlen($instruction);
+
+        $prompt = "Você é um assistente que reescreve mensagens para WhatsApp Business com variações naturais.\n\n"
+            . "MENSAGEM ORIGINAL ({$charCount} caracteres — sua reescrita DEVE ter tamanho similar):\n"
+            . "---\n" . $instruction . "\n---\n\n"
             . "DADOS DO CONTATO:\n"
-            . "- Nome: {$contactName}\n"
-            . "- Telefone: " . ($this->contact->phone ?? '') . "\n"
-            . "- Email: " . ($this->contact->email ?? '') . "\n\n"
-            . "REGRAS:\n"
-            . "- Escreva a mensagem COMPLETA, com o mesmo tamanho e nível de detalhe da instrução original\n"
-            . "- Use o nome do contato naturalmente\n"
-            . "- Varie a estrutura, palavras e emojis a cada geração\n"
-            . "- Mantenha TODOS os pontos e informações da instrução original, não omita nada\n"
-            . "- Formato WhatsApp: use *negrito* e emojis quando adequado\n"
-            . "- Responda APENAS com a mensagem, sem explicações\n"
-            . "- Seja natural, como se um humano estivesse escrevendo";
+            . "- Nome: {$contactName}\n\n"
+            . "REGRAS OBRIGATÓRIAS:\n"
+            . "- Reescreva a mensagem INTEIRA mantendo TODAS as informações, dados, valores, endereços, telefones e links\n"
+            . "- A mensagem reescrita deve ter aproximadamente o MESMO TAMANHO ({$charCount} caracteres)\n"
+            . "- NÃO resuma, NÃO encurte, NÃO omita nenhuma informação\n"
+            . "- Varie apenas a forma de escrever: troque palavras, reorganize frases, mude emojis\n"
+            . "- Mantenha dados exatos como valores em R\$, datas, endereços, telefones e URLs inalterados\n"
+            . "- Formato WhatsApp: use *negrito* e emojis\n"
+            . "- Responda APENAS com a mensagem reescrita, sem explicações";
 
         try {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
