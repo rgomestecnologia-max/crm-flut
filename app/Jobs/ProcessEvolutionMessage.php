@@ -109,9 +109,14 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'name'     => $groupName,
                         'chat_lid' => $remoteJid,
                     ]);
-                } elseif ($groupName && !$contact->name) {
+                }
+
+                // Atualiza nome se veio no webhook e o contato não tem nome ou tem nome numérico (ID do grupo)
+                $needsName = !$contact->name || preg_match('/^\d{10,}$/', $contact->name);
+                if ($groupName && $needsName) {
                     $contact->update(['name' => $groupName]);
                 }
+
                 if ($remoteJid && !$contact->chat_lid) {
                     $contact->update(['chat_lid' => $remoteJid]);
                 }
