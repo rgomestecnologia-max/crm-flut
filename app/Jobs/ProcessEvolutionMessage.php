@@ -341,52 +341,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                     $isNo  = in_array($reply, ['nao', 'não', 'no', 'n', 'remarcar', 'cancelar', 'cancela']);
 
                     if ($isYes || $isNo) {
-                        // Move etapa no CRM se configurado
-                        $targetStageId = $isYes ? $sourceAuto->reply_yes_stage_id : $sourceAuto->reply_no_stage_id;
-                        if ($targetStageId) {
-                            $card = \App\Models\CrmCard::where('contact_id', $contact->id)
-                                ->where('stage_id', $sourceAuto->move_on_reply_from_stage_id)
-                                ->first();
-
-                            if ($card) {
-                                $fromStageName = $card->stage?->name ?? '—';
-                                $toStage = \App\Models\CrmStage::find($targetStageId);
-                                $card->update(['stage_id' => $targetStageId]);
-                                \App\Models\CrmCardActivity::create([
-                                    'card_id' => $card->id,
-                                    'user_id' => null,
-                                    'type'    => 'stage_change',
-                                    'content' => 'Cliente respondeu ' . ($isYes ? 'SIM' : 'NÃO') . ": {$fromStageName} → " . ($toStage->name ?? '?'),
-                                ]);
-                            }
-                        }
-
-                        // Envia resposta automática
-                        $baseReply = $isYes ? $sourceAuto->reply_yes_message : $sourceAuto->reply_no_message;
-                        if ($baseReply) {
-                            $baseReply = str_replace('{nome}', $contact->name ?? '', $baseReply);
-                            $replyText = ($sourceAuto->ai_greeting)
-                                ? ($this->generateAiVariation($baseReply, $contact->name ?? 'cliente') ?? $baseReply)
-                                : $baseReply;
-
-                            $replyMsg = Message::create([
-                                'conversation_id' => $conversation->id,
-                                'sender_type'     => 'agent',
-                                'sender_id'       => null,
-                                'content'         => $replyText,
-                                'type'            => 'text',
-                                'delivery_status' => 'pending',
-                            ]);
-                            $conversation->update(['last_message_at' => now()]);
-                            \App\Jobs\SendWhatsAppMessage::dispatch($replyMsg);
-                        }
-
-                        Log::info('Auto-reply SIM/NÃO', [
-                            'automation' => $sourceAuto->name,
-                            'contact'    => $contact->name,
-                            'reply'      => $reply,
-                            'stage'      => $targetStageId ? ($toStage->name ?? $targetStageId) : 'sem move',
-                        ]);
+                        $this->handleYesNoReply($sourceAuto, $conversation, $contact, $isYes, $reply);
                     }
                 }
             }
@@ -495,12 +450,66 @@ class ProcessEvolutionMessage implements ShouldQueue
         }
     }
 
+    private function handleYesNoReply($automation, $conversation, $contact, bool $isYes, string $trigger): void
+    {
+        try {
+            $targetStageId = $isYes ? $automation->reply_yes_stage_id : $automation->reply_no_stage_id;
+
+            if ($targetStageId && $automation->move_on_reply_from_stage_id) {
+                $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                    ->where('stage_id', $automation->move_on_reply_from_stage_id)
+                    ->first();
+
+                if ($card) {
+                    $fromStageName = $card->stage?->name ?? '—';
+                    $toStage = \App\Models\CrmStage::find($targetStageId);
+                    $card->update(['stage_id' => $targetStageId]);
+                    \App\Models\CrmCardActivity::create([
+                        'card_id' => $card->id,
+                        'user_id' => null,
+                        'type'    => 'stage_change',
+                        'content' => 'Cliente respondeu ' . ($isYes ? 'SIM' : 'NÃO') . " ({$trigger}): {$fromStageName} → " . ($toStage->name ?? '?'),
+                    ]);
+                }
+            }
+
+            $baseReply = $isYes ? $automation->reply_yes_message : $automation->reply_no_message;
+            if ($baseReply) {
+                $baseReply = str_replace('{nome}', $contact->name ?? '', $baseReply);
+                $replyText = ($automation->ai_greeting)
+                    ? ($this->generateAiVariation($baseReply, $contact->name ?? 'cliente') ?? $baseReply)
+                    : $baseReply;
+
+                $replyMsg = Message::create([
+                    'conversation_id' => $conversation->id,
+                    'sender_type'     => 'agent',
+                    'sender_id'       => null,
+                    'content'         => $replyText,
+                    'type'            => 'text',
+                    'delivery_status' => 'pending',
+                ]);
+                $conversation->update(['last_message_at' => now()]);
+                \App\Jobs\SendWhatsAppMessage::dispatch($replyMsg);
+            }
+
+            Log::info('Auto-reply SIM/NÃO', [
+                'automation' => $automation->name,
+                'contact'    => $contact->name,
+                'trigger'    => $trigger,
+                'isYes'      => $isYes,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('handleYesNoReply falhou', ['error' => $e->getMessage()]);
+        }
+    }
+
     private function processReaction(array $data, string $remoteJid): void
     {
         try {
             $reaction    = $data['message']['reactionMessage'] ?? [];
             $targetId    = $reaction['key']['id'] ?? null;
             $emoji       = $reaction['text'] ?? null;
+            $fromMe      = (bool) ($reaction['key']['fromMe'] ?? false);
             $reactorPhone = preg_replace('/\D/', '', preg_replace('/@.+/', '', $remoteJid));
 
             if (!$targetId || !$reactorPhone) {
@@ -511,6 +520,26 @@ class ProcessEvolutionMessage implements ShouldQueue
             if (!$message) {
                 Log::info('ProcessEvolutionMessage reaction: mensagem não encontrada', ['targetId' => $targetId]);
                 return;
+            }
+
+            // ── Reação como confirmação SIM/NÃO (automação) ──
+            if ($emoji && !$fromMe) {
+                $conversation = $message->conversation;
+                if ($conversation && $conversation->source_automation_id) {
+                    $sourceAuto = $conversation->sourceAutomation;
+                    if ($sourceAuto && ($sourceAuto->reply_yes_message || $sourceAuto->reply_no_message)) {
+                        $yesEmojis = ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿', '❤️', '✅', '🙏', '🙏🏻', '🙏🏼', '🙏🏽', '🙏🏾', '🙏🏿', '💚', '😍', '🥰', '💪'];
+                        $noEmojis  = ['👎', '👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿', '❌', '😢', '😞'];
+
+                        $isYes = in_array($emoji, $yesEmojis);
+                        $isNo  = in_array($emoji, $noEmojis);
+
+                        if ($isYes || $isNo) {
+                            $contact = $conversation->contact;
+                            $this->handleYesNoReply($sourceAuto, $conversation, $contact, $isYes, "reação {$emoji}");
+                        }
+                    }
+                }
             }
 
             $reactions = $message->reactions ?? [];
