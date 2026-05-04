@@ -355,10 +355,12 @@ class ProcessEvolutionMessage implements ShouldQueue
                             'content' => 'Cliente respondeu ' . ($isYes ? 'SIM' : 'NÃO') . ': Novo → ' . $newStageName,
                         ]);
 
-                        // Envia resposta automática
-                        $replyText = $isYes
+                        // Envia resposta automática via IA (variações naturais)
+                        $baseReply = $isYes
                             ? "Perfeito, agendamento confirmado 💖\nQualquer imprevisto, só avisar por favor! ✨\nVai ser um prazer te atender!"
                             : "Tudo bem, obrigada por me avisar 💖\nQuer que eu já te envie alguns horários disponíveis pra reagendarmos?";
+
+                        $replyText = $this->generateAiVariation($baseReply, $contact->name ?? 'cliente') ?? $baseReply;
 
                         $replyMsg = Message::create([
                             'conversation_id' => $conversation->id,
@@ -734,5 +736,42 @@ class ProcessEvolutionMessage implements ShouldQueue
             ->value('company_id');
 
         return $companyId ? (int) $companyId : null;
+    }
+
+    /**
+     * Gera variação de uma mensagem via IA (Gemini) para evitar repetição.
+     */
+    private function generateAiVariation(string $baseText, string $contactName): ?string
+    {
+        $apiKey = \App\Models\GlobalSetting::get('gemini_api_key');
+        $model  = \App\Models\GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
+
+        if (!$apiKey) return null;
+
+        $prompt = "Reescreva a mensagem abaixo para WhatsApp com variações naturais. "
+            . "Mantenha o mesmo sentido, tom e emojis similares, mas mude as palavras e estrutura. "
+            . "O nome do cliente é: {$contactName}. "
+            . "Responda APENAS com a mensagem reescrita, sem explicações.\n\n"
+            . "MENSAGEM ORIGINAL:\n{$baseText}";
+
+        try {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+            $response = \Illuminate\Support\Facades\Http::timeout(30)->post($url, [
+                'contents' => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['temperature' => 1.2, 'maxOutputTokens' => 1024],
+            ]);
+
+            $text = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+            if ($text) {
+                Log::info('AI variation gerada', ['length' => strlen($text)]);
+                return trim($text);
+            }
+            return null;
+        } catch (\Throwable $e) {
+            Log::warning('AI variation falhou', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 }
