@@ -332,49 +332,60 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             $conversation->update(['last_message_at' => now(), 'status' => 'open']);
 
-            // ── Studio Ana Cardoso: confirmação de agendamento (SIM/NÃO) ──
-            if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content && $companyId === 5) {
-                $reply = mb_strtolower(trim($content));
-                $isYes = in_array($reply, ['sim', 'yes', 's', 'confirmo', 'confirmado', 'confirmar', '✅']);
-                $isNo  = in_array($reply, ['nao', 'não', 'no', 'n', 'remarcar', 'cancelar', 'cancela']);
+            // ── Resposta SIM/NÃO com auto-reply e move etapa (configurável por automação) ──
+            if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content) {
+                $sourceAuto = $conversation->sourceAutomation;
+                if ($sourceAuto && ($sourceAuto->reply_yes_message || $sourceAuto->reply_no_message)) {
+                    $reply = mb_strtolower(trim($content));
+                    $isYes = in_array($reply, ['sim', 'yes', 's', 'confirmo', 'confirmado', 'confirmar', '✅']);
+                    $isNo  = in_array($reply, ['nao', 'não', 'no', 'n', 'remarcar', 'cancelar', 'cancela']);
 
-                if ($isYes || $isNo) {
-                    $card = \App\Models\CrmCard::where('contact_id', $contact->id)
-                        ->where('pipeline_id', 8)
-                        ->where('stage_id', 17) // Novo
-                        ->first();
+                    if ($isYes || $isNo) {
+                        // Move etapa no CRM se configurado
+                        $targetStageId = $isYes ? $sourceAuto->reply_yes_stage_id : $sourceAuto->reply_no_stage_id;
+                        if ($targetStageId) {
+                            $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                                ->where('stage_id', $sourceAuto->move_on_reply_from_stage_id)
+                                ->first();
 
-                    if ($card) {
-                        $newStageId = $isYes ? 18 : 19; // 18=Confirmados, 19=Remarcar
-                        $newStageName = $isYes ? 'Confirmados' : 'Remarcar';
-                        $card->update(['stage_id' => $newStageId]);
-                        \App\Models\CrmCardActivity::create([
-                            'card_id' => $card->id,
-                            'user_id' => null,
-                            'type'    => 'stage_change',
-                            'content' => 'Cliente respondeu ' . ($isYes ? 'SIM' : 'NÃO') . ': Novo → ' . $newStageName,
-                        ]);
+                            if ($card) {
+                                $fromStageName = $card->stage?->name ?? '—';
+                                $toStage = \App\Models\CrmStage::find($targetStageId);
+                                $card->update(['stage_id' => $targetStageId]);
+                                \App\Models\CrmCardActivity::create([
+                                    'card_id' => $card->id,
+                                    'user_id' => null,
+                                    'type'    => 'stage_change',
+                                    'content' => 'Cliente respondeu ' . ($isYes ? 'SIM' : 'NÃO') . ": {$fromStageName} → " . ($toStage->name ?? '?'),
+                                ]);
+                            }
+                        }
 
-                        // Envia resposta automática via IA (variações naturais)
-                        $baseReply = $isYes
-                            ? "Perfeito, agendamento confirmado 💖\nQualquer imprevisto, só avisar por favor! ✨\nVai ser um prazer te atender!"
-                            : "Tudo bem, obrigada por me avisar 💖\nQuer que eu já te envie alguns horários disponíveis pra reagendarmos?";
+                        // Envia resposta automática
+                        $baseReply = $isYes ? $sourceAuto->reply_yes_message : $sourceAuto->reply_no_message;
+                        if ($baseReply) {
+                            $baseReply = str_replace('{nome}', $contact->name ?? '', $baseReply);
+                            $replyText = ($sourceAuto->ai_greeting)
+                                ? ($this->generateAiVariation($baseReply, $contact->name ?? 'cliente') ?? $baseReply)
+                                : $baseReply;
 
-                        $replyText = $this->generateAiVariation($baseReply, $contact->name ?? 'cliente') ?? $baseReply;
+                            $replyMsg = Message::create([
+                                'conversation_id' => $conversation->id,
+                                'sender_type'     => 'agent',
+                                'sender_id'       => null,
+                                'content'         => $replyText,
+                                'type'            => 'text',
+                                'delivery_status' => 'pending',
+                            ]);
+                            $conversation->update(['last_message_at' => now()]);
+                            \App\Jobs\SendWhatsAppMessage::dispatch($replyMsg);
+                        }
 
-                        $replyMsg = Message::create([
-                            'conversation_id' => $conversation->id,
-                            'sender_type'     => 'agent',
-                            'sender_id'       => null,
-                            'content'         => $replyText,
-                            'type'            => 'text',
-                            'delivery_status' => 'pending',
-                        ]);
-                        $conversation->update(['last_message_at' => now()]);
-                        \App\Jobs\SendWhatsAppMessage::dispatch($replyMsg);
-
-                        Log::info('Studio Ana Cardoso: confirmação agendamento', [
-                            'contact' => $contact->name, 'reply' => $reply, 'stage' => $newStageName,
+                        Log::info('Auto-reply SIM/NÃO', [
+                            'automation' => $sourceAuto->name,
+                            'contact'    => $contact->name,
+                            'reply'      => $reply,
+                            'stage'      => $targetStageId ? ($toStage->name ?? $targetStageId) : 'sem move',
                         ]);
                     }
                 }

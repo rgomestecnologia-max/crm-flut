@@ -23,6 +23,10 @@ class Automation extends Model
         'enable_ai_on_reply',
         'ai_first_response',
         'ai_greeting',
+        'reply_yes_message',
+        'reply_no_message',
+        'reply_yes_stage_id',
+        'reply_no_stage_id',
         'move_on_reply_from_stage_id',
         'move_on_reply_to_stage_id',
     ];

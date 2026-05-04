@@ -159,7 +159,65 @@
             </div>
         </div>
 
+        {{-- Resposta automática SIM/NÃO --}}
+        <div class="mb-5 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-0.5 h-4 bg-emerald-500 rounded"></div>
+                <p class="text-sm text-gray-200 font-semibold">Resposta automática SIM/NÃO</p>
+            </div>
+            <p class="text-[10px] text-gray-500 mb-3">Quando o cliente responder SIM ou NÃO à mensagem da automação, envia uma resposta automática e move o card de etapa.</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Resposta para SIM</label>
+                    <textarea wire:model="reply_yes_message" rows="3"
+                              placeholder="Ex: Perfeito, agendamento confirmado! Qualquer imprevisto, só avisar."
+                              class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Resposta para NÃO</label>
+                    <textarea wire:model="reply_no_message" rows="3"
+                              placeholder="Ex: Tudo bem! Quer que eu envie horários disponíveis para reagendar?"
+                              class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Mover para etapa (SIM)</label>
+                    <select wire:model="reply_yes_stage_id"
+                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <option value="">Não mover</option>
+                        @foreach($pipelines as $pl)
+                            <optgroup label="{{ $pl->name }}">
+                                @foreach($pl->stages as $st)
+                                    <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Mover para etapa (NÃO)</label>
+                    <select wire:model="reply_no_stage_id"
+                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <option value="">Não mover</option>
+                        @foreach($pipelines as $pl)
+                            <optgroup label="{{ $pl->name }}">
+                                @foreach($pl->stages as $st)
+                                    <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <p class="text-[10px] text-gray-600 mt-2">Se "Saudação via IA" estiver ativo, as respostas SIM/NÃO também serão geradas pela IA com variações.</p>
+        </div>
+
         <div class="flex gap-2">
+
             <button wire:click="save"
                     class="px-4 py-2 bg-accent hover:bg-accent-dark text-white text-sm font-semibold rounded-lg transition-colors">
                 {{ $editingId ? 'Salvar alterações' : 'Criar automação' }}
