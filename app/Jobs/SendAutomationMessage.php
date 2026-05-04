@@ -296,13 +296,13 @@ class SendAutomationMessage implements ShouldQueue
         try {
             $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-            $response = Http::timeout(15)->post($url, [
+            $response = Http::timeout(30)->post($url, [
                 'contents' => [
                     ['role' => 'user', 'parts' => [['text' => $prompt]]],
                 ],
                 'generationConfig' => [
-                    'temperature'    => 1.0,
-                    'maxOutputTokens' => 300,
+                    'temperature'     => 1.0,
+                    'maxOutputTokens' => 1024,
                 ],
             ]);
 
