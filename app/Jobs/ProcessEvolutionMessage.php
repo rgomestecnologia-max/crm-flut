@@ -337,8 +337,13 @@ class ProcessEvolutionMessage implements ShouldQueue
                 $sourceAuto = $conversation->sourceAutomation;
                 if ($sourceAuto && ($sourceAuto->reply_yes_message || $sourceAuto->reply_no_message)) {
                     $reply = mb_strtolower(trim($content));
-                    $isYes = in_array($reply, ['sim', 'yes', 's', 'confirmo', 'confirmado', 'confirmar', '✅']);
-                    $isNo  = in_array($reply, ['nao', 'não', 'no', 'n', 'remarcar', 'cancelar', 'cancela']);
+                    // Detecta SIM/NÃO em frases maiores (word boundary)
+                    $yesWords = 'sim|confirmo|confirmado|confirmar|pode|vou|ok|beleza|perfeito|combinado|certo|bora|yes';
+                    $noWords  = 'não|nao|remarcar|cancelar|cancela|desmarcar|reagendar|desmarco';
+                    $isYes = (bool) preg_match('/\b(' . $yesWords . ')\b/iu', $reply) || $reply === 's' || $reply === '✅';
+                    $isNo  = (bool) preg_match('/\b(' . $noWords . ')\b/iu', $reply) || $reply === 'n';
+                    // Se contém palavras de ambos, ignora (ambíguo)
+                    if ($isYes && $isNo) { $isYes = false; $isNo = false; }
 
                     if ($isYes || $isNo) {
                         $this->handleYesNoReply($sourceAuto, $conversation, $contact, $isYes, $reply);
