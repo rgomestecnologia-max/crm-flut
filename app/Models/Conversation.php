@@ -92,7 +92,19 @@ class Conversation extends Model
 
     public function scopeForUser($query, User $user)
     {
-        return $query->whereIn('department_id', $user->departmentIds());
+        // Admin vê todas as conversas da empresa (CompanyScope já filtra)
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        $deptIds = $user->departmentIds();
+
+        // Se o usuário não tem departamentos, mostra tudo (retrocompat)
+        if (empty($deptIds)) {
+            return $query;
+        }
+
+        return $query->whereIn('department_id', $deptIds);
     }
 
     public function unreadCount(int $userId): int
