@@ -175,18 +175,37 @@ class LeadController extends Controller
                 'content' => "Agendamento atualizado via API ({$apiToken->name})",
             ]);
         } else {
-            // Sem external_id: lógica anti-duplicata
+            // Sem external_id: lógica anti-duplicata por dia
+            // Mesmo dia + mesmo contato → atualiza/move (não duplica)
+            // Dias diferentes → cria novo card (nova jornada)
             if (!$externalId) {
                 $firstStageId = CrmStage::where('pipeline_id', $pipelineId)->orderBy('sort_order')->value('id');
                 $isFirstStage = $stageId == $firstStageId;
 
+                // Busca card do mesmo contato criado HOJE no pipeline
+                $todayCard = CrmCard::where('contact_id', $contact->id)
+                    ->where('pipeline_id', $pipelineId)
+                    ->whereDate('created_at', today())
+                    ->latest()
+                    ->first();
+
                 if ($isFirstStage) {
-                    // Simulação (etapa Novo): sempre cria novo card — permite múltiplas simulações
-                    // Não busca existente
+                    // Simulação (etapa Novo): se já simulou hoje, atualiza. Se não, cria novo.
+                    if ($todayCard && $todayCard->stage_id == $firstStageId) {
+                        $todayCard->update(['title' => $contact->name]);
+                        $card = $todayCard;
+                        $isUpdate = true;
+                        CrmCardActivity::create([
+                            'card_id' => $card->id,
+                            'user_id' => null,
+                            'type'    => 'note',
+                            'content' => "Simulação atualizada via API ({$apiToken->name})",
+                        ]);
+                    }
+                    // Se não tem card hoje → cria novo (lá embaixo)
                 } else {
-                    // Reserva ou etapa avançada: busca card existente e move
-                    // Prioriza card mais recente do contato no pipeline
-                    $existingCard = CrmCard::where('contact_id', $contact->id)
+                    // Reserva ou etapa avançada: busca card de hoje ou o mais recente
+                    $existingCard = $todayCard ?? CrmCard::where('contact_id', $contact->id)
                         ->where('pipeline_id', $pipelineId)
                         ->latest()
                         ->first();
@@ -207,27 +226,22 @@ class LeadController extends Controller
                                 : "Lead atualizado via API ({$apiToken->name})",
                         ]);
 
-                        // Remove outros cards do mesmo contato no pipeline (evita duplicata em etapas anteriores)
+                        // Remove outros cards de HOJE do mesmo contato no pipeline
                         $otherCards = CrmCard::where('contact_id', $contact->id)
                             ->where('pipeline_id', $pipelineId)
                             ->where('id', '!=', $existingCard->id)
+                            ->whereDate('created_at', today())
                             ->get();
 
                         foreach ($otherCards as $other) {
-                            CrmCardActivity::create([
-                                'card_id' => $other->id,
-                                'user_id' => null,
-                                'type'    => 'note',
-                                'content' => "Card removido: cliente movido para {$stage->name}",
-                            ]);
                             $other->delete();
                         }
 
                         if ($otherCards->count() > 0) {
-                            Log::info('API /leads: removidos cards duplicados', [
-                                'contact'  => $contact->name,
-                                'removed'  => $otherCards->pluck('id'),
-                                'kept'     => $existingCard->id,
+                            Log::info('API /leads: removidos cards duplicados do dia', [
+                                'contact' => $contact->name,
+                                'removed' => $otherCards->pluck('id'),
+                                'kept'    => $existingCard->id,
                             ]);
                         }
                     }
