@@ -285,10 +285,10 @@ class SendAutomationMessage implements ShouldQueue
             . "- Telefone: " . ($this->contact->phone ?? '') . "\n"
             . "- Email: " . ($this->contact->email ?? '') . "\n\n"
             . "REGRAS:\n"
-            . "- Escreva UMA mensagem curta de saudação (máximo 3 parágrafos)\n"
+            . "- Escreva a mensagem COMPLETA, com o mesmo tamanho e nível de detalhe da instrução original\n"
             . "- Use o nome do contato naturalmente\n"
             . "- Varie a estrutura, palavras e emojis a cada geração\n"
-            . "- Mantenha o mesmo objetivo/sentido da instrução\n"
+            . "- Mantenha TODOS os pontos e informações da instrução original, não omita nada\n"
             . "- Formato WhatsApp: use *negrito* e emojis quando adequado\n"
             . "- Responda APENAS com a mensagem, sem explicações\n"
             . "- Seja natural, como se um humano estivesse escrevendo";
