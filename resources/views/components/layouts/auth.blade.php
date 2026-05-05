@@ -168,7 +168,7 @@
         }
     </style>
 </head>
-<body style="background: #080C16; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;" class="antialiased">
+<body style="background: #080C16; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-x: hidden; overflow-y: auto; position: relative;" class="antialiased">
 
     {{-- Animated background --}}
     <div class="grid-bg" style="position: absolute; inset: 0; pointer-events: none;"></div>
