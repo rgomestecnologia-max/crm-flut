@@ -42,7 +42,17 @@ class SendAutomationMessage implements ShouldQueue
                 ->latest()
                 ->first();
 
-            if (!$conversation) {
+            // Detecta conversa órfã (criada pela automação mas sem mensagens — deploy interrompeu)
+            $isOrphan = $conversation
+                && $conversation->source_automation_id
+                && !Message::where('conversation_id', $conversation->id)->where('sender_type', 'agent')->exists();
+
+            if ($isOrphan) {
+                Log::info('SendAutomationMessage: conversa órfã detectada, reenviando', [
+                    'conv' => $conversation->id, 'contact' => $this->contact->name,
+                ]);
+                // Reutiliza a conversa existente — vai enviar mensagem abaixo
+            } elseif (!$conversation) {
                 $department = Department::active()->first();
                 if (!$department) {
                     Log::warning('SendAutomationMessage: nenhum departamento ativo.');
