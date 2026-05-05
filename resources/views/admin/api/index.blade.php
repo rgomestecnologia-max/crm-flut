@@ -247,10 +247,11 @@
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
-                            <p style="font-size:13px; font-weight:600; color:white;">Confirmação automática 24h antes</p>
+                            <p style="font-size:13px; font-weight:600; color:white;">Confirmação 24h antes + Saudação via IA</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            O sistema calcula <strong style="color:rgba(255,255,255,0.6);">24 horas antes</strong> do horário agendado e dispara mensagem de confirmação via WhatsApp.
+                            O sistema calcula <strong style="color:rgba(255,255,255,0.6);">24 horas antes</strong> do horário agendado e dispara mensagem via WhatsApp.
+                            A mensagem é gerada pela <strong style="color:rgba(255,255,255,0.6);">IA com variações</strong> usando o texto configurado como referência (nunca repete a mesma mensagem).
                             Se o agendamento é em menos de 24h, envia imediatamente.
                         </p>
                     </div>
@@ -269,10 +270,12 @@
                             <p style="font-size:13px; font-weight:600; color:white;">Resposta SIM/NÃO move etapa automaticamente</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            ✅ <strong style="color:#4ade80;">SIM</strong> (sim, confirmo, confirmado, s, ✅) → move para <strong style="color:rgba(255,255,255,0.6);">Confirmados</strong><br>
-                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Resposta: "Perfeito, agendamento confirmado 💖 Qualquer imprevisto, só avisar por favor! ✨ Vai ser um prazer te atender!"</span><br><br>
-                            ❌ <strong style="color:#f87171;">NÃO</strong> (não, nao, remarcar, cancelar, n) → move para <strong style="color:rgba(255,255,255,0.6);">Remarcar</strong><br>
-                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Resposta: "Tudo bem, obrigada por me avisar 💖 Quer que eu já te envie alguns horários disponíveis pra reagendarmos?"</span>
+                            ✅ <strong style="color:#4ade80;">SIM</strong> → move para <strong style="color:rgba(255,255,255,0.6);">Confirmados</strong><br>
+                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Detecta: texto (sim, pode, confirmo, beleza, ok, combinado...) + reações (👍❤️✅🙏💚😍🥰💪)</span><br>
+                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Resposta gerada pela IA com variações do contexto configurado</span><br><br>
+                            ❌ <strong style="color:#f87171;">NÃO</strong> → move para <strong style="color:rgba(255,255,255,0.6);">Remarcar</strong><br>
+                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Detecta: texto (não, remarcar, cancelar, desmarcar...) + reações (👎❌😢😞)</span><br>
+                            <span style="color:rgba(255,255,255,0.25); font-size:10px;">Resposta gerada pela IA com variações do contexto configurado</span>
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
