@@ -497,6 +497,14 @@ class ProcessEvolutionMessage implements ShouldQueue
                     ->where('stage_id', $automation->move_on_reply_from_stage_id)
                     ->first();
 
+                // Card já não está na etapa esperada (já foi confirmado/movido antes) — ignora
+                if (!$card) {
+                    Log::info('handleYesNoReply: card já moveu, ignorando duplicata', [
+                        'contact' => $contact->name, 'trigger' => $trigger,
+                    ]);
+                    return;
+                }
+
                 if ($card) {
                     $fromStageName = $card->stage?->name ?? '—';
                     $toStage = \App\Models\CrmStage::find($targetStageId);
