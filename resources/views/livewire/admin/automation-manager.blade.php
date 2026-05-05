@@ -271,6 +271,18 @@
                     <span class="text-gray-600 mt-0.5">6.</span>
                     <span><strong class="text-gray-400">Dias diferentes:</strong> simulações em dias diferentes criam cards novos (jornadas independentes).</span>
                 </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">7.</span>
+                    <span><strong class="text-gray-400">Follow-up (lembrete):</strong> se configurado, envia lembrete automático após X minutos caso o cliente não responda. Cancela se respondeu, se o card mudou de etapa, ou se a conversa foi encerrada.</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">8.</span>
+                    <span><strong class="text-gray-400">IA em grupos:</strong> IA e chatbot não respondem em grupos do WhatsApp (exceto se "Responder em grupos" estiver ativo no menu Chatbot).</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-gray-600 mt-0.5">9.</span>
+                    <span><strong class="text-gray-400">Reserva encerra conversa:</strong> quando a reserva chega via API (etapa avançada), a IA envia confirmação automaticamente e encerra a conversa para não continuar atendendo.</span>
+                </div>
             </div>
         </div>
 
