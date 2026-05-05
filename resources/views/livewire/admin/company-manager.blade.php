@@ -162,6 +162,8 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     <th style="text-align:left; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Empresa</th>
                     <th style="text-align:left; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Slug</th>
                     <th style="text-align:left; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Usuários</th>
+                    <th style="text-align:center; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Msgs IA</th>
+                    <th style="text-align:center; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Mídia (R2)</th>
                     <th style="text-align:left; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Status</th>
                     <th style="text-align:right; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Ações</th>
                 </tr>
@@ -190,6 +192,27 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     </td>
                     <td style="padding:14px 20px;">
                         <span style="font-size:12px; color:rgba(255,255,255,0.5);">{{ $company->users_count }}</span>
+                    </td>
+                    <td style="padding:14px 20px; text-align:center;">
+                        @php $aiCount = $aiMessages[$company->id] ?? 0; @endphp
+                        <span style="font-size:12px; font-weight:600; color:{{ $aiCount > 0 ? '#a78bfa' : 'rgba(255,255,255,0.2)' }};">
+                            {{ number_format($aiCount, 0, ',', '.') }}
+                        </span>
+                    </td>
+                    <td style="padding:14px 20px; text-align:center;">
+                        @php
+                            $mediaCount = $mediaStats[$company->id] ?? 0;
+                            $sizeBytes = $mediaSizes[$company->id] ?? 0;
+                            if ($sizeBytes >= 1073741824) $sizeLabel = number_format($sizeBytes / 1073741824, 1, ',', '.') . ' GB';
+                            elseif ($sizeBytes >= 1048576) $sizeLabel = number_format($sizeBytes / 1048576, 1, ',', '.') . ' MB';
+                            else $sizeLabel = number_format($sizeBytes / 1024, 0, ',', '.') . ' KB';
+                        @endphp
+                        <div>
+                            <span style="font-size:11px; font-weight:600; color:{{ $mediaCount > 0 ? '#f59e0b' : 'rgba(255,255,255,0.2)' }};">
+                                {{ $sizeLabel }}
+                            </span>
+                            <p style="font-size:9px; color:rgba(255,255,255,0.15);">{{ number_format($mediaCount, 0, ',', '.') }} arquivos</p>
+                        </div>
                     </td>
                     <td style="padding:14px 20px;">
                         <span style="font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px;

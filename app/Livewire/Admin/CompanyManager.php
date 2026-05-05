@@ -3,9 +3,11 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Company;
+use App\Models\Message;
 use App\Services\CompanyProvisioner;
 use App\Services\CurrentCompany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Services\MediaStorage;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -186,6 +188,42 @@ class CompanyManager extends Component
     public function render()
     {
         $companies = Company::orderBy('name')->get()->loadCount('users');
-        return view('livewire.admin.company-manager', compact('companies'));
+
+        // Métricas por empresa: mensagens IA e mídia com tamanho
+        $aiMessages = Message::withoutGlobalScopes()
+            ->where('sender_type', 'agent')
+            ->whereNull('sender_id')
+            ->select('company_id', DB::raw('count(*) as total'))
+            ->groupBy('company_id')
+            ->pluck('total', 'company_id');
+
+        $mediaStats = Message::withoutGlobalScopes()
+            ->whereNotNull('media_url')
+            ->where('media_url', '!=', '')
+            ->select('company_id', DB::raw('count(*) as total'))
+            ->groupBy('company_id')
+            ->pluck('total', 'company_id');
+
+        // Calcula tamanho estimado de mídia por empresa (via tabela de mensagens)
+        // Estimativa: imagem ~150KB, audio ~80KB, video ~2MB, document ~500KB
+        $mediaSizes = [];
+        foreach ($companies as $company) {
+            $types = Message::withoutGlobalScopes()
+                ->where('company_id', $company->id)
+                ->whereNotNull('media_url')
+                ->where('media_url', '!=', '')
+                ->select('type', DB::raw('count(*) as cnt'))
+                ->groupBy('type')
+                ->pluck('cnt', 'type');
+
+            $bytes = ($types['image'] ?? 0) * 150000
+                   + ($types['audio'] ?? 0) * 80000
+                   + ($types['video'] ?? 0) * 2000000
+                   + ($types['document'] ?? 0) * 500000;
+
+            $mediaSizes[$company->id] = $bytes;
+        }
+
+        return view('livewire.admin.company-manager', compact('companies', 'aiMessages', 'mediaStats', 'mediaSizes'));
     }
 }
