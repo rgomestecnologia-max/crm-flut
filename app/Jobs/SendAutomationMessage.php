@@ -151,6 +151,7 @@ class SendAutomationMessage implements ShouldQueue
                     'message' => $clientMessage,
                 ]);
 
+                $this->scheduleFollowUp($conversation);
                 return;
             }
 
@@ -161,6 +162,8 @@ class SendAutomationMessage implements ShouldQueue
                 'automation' => $this->automation->name,
                 'contact'    => $this->contact->phone,
             ]);
+
+            $this->scheduleFollowUp($conversation);
 
         } catch (\Throwable $e) {
             Log::error('SendAutomationMessage falhou', [
@@ -338,5 +341,29 @@ class SendAutomationMessage implements ShouldQueue
             Log::error('ai_greeting falhou', ['error' => $e->getMessage()]);
             return null;
         }
+    }
+
+    /**
+     * Agenda follow-up (lembrete) se configurado na automação.
+     */
+    private function scheduleFollowUp(Conversation $conversation): void
+    {
+        if (!$this->automation->follow_up_message || !$this->automation->follow_up_delay_minutes) {
+            return;
+        }
+
+        $stageId = $this->card->stage_id;
+
+        SendFollowUpMessage::dispatch(
+            $this->contact->id,
+            $conversation->id,
+            $stageId,
+            $this->automation->follow_up_message,
+        )->delay(now()->addMinutes($this->automation->follow_up_delay_minutes));
+
+        Log::info('Follow-up agendado', [
+            'contact'  => $this->contact->name,
+            'delay'    => $this->automation->follow_up_delay_minutes . ' min',
+        ]);
     }
 }

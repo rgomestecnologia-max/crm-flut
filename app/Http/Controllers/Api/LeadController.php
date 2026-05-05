@@ -424,28 +424,7 @@ class LeadController extends Controller
 
             SendAutomationMessage::dispatch($automation, $contact, $card)->delay($delay);
 
-            // Dispara follow-up (lembrete) se configurado
-            if ($automation->follow_up_message && $automation->follow_up_delay_minutes > 0) {
-                // Busca/cria conversa para ter o ID
-                $followUpConv = \App\Models\Conversation::where('contact_id', $contact->id)
-                    ->where('is_group', false)
-                    ->whereIn('status', ['open', 'pending'])
-                    ->latest()
-                    ->first();
-
-                if ($followUpConv) {
-                    $followUpDelay = $delay
-                        ? $delay->copy()->addMinutes($automation->follow_up_delay_minutes)
-                        : now()->addMinutes(($automation->delay_minutes ?? 0) + $automation->follow_up_delay_minutes);
-
-                    \App\Jobs\SendFollowUpMessage::dispatch(
-                        $contact->id,
-                        $followUpConv->id,
-                        $stageId,
-                        $automation->follow_up_message,
-                    )->delay($followUpDelay);
-                }
-            }
+            // Follow-up é agendado dentro do SendAutomationMessage após criar a conversa
         }
 
         Log::info('API /leads processado com sucesso', [
