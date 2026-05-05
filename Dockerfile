@@ -22,10 +22,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
 
 # PHP config otimizado pra produção
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && echo "upload_max_filesize=25M" >> "$PHP_INI_DIR/conf.d/custom.ini" \
-    && echo "post_max_size=30M" >> "$PHP_INI_DIR/conf.d/custom.ini" \
-    && echo "memory_limit=256M" >> "$PHP_INI_DIR/conf.d/custom.ini" \
-    && echo "max_execution_time=60" >> "$PHP_INI_DIR/conf.d/custom.ini"
+    && echo "upload_max_filesize=100M" >> "$PHP_INI_DIR/conf.d/custom.ini" \
+    && echo "post_max_size=110M" >> "$PHP_INI_DIR/conf.d/custom.ini" \
+    && echo "memory_limit=512M" >> "$PHP_INI_DIR/conf.d/custom.ini" \
+    && echo "max_execution_time=120" >> "$PHP_INI_DIR/conf.d/custom.ini"
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

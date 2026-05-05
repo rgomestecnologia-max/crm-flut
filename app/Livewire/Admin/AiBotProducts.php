@@ -159,7 +159,7 @@ class AiBotProducts extends Component
     {
         $this->validate([
             'batchFiles'   => 'required|array|min:1',
-            'batchFiles.*' => 'file|max:20480|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,gif',
+            'batchFiles.*' => 'file|max:102400|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,gif',
         ]);
 
         $uploaded = 0;
