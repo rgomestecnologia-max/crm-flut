@@ -605,6 +605,20 @@ class ProcessEvolutionMessage implements ShouldQueue
         $type      = $data['messageType'] ?? 'conversation';
         $messageId = $data['key']['id'] ?? null;
 
+        // Desembrulha mensagens ephemeral, viewOnce e viewOnceV2
+        if (!empty($msg['ephemeralMessage']['message'])) {
+            $msg  = $msg['ephemeralMessage']['message'];
+            $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
+        }
+        if (!empty($msg['viewOnceMessage']['message'])) {
+            $msg  = $msg['viewOnceMessage']['message'];
+            $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
+        }
+        if (!empty($msg['viewOnceMessageV2']['message'])) {
+            $msg  = $msg['viewOnceMessageV2']['message'];
+            $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
+        }
+
         // Texto puro
         if (!empty($msg['conversation'])) {
             return [$msg['conversation'], 'text', null, null];
