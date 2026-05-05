@@ -350,6 +350,20 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             $conversation->update(['last_message_at' => now(), 'status' => 'open']);
 
+            // ── Humano respondeu pelo WhatsApp direto → para a IA ──
+            if ($fromMe && !$isGroup) {
+                // Se a conversa não tem waiting_human_reason, marca para parar IA
+                if (!$conversation->waiting_human_reason) {
+                    $conversation->update(['waiting_human_reason' => 'Atendente respondeu pelo WhatsApp']);
+                    Log::info('Humano detectado via WhatsApp direto, IA parada', [
+                        'conv' => $conversation->id, 'content' => substr($content, 0, 50),
+                    ]);
+                }
+                // Broadcast e return — não processa bot/automação para mensagens fromMe
+                try { broadcast(new \App\Events\MessageReceived($message))->toOthers(); } catch (\Throwable) {}
+                return;
+            }
+
             // ── Resposta SIM/NÃO com auto-reply e move etapa (configurável por automação) ──
             if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content) {
                 $sourceAuto = $conversation->sourceAutomation;
@@ -401,13 +415,11 @@ class ProcessEvolutionMessage implements ShouldQueue
             // Recarrega conversa do banco para pegar waiting_human_reason atualizado
             $conversation->refresh();
             // Não dispara IA se conversa está aguardando atendente humano
-            // ou se agente humano já ENVIOU mensagem na conversa
-            $humanSent = $conversation->assigned_to
-                ? Message::where('conversation_id', $conversation->id)
-                    ->where('sender_type', 'agent')
-                    ->whereNotNull('sender_id')
-                    ->exists()
-                : false;
+            // ou se agente humano já ENVIOU mensagem na conversa (via CRM ou WhatsApp direto)
+            $humanSent = Message::where('conversation_id', $conversation->id)
+                ->where('sender_type', 'agent')
+                ->whereNotNull('sender_id')
+                ->exists();
             if (!$fromMe && !$conversation->waiting_human_reason && !$humanSent) {
                 try {
                     $menuConfig = ChatbotMenuConfig::current();
