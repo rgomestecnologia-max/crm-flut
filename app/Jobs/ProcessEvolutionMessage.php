@@ -434,10 +434,12 @@ class ProcessEvolutionMessage implements ShouldQueue
 
                     $skipMenu = $automationAi && $botConfig && $botConfig->is_active && $botConfig->hasKey();
 
-                    // Não envia chatbot em grupos se reply_in_groups está desativado
-                    $skipGroups = $isGroup && $menuConfig && !$menuConfig->reply_in_groups;
+                    // Não envia chatbot/IA em grupos se reply_in_groups está desativado
+                    $skipGroups = $isGroup && (!$menuConfig || !$menuConfig->reply_in_groups);
 
-                    if ($aiOnlyForAutomation) {
+                    if ($skipGroups) {
+                        // Grupo sem permissão de bot — ignora
+                    } elseif ($aiOnlyForAutomation) {
                         // Conversa direta em empresa com IA restrita → Aguardando
                         $conversation->update(['waiting_human_reason' => 'Atendimento direto - aguardando humano']);
                         Message::create([
@@ -447,7 +449,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                             'type'            => 'text',
                             'delivery_status' => 'sent',
                         ]);
-                    } elseif ($menuConfig && $menuConfig->is_active && !$skipMenu && !$skipGroups) {
+                    } elseif ($menuConfig && $menuConfig->is_active && !$skipMenu) {
                         \App\Jobs\ProcessMenuBot::dispatch($conversation, $menuConfig, $botConfig, $message->id);
                     } elseif ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
                         \App\Jobs\ProcessBotResponse::dispatch($conversation, $botConfig, $message->id);

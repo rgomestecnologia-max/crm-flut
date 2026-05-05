@@ -79,8 +79,8 @@ class EvolutionWebhookController extends Controller
             if (!isset($contacts[0])) $contacts = [$contacts];
 
             foreach ($contacts as $contactData) {
-                $jid      = $contactData['id'] ?? null;
-                $photoUrl = $contactData['profilePictureUrl'] ?? null;
+                $jid      = $contactData['remoteJid'] ?? $contactData['id'] ?? null;
+                $photoUrl = $contactData['profilePicUrl'] ?? $contactData['profilePictureUrl'] ?? null;
                 $pushName = $contactData['pushName'] ?? null;
 
                 if (!$jid || !$photoUrl) continue;
