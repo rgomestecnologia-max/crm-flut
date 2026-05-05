@@ -56,7 +56,7 @@ class AiBotProducts extends Component
     public function save(): void
     {
         $this->validate([
-            'type'        => 'required|in:produto,servico',
+            'type'        => 'required|in:produto,servico,documento',
             'name'        => 'required|string|max:200',
             'description' => 'nullable|string|max:5000',
             'show_price'  => 'boolean',
@@ -152,21 +152,118 @@ class AiBotProducts extends Component
         $this->reset(['editingId','name','description','show_price','price','photo','existingPhoto','document','documentText','existingDocument']);
     }
 
+    // ── Upload em lote ─────────────────────────────────────────────────
+    public $batchFiles = [];
+
+    public function uploadBatch(): void
+    {
+        $this->validate([
+            'batchFiles'   => 'required|array|min:1',
+            'batchFiles.*' => 'file|max:20480|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,gif',
+        ]);
+
+        $uploaded = 0;
+
+        foreach ($this->batchFiles as $file) {
+            $ext      = strtolower($file->getClientOriginalExtension());
+            $filename = $file->getClientOriginalName();
+            $mime     = $file->getMimeType();
+            $isImage  = str_starts_with($mime, 'image/');
+
+            $data = [
+                'type'      => 'documento',
+                'name'      => pathinfo($filename, PATHINFO_FILENAME),
+                'is_active' => true,
+            ];
+
+            if ($isImage) {
+                // Comprime imagem antes de salvar
+                $compressed = $this->compressImage($file);
+                if ($compressed) {
+                    $path = 'ai-bot/products/' . uniqid() . '.jpg';
+                    MediaStorage::put($path, $compressed);
+                    $data['photo_path'] = $path;
+                } else {
+                    $data['photo_path'] = MediaStorage::store($file, 'ai-bot/products');
+                }
+            } else {
+                // Documento: salva arquivo + extrai texto
+                $data['document_path'] = MediaStorage::store($file, 'ai-bot/documents');
+                $extracted = $this->extractText($file);
+                if ($extracted) {
+                    $data['document_content'] = mb_substr($extracted, 0, 50000);
+                }
+            }
+
+            AiBotProduct::create($data);
+            $uploaded++;
+        }
+
+        $this->batchFiles = [];
+        $this->dispatch('toast', type: 'success', message: "{$uploaded} arquivo(s) enviado(s) com sucesso.");
+    }
+
     /**
-     * Extrai texto de um arquivo PDF ou TXT.
+     * Comprime imagem para max 1200px de largura, qualidade 70%.
+     */
+    private function compressImage($file): ?string
+    {
+        try {
+            $path = $file->getRealPath();
+            $info = getimagesize($path);
+            if (!$info) return null;
+
+            $mime = $info['mime'];
+            $img = match ($mime) {
+                'image/jpeg' => imagecreatefromjpeg($path),
+                'image/png'  => imagecreatefrompng($path),
+                'image/webp' => imagecreatefromwebp($path),
+                'image/gif'  => imagecreatefromgif($path),
+                default      => null,
+            };
+
+            if (!$img) return null;
+
+            $width  = imagesx($img);
+            $height = imagesy($img);
+            $maxW   = 1200;
+
+            if ($width > $maxW) {
+                $newH = (int) ($height * ($maxW / $width));
+                $resized = imagecreatetruecolor($maxW, $newH);
+                imagecopyresampled($resized, $img, 0, 0, 0, 0, $maxW, $newH, $width, $height);
+                imagedestroy($img);
+                $img = $resized;
+            }
+
+            ob_start();
+            imagejpeg($img, null, 70);
+            $binary = ob_get_clean();
+            imagedestroy($img);
+
+            return $binary;
+        } catch (\Throwable $e) {
+            \Log::warning('compressImage failed', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * Extrai texto de PDF, TXT, DOCX ou XLSX.
      */
     private function extractText($file): ?string
     {
         try {
             $ext = strtolower($file->getClientOriginalExtension());
+            $path = $file->getRealPath();
 
             if ($ext === 'txt') {
-                return file_get_contents($file->getRealPath());
+                return file_get_contents($path);
             }
 
             if ($ext === 'pdf') {
                 $parser = new \Smalot\PdfParser\Parser();
-                $pdf = $parser->parseFile($file->getRealPath());
+                $pdf = $parser->parseFile($path);
                 $text = $pdf->getText();
                 $text = preg_replace('/[ \t]+/', ' ', $text);
                 $text = preg_replace('/\n{3,}/', "\n\n", $text);
@@ -175,11 +272,75 @@ class AiBotProducts extends Component
                 return $text;
             }
 
+            // DOCX: extrai texto dos XMLs internos
+            if (in_array($ext, ['docx', 'doc'])) {
+                return $this->extractFromDocx($path);
+            }
+
+            // XLSX/XLS: extrai texto das células
+            if (in_array($ext, ['xlsx', 'xls'])) {
+                return $this->extractFromXlsx($path);
+            }
+
             return null;
         } catch (\Throwable $e) {
-            \Log::warning('extractText failed', ['error' => $e->getMessage()]);
+            \Log::warning('extractText failed', ['ext' => $ext ?? '?', 'error' => $e->getMessage()]);
             return null;
         }
+    }
+
+    private function extractFromDocx(string $path): ?string
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) return null;
+
+        $xml = $zip->getFromName('word/document.xml');
+        $zip->close();
+        if (!$xml) return null;
+
+        // Remove XML tags, mantém texto
+        $text = strip_tags($xml);
+        $text = preg_replace('/\s+/', ' ', $text);
+        return trim($text) ?: null;
+    }
+
+    private function extractFromXlsx(string $path): ?string
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) return null;
+
+        $lines = [];
+
+        // Lê shared strings
+        $sharedXml = $zip->getFromName('xl/sharedStrings.xml');
+        $strings = [];
+        if ($sharedXml) {
+            preg_match_all('/<t[^>]*>([^<]+)<\/t>/u', $sharedXml, $matches);
+            $strings = $matches[1] ?? [];
+        }
+
+        // Lê sheet1
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+
+        if ($sheetXml && !empty($strings)) {
+            preg_match_all('/<c[^>]*t="s"[^>]*><v>(\d+)<\/v><\/c>/u', $sheetXml, $matches);
+            foreach ($matches[1] ?? [] as $idx) {
+                if (isset($strings[(int)$idx])) {
+                    $lines[] = $strings[(int)$idx];
+                }
+            }
+        }
+
+        // Também pega valores numéricos
+        if ($sheetXml) {
+            preg_match_all('/<c[^>]*(?!t="s")[^>]*><v>([^<]+)<\/v><\/c>/u', $sheetXml, $matches);
+            foreach ($matches[1] ?? [] as $val) {
+                $lines[] = $val;
+            }
+        }
+
+        return !empty($lines) ? implode("\n", $lines) : null;
     }
 
     public function render()

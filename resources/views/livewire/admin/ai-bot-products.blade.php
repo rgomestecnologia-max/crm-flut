@@ -6,7 +6,7 @@
         @foreach($products->groupBy('type') as $groupType => $items)
         <div>
             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">
-                {{ $groupType === 'produto' ? 'Produtos' : 'Serviços' }}
+                {{ match($groupType) { 'produto' => 'Produtos', 'servico' => 'Serviços', 'documento' => 'Documentos/Arquivos', default => $groupType } }}
                 <span class="ml-1 text-gray-600">({{ $items->count() }})</span>
             </p>
             <div class="space-y-2">
@@ -287,17 +287,51 @@
     </div>
     @endif
 
-    {{-- Botão adicionar (sempre visível quando form fechado) --}}
+    {{-- Botões de ação (quando form fechado) --}}
     @if(!$showForm)
-    <button wire:click="openCreate"
-            class="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-surface-600
-                   hover:border-accent/50 hover:bg-accent/5 text-gray-500 hover:text-accent text-sm font-medium
-                   rounded-xl transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Adicionar produto ou serviço
-    </button>
+    <div class="flex gap-3">
+        <button wire:click="openCreate"
+                class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-surface-600
+                       hover:border-accent/50 hover:bg-accent/5 text-gray-500 hover:text-accent text-sm font-medium
+                       rounded-xl transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Adicionar produto ou serviço
+        </button>
+    </div>
+
+    {{-- Upload em lote --}}
+    <div style="background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.15); border-radius:14px; padding:20px; margin-top:12px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <svg width="16" height="16" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <p style="font-size:13px; font-weight:700; color:white;">Upload em lote</p>
+            <span style="font-size:10px; color:rgba(255,255,255,0.3);">PDF, Word, Excel, Fotos</span>
+        </div>
+        <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:12px;">Envie múltiplos arquivos de uma vez. Fotos são comprimidas automaticamente. PDFs/Word/Excel têm o texto extraído para a IA usar como contexto.</p>
+
+        <div style="display:flex; gap:10px; align-items:flex-end;">
+            <div style="flex:1;">
+                <input type="file" wire:model="batchFiles" multiple
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.gif"
+                       style="width:100%; font-size:12px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px;">
+            </div>
+            <button wire:click="uploadBatch" wire:loading.attr="disabled" wire:target="batchFiles,uploadBatch"
+                    style="padding:9px 18px; font-size:12px; font-weight:700; color:white; background:linear-gradient(135deg, #3b82f6, #2563eb); border:none; border-radius:8px; cursor:pointer; white-space:nowrap;">
+                <span wire:loading.remove wire:target="batchFiles,uploadBatch">Enviar</span>
+                <span wire:loading wire:target="batchFiles">Carregando...</span>
+                <span wire:loading wire:target="uploadBatch">Processando...</span>
+            </button>
+        </div>
+
+        @if($batchFiles)
+        <div style="margin-top:10px; font-size:11px; color:rgba(59,130,246,0.7);">
+            {{ count($batchFiles) }} arquivo(s) selecionado(s)
+        </div>
+        @endif
+
+        @error('batchFiles.*') <p style="font-size:11px; color:#f87171; margin-top:6px;">{{ $message }}</p> @enderror
+    </div>
     @endif
 
 </div>

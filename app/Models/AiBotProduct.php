@@ -24,7 +24,12 @@ class AiBotProduct extends Model
 
     public function getTypeLabel(): string
     {
-        return $this->type === 'produto' ? 'Produto' : 'Serviço';
+        return match ($this->type) {
+            'produto'   => 'Produto',
+            'servico'   => 'Serviço',
+            'documento' => 'Documento',
+            default     => $this->type,
+        };
     }
 
     public function getPhotoUrl(): ?string
