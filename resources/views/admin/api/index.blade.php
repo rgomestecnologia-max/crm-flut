@@ -192,10 +192,21 @@
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
-                            <p style="font-size:13px; font-weight:600; color:white;">IA responde direto à dúvida do lead</p>
+                            <p style="font-size:13px; font-weight:600; color:white;">IA responde direto à dúvida + Saudação via IA</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            Quando o lead chega com uma <strong style="color:rgba(255,255,255,0.6);">mensagem/dúvida do site</strong>, a IA já envia a saudação e responde à dúvida automaticamente, sem mensagem fixa intermediária. A conversa já fica com IA ativa.
+                            Quando o lead chega com uma <strong style="color:rgba(255,255,255,0.6);">mensagem/dúvida do site</strong>, a IA envia saudação (gerada com <strong style="color:rgba(255,255,255,0.6);">variações automáticas</strong>) e responde à dúvida.
+                            A conversa fica com IA ativa. IA <strong style="color:rgba(255,255,255,0.6);">não responde em grupos</strong>.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">IA atende apenas clientes do site</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            A IA só responde clientes que vieram pela <strong style="color:rgba(255,255,255,0.6);">automação do site</strong>.
+                            Clientes diretos vão para <strong style="color:rgba(255,255,255,0.6);">Aguardando</strong> (atendimento humano).
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
@@ -205,6 +216,15 @@
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
                             Quando o cliente responde e o card está na etapa <strong style="color:rgba(255,255,255,0.6);">Novo</strong>, move automaticamente para <strong style="color:rgba(255,255,255,0.6);">Em negociação</strong>.
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Handoff automático para atendente</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Quando a IA não sabe responder ou o cliente pede atendente humano, a conversa vai para <strong style="color:rgba(255,255,255,0.6);">Aguardando</strong> e a IA para de responder.
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
