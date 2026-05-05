@@ -46,11 +46,21 @@
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
-                            <p style="font-size:13px; font-weight:600; color:white;">Lead do site via API + delay 3 min</p>
+                            <p style="font-size:13px; font-weight:600; color:white;">Lead do site via API + delay 5 min + Saudação via IA</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
                             Lead chega via <strong style="color:rgba(255,255,255,0.6);">POST /api/leads</strong>, card criado em <strong style="color:rgba(255,255,255,0.6);">Vendas → Novo</strong>.
-                            Mensagem automática enviada com delay de 3 minutos.
+                            Aguarda <strong style="color:rgba(255,255,255,0.6);">5 minutos</strong> antes de enviar. A mensagem é gerada pela <strong style="color:rgba(255,255,255,0.6);">IA com variações</strong> (nunca repete a mesma).
+                        </p>
+                    </div>
+                    <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
+                            <p style="font-size:13px; font-weight:600; color:white;">Follow-up (lembrete) após 2 horas</p>
+                        </div>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
+                            Se o cliente <strong style="color:rgba(255,255,255,0.6);">não responder</strong> a primeira mensagem em 2 horas, envia lembrete automático via IA.
+                            Cancela se respondeu, se reservou, ou se a conversa foi encerrada.
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
@@ -59,8 +69,9 @@
                             <p style="font-size:13px; font-weight:600; color:white;">IA atende apenas clientes do site</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            A IA só responde clientes que vieram pela <strong style="color:rgba(255,255,255,0.6);">automação do site</strong> (receberam a primeira mensagem).
-                            Clientes que mandam direto no WhatsApp vão automaticamente para <strong style="color:rgba(255,255,255,0.6);">Aguardando</strong> (atendimento humano).
+                            A IA só responde clientes que vieram pela <strong style="color:rgba(255,255,255,0.6);">automação do site</strong>.
+                            Clientes diretos vão para <strong style="color:rgba(255,255,255,0.6);">Aguardando</strong> (atendimento humano).
+                            IA <strong style="color:rgba(255,255,255,0.6);">não responde em grupos</strong>.
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
@@ -69,35 +80,37 @@
                             <p style="font-size:13px; font-weight:600; color:white;">Mover Novo → Em negociação ao responder</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            Quando o cliente responde e o card está na etapa <strong style="color:rgba(255,255,255,0.6);">Novo</strong>,
-                            move automaticamente para <strong style="color:rgba(255,255,255,0.6);">Em negociação</strong>.
+                            Quando o cliente responde e o card está em <strong style="color:rgba(255,255,255,0.6);">Novo</strong>,
+                            move para <strong style="color:rgba(255,255,255,0.6);">Em negociação</strong>.
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
-                            <p style="font-size:13px; font-weight:600; color:white;">Handoff automático para atendente</p>
+                            <p style="font-size:13px; font-weight:600; color:white;">Reserva via site → move card + confirma + encerra IA</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            Quando a IA não sabe responder ou o cliente pede atendente humano, a conversa vai para o filtro <strong style="color:rgba(255,255,255,0.6);">Aguardando</strong> e a IA para de responder.
+                            Quando reserva chega via API (tipo_vaga diferente de simulação): move card para <strong style="color:rgba(255,255,255,0.6);">Reservado</strong>,
+                            remove duplicatas do dia, envia <strong style="color:rgba(255,255,255,0.6);">confirmação via IA</strong> e <strong style="color:rgba(255,255,255,0.6);">encerra a conversa</strong>.
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
-                            <p style="font-size:13px; font-weight:600; color:white;">Lead salvo no menu Leads</p>
+                            <p style="font-size:13px; font-weight:600; color:white;">Anti-duplicata por dia</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            Todo lead via API é salvo no menu <strong style="color:rgba(255,255,255,0.6);">Leads</strong> com tag <strong style="color:rgba(255,255,255,0.6);">site</strong>.
+                            <strong style="color:rgba(255,255,255,0.6);">Mesmo dia:</strong> simulação repetida atualiza card existente. Reserva move o card mais recente.
+                            <strong style="color:rgba(255,255,255,0.6);">Dias diferentes:</strong> cria cards novos (jornadas independentes).
                         </p>
                     </div>
                     <div style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:14px 16px;">
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">ATIVA</span>
-                            <p style="font-size:13px; font-weight:600; color:white;">Anti-duplicata de cards</p>
+                            <p style="font-size:13px; font-weight:600; color:white;">Handoff automático + Lead salvo</p>
                         </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.35); line-height:1.6;">
-                            Se o mesmo contato já tem card no mesmo pipeline/etapa, <strong style="color:rgba(255,255,255,0.6);">atualiza</strong> em vez de criar duplicata.
+                            IA transfere para humano quando não sabe. Todo lead via API é salvo em <strong style="color:rgba(255,255,255,0.6);">Leads</strong> com tag <strong style="color:rgba(255,255,255,0.6);">site</strong>.
                         </p>
                     </div>
                 </div>
