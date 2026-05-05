@@ -369,7 +369,7 @@ class SendAutomationMessage implements ShouldQueue
             $conversation->id,
             $stageId,
             $this->automation->follow_up_message,
-        )->delay(now()->addMinutes($this->automation->follow_up_delay_minutes));
+        )->delay($this->automation->follow_up_delay_minutes * 60);
 
         Log::info('Follow-up agendado', [
             'contact'  => $this->contact->name,
