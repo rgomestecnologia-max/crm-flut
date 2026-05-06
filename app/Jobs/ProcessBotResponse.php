@@ -279,6 +279,17 @@ class ProcessBotResponse implements ShouldQueue
 
             // Mensagem de documento (quando a IA inclui [DOC:url])
             if ($docUrl) {
+                // Busca nome real do documento pelo path na URL
+                $docFilename = 'documento.pdf';
+                $docPath = parse_url($docUrl, PHP_URL_PATH);
+                if ($docPath) {
+                    $product = AiBotProduct::where('document_path', ltrim($docPath, '/'))->first()
+                        ?? AiBotProduct::whereRaw("? LIKE CONCAT('%', document_path)", [$docPath])->first();
+                    if ($product) {
+                        $docFilename = $product->name . '.pdf';
+                    }
+                }
+
                 $docMessage = Message::create([
                     'conversation_id' => $this->conversation->id,
                     'sender_type'     => 'agent',
@@ -286,7 +297,7 @@ class ProcessBotResponse implements ShouldQueue
                     'content'         => null,
                     'type'            => 'document',
                     'media_url'       => $docUrl,
-                    'media_filename'  => 'catalogo.pdf',
+                    'media_filename'  => $docFilename,
                     'delivery_status' => 'pending',
                 ]);
                 $this->conversation->update(['last_message_at' => now()]);
