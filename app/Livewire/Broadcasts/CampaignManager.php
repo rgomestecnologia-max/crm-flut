@@ -230,8 +230,11 @@ class CampaignManager extends Component
         $this->existingImageUrl = null;
 
         if ($campaign->html_content) {
-            if (preg_match('/background:(#[0-9a-fA-F]{3,6})/', $campaign->html_content, $m)) {
-                $this->emailColor = $m[1];
+            // A cor do header é o segundo background (o primeiro é #ffffff do container)
+            if (preg_match_all('/background:(#[0-9a-fA-F]{3,6})/', $campaign->html_content, $m) && count($m[1]) >= 2) {
+                $this->emailColor = $m[1][1];
+            } elseif (!empty($m[1][0]) && $m[1][0] !== '#ffffff') {
+                $this->emailColor = $m[1][0];
             }
             preg_match_all('/src="([^"]+)"/', $campaign->html_content, $imgs);
             foreach ($imgs[1] ?? [] as $url) {
