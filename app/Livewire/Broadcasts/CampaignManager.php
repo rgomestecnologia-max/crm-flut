@@ -39,6 +39,7 @@ class CampaignManager extends Component
 
     // Detail
     public ?int $viewingCampaignId = null;
+    public ?int $previewingId      = null;
 
     public function openCreate(): void
     {
@@ -181,6 +182,16 @@ class CampaignManager extends Component
             ? "Campanha agendada para " . \Carbon\Carbon::parse($this->scheduled_at)->format('d/m/Y H:i') . " ({$recipientCount} leads)."
             : "Campanha {$this->channel} criada com {$recipientCount} destinatários.";
         $this->dispatch('toast', type: 'success', message: $msg);
+    }
+
+    public function previewCampaign(int $id): void
+    {
+        $this->previewingId = $this->previewingId === $id ? null : $id;
+    }
+
+    public function closePreview(): void
+    {
+        $this->previewingId = null;
     }
 
     public function pauseCampaign(int $id): void

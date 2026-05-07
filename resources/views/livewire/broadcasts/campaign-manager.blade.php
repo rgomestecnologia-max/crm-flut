@@ -89,6 +89,10 @@
                                     {{ $campaign->status === 'completed' ? 'Re-disparar' : 'Disparar' }}
                                 </button>
                                 @endif
+                                <button wire:click="previewCampaign({{ $campaign->id }})"
+                                        style="padding:4px 10px; font-size:11px; color:#a78bfa; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:6px; cursor:pointer;">
+                                    Preview
+                                </button>
                                 <button wire:click="viewRuns({{ $campaign->id }})"
                                         style="padding:4px 10px; font-size:11px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; cursor:pointer;">
                                     Histórico
@@ -110,6 +114,43 @@
         </div>
 
         <div style="margin-top:12px;">{{ $campaigns->links() }}</div>
+
+        {{-- Preview da campanha --}}
+        @if($previewingId)
+        @php $previewCampaign = $campaigns->firstWhere('id', $previewingId) ?? \App\Models\BroadcastCampaign::find($previewingId); @endphp
+        @if($previewCampaign)
+        <div style="margin-top:16px; background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(139,92,246,0.2); border-radius:16px; padding:20px; position:relative;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:2px; height:16px; background:#a78bfa; border-radius:2px;"></div>
+                    <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase;">Preview: {{ $previewCampaign->name }}</h3>
+                </div>
+                <button wire:click="closePreview" style="font-size:18px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; line-height:1;">&times;</button>
+            </div>
+
+            @if($previewCampaign->channel === 'email')
+                {{-- Email preview --}}
+                <div style="background:white; border-radius:8px; overflow:hidden; max-width:600px; margin:0 auto;">
+                    {!! $previewCampaign->html_content !!}
+                </div>
+            @else
+                {{-- WhatsApp preview --}}
+                <div style="max-width:400px; margin:0 auto; background:#0b141a; border-radius:12px; padding:16px;">
+                    @if($previewCampaign->image_path)
+                    <div style="margin-bottom:8px;">
+                        <img src="{{ \App\Services\MediaStorage::url($previewCampaign->image_path) }}" alt=""
+                             style="width:100%; border-radius:8px;">
+                    </div>
+                    @endif
+                    <div style="background:#202c33; border-radius:8px; padding:10px 14px;">
+                        <p style="font-size:13px; color:#e9edef; line-height:1.6; white-space:pre-wrap;">{{ $previewCampaign->message }}</p>
+                        <p style="font-size:10px; color:rgba(255,255,255,0.3); text-align:right; margin-top:4px;">Chatbot • agora</p>
+                    </div>
+                </div>
+            @endif
+        </div>
+        @endif
+        @endif
     </div>
 
     {{-- Modal: Nova Campanha --}}
