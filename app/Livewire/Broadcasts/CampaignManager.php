@@ -156,11 +156,11 @@ class CampaignManager extends Component
                 ]);
             }
 
-            $delay = \Carbon\Carbon::parse($this->scheduled_at);
+            $delaySeconds = max(0, \Carbon\Carbon::parse($this->scheduled_at)->diffInSeconds(now()));
             if ($campaign->channel === 'email') {
-                SendBroadcastEmail::dispatch($run)->delay($delay);
+                SendBroadcastEmail::dispatch($run)->delay($delaySeconds);
             } else {
-                SendBroadcastMessage::dispatch($run)->delay($delay);
+                SendBroadcastMessage::dispatch($run)->delay($delaySeconds);
             }
         }
 
@@ -197,23 +197,22 @@ class CampaignManager extends Component
         }
 
         // Agendamento ou disparo imediato
-        $delay = null;
+        $delaySeconds = 0;
         if ($campaign->scheduled_at && \Carbon\Carbon::parse($campaign->scheduled_at)->isFuture()) {
-            $delay = \Carbon\Carbon::parse($campaign->scheduled_at);
+            $delaySeconds = max(0, \Carbon\Carbon::parse($campaign->scheduled_at)->diffInSeconds(now()));
             $campaign->update(['status' => 'scheduled']);
         } else {
             $campaign->update(['status' => 'sending', 'started_at' => now()]);
         }
 
         if ($campaign->channel === 'email') {
-            $job = SendBroadcastEmail::dispatch($run);
+            SendBroadcastEmail::dispatch($run)->delay($delaySeconds);
         } else {
-            $job = SendBroadcastMessage::dispatch($run);
+            SendBroadcastMessage::dispatch($run)->delay($delaySeconds);
         }
 
-        if ($delay) {
-            $job->delay($delay);
-            $this->dispatch('toast', type: 'success', message: "Campanha agendada para " . $delay->format('d/m/Y H:i') . " ({$recipients->count()} leads).");
+        if ($delaySeconds > 0) {
+            $this->dispatch('toast', type: 'success', message: "Campanha agendada para " . \Carbon\Carbon::parse($campaign->scheduled_at)->format('d/m/Y H:i') . " ({$recipients->count()} leads).");
         } else {
             $this->dispatch('toast', type: 'success', message: "Disparando {$campaign->channel} para {$recipients->count()} leads...");
         }
