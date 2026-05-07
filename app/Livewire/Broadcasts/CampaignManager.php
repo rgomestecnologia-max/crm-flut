@@ -84,14 +84,14 @@ class CampaignManager extends Component
 
         $htmlContent = null;
         if ($this->channel === 'email') {
-            // Upload logo e imagem
-            $logoUrl = '';
+            // Upload logo e imagem (novo upload ou manter existente)
+            $logoUrl = $this->existingLogoUrl ?? '';
             if ($this->emailLogo) {
                 $logoPath = \App\Services\MediaStorage::store($this->emailLogo, 'broadcasts/logos');
                 $logoUrl = \App\Services\MediaStorage::url($logoPath);
                 if (!str_starts_with($logoUrl, 'http')) $logoUrl = url($logoUrl);
             }
-            $imgUrl = '';
+            $imgUrl = $this->existingImageUrl ?? '';
             if ($this->emailImage) {
                 $imgPath = \App\Services\MediaStorage::store($this->emailImage, 'broadcasts/images');
                 $imgUrl = \App\Services\MediaStorage::url($imgPath);
@@ -135,7 +135,6 @@ class CampaignManager extends Component
             'total_recipients' => $recipientCount,
         ];
 
-        // Só sobrescreve html/imagem se teve novo upload
         if ($htmlContent) $campaignData['html_content'] = $htmlContent;
         if ($imagePath ?? $emailImagePath) $campaignData['image_path'] = $imagePath ?? $emailImagePath;
 
