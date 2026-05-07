@@ -42,6 +42,7 @@
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
                         <th style="padding:10px 16px; text-align:left; font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.08em;">Nome</th>
                         <th style="padding:10px 16px; text-align:left; font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase;">Telefone</th>
+                        <th style="padding:10px 16px; text-align:left; font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase;">Email</th>
                         <th style="padding:10px 16px; text-align:left; font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase;">Tags</th>
                         <th style="padding:10px 16px; text-align:center; font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase;">Status</th>
                         <th style="padding:10px 16px; text-align:right; font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase;">Ações</th>
@@ -52,6 +53,7 @@
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.03);" class="hover:bg-white/[0.02]">
                         <td style="padding:10px 16px; font-size:12px; color:white; font-weight:500;">{{ $lead->name ?: '—' }}</td>
                         <td style="padding:10px 16px; font-size:12px; color:rgba(255,255,255,0.5);">{{ $lead->phone }}</td>
+                        <td style="padding:10px 16px; font-size:11px; color:rgba(255,255,255,0.35);">{{ $lead->email ?? '—' }}</td>
                         <td style="padding:10px 16px;">
                             @foreach(($lead->tags ?? []) as $tag)
                             <span style="display:inline-block; padding:2px 8px; font-size:10px; font-weight:600; border-radius:20px; background:rgba(59,130,246,0.1); color:#60a5fa; border:1px solid rgba(59,130,246,0.2); margin-right:4px;">{{ $tag }}</span>
