@@ -19,6 +19,7 @@ class LeadManager extends Component
     public ?int    $editingId = null;
     public string  $name      = '';
     public string  $phone     = '';
+    public string  $email     = '';
     public string  $tags      = '';
     public bool    $is_active = true;
 
@@ -31,7 +32,7 @@ class LeadManager extends Component
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'phone', 'tags', 'is_active');
+        $this->reset('editingId', 'name', 'phone', 'email', 'tags', 'is_active');
         $this->is_active = true;
         $this->showForm  = true;
     }
@@ -42,6 +43,7 @@ class LeadManager extends Component
         $this->editingId = $id;
         $this->name      = $lead->name ?? '';
         $this->phone     = $lead->phone;
+        $this->email     = $lead->email ?? '';
         $this->tags      = is_array($lead->tags) ? implode(', ', $lead->tags) : '';
         $this->is_active = $lead->is_active;
         $this->showForm  = true;
@@ -52,6 +54,7 @@ class LeadManager extends Component
         $this->validate([
             'name'  => 'nullable|string|max:200',
             'phone' => 'required|string|max:30',
+            'email' => 'nullable|email|max:200',
         ]);
 
         $phone = preg_replace('/\D/', '', $this->phone);
@@ -66,6 +69,7 @@ class LeadManager extends Component
         $data = [
             'name'      => $this->name ?: null,
             'phone'     => $phone,
+            'email'     => $this->email ?: null,
             'tags'      => array_values(array_filter($tagsArray)),
             'is_active' => $this->is_active,
         ];

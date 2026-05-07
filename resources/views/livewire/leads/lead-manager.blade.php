@@ -103,6 +103,12 @@
                     @error('phone') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
                 </div>
                 <div>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em;">Email</label>
+                    <input wire:model="email" type="email" placeholder="contato@email.com"
+                           style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
+                    @error('email') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                </div>
+                <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em;">Tags (separar por vírgula)</label>
                     <input wire:model="tags" type="text" placeholder="cliente, vip, recontato"
                            style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
