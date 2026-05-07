@@ -30,6 +30,8 @@ class CampaignManager extends Component
     public        $emailLogo        = null;
     public        $emailImage       = null;
     public string $emailColor       = '#2563eb';
+    public ?string $existingLogoUrl  = null;
+    public ?string $existingImageUrl = null;
     public string $filterTag            = '';
     public string $recipientMode        = 'all';
     public string $meta_template_name   = '';
@@ -40,7 +42,7 @@ class CampaignManager extends Component
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode', 'scheduled_at');
+        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode', 'scheduled_at', 'existingLogoUrl', 'existingImageUrl');
         $this->emailColor = '#2563eb';
         $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
@@ -215,14 +217,38 @@ class CampaignManager extends Component
         $this->meta_template_name = $campaign->meta_template_name ?? '';
         $this->scheduled_at       = $campaign->scheduled_at ? \Carbon\Carbon::parse($campaign->scheduled_at)->format('Y-m-d\TH:i') : '';
         $this->interval_seconds   = $campaign->interval_seconds ?? 10;
-        $this->emailColor         = '#2563eb';
         $this->recipientMode      = 'all';
         $this->filterTag          = '';
         $this->campaignImage      = null;
         $this->emailLogo          = null;
         $this->emailImage         = null;
         $this->htmlContent        = $campaign->html_content ?? '';
-        $this->showForm           = true;
+
+        // Extrai cor do header, logo e imagem do HTML
+        $this->emailColor       = '#2563eb';
+        $this->existingLogoUrl  = null;
+        $this->existingImageUrl = null;
+
+        if ($campaign->html_content) {
+            if (preg_match('/background:(#[0-9a-fA-F]{3,6})/', $campaign->html_content, $m)) {
+                $this->emailColor = $m[1];
+            }
+            preg_match_all('/src="([^"]+)"/', $campaign->html_content, $imgs);
+            foreach ($imgs[1] ?? [] as $url) {
+                if (str_contains($url, 'logos/')) {
+                    $this->existingLogoUrl = $url;
+                } elseif (str_contains($url, 'images/') || str_contains($url, 'broadcasts/')) {
+                    $this->existingImageUrl = $url;
+                }
+            }
+        }
+
+        // Imagem WhatsApp
+        if ($campaign->image_path && $campaign->channel === 'whatsapp') {
+            $this->existingImageUrl = \App\Services\MediaStorage::url($campaign->image_path);
+        }
+
+        $this->showForm = true;
     }
 
     public function send(int $campaignId): void

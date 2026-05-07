@@ -208,6 +208,11 @@
                     <div style="margin-top:4px; padding:8px; background:rgba(255,255,255,0.04); border-radius:6px; text-align:center;">
                         <img src="{{ $emailLogo->temporaryUrl() }}" alt="Logo" style="max-height:50px;">
                     </div>
+                    @elseif($existingLogoUrl)
+                    <div style="margin-top:4px; padding:8px; background:rgba(255,255,255,0.04); border-radius:6px; text-align:center;">
+                        <img src="{{ $existingLogoUrl }}" alt="Logo atual" style="max-height:50px;">
+                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:4px;">Logo atual (envie novo para substituir)</p>
+                    </div>
                     @endif
                 </div>
 
@@ -219,6 +224,11 @@
                     @if($emailImage)
                     <div style="margin-top:4px;">
                         <img src="{{ $emailImage->temporaryUrl() }}" alt="Preview" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                    </div>
+                    @elseif($existingImageUrl && $channel === 'email')
+                    <div style="margin-top:4px;">
+                        <img src="{{ $existingImageUrl }}" alt="Imagem atual" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:4px;">Imagem atual (envie nova para substituir)</p>
                     </div>
                     @endif
                 </div>
