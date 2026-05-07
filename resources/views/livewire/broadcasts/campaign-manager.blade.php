@@ -130,7 +130,7 @@
 
             @if($previewCampaign->channel === 'email')
                 {{-- Email preview --}}
-                <div style="background:white; border-radius:8px; overflow:hidden; max-width:600px; margin:0 auto;">
+                <div style="background:white; border-radius:8px; overflow-y:auto; max-height:500px; max-width:600px; margin:0 auto;">
                     {!! $previewCampaign->html_content !!}
                 </div>
             @else
