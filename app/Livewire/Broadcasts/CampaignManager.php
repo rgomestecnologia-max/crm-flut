@@ -182,6 +182,28 @@ class CampaignManager extends Component
         $this->dispatch('toast', type: 'success', message: $msg);
     }
 
+    public function pauseCampaign(int $id): void
+    {
+        $campaign = BroadcastCampaign::findOrFail($id);
+        $campaign->update(['status' => 'paused']);
+
+        // Remove jobs pendentes da fila para esta campanha
+        $runIds = BroadcastCampaignRun::where('campaign_id', $id)->pluck('id');
+        if ($runIds->isNotEmpty()) {
+            BroadcastCampaignRun::whereIn('id', $runIds)->update(['status' => 'paused']);
+
+            // Remove jobs da fila que correspondem a esta campanha
+            \DB::table('jobs')->where(function ($q) use ($runIds) {
+                foreach ($runIds as $runId) {
+                    $q->orWhere('payload', 'like', "%\"run\":{\"id\":{$runId}%")
+                      ->orWhere('payload', 'like', "%BroadcastCampaignRun\",\"id\":{$runId}%");
+                }
+            })->delete();
+        }
+
+        $this->dispatch('toast', type: 'success', message: 'Campanha pausada.');
+    }
+
     public function editCampaign(int $id): void
     {
         $campaign = BroadcastCampaign::findOrFail($id);

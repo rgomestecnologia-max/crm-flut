@@ -28,6 +28,7 @@ class SendBroadcastEmail implements ShouldQueue
         $campaign = $run->campaign;
 
         if (!$campaign) return;
+        if ($campaign->status === 'paused') { Log::info('SendBroadcastEmail: campanha pausada, ignorando'); return; }
 
         app(\App\Services\CurrentCompany::class)->set((int) $campaign->company_id, persist: false);
         $company = app(\App\Services\CurrentCompany::class)->model();

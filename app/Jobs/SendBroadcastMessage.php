@@ -32,6 +32,7 @@ class SendBroadcastMessage implements ShouldQueue
             Log::error('SendBroadcastMessage: campaign not found', ['run_id' => $run->id]);
             return;
         }
+        if ($campaign->status === 'paused') { Log::info('SendBroadcastMessage: campanha pausada, ignorando'); return; }
 
         app(\App\Services\CurrentCompany::class)->set((int) $campaign->company_id, persist: false);
 

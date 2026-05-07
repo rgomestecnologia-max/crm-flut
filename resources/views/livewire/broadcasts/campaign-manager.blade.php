@@ -54,6 +54,7 @@
                                 $statusColors = [
                                     'draft'     => ['bg' => 'rgba(107,114,128,0.12)', 'color' => '#9ca3af', 'border' => 'rgba(107,114,128,0.2)', 'label' => 'Rascunho'],
                                     'scheduled' => ['bg' => 'rgba(245,158,11,0.12)', 'color' => '#fbbf24', 'border' => 'rgba(245,158,11,0.2)', 'label' => 'Agendada'],
+                                    'paused'    => ['bg' => 'rgba(245,158,11,0.12)', 'color' => '#f97316', 'border' => 'rgba(245,158,11,0.2)', 'label' => 'Pausada'],
                                     'sending'   => ['bg' => 'rgba(59,130,246,0.12)', 'color' => '#60a5fa', 'border' => 'rgba(59,130,246,0.2)', 'label' => 'Enviando'],
                                     'completed' => ['bg' => 'rgba(34,197,94,0.12)', 'color' => '#4ade80', 'border' => 'rgba(34,197,94,0.2)', 'label' => 'Concluída'],
                                     'failed'    => ['bg' => 'rgba(239,68,68,0.12)', 'color' => '#f87171', 'border' => 'rgba(239,68,68,0.2)', 'label' => 'Falhou'],
@@ -70,13 +71,19 @@
                         <td style="padding:10px 16px; font-size:11px; color:rgba(255,255,255,0.4);">{{ $campaign->created_at->format('d/m/Y H:i') }}</td>
                         <td style="padding:10px 16px; text-align:right;">
                             <div style="display:flex; justify-content:flex-end; gap:6px;">
-                                @if(in_array($campaign->status, ['draft', 'scheduled']))
+                                @if(in_array($campaign->status, ['draft', 'scheduled', 'paused']))
                                 <button wire:click="editCampaign({{ $campaign->id }})"
                                         style="padding:4px 10px; font-size:11px; color:#60a5fa; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:6px; cursor:pointer;">
                                     Editar
                                 </button>
                                 @endif
-                                @if($campaign->status === 'draft' || $campaign->status === 'completed')
+                                @if(in_array($campaign->status, ['sending', 'scheduled']))
+                                <button wire:click="pauseCampaign({{ $campaign->id }})" wire:confirm="Pausar campanha?"
+                                        style="padding:4px 10px; font-size:11px; color:#fbbf24; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:6px; cursor:pointer;">
+                                    Pausar
+                                </button>
+                                @endif
+                                @if(in_array($campaign->status, ['draft', 'completed', 'paused']))
                                 <button wire:click="send({{ $campaign->id }})" wire:confirm="Disparar mensagem para todos os leads ativos?"
                                         style="padding:4px 10px; font-size:11px; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">
                                     {{ $campaign->status === 'completed' ? 'Re-disparar' : 'Disparar' }}
