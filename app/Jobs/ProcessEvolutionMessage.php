@@ -318,6 +318,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                 Log::info('ProcessEvolutionMessage: mensagem sem conteúdo suportado', [
                     'messageType' => $messageType,
                     'remoteJid'   => $remoteJid,
+                    'msgKeys'     => array_keys($data['message'] ?? []),
                 ]);
                 return;
             }
@@ -613,18 +614,20 @@ class ProcessEvolutionMessage implements ShouldQueue
         $type      = $data['messageType'] ?? 'conversation';
         $messageId = $data['key']['id'] ?? null;
 
-        // Desembrulha mensagens ephemeral, viewOnce e viewOnceV2
-        if (!empty($msg['ephemeralMessage']['message'])) {
-            $msg  = $msg['ephemeralMessage']['message'];
-            $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
+        // Desembrulha wrappers: ephemeral, viewOnce, viewOnceV2, forwarded
+        foreach (['ephemeralMessage', 'viewOnceMessage', 'viewOnceMessageV2'] as $wrapper) {
+            if (!empty($msg[$wrapper]['message'])) {
+                $msg  = $msg[$wrapper]['message'];
+                $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
+            }
         }
-        if (!empty($msg['viewOnceMessage']['message'])) {
-            $msg  = $msg['viewOnceMessage']['message'];
-            $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
+
+        // Mensagem encaminhada com imagem/caption
+        if (!empty($msg['imageWithCaptionMessage']['message']['imageMessage'])) {
+            $msg['imageMessage'] = $msg['imageWithCaptionMessage']['message']['imageMessage'];
         }
-        if (!empty($msg['viewOnceMessageV2']['message'])) {
-            $msg  = $msg['viewOnceMessageV2']['message'];
-            $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
+        if (!empty($msg['videoWithCaptionMessage']['message']['videoMessage'])) {
+            $msg['videoMessage'] = $msg['videoWithCaptionMessage']['message']['videoMessage'];
         }
 
         // Texto puro
