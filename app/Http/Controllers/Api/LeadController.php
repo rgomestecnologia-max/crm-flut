@@ -405,10 +405,11 @@ class LeadController extends Controller
 
                     $disparo = $agendamento->copy()->subHours(24);
                     if ($disparo->isFuture()) {
-                        $delay = $disparo;
+                        $delay = max(1, $disparo->diffInSeconds(now()));
                         Log::info('API /leads: disparo 24h antes', [
                             'agendamento' => $agendamento->format('d/m/Y H:i'),
                             'disparo'     => $disparo->format('d/m/Y H:i'),
+                            'delay_seconds' => $delay,
                         ]);
                     }
                     // Se agendamento em menos de 24h (mas futuro), envia imediatamente
@@ -419,7 +420,7 @@ class LeadController extends Controller
 
             // Se não tem delay calculado por data_hora, usa delay_minutes da automação
             if (!$delay && $automation->delay_minutes > 0) {
-                $delay = now()->addMinutes($automation->delay_minutes);
+                $delay = $automation->delay_minutes * 60;
             }
 
             SendAutomationMessage::dispatch($automation, $contact, $card)->delay($delay);
