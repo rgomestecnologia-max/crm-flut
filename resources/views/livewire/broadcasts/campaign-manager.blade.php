@@ -130,7 +130,7 @@
 
             @if($previewCampaign->channel === 'email')
                 {{-- Email preview (iframe para isolar estilos) --}}
-                <iframe srcdoc="{{ e($previewCampaign->html_content) }}"
+                <iframe srcdoc='{!! str_replace("'", "&#39;", $previewCampaign->html_content) !!}'
                         style="width:100%; max-width:600px; height:500px; border:none; border-radius:8px; background:white; display:block; margin:0 auto;">
                 </iframe>
             @else
