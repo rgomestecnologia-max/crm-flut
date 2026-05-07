@@ -127,13 +127,15 @@ class CampaignManager extends Component
             'message'             => $this->message ?: null,
             'meta_template_name'  => ($this->channel === 'whatsapp' && $this->meta_template_name) ? $this->meta_template_name : null,
             'subject'          => $this->channel === 'email' ? $this->subject : null,
-            'html_content'     => $htmlContent,
-            'image_path'       => $imagePath ?? $emailImagePath,
             'status'           => $isScheduled ? 'scheduled' : 'draft',
             'interval_seconds' => $this->interval_seconds,
             'scheduled_at'     => $this->scheduled_at ?: null,
             'total_recipients' => $recipientCount,
         ];
+
+        // Só sobrescreve html/imagem se teve novo upload
+        if ($htmlContent) $campaignData['html_content'] = $htmlContent;
+        if ($imagePath ?? $emailImagePath) $campaignData['image_path'] = $imagePath ?? $emailImagePath;
 
         if ($this->editingId) {
             $campaign = BroadcastCampaign::findOrFail($this->editingId);
@@ -183,16 +185,22 @@ class CampaignManager extends Component
     public function editCampaign(int $id): void
     {
         $campaign = BroadcastCampaign::findOrFail($id);
-        $this->editingId        = $id;
-        $this->channel          = $campaign->channel;
-        $this->name             = $campaign->name;
-        $this->message          = $campaign->message ?? '';
-        $this->subject          = $campaign->subject ?? '';
+        $this->editingId          = $id;
+        $this->channel            = $campaign->channel;
+        $this->name               = $campaign->name;
+        $this->message            = $campaign->message ?? '';
+        $this->subject            = $campaign->subject ?? '';
         $this->meta_template_name = $campaign->meta_template_name ?? '';
-        $this->scheduled_at     = $campaign->scheduled_at ? \Carbon\Carbon::parse($campaign->scheduled_at)->format('Y-m-d\TH:i') : '';
-        $this->interval_seconds = $campaign->interval_seconds ?? 10;
-        $this->emailColor       = '#2563eb';
-        $this->showForm         = true;
+        $this->scheduled_at       = $campaign->scheduled_at ? \Carbon\Carbon::parse($campaign->scheduled_at)->format('Y-m-d\TH:i') : '';
+        $this->interval_seconds   = $campaign->interval_seconds ?? 10;
+        $this->emailColor         = '#2563eb';
+        $this->recipientMode      = 'all';
+        $this->filterTag          = '';
+        $this->campaignImage      = null;
+        $this->emailLogo          = null;
+        $this->emailImage         = null;
+        $this->htmlContent        = $campaign->html_content ?? '';
+        $this->showForm           = true;
     }
 
     public function send(int $campaignId): void
