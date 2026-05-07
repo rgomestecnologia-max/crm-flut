@@ -78,6 +78,7 @@ class CampaignManager extends Component
         if ($this->channel === 'whatsapp' && $this->campaignImage) {
             $imagePath = \App\Services\MediaStorage::store($this->campaignImage, 'broadcasts');
         }
+        $emailImagePath = null;
 
         $htmlContent = null;
         if ($this->channel === 'email') {
@@ -93,6 +94,7 @@ class CampaignManager extends Component
                 $imgPath = \App\Services\MediaStorage::store($this->emailImage, 'broadcasts/images');
                 $imgUrl = \App\Services\MediaStorage::url($imgPath);
                 if (!str_starts_with($imgUrl, 'http')) $imgUrl = url($imgUrl);
+                $emailImagePath = $imgPath;
             }
 
             $color = $this->emailColor ?: '#2563eb';
@@ -126,7 +128,7 @@ class CampaignManager extends Component
             'meta_template_name'  => ($this->channel === 'whatsapp' && $this->meta_template_name) ? $this->meta_template_name : null,
             'subject'          => $this->channel === 'email' ? $this->subject : null,
             'html_content'     => $htmlContent,
-            'image_path'       => $imagePath,
+            'image_path'       => $imagePath ?? $emailImagePath,
             'status'           => $isScheduled ? 'scheduled' : 'draft',
             'interval_seconds' => $this->interval_seconds,
             'scheduled_at'     => $this->scheduled_at ?: null,
@@ -175,7 +177,9 @@ class CampaignManager extends Component
     {
         $campaign = BroadcastCampaign::findOrFail($campaignId);
 
-        $recipients = $this->getAllActiveContacts();
+        // Usa o channel da campanha para filtrar corretamente
+        $this->channel = $campaign->channel;
+        $recipients = $this->getRecipientsQuery()->get();
         $run = BroadcastCampaignRun::create([
             'campaign_id'      => $campaign->id,
             'status'           => 'sending',
