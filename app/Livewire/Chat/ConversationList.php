@@ -273,8 +273,12 @@ class ConversationList extends Component
         };
 
         if ($this->search) {
-            $query->whereHas('contact', fn($q) => $q->where('name', 'like', "%{$this->search}%")
-                ->orWhere('phone', 'like', "%{$this->search}%"));
+            $search = $this->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('contact', fn($cq) => $cq->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%"))
+                  ->orWhereHas('messages', fn($mq) => $mq->where('content', 'like', "%{$search}%"));
+            });
         }
 
         $conversations = $query->take($this->perPage)->get();

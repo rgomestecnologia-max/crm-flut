@@ -105,7 +105,7 @@
             </svg>
             <input wire:model.live.debounce.300ms="search"
                    type="text"
-                   placeholder="Buscar contato..."
+                   placeholder="Buscar contato ou mensagem..."
                    style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:8px 12px 8px 32px; font-size:12px; color:white; outline:none; transition:all 0.2s; font-family:inherit; box-sizing:border-box;"
                    onfocus="this.style.borderColor='rgba(178,255,0,0.4)'; this.style.background='rgba(178,255,0,0.04)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.06)'"
                    onblur="this.style.borderColor='rgba(255,255,255,0.07)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'"
