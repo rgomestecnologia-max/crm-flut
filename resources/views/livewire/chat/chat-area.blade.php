@@ -1,3 +1,10 @@
+@php
+function senderColor(?string $identifier): string {
+    if (!$identifier) return '#b2ff00';
+    $colors = ['#f472b6','#fb923c','#facc15','#4ade80','#22d3ee','#818cf8','#c084fc','#fb7185','#34d399','#a78bfa','#f59e0b','#06b6d4','#ec4899','#8b5cf6','#10b981','#f97316'];
+    return $colors[crc32($identifier) % count($colors)];
+}
+@endphp
 <div class="flex flex-col h-full"
      wire:poll.5s
      x-data="chatArea()"
@@ -259,19 +266,19 @@
                             <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word;">
                                 @if($msg->reply_to_id && $msg->replyTo)
                                 <div style="background:rgba(255,255,255,0.06); border-left:3px solid #b2ff00; border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; cursor:pointer;">
-                                    <p style="font-size:10px; font-weight:700; color:#b2ff00; margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
+                                    <p style="font-size:10px; font-weight:700; color:{{ senderColor($msg->replyTo->sender_phone ?? $msg->replyTo->sender_name) }}; margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
                                     <p style="font-size:11px; color:rgba(255,255,255,0.4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($msg->replyTo->content ?? ($msg->replyTo->type === 'image' ? '📷 Foto' : '📎 Mídia'), 60) }}</p>
                                 </div>
                                 @endif
                                 @if($msg->sender_name)
-                                    <p style="font-size:11px; font-weight:700; color:#b2ff00; margin-bottom:3px;">{{ $msg->sender_name }}</p>
+                                    <p style="font-size:11px; font-weight:700; color:{{ senderColor($msg->sender_phone ?? $msg->sender_name) }}; margin-bottom:3px;">{{ $msg->sender_name }}</p>
                                 @endif
                                 <span style="white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</span>
                             </div>
                         @elseif($msg->type === 'image')
                             <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid rgba(255,255,255,0.06);">
                                 @if($msg->sender_name)
-                                    <p style="font-size:11px; font-weight:700; color:#b2ff00; padding:8px 10px 4px;">{{ $msg->sender_name }}</p>
+                                    <p style="font-size:11px; font-weight:700; color:{{ senderColor($msg->sender_phone ?? $msg->sender_name) }}; padding:8px 10px 4px;">{{ $msg->sender_name }}</p>
                                 @endif
                                 <img src="{{ $msg->media_thumb_url ?? $msg->media_url }}" alt="Imagem"
                                      loading="lazy"
