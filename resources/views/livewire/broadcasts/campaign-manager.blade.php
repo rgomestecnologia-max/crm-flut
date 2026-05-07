@@ -45,6 +45,7 @@
                             @php
                                 $statusColors = [
                                     'draft'     => ['bg' => 'rgba(107,114,128,0.12)', 'color' => '#9ca3af', 'border' => 'rgba(107,114,128,0.2)', 'label' => 'Rascunho'],
+                                    'scheduled' => ['bg' => 'rgba(245,158,11,0.12)', 'color' => '#fbbf24', 'border' => 'rgba(245,158,11,0.2)', 'label' => 'Agendada'],
                                     'sending'   => ['bg' => 'rgba(59,130,246,0.12)', 'color' => '#60a5fa', 'border' => 'rgba(59,130,246,0.2)', 'label' => 'Enviando'],
                                     'completed' => ['bg' => 'rgba(34,197,94,0.12)', 'color' => '#4ade80', 'border' => 'rgba(34,197,94,0.2)', 'label' => 'Concluída'],
                                     'failed'    => ['bg' => 'rgba(239,68,68,0.12)', 'color' => '#f87171', 'border' => 'rgba(239,68,68,0.2)', 'label' => 'Falhou'],
@@ -52,6 +53,9 @@
                                 $s = $statusColors[$campaign->status] ?? $statusColors['draft'];
                             @endphp
                             <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:{{ $s['bg'] }}; color:{{ $s['color'] }}; border:1px solid {{ $s['border'] }};">{{ $s['label'] }}</span>
+                            @if($campaign->scheduled_at && in_array($campaign->status, ['scheduled', 'draft']))
+                            <p style="font-size:9px; color:rgba(245,158,11,0.7); margin-top:3px;">{{ \Carbon\Carbon::parse($campaign->scheduled_at)->format('d/m/Y H:i') }}</p>
+                            @endif
                         </td>
                         <td style="padding:10px 16px; text-align:center; font-size:12px; color:#4ade80; font-weight:600;">{{ $campaign->sent_count ?? 0 }}</td>
                         <td style="padding:10px 16px; text-align:center; font-size:12px; color:#f87171; font-weight:600;">{{ $campaign->failed_count ?? 0 }}</td>

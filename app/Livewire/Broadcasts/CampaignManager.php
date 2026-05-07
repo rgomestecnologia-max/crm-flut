@@ -117,7 +117,9 @@ class CampaignManager extends Component
             $htmlContent .= '</div>';
         }
 
-        BroadcastCampaign::create([
+        $isScheduled = $this->scheduled_at && \Carbon\Carbon::parse($this->scheduled_at)->isFuture();
+
+        $campaign = BroadcastCampaign::create([
             'name'                => $this->name,
             'channel'             => $this->channel,
             'message'             => $this->message ?: null,
@@ -125,15 +127,48 @@ class CampaignManager extends Component
             'subject'          => $this->channel === 'email' ? $this->subject : null,
             'html_content'     => $htmlContent,
             'image_path'       => $imagePath,
-            'status'           => 'draft',
+            'status'           => $isScheduled ? 'scheduled' : 'draft',
             'interval_seconds' => $this->interval_seconds,
             'scheduled_at'     => $this->scheduled_at ?: null,
             'total_recipients' => $recipientCount,
             'created_by'       => auth()->id(),
         ]);
 
+        // Se agendada, já cria o run e agenda o job
+        if ($isScheduled) {
+            $recipients = $this->getRecipientsQuery()->get();
+            $run = BroadcastCampaignRun::create([
+                'campaign_id'      => $campaign->id,
+                'status'           => 'scheduled',
+                'total_recipients' => $recipients->count(),
+                'sent_count'       => 0,
+                'failed_count'     => 0,
+                'created_by'       => auth()->id(),
+            ]);
+
+            foreach ($recipients as $contact) {
+                BroadcastCampaignRecipient::create([
+                    'campaign_id'          => $campaign->id,
+                    'run_id'               => $run->id,
+                    'broadcast_contact_id' => $contact->id,
+                    'phone'                => $contact->phone,
+                    'status'               => 'pending',
+                ]);
+            }
+
+            $delay = \Carbon\Carbon::parse($this->scheduled_at);
+            if ($campaign->channel === 'email') {
+                SendBroadcastEmail::dispatch($run)->delay($delay);
+            } else {
+                SendBroadcastMessage::dispatch($run)->delay($delay);
+            }
+        }
+
         $this->showForm = false;
-        $this->dispatch('toast', type: 'success', message: "Campanha {$this->channel} criada com {$recipientCount} destinatários.");
+        $msg = $isScheduled
+            ? "Campanha agendada para " . \Carbon\Carbon::parse($this->scheduled_at)->format('d/m/Y H:i') . " ({$recipientCount} leads)."
+            : "Campanha {$this->channel} criada com {$recipientCount} destinatários.";
+        $this->dispatch('toast', type: 'success', message: $msg);
     }
 
     public function send(int $campaignId): void
