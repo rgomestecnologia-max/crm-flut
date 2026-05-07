@@ -26,7 +26,7 @@ class SendBroadcastMessage implements ShouldQueue
     public function handle(): void
     {
         $run      = $this->run->fresh();
-        $campaign = $run->campaign;
+        $campaign = \App\Models\BroadcastCampaign::withoutGlobalScopes()->find($run->campaign_id);
 
         if (!$campaign) {
             Log::error('SendBroadcastMessage: campaign not found', ['run_id' => $run->id]);

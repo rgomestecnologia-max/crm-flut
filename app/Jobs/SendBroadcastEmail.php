@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\BroadcastCampaign;
 use App\Models\BroadcastCampaignRecipient;
 use App\Models\BroadcastCampaignRun;
 use App\Models\GlobalSetting;
@@ -25,7 +26,7 @@ class SendBroadcastEmail implements ShouldQueue
     public function handle(): void
     {
         $run      = $this->run->fresh();
-        $campaign = $run->campaign;
+        $campaign = BroadcastCampaign::withoutGlobalScopes()->find($run->campaign_id);
 
         if (!$campaign) return;
         if ($campaign->status === 'paused') { Log::info('SendBroadcastEmail: campanha pausada, ignorando'); return; }
