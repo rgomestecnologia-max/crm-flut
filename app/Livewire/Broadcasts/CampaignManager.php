@@ -115,7 +115,7 @@ class CampaignManager extends Component
             // Body
             $htmlContent .= '<div style="padding:30px;"><p style="font-size:14px;color:#333;line-height:1.6;">' . $body . '</p></div>';
             // Footer
-            $htmlContent .= '<div style="padding:15px;text-align:center;border-top:1px solid #eee;"><p style="font-size:11px;color:#999;">Se não deseja mais receber, ignore este email.</p></div>';
+            // Footer de unsubscribe é adicionado no SendBroadcastEmail
             $htmlContent .= '</div>';
         }
 
