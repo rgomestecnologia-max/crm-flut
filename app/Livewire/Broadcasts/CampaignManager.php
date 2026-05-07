@@ -220,7 +220,8 @@ class CampaignManager extends Component
         $allTags = BroadcastContact::whereNotNull('tags')->pluck('tags')->flatten()->unique()->sort()->values();
         $activeLeadCount = BroadcastContact::where('is_active', true)->count();
         $emailLeadCount = BroadcastContact::where('is_active', true)->whereNotNull('email')->where('email', '!=', '')->count();
-        $sendgridConfigured = !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
+        $company = app(\App\Services\CurrentCompany::class)->model();
+        $sendgridConfigured = !empty($company?->sendgrid_api_key) || !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
         $isMeta        = WhatsAppProvider::isMeta();
         $metaTemplates = $isMeta ? MetaMessageTemplate::approved()->orderBy('name')->get() : collect();
 

@@ -26,6 +26,11 @@ class CompanyManager extends Component
     public        $logoUpload = null;
     public ?string $existingLogo = null;
 
+    // SendGrid por empresa
+    public string $sendgrid_api_key    = '';
+    public string $sendgrid_from_email = '';
+    public string $sendgrid_from_name  = '';
+
     /** Estado do modal de exclusão. */
     public ?int   $deletingId       = null;
     public string $deleteConfirmName = '';
@@ -49,14 +54,17 @@ class CompanyManager extends Component
     public function openEdit(int $id): void
     {
         $company = Company::findOrFail($id);
-        $this->editingId    = $id;
-        $this->name         = $company->name;
-        $this->color        = $company->color ?? '#b2ff00';
-        $this->is_active    = $company->is_active;
-        $this->modules      = $company->modules ?? [];
-        $this->existingLogo = $company->logo;
-        $this->logoUpload   = null;
-        $this->showForm     = true;
+        $this->editingId          = $id;
+        $this->name               = $company->name;
+        $this->color              = $company->color ?? '#b2ff00';
+        $this->is_active          = $company->is_active;
+        $this->modules            = $company->modules ?? [];
+        $this->existingLogo       = $company->logo;
+        $this->logoUpload         = null;
+        $this->sendgrid_api_key   = $company->sendgrid_api_key ?? '';
+        $this->sendgrid_from_email= $company->sendgrid_from_email ?? '';
+        $this->sendgrid_from_name = $company->sendgrid_from_name ?? '';
+        $this->showForm           = true;
     }
 
     public function removeExistingLogo(): void
@@ -102,6 +110,9 @@ class CompanyManager extends Component
             'color'     => $validated['color'] ?? '#b2ff00',
             'is_active' => $validated['is_active'] ?? true,
             'modules'   => $validModules,
+            'sendgrid_api_key'    => $this->sendgrid_api_key ?: null,
+            'sendgrid_from_email' => $this->sendgrid_from_email ?: null,
+            'sendgrid_from_name'  => $this->sendgrid_from_name ?: null,
         ];
 
         if ($this->editingId) {

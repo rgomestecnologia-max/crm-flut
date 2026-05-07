@@ -13,6 +13,7 @@ class Company extends Model
 
     protected $fillable = [
         'name', 'slug', 'color', 'logo', 'is_active', 'modules', 'whatsapp_provider',
+        'sendgrid_api_key', 'sendgrid_from_email', 'sendgrid_from_name',
     ];
 
     protected function casts(): array

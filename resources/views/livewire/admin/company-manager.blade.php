@@ -130,6 +130,32 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             @endforeach
         </div>
 
+        {{-- SendGrid por empresa --}}
+        @if($editingId)
+        <div style="margin-top:18px; padding:16px; background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.15); border-radius:12px;">
+            <p style="font-size:11px; font-weight:700; color:rgba(59,130,246,0.8); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">SendGrid (Disparo Email)</p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <div>
+                    <label style="font-size:10px; color:rgba(255,255,255,0.3); display:block; margin-bottom:3px;">API Key</label>
+                    <input wire:model="sendgrid_api_key" type="password" placeholder="SG.xxxxx"
+                           style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:7px 12px; font-size:12px; color:white; outline:none; font-family:monospace;">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div>
+                        <label style="font-size:10px; color:rgba(255,255,255,0.3); display:block; margin-bottom:3px;">Email remetente</label>
+                        <input wire:model="sendgrid_from_email" type="email" placeholder="noreply@empresa.com"
+                               style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:7px 12px; font-size:12px; color:white; outline:none;">
+                    </div>
+                    <div>
+                        <label style="font-size:10px; color:rgba(255,255,255,0.3); display:block; margin-bottom:3px;">Nome remetente</label>
+                        <input wire:model="sendgrid_from_name" type="text" placeholder="Nome da empresa"
+                               style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:7px 12px; font-size:12px; color:white; outline:none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div style="display:flex; align-items:center; gap:14px; margin-top:18px;">
             <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
                 <input type="checkbox" wire:model="is_active" style="width:14px; height:14px; accent-color:#b2ff00; cursor:pointer;">

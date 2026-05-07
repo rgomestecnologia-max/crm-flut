@@ -29,9 +29,13 @@ class SendBroadcastEmail implements ShouldQueue
 
         if (!$campaign) return;
 
-        $apiKey    = GlobalSetting::get('sendgrid_api_key');
-        $fromEmail = GlobalSetting::get('sendgrid_from_email');
-        $fromName  = GlobalSetting::get('sendgrid_from_name', 'CRM Flut');
+        app(\App\Services\CurrentCompany::class)->set((int) $campaign->company_id, persist: false);
+        $company = app(\App\Services\CurrentCompany::class)->model();
+
+        // Busca config SendGrid da empresa, fallback para global
+        $apiKey    = $company?->sendgrid_api_key ?: GlobalSetting::get('sendgrid_api_key');
+        $fromEmail = $company?->sendgrid_from_email ?: GlobalSetting::get('sendgrid_from_email');
+        $fromName  = $company?->sendgrid_from_name ?: GlobalSetting::get('sendgrid_from_name', 'CRM Flut');
 
         if (!$apiKey || !$fromEmail) {
             $run->update(['status' => 'failed']);
