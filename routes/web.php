@@ -5,8 +5,13 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\AgentController;
+use App\Http\Controllers\UnsubscribeController;
 use App\Livewire\Auth\SelectCompany;
 use Illuminate\Support\Facades\Route;
+
+// Unsubscribe (público, sem auth)
+Route::get('/unsubscribe/{token}', [UnsubscribeController::class, 'show'])->name('unsubscribe');
+Route::post('/unsubscribe/{token}', [UnsubscribeController::class, 'process']);
 
 // Auth
 Route::middleware('guest')->group(function () {

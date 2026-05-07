@@ -33,6 +33,12 @@
                     @forelse($campaigns as $campaign)
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
                         <td style="padding:10px 16px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                @if($campaign->image_path)
+                                <img src="{{ \App\Services\MediaStorage::url($campaign->image_path) }}" alt=""
+                                     style="width:40px; height:40px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.08); flex-shrink:0;">
+                                @endif
+                                <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <p style="font-size:12px; font-weight:600; color:white;">{{ $campaign->name }}</p>
                                 <span style="font-size:9px; font-weight:700; padding:1px 6px; border-radius:20px; background:{{ ($campaign->channel ?? 'whatsapp') === 'email' ? 'rgba(59,130,246,0.12)' : 'rgba(34,197,94,0.12)' }}; color:{{ ($campaign->channel ?? 'whatsapp') === 'email' ? '#60a5fa' : '#4ade80' }}; border:1px solid {{ ($campaign->channel ?? 'whatsapp') === 'email' ? 'rgba(59,130,246,0.2)' : 'rgba(34,197,94,0.2)' }};">
@@ -40,6 +46,8 @@
                                 </span>
                             </div>
                             <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px;">{{ Str::limit($campaign->message ?? $campaign->subject, 60) }}</p>
+                                </div>
+                            </div>
                         </td>
                         <td style="padding:10px 16px; text-align:center;">
                             @php

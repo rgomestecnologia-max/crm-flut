@@ -84,6 +84,14 @@ class SendBroadcastEmail implements ShouldQueue
                         . '</div>';
                 }
 
+                // Link de descadastro obrigatório
+                $unsubToken = \App\Http\Controllers\UnsubscribeController::generateToken($email, $campaign->company_id);
+                $unsubUrl = url("/unsubscribe/{$unsubToken}");
+                $body .= '<div style="margin-top:30px; padding-top:15px; border-top:1px solid #eee; text-align:center;">'
+                    . '<p style="font-size:11px; color:#999;">Caso não queira mais receber nossos emails, '
+                    . '<a href="' . $unsubUrl . '" style="color:#999; text-decoration:underline;">clique aqui para cancelar a inscrição</a>.</p>'
+                    . '</div>';
+
                 $response = Http::withHeaders([
                     'Authorization' => "Bearer {$apiKey}",
                     'Content-Type'  => 'application/json',

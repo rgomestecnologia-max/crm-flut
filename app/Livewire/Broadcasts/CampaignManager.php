@@ -243,7 +243,9 @@ class CampaignManager extends Component
 
     private function getRecipientsQuery()
     {
-        $query = BroadcastContact::where('is_active', true);
+        $query = BroadcastContact::where('is_active', true)
+            ->where(fn($q) => $q->whereNull('tags')->orWhereJsonDoesntContain('tags', 'unsubscribe'));
+
         if ($this->recipientMode === 'tag' && $this->filterTag) {
             $query->whereJsonContains('tags', $this->filterTag);
         }
