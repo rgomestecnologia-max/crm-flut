@@ -121,7 +121,7 @@ class CampaignManager extends Component
 
         $isScheduled = $this->scheduled_at && \Carbon\Carbon::parse($this->scheduled_at)->isFuture();
 
-        $campaign = BroadcastCampaign::create([
+        $campaignData = [
             'name'                => $this->name,
             'channel'             => $this->channel,
             'message'             => $this->message ?: null,
@@ -133,8 +133,15 @@ class CampaignManager extends Component
             'interval_seconds' => $this->interval_seconds,
             'scheduled_at'     => $this->scheduled_at ?: null,
             'total_recipients' => $recipientCount,
-            'created_by'       => auth()->id(),
-        ]);
+        ];
+
+        if ($this->editingId) {
+            $campaign = BroadcastCampaign::findOrFail($this->editingId);
+            $campaign->update($campaignData);
+        } else {
+            $campaignData['created_by'] = auth()->id();
+            $campaign = BroadcastCampaign::create($campaignData);
+        }
 
         // Se agendada, já cria o run e agenda o job
         if ($isScheduled) {
@@ -173,6 +180,21 @@ class CampaignManager extends Component
         $this->dispatch('toast', type: 'success', message: $msg);
     }
 
+    public function editCampaign(int $id): void
+    {
+        $campaign = BroadcastCampaign::findOrFail($id);
+        $this->editingId        = $id;
+        $this->channel          = $campaign->channel;
+        $this->name             = $campaign->name;
+        $this->message          = $campaign->message ?? '';
+        $this->subject          = $campaign->subject ?? '';
+        $this->meta_template_name = $campaign->meta_template_name ?? '';
+        $this->scheduled_at     = $campaign->scheduled_at ? \Carbon\Carbon::parse($campaign->scheduled_at)->format('Y-m-d\TH:i') : '';
+        $this->interval_seconds = $campaign->interval_seconds ?? 10;
+        $this->emailColor       = '#2563eb';
+        $this->showForm         = true;
+    }
+
     public function send(int $campaignId): void
     {
         $campaign = BroadcastCampaign::findOrFail($campaignId);
@@ -201,21 +223,28 @@ class CampaignManager extends Component
         }
 
         // Agendamento ou disparo imediato
-        $delaySeconds = 0;
-        if ($campaign->scheduled_at && \Carbon\Carbon::parse($campaign->scheduled_at)->isFuture()) {
-            $delaySeconds = max(0, \Carbon\Carbon::parse($campaign->scheduled_at)->diffInSeconds(now()));
+        $isScheduled = $campaign->scheduled_at && \Carbon\Carbon::parse($campaign->scheduled_at)->isFuture();
+
+        if ($isScheduled) {
+            $delaySeconds = max(1, \Carbon\Carbon::parse($campaign->scheduled_at)->diffInSeconds(now()));
             $campaign->update(['status' => 'scheduled']);
+
+            if ($campaign->channel === 'email') {
+                SendBroadcastEmail::dispatch($run)->delay($delaySeconds);
+            } else {
+                SendBroadcastMessage::dispatch($run)->delay($delaySeconds);
+            }
         } else {
             $campaign->update(['status' => 'sending', 'started_at' => now()]);
+
+            if ($campaign->channel === 'email') {
+                SendBroadcastEmail::dispatch($run);
+            } else {
+                SendBroadcastMessage::dispatch($run);
+            }
         }
 
-        if ($campaign->channel === 'email') {
-            SendBroadcastEmail::dispatch($run)->delay($delaySeconds);
-        } else {
-            SendBroadcastMessage::dispatch($run)->delay($delaySeconds);
-        }
-
-        if ($delaySeconds > 0) {
+        if ($isScheduled) {
             $this->dispatch('toast', type: 'success', message: "Campanha agendada para " . \Carbon\Carbon::parse($campaign->scheduled_at)->format('d/m/Y H:i') . " ({$recipients->count()} leads).");
         } else {
             $this->dispatch('toast', type: 'success', message: "Disparando {$campaign->channel} para {$recipients->count()} leads...");

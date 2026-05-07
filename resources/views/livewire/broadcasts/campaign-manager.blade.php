@@ -70,6 +70,12 @@
                         <td style="padding:10px 16px; font-size:11px; color:rgba(255,255,255,0.4);">{{ $campaign->created_at->format('d/m/Y H:i') }}</td>
                         <td style="padding:10px 16px; text-align:right;">
                             <div style="display:flex; justify-content:flex-end; gap:6px;">
+                                @if(in_array($campaign->status, ['draft', 'scheduled']))
+                                <button wire:click="editCampaign({{ $campaign->id }})"
+                                        style="padding:4px 10px; font-size:11px; color:#60a5fa; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:6px; cursor:pointer;">
+                                    Editar
+                                </button>
+                                @endif
                                 @if($campaign->status === 'draft' || $campaign->status === 'completed')
                                 <button wire:click="send({{ $campaign->id }})" wire:confirm="Disparar mensagem para todos os leads ativos?"
                                         style="padding:4px 10px; font-size:11px; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">
