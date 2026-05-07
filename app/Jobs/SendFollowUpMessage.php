@@ -30,12 +30,13 @@ class SendFollowUpMessage implements ShouldQueue
 
     public function handle(): void
     {
-        $contact = Contact::find($this->contactId);
-        $conversation = Conversation::find($this->conversationId);
-
-        if (!$contact || !$conversation) return;
+        $conversation = Conversation::withoutGlobalScopes()->find($this->conversationId);
+        if (!$conversation) return;
 
         app(\App\Services\CurrentCompany::class)->set((int) $conversation->company_id, persist: false);
+
+        $contact = Contact::find($this->contactId);
+        if (!$contact) return;
 
         // Verifica se o contato RESPONDEU desde que a mensagem foi enviada
         $contactReplied = Message::where('conversation_id', $this->conversationId)
