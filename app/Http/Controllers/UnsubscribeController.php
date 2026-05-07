@@ -36,9 +36,9 @@ class UnsubscribeController extends Controller
 
         if ($contact) {
             $tags = $contact->tags ?? [];
+            $unsubTag = 'unsub:' . \Illuminate\Support\Str::slug($reason);
             if (!in_array('unsubscribe', $tags)) {
-                $tags[] = 'unsubscribe';
-                $tags[] = 'unsub:' . \Illuminate\Support\Str::slug($reason);
+                $tags[] = $unsubTag;
             }
             $contact->update(['tags' => $tags]);
         }
