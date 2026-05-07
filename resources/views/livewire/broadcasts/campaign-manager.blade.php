@@ -129,10 +129,10 @@
             </div>
 
             @if($previewCampaign->channel === 'email')
-                {{-- Email preview --}}
-                <div style="background:white; border-radius:8px; overflow-y:auto; max-height:500px; max-width:600px; margin:0 auto;">
-                    {!! $previewCampaign->html_content !!}
-                </div>
+                {{-- Email preview (iframe para isolar estilos) --}}
+                <iframe srcdoc="{{ e($previewCampaign->html_content) }}"
+                        style="width:100%; max-width:600px; height:500px; border:none; border-radius:8px; background:white; display:block; margin:0 auto;">
+                </iframe>
             @else
                 {{-- WhatsApp preview --}}
                 <div style="max-width:400px; margin:0 auto; background:#0b141a; border-radius:12px; padding:16px;">
