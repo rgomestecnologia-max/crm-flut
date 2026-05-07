@@ -209,6 +209,12 @@
                 @endif
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div>
+                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Agendar disparo (opcional)</label>
+                        <input wire:model="scheduled_at" type="datetime-local"
+                               style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; color-scheme:dark;">
+                        <p style="font-size:9px; color:rgba(255,255,255,0.15); margin-top:2px;">Deixe vazio para disparar imediatamente</p>
+                    </div>
+                    <div>
                         <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Intervalo entre envios (seg)</label>
                         <input wire:model="interval_seconds" type="number" min="3" max="120"
                                style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">

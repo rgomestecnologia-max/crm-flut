@@ -33,13 +33,14 @@ class CampaignManager extends Component
     public string $filterTag            = '';
     public string $recipientMode        = 'all';
     public string $meta_template_name   = '';
+    public string $scheduled_at         = '';
 
     // Detail
     public ?int $viewingCampaignId = null;
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode');
+        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode', 'scheduled_at');
         $this->emailColor = '#2563eb';
         $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
@@ -126,6 +127,7 @@ class CampaignManager extends Component
             'image_path'       => $imagePath,
             'status'           => 'draft',
             'interval_seconds' => $this->interval_seconds,
+            'scheduled_at'     => $this->scheduled_at ?: null,
             'total_recipients' => $recipientCount,
             'created_by'       => auth()->id(),
         ]);
@@ -159,15 +161,27 @@ class CampaignManager extends Component
             ]);
         }
 
-        $campaign->update(['status' => 'sending', 'started_at' => now()]);
-
-        if ($campaign->channel === 'email') {
-            SendBroadcastEmail::dispatch($run);
+        // Agendamento ou disparo imediato
+        $delay = null;
+        if ($campaign->scheduled_at && \Carbon\Carbon::parse($campaign->scheduled_at)->isFuture()) {
+            $delay = \Carbon\Carbon::parse($campaign->scheduled_at);
+            $campaign->update(['status' => 'scheduled']);
         } else {
-            SendBroadcastMessage::dispatch($run);
+            $campaign->update(['status' => 'sending', 'started_at' => now()]);
         }
 
-        $this->dispatch('toast', type: 'success', message: "Disparando {$campaign->channel} para {$recipients->count()} leads...");
+        if ($campaign->channel === 'email') {
+            $job = SendBroadcastEmail::dispatch($run);
+        } else {
+            $job = SendBroadcastMessage::dispatch($run);
+        }
+
+        if ($delay) {
+            $job->delay($delay);
+            $this->dispatch('toast', type: 'success', message: "Campanha agendada para " . $delay->format('d/m/Y H:i') . " ({$recipients->count()} leads).");
+        } else {
+            $this->dispatch('toast', type: 'success', message: "Disparando {$campaign->channel} para {$recipients->count()} leads...");
+        }
     }
 
     public function viewRuns(int $campaignId): void
