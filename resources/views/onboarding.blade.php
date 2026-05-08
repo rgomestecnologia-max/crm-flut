@@ -147,8 +147,8 @@
                     <textarea name="departments" rows="3" placeholder="Ex: Comercial, Suporte Técnico, Financeiro, Pós-venda"></textarea>
                 </div>
                 <div class="field">
-                    <label>Responsáveis por cada setor (nome, email, telefone)</label>
-                    <textarea name="department_leads" rows="4" placeholder="Comercial: João Silva - joao@empresa.com - (11) 99999-0001&#10;Suporte: Maria Santos - maria@empresa.com - (11) 99999-0002"></textarea>
+                    <label>Responsáveis por cada setor (nome e email)</label>
+                    <textarea name="department_leads" rows="4" placeholder="Comercial: João Silva - joao@empresa.com&#10;Suporte: Maria Santos - maria@empresa.com"></textarea>
                 </div>
             </div>
 
@@ -191,14 +191,29 @@
                         <label><input type="checkbox" name="voice_tone" value="Consultivo"> Consultivo</label>
                     </div>
                 </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>Horário de atendimento</label>
-                        <input type="text" name="business_hours" placeholder="Ex: Seg a Sex, 08h às 18h">
+                <div class="field">
+                    <label>Horário de atendimento</label>
+                    <input type="text" name="business_hours" placeholder="Ex: Seg a Sex, 08h às 18h">
+                </div>
+                <div class="field">
+                    <label>A IA deve se apresentar como atendente virtual?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="ai_presents_as_virtual" value="sim"> Sim, se apresenta como atendente virtual</label>
+                        <label><input type="radio" name="ai_presents_as_virtual" value="nao"> Não, se apresenta como pessoa real</label>
                     </div>
-                    <div class="field">
-                        <label>Site para a IA ler como contexto</label>
-                        <input type="text" name="site_for_ai" placeholder="https://www.seusite.com.br">
+                </div>
+                <div class="field">
+                    <label>A IA tem um nome específico de atendente?</label>
+                    <div class="field-row">
+                        <div>
+                            <div class="radio-group">
+                                <label><input type="radio" name="ai_has_name" value="sim" onclick="document.getElementById('ai_name_field').style.display='block'"> Sim</label>
+                                <label><input type="radio" name="ai_has_name" value="nao" onclick="document.getElementById('ai_name_field').style.display='none'"> Não</label>
+                            </div>
+                        </div>
+                        <div id="ai_name_field" style="display:none;">
+                            <input type="text" name="ai_name" placeholder="Ex: Ana, Julia, Assistente Comercial">
+                        </div>
                     </div>
                 </div>
                 <div class="field">
