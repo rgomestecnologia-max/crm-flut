@@ -405,7 +405,7 @@ class LeadController extends Controller
 
                     $disparo = $agendamento->copy()->subHours(24);
                     if ($disparo->isFuture()) {
-                        $delay = max(1, $disparo->diffInSeconds(now()));
+                        $delay = max(1, $disparo->timestamp - now()->timestamp);
                         Log::info('API /leads: disparo 24h antes', [
                             'agendamento' => $agendamento->format('d/m/Y H:i'),
                             'disparo'     => $disparo->format('d/m/Y H:i'),

@@ -169,7 +169,7 @@ class CampaignManager extends Component
                 ]);
             }
 
-            $delaySeconds = max(0, \Carbon\Carbon::parse($this->scheduled_at)->diffInSeconds(now()));
+            $delaySeconds = max(0, \Carbon\Carbon::parse($this->scheduled_at)->timestamp - now()->timestamp);
             if ($campaign->channel === 'email') {
                 SendBroadcastEmail::dispatch($run)->delay($delaySeconds);
             } else {
@@ -295,7 +295,7 @@ class CampaignManager extends Component
         $isScheduled = $campaign->scheduled_at && \Carbon\Carbon::parse($campaign->scheduled_at)->isFuture();
 
         if ($isScheduled) {
-            $delaySeconds = max(1, \Carbon\Carbon::parse($campaign->scheduled_at)->diffInSeconds(now()));
+            $delaySeconds = max(1, \Carbon\Carbon::parse($campaign->scheduled_at)->timestamp - now()->timestamp);
             $campaign->update(['status' => 'scheduled']);
 
             if ($campaign->channel === 'email') {
