@@ -930,10 +930,9 @@ class ChatArea extends Component
                 $departments = Department::active()->get();
 
                 if ($this->transferTo) {
-                    $transferAgents = User::active()
+                    $transferAgents = User::where('is_active', true)
                         ->where('company_id', app(\App\Services\CurrentCompany::class)->id())
                         ->byDepartment($this->transferTo)
-                        ->whereIn('role', ['agent', 'supervisor'])
                         ->orderBy('name')
                         ->get(['id', 'name', 'role', 'avatar']);
                 }
