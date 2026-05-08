@@ -233,6 +233,11 @@
                         <input type="file" name="catalog_files[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
                     </div>
                 </div>
+                <div class="field">
+                    <label>Link de repositório online (Google Drive, Dropbox, etc.)</label>
+                    <input type="text" name="catalog_link" placeholder="Ex: https://drive.google.com/drive/folders/...">
+                    <p style="font-size:10px; color:rgba(255,255,255,0.15); margin-top:4px;">Compartilhe o link com permissão de visualização</p>
+                </div>
             </div>
 
             {{-- Automação --}}
