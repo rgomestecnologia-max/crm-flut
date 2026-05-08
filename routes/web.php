@@ -70,6 +70,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('global-settings', fn() => view('admin.global-settings.index'))->name('global-settings.index');
         Route::get('evolution', fn() => view('admin.evolution.index'))->name('evolution.index');
         Route::get('meta-whatsapp', fn() => view('admin.meta-whatsapp.index'))->name('meta-whatsapp.index');
+        Route::get('onboardings', fn() => view('admin.onboardings.index'))->name('onboardings.index');
     });
 
     // Exportação CRM
