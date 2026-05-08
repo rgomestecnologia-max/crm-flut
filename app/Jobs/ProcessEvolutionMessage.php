@@ -614,6 +614,9 @@ class ProcessEvolutionMessage implements ShouldQueue
         $type      = $data['messageType'] ?? 'conversation';
         $messageId = $data['key']['id'] ?? null;
 
+        // Remove chaves auxiliares que não são conteúdo (distribuição de chave de grupo)
+        unset($msg['senderKeyDistributionMessage'], $msg['messageContextInfo']);
+
         // Desembrulha wrappers: ephemeral, viewOnce, viewOnceV2, forwarded
         foreach (['ephemeralMessage', 'viewOnceMessage', 'viewOnceMessageV2'] as $wrapper) {
             if (!empty($msg[$wrapper]['message'])) {
@@ -644,7 +647,9 @@ class ProcessEvolutionMessage implements ShouldQueue
         if (!empty($msg['imageMessage'])) {
             $im   = $msg['imageMessage'];
             $mime = $im['mimetype'] ?? 'image/jpeg';
-            $url  = $this->resolveMediaUrl($im, $messageId, $mime, $im['jpegThumbnail'] ?? null);
+            $thumb = $im['jpegThumbnail'] ?? null;
+            if (is_array($thumb)) $thumb = null; // Evolution v2 pode enviar como array de bytes
+            $url  = $this->resolveMediaUrl($im, $messageId, $mime, $thumb);
             return [$im['caption'] ?? null, 'image', $url, null];
         }
 
@@ -662,7 +667,7 @@ class ProcessEvolutionMessage implements ShouldQueue
             $url  = $this->resolveMediaUrl($vm, $messageId, $mime, null, 'video');
 
             // Salva thumbnail do vídeo (jpegThumbnail do WhatsApp) como _thumb.webp
-            if ($url && !empty($vm['jpegThumbnail'])) {
+            if ($url && !empty($vm['jpegThumbnail']) && is_string($vm['jpegThumbnail'])) {
                 $this->saveVideoThumbnail($url, $vm['jpegThumbnail']);
             }
 
