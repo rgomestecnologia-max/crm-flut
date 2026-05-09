@@ -147,7 +147,7 @@
         :style="window.innerWidth > 768 ? (sidebarOpen ? 'width:220px;' : 'width:56px;') : ''"
         x-show="window.innerWidth > 768 || mobileMenu"
         :class="{ 'mobile-sidebar': window.innerWidth <= 768 }"
-        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; overflow:hidden; position:relative;"
+        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; overflow:hidden; position:relative; min-height:0;"
     >
         {{-- Subtle top glow --}}
         <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(178,255,0,0.3), transparent); pointer-events:none;"></div>
@@ -198,7 +198,7 @@
                 || (!$isSupervisor && in_array($mod, $companyModules, true) && ($userModules === null || in_array($mod, $userModules, true)));
         @endphp
         <nav @click="if(window.innerWidth <= 768 && $event.target.closest('a')) mobileMenu = false"
-             style="flex:1; padding:10px 8px; overflow-y:auto; display:flex; flex-direction:column; gap:2px;">
+             style="flex:1; padding:10px 8px; overflow-y:auto; display:flex; flex-direction:column; gap:2px; min-height:0;">
             <p x-show="sidebarOpen" style="padding:8px 6px 4px; font-size:9px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:0.1em;">
                 Principal
             </p>
