@@ -118,8 +118,24 @@
     </template>
 </div>
 
-<div style="display:flex; height:100vh; height:100dvh; overflow:hidden;">
+<div style="display:flex; flex-direction:column; height:100vh; height:100dvh; overflow:hidden;">
 
+    {{-- MOBILE TOP BAR --}}
+    <div x-show="window.innerWidth <= 768"
+         style="height:52px; display:flex; align-items:center; padding:0 14px; background:linear-gradient(180deg, #0B0F1C, #080C16); border-bottom:1px solid rgba(255,255,255,0.05); flex-shrink:0; gap:12px; position:relative; z-index:39;">
+        <button @click="mobileMenu = !mobileMenu; if(mobileMenu) sidebarOpen = true;"
+                style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.05); border:none; cursor:pointer; padding:8px; border-radius:8px;">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+        <img src="/images/logo-flut.webp" alt="CRM Flut" style="height:22px;">
+        <div style="margin-left:auto;">
+            <livewire:notification-bell />
+        </div>
+    </div>
+
+    <div style="display:flex; flex:1; overflow:hidden;">
 
     {{-- Mobile overlay (só fecha ao clicar no overlay, não na sidebar) --}}
     <template x-if="mobileMenu && window.innerWidth <= 768">
@@ -136,24 +152,30 @@
         {{-- Subtle top glow --}}
         <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(178,255,0,0.3), transparent); pointer-events:none;"></div>
 
-        {{-- Logo --}}
-        <div style="height:60px; display:flex; align-items:center; padding:0 14px; border-bottom:1px solid rgba(255,255,255,0.05); gap:10px; flex-shrink:0;">
-            <img src="/images/logo-flut.webp" alt="CRM Flut"
-                 :style="sidebarOpen ? 'height:28px; width:auto;' : 'height:24px; width:24px; object-fit:contain; object-position:left;'"
-                 style="flex-shrink:0; transition:all 0.25s;">
-            {{-- Notification bell --}}
-            <div style="margin-left:auto; flex-shrink:0;">
+        {{-- Logo (desktop only — mobile has top bar) --}}
+        <div style="height:60px; display:flex; align-items:center; padding:0 14px; border-bottom:1px solid rgba(255,255,255,0.05); gap:10px; flex-shrink:0;"
+             :class="{ 'mobile-hide': window.innerWidth <= 768 && !mobileMenu ? false : false }">
+            <template x-if="window.innerWidth > 768">
+                <img src="/images/logo-flut.webp" alt="CRM Flut"
+                     :style="sidebarOpen ? 'height:28px; width:auto;' : 'height:24px; width:24px; object-fit:contain; object-position:left;'"
+                     style="flex-shrink:0; transition:all 0.25s;">
+            </template>
+            <template x-if="window.innerWidth <= 768">
+                <span style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.6); font-family:'Syne',sans-serif;">Menu</span>
+            </template>
+            {{-- Notification bell (desktop only) --}}
+            <div x-show="window.innerWidth > 768" style="margin-left:auto; flex-shrink:0;">
                 <livewire:notification-bell />
             </div>
             {{-- Desktop: toggle sidebar | Mobile: fechar menu --}}
             <button @click="window.innerWidth <= 768 ? (mobileMenu = false) : (sidebarOpen = !sidebarOpen)"
-                    style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; border-radius:6px; transition:all 0.15s; flex-shrink:0;"
+                    style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; border-radius:6px; transition:all 0.15s; flex-shrink:0; margin-left:auto;"
                     onmouseover="this.style.color='rgba(255,255,255,0.6)'; this.style.background='rgba(255,255,255,0.05)'"
                     onmouseout="this.style.color='rgba(255,255,255,0.2)'; this.style.background='transparent'">
                 <svg x-show="window.innerWidth > 768" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
-                <svg x-show="window.innerWidth <= 768" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg x-show="window.innerWidth <= 768" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
@@ -175,7 +197,8 @@
                 || ($isSupervisor && in_array($mod, $companyModules, true))
                 || (!$isSupervisor && in_array($mod, $companyModules, true) && ($userModules === null || in_array($mod, $userModules, true)));
         @endphp
-        <nav style="flex:1; padding:10px 8px; overflow-y:auto; display:flex; flex-direction:column; gap:2px;">
+        <nav @click="if(window.innerWidth <= 768 && $event.target.closest('a')) mobileMenu = false"
+             style="flex:1; padding:10px 8px; overflow-y:auto; display:flex; flex-direction:column; gap:2px;">
             <p x-show="sidebarOpen" style="padding:8px 6px 4px; font-size:9px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:0.1em;">
                 Principal
             </p>
@@ -434,7 +457,8 @@
     <main style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column;">
         {{ $slot }}
     </main>
-</div>
+    </div>{{-- /flex row --}}
+</div>{{-- /flex col --}}
 
 <script>
 function toastManager() {
