@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\PricingConfig;
+use App\Models\Proposal;
+use Illuminate\Http\Request;
 
 class PricingController extends Controller
 {
@@ -11,5 +13,32 @@ class PricingController extends Controller
         PricingConfig::seed();
         $config = PricingConfig::getAll();
         return view('pricing', compact('config'));
+    }
+
+    public function save(Request $request)
+    {
+        $validated = $request->validate([
+            'client_name'   => 'required|string|max:255',
+            'modules'       => 'required|array',
+            'config'        => 'required|array',
+            'details'       => 'required|array',
+            'total_monthly' => 'required|numeric|min:0',
+            'total_setup'   => 'required|numeric|min:0',
+        ]);
+
+        $validated['user_id'] = auth()->id();
+
+        $proposal = Proposal::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'id'      => $proposal->id,
+            'message' => 'Proposta salva com sucesso!',
+        ]);
+    }
+
+    public function pdf(Proposal $proposal)
+    {
+        return response()->json($proposal);
     }
 }

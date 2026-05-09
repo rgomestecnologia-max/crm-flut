@@ -388,6 +388,15 @@
                     </svg>
                     <span x-show="sidebarOpen">Precificação</span>
                 </a>
+
+                <a href="{{ route('admin.proposals.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.proposals*') ? 'active' : '' }}"
+                   style="color:{{ request()->routeIs('admin.proposals*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span x-show="sidebarOpen">Propostas</span>
+                </a>
                 @endif
             </div>
             @endif

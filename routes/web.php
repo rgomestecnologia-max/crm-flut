@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 
 // Pricing simulator (público, sem auth)
 Route::get('/pricing', [PricingController::class, 'show'])->name('pricing');
+Route::post('/pricing/save', [PricingController::class, 'save'])->name('pricing.save');
+Route::get('/pricing/{proposal}/pdf', [PricingController::class, 'pdf'])->name('pricing.pdf');
 
 // Onboarding (público, sem auth)
 Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
@@ -76,6 +78,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('meta-whatsapp', fn() => view('admin.meta-whatsapp.index'))->name('meta-whatsapp.index');
         Route::get('onboardings', fn() => view('admin.onboardings.index'))->name('onboardings.index');
         Route::get('pricing', fn() => view('admin.pricing.index'))->name('pricing.index');
+        Route::get('proposals', fn() => view('admin.proposals.index'))->name('proposals.index');
     });
 
     // Exportação CRM

@@ -307,13 +307,51 @@
             <p style="font-size:12px; color:rgba(255,255,255,0.35);">Após a aprovação, nossa equipe inicia a configuração completa do seu CRM.</p>
         </div>
 
-        <div style="display:flex; gap:12px; margin-top:20px;">
-            <a href="/onboarding" class="cta" style="flex:1;">Solicitar implementação</a>
-            <button @click="gerarPDF()" class="cta" style="flex:1; background:linear-gradient(135deg, #3b82f6, #2563eb); box-shadow:0 4px 20px rgba(59,130,246,0.3);">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Gerar PDF da proposta
-            </button>
+        {{-- Nome do cliente (obrigatório) --}}
+        <div style="margin-top:20px;">
+            <div class="field">
+                <label>Nome do cliente / empresa <span style="color:#ef4444;">*</span></label>
+                <input type="text" x-model="clientName" placeholder="Digite o nome do cliente ou empresa"
+                       style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; font-size:14px; color:white; outline:none; font-family:inherit;"
+                       :style="nameError ? 'border-color:rgba(239,68,68,0.5)' : ''"
+                       @input="nameError = false">
+                <p x-show="nameError" x-cloak style="font-size:11px; color:#ef4444; margin-top:6px;">Preencha o nome do cliente para salvar a proposta</p>
+            </div>
         </div>
+
+        {{-- Botões --}}
+        <div style="display:flex; gap:12px; margin-top:16px;">
+            <a href="/onboarding" class="cta" style="flex:1;">Solicitar implementação</a>
+
+            <template x-if="!savedId">
+                <button @click="salvarProposta()" class="cta" style="flex:1; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111;" :disabled="saving">
+                    <template x-if="saving">
+                        <span>Salvando...</span>
+                    </template>
+                    <template x-if="!saving">
+                        <span>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Salvar Proposta
+                        </span>
+                    </template>
+                </button>
+            </template>
+
+            <template x-if="savedId">
+                <button @click="gerarPDF()" class="cta" style="flex:1; background:linear-gradient(135deg, #3b82f6, #2563eb); box-shadow:0 4px 20px rgba(59,130,246,0.3);">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Gerar PDF da proposta
+                </button>
+            </template>
+        </div>
+
+        {{-- Confirmação de salvamento --}}
+        <template x-if="savedId">
+            <div style="margin-top:12px; padding:12px 16px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:10px; display:flex; align-items:center; gap:10px;">
+                <svg width="18" height="18" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <p style="font-size:12px; color:#22c55e;">Proposta salva com sucesso! Agora você pode gerar o PDF.</p>
+            </div>
+        </template>
     </div>
 </div>
 
@@ -331,6 +369,10 @@ function pricingSimulator() {
         integrations: { count: 1 },
         total: { monthly: 0, setup: 0 },
         detail: {},
+        clientName: '',
+        savedId: null,
+        saving: false,
+        nameError: false,
 
         fmt(v) { return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
 
@@ -389,6 +431,44 @@ function pricingSimulator() {
             this.total.setup = setup;
         },
 
+        async salvarProposta() {
+            if (!this.clientName.trim()) {
+                this.nameError = true;
+                return;
+            }
+            this.saving = true;
+            try {
+                const res = await fetch('/pricing/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({
+                        client_name: this.clientName.trim(),
+                        modules: this.modules,
+                        config: {
+                            multi_users: this.multi.users,
+                            multi_instances: this.multi.instances,
+                            email_plan: this.email.plan,
+                            email_whatsapp: this.email.whatsapp,
+                            ia_flows: this.ia.flows,
+                            integrations_count: this.integrations.count,
+                        },
+                        details: this.detail,
+                        total_monthly: this.total.monthly,
+                        total_setup: this.total.setup,
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.savedId = data.id;
+                } else {
+                    alert('Erro ao salvar proposta. Tente novamente.');
+                }
+            } catch (e) {
+                alert('Erro de conexão. Tente novamente.');
+            }
+            this.saving = false;
+        },
+
         gerarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
@@ -400,15 +480,18 @@ function pricingSimulator() {
 
             // === HEADER (fundo escuro) ===
             doc.setFillColor(15, 23, 42);
-            doc.roundedRect(15, 12, pw - 30, 32, 4, 4, 'F');
+            doc.roundedRect(15, 12, pw - 30, 38, 4, 4, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(20);
             doc.setFont('helvetica', 'bold');
-            doc.text('Proposta Comercial', pw / 2, 28, { align: 'center' });
-            doc.setFontSize(10);
+            doc.text('Proposta Comercial', pw / 2, 26, { align: 'center' });
+            doc.setFontSize(12);
+            doc.setTextColor(178, 255, 0);
+            doc.text(this.clientName, pw / 2, 35, { align: 'center' });
+            doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(180, 180, 200);
-            doc.text('CRM Flut  |  Gerada em ' + dataStr, pw / 2, 37, { align: 'center' });
+            doc.text('CRM Flut  |  Gerada em ' + dataStr, pw / 2, 44, { align: 'center' });
 
             // === MÓDULOS SELECIONADOS (tabela) ===
             let items = [];
@@ -459,7 +542,7 @@ function pricingSimulator() {
             ]);
 
             doc.autoTable({
-                startY: 52,
+                startY: 58,
                 margin: { left: 15, right: 15 },
                 head: [['Módulo', 'Mensalidade', 'Implantação']],
                 body: items,
@@ -484,15 +567,14 @@ function pricingSimulator() {
                     fillColor: [250, 250, 252]
                 },
                 didParseCell: function(data) {
-                    // Estilizar linha de TOTAL
                     if (data.section === 'body' && data.row.index === items.length - 1) {
                         data.cell.styles.fillColor = [240, 253, 244];
                         data.cell.styles.fontStyle = 'bold';
                         data.cell.styles.fontSize = 11;
                         if (data.column.index === 1) {
-                            data.cell.styles.textColor = [34, 197, 94]; // verde
+                            data.cell.styles.textColor = [34, 197, 94];
                         } else if (data.column.index === 2) {
-                            data.cell.styles.textColor = [59, 130, 246]; // azul
+                            data.cell.styles.textColor = [59, 130, 246];
                         } else {
                             data.cell.styles.textColor = [17, 17, 17];
                         }
@@ -527,7 +609,8 @@ function pricingSimulator() {
             doc.text('Documento gerado automaticamente pelo simulador de investimento.', pw / 2, y + 14, { align: 'center' });
 
             // === SALVAR ===
-            doc.save('proposta-crm-flut-' + today.toISOString().slice(0,10) + '.pdf');
+            const filename = 'proposta-' + this.clientName.trim().toLowerCase().replace(/\s+/g, '-') + '-' + today.toISOString().slice(0,10) + '.pdf';
+            doc.save(filename);
         }
     };
 }
