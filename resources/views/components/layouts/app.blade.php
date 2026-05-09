@@ -77,6 +77,7 @@
                 height: 100dvh !important;
                 z-index: 41;
                 background: #0B0F1C !important;
+                overflow: hidden !important;
             }
             .mobile-full { width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
             .mobile-hide { display: none !important; }
@@ -147,7 +148,7 @@
         :style="window.innerWidth > 768 ? (sidebarOpen ? 'width:220px;' : 'width:56px;') : ''"
         x-show="window.innerWidth > 768 || mobileMenu"
         :class="{ 'mobile-sidebar': window.innerWidth <= 768 }"
-        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; position:relative; min-height:0; height:100%; overflow-x:clip;"
+        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; position:relative; min-height:0; height:100%; overflow:hidden;"
     >
         {{-- Subtle top glow --}}
         <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(178,255,0,0.3), transparent); pointer-events:none;"></div>
