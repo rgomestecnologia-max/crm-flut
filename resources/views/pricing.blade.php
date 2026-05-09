@@ -173,9 +173,20 @@
             </div>
             <p class="module-desc">Inteligência artificial que atende seus clientes 24h com base de conhecimento.</p>
             <template x-if="modules.ia">
-                <div class="field">
-                    <label>Quantidade de fluxos/agentes de IA</label>
-                    <input type="number" min="1" max="10" x-model.number="ia.flows" @input="calc()">
+                <div>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:8px;">Exemplos de fluxos/agentes de IA:</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.15); color:#f472b6;">SDR</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.15); color:#f472b6;">SAC</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.15); color:#f472b6;">Agendamento</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.15); color:#f472b6;">Cobranças</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.15); color:#f472b6;">Pós-Venda</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.15); color:#f472b6;">Reativação</span>
+                    </div>
+                    <div class="field">
+                        <label>Quantidade de fluxos/agentes de IA</label>
+                        <input type="number" min="1" max="10" x-model.number="ia.flows" @input="calc()">
+                    </div>
                 </div>
             </template>
         </div>
