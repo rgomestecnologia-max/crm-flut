@@ -6,9 +6,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PricingController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Livewire\Auth\SelectCompany;
 use Illuminate\Support\Facades\Route;
+
+// Pricing simulator (público, sem auth)
+Route::get('/pricing', [PricingController::class, 'show'])->name('pricing');
 
 // Onboarding (público, sem auth)
 Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
@@ -71,6 +75,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('evolution', fn() => view('admin.evolution.index'))->name('evolution.index');
         Route::get('meta-whatsapp', fn() => view('admin.meta-whatsapp.index'))->name('meta-whatsapp.index');
         Route::get('onboardings', fn() => view('admin.onboardings.index'))->name('onboardings.index');
+        Route::get('pricing', fn() => view('admin.pricing.index'))->name('pricing.index');
     });
 
     // Exportação CRM
