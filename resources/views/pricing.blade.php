@@ -423,12 +423,13 @@ function pricingSimulator() {
                 </tr>
             `).join('');
 
+            const logoUrl = window.location.origin + '/images/logo-flut.webp';
             const html = `
-                <div style="font-family:Arial,sans-serif; max-width:700px; margin:0 auto; padding:40px;">
-                    <div style="text-align:center; margin-bottom:30px;">
-                        <img src="/images/logo-flut.webp" alt="CRM Flut" style="height:32px; margin-bottom:12px;">
-                        <h1 style="font-size:22px; color:#111; margin:0;">Proposta Comercial</h1>
-                        <p style="font-size:12px; color:#888; margin-top:6px;">Gerada em ${dataStr}</p>
+                <div style="font-family:Arial,sans-serif; max-width:700px; margin:0 auto; padding:0; background:#ffffff;">
+                    <div style="text-align:center; padding:28px 20px; margin-bottom:24px; background:linear-gradient(135deg, #0f172a, #1e293b); border-radius:12px;">
+                        <img src="${logoUrl}" alt="CRM Flut" crossorigin="anonymous" style="height:32px; margin-bottom:10px;">
+                        <h1 style="font-size:22px; color:#ffffff; margin:0; font-weight:700;">Proposta Comercial</h1>
+                        <p style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:6px;">Gerada em ${dataStr}</p>
                     </div>
 
                     <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
@@ -463,31 +464,34 @@ function pricingSimulator() {
                 </div>
             `;
 
+            // Criar container isolado com fundo branco fora da viewport escura
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'position:absolute; left:-9999px; top:0; width:700px; background:#ffffff; color:#000;';
             const el = document.createElement('div');
-            el.style.cssText = 'position:fixed; top:0; left:0; width:700px; background:#fff; color:#333; z-index:9999; padding:0;';
+            el.style.cssText = 'background:#ffffff; color:#000; padding:0; width:700px;';
             el.innerHTML = html;
-            document.body.appendChild(el);
+            wrapper.appendChild(el);
+            document.body.appendChild(wrapper);
 
-            // Aguardar imagem do logo carregar antes de gerar o PDF
-            const img = el.querySelector('img');
-            const doGenerate = () => {
+            // Forçar todas as cores para impressão (sobrescrever herança do body escuro)
+            el.querySelectorAll('*').forEach(node => {
+                if (!node.style.color && node.tagName !== 'IMG') {
+                    node.style.color = '#333';
+                }
+            });
+
+            // Pequeno delay para garantir renderização completa
+            setTimeout(() => {
                 html2pdf().set({
                     margin: 10,
                     filename: 'proposta-crm-flut-' + today.toISOString().slice(0,10) + '.pdf',
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+                    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 }).from(el).save().then(() => {
-                    document.body.removeChild(el);
+                    document.body.removeChild(wrapper);
                 });
-            };
-
-            if (img && !img.complete) {
-                img.onload = doGenerate;
-                img.onerror = doGenerate;
-            } else {
-                doGenerate();
-            }
+            }, 300);
         }
     };
 }
