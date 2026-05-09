@@ -53,7 +53,11 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 <select wire:model="role" style="{{ $inputStyle }}" {!! $inputFocus !!}>
                     <option value="agent">Agente</option>
                     <option value="supervisor">Supervisor</option>
+                    @if(auth()->user()->isAdmin())
+                    <option value="admin">Administrador</option>
+                    @endif
                 </select>
+                @error('role') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label style="{{ $labelStyle }}">Departamento principal *</label>
