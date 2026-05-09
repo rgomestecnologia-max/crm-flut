@@ -87,7 +87,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                                       border:1px solid {{ $checked ? $dept->color.'55' : 'rgba(255,255,255,0.07)' }};">
                             <input type="checkbox"
                                    value="{{ $dept->id }}"
-                                   wire:model="extra_department_ids"
+                                   wire:model.live="extra_department_ids"
                                    style="width:14px; height:14px; accent-color:{{ $dept->color }}; cursor:pointer;">
                             <span style="font-size:11px; font-weight:600; color:{{ $checked ? $dept->color : 'rgba(255,255,255,0.55)' }};">
                                 {{ $dept->name }}
