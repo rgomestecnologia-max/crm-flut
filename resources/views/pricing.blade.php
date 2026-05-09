@@ -464,18 +464,30 @@ function pricingSimulator() {
             `;
 
             const el = document.createElement('div');
+            el.style.cssText = 'position:fixed; top:0; left:0; width:700px; background:#fff; color:#333; z-index:9999; padding:0;';
             el.innerHTML = html;
             document.body.appendChild(el);
 
-            html2pdf().set({
-                margin: 10,
-                filename: 'proposta-crm-flut-' + today.toISOString().slice(0,10) + '.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).from(el).save().then(() => {
-                document.body.removeChild(el);
-            });
+            // Aguardar imagem do logo carregar antes de gerar o PDF
+            const img = el.querySelector('img');
+            const doGenerate = () => {
+                html2pdf().set({
+                    margin: 10,
+                    filename: 'proposta-crm-flut-' + today.toISOString().slice(0,10) + '.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                }).from(el).save().then(() => {
+                    document.body.removeChild(el);
+                });
+            };
+
+            if (img && !img.complete) {
+                img.onload = doGenerate;
+                img.onerror = doGenerate;
+            } else {
+                doGenerate();
+            }
         }
     };
 }
