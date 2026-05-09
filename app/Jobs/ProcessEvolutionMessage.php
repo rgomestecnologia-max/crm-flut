@@ -115,6 +115,27 @@ class ProcessEvolutionMessage implements ShouldQueue
                 $needsName = !$contact->name || preg_match('/^\d{10,}$/', $contact->name);
                 if ($groupName && $needsName) {
                     $contact->update(['name' => $groupName]);
+                } elseif ($needsName && $remoteJid) {
+                    // Nome não veio no webhook — busca via Evolution API
+                    try {
+                        $evoConfig = \App\Models\EvolutionApiConfig::withoutGlobalScopes()
+                            ->where('company_id', $companyId)
+                            ->where('is_active', true)
+                            ->first();
+                        if ($evoConfig) {
+                            $http = \Illuminate\Support\Facades\Http::withHeaders([
+                                'apikey' => $evoConfig->instance_api_key ?: $evoConfig->global_api_key,
+                            ])->timeout(5);
+                            $result = $http->get($evoConfig->serverUrl() . "/group/findGroupInfos/{$evoConfig->instance_name}?groupJid={$remoteJid}")->json();
+                            $fetchedName = $result['subject'] ?? null;
+                            if ($fetchedName) {
+                                $contact->update(['name' => $fetchedName]);
+                                Log::info('Grupo: nome buscado via API', ['name' => $fetchedName, 'jid' => $remoteJid]);
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning('Grupo: falha ao buscar nome', ['jid' => $remoteJid, 'error' => $e->getMessage()]);
+                    }
                 }
 
                 if ($remoteJid && !$contact->chat_lid) {
