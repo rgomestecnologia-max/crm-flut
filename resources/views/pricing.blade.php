@@ -318,7 +318,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 function pricingSimulator() {
     const C = @json($config);
@@ -389,109 +390,144 @@ function pricingSimulator() {
         },
 
         gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+            const pw = doc.internal.pageSize.getWidth();
             const today = new Date();
             const dataStr = today.toLocaleDateString('pt-BR');
             const validade = new Date(today.getTime() + 30*24*60*60*1000).toLocaleDateString('pt-BR');
+            const fmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+            // === HEADER (fundo escuro) ===
+            doc.setFillColor(15, 23, 42);
+            doc.roundedRect(15, 12, pw - 30, 32, 4, 4, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Proposta Comercial', pw / 2, 28, { align: 'center' });
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(180, 180, 200);
+            doc.text('CRM Flut  |  Gerada em ' + dataStr, pw / 2, 37, { align: 'center' });
+
+            // === MÓDULOS SELECIONADOS (tabela) ===
             let items = [];
             if (this.modules.multi) {
-                items.push({ nome: `Multi-atendimento (${this.multi.users} usuários, ${this.multi.instances} número${this.multi.instances>1?'s':''})`, mensal: this.detail.multi_monthly, impl: this.detail.multi_setup });
+                items.push([
+                    `Multi-atendimento (${this.multi.users} usuário${this.multi.users>1?'s':''}, ${this.multi.instances} número${this.multi.instances>1?'s':''})`,
+                    'R$ ' + fmt(this.detail.multi_monthly) + '/mês',
+                    'R$ ' + fmt(this.detail.multi_setup)
+                ]);
             }
             if (this.modules.crm) {
-                items.push({ nome: 'CRM — Pipeline de Vendas', mensal: this.detail.crm_monthly, impl: this.detail.crm_setup });
+                items.push([
+                    'CRM — Pipeline de Vendas',
+                    'R$ ' + fmt(this.detail.crm_monthly) + '/mês',
+                    'R$ ' + fmt(this.detail.crm_setup)
+                ]);
             }
             if (this.modules.email) {
                 let desc = 'Disparos em Massa';
                 if (this.email.plan !== 'none') desc += ` (Email ${this.email.plan})`;
-                if (this.email.whatsapp) desc += (this.email.plan !== 'none' ? ' + ' : '(') + 'WhatsApp' + (this.email.plan === 'none' ? ')' : '');
-                items.push({ nome: desc, mensal: this.detail.email_monthly, impl: this.detail.email_setup });
+                if (this.email.whatsapp) desc += (this.email.plan !== 'none' ? ' + ' : ' (') + 'WhatsApp' + (this.email.plan === 'none' ? ')' : '');
+                items.push([
+                    desc,
+                    'R$ ' + fmt(this.detail.email_monthly) + '/mês',
+                    'R$ ' + fmt(this.detail.email_setup)
+                ]);
             }
             if (this.modules.ia) {
-                items.push({ nome: `IA de Atendimento (${this.ia.flows} fluxo${this.ia.flows>1?'s':''})`, mensal: this.detail.ia_monthly, impl: this.detail.ia_setup });
+                items.push([
+                    `IA de Atendimento (${this.ia.flows} fluxo${this.ia.flows>1?'s':''})`,
+                    'R$ ' + fmt(this.detail.ia_monthly) + '/mês',
+                    'R$ ' + fmt(this.detail.ia_setup)
+                ]);
             }
             if (this.modules.integrations) {
-                items.push({ nome: `Integrações Externas (${this.integrations.count})`, mensal: this.detail.int_monthly, impl: this.detail.int_setup });
+                items.push([
+                    `Integrações Externas (${this.integrations.count})`,
+                    'R$ ' + fmt(this.detail.int_monthly) + '/mês',
+                    'R$ ' + fmt(this.detail.int_setup)
+                ]);
             }
 
-            const fmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            // Linha de total
+            items.push([
+                'TOTAL',
+                'R$ ' + fmt(this.total.monthly) + '/mês',
+                'R$ ' + fmt(this.total.setup)
+            ]);
 
-            let rows = items.map(i => `
-                <tr>
-                    <td style="padding:10px 14px; border-bottom:1px solid #eee; font-size:13px; color:#333;">${i.nome}</td>
-                    <td style="padding:10px 14px; border-bottom:1px solid #eee; font-size:13px; color:#333; text-align:right;">R$ ${fmt(i.mensal)}</td>
-                    <td style="padding:10px 14px; border-bottom:1px solid #eee; font-size:13px; color:#333; text-align:right;">R$ ${fmt(i.impl)}</td>
-                </tr>
-            `).join('');
-
-            const logoUrl = window.location.origin + '/images/logo-flut.webp';
-            const html = `
-                <div style="font-family:Arial,sans-serif; max-width:700px; margin:0 auto; padding:0; background:#ffffff;">
-                    <div style="text-align:center; padding:28px 20px; margin-bottom:24px; background:linear-gradient(135deg, #0f172a, #1e293b); border-radius:12px;">
-                        <img src="${logoUrl}" alt="CRM Flut" crossorigin="anonymous" style="height:32px; margin-bottom:10px;">
-                        <h1 style="font-size:22px; color:#ffffff; margin:0; font-weight:700;">Proposta Comercial</h1>
-                        <p style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:6px;">Gerada em ${dataStr}</p>
-                    </div>
-
-                    <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
-                        <thead>
-                            <tr style="background:#f8f9fa;">
-                                <th style="padding:10px 14px; text-align:left; font-size:11px; color:#666; text-transform:uppercase; border-bottom:2px solid #ddd;">Módulo</th>
-                                <th style="padding:10px 14px; text-align:right; font-size:11px; color:#666; text-transform:uppercase; border-bottom:2px solid #ddd;">Mensal</th>
-                                <th style="padding:10px 14px; text-align:right; font-size:11px; color:#666; text-transform:uppercase; border-bottom:2px solid #ddd;">Implantação</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                        <tfoot>
-                            <tr style="background:#f0fdf4;">
-                                <td style="padding:12px 14px; font-size:14px; font-weight:700; color:#111; border-top:2px solid #22c55e;">TOTAL</td>
-                                <td style="padding:12px 14px; font-size:14px; font-weight:700; color:#22c55e; text-align:right; border-top:2px solid #22c55e;">R$ ${fmt(this.total.monthly)}/mês</td>
-                                <td style="padding:12px 14px; font-size:14px; font-weight:700; color:#3b82f6; text-align:right; border-top:2px solid #22c55e;">R$ ${fmt(this.total.setup)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:14px 18px; margin-bottom:20px;">
-                        <p style="font-size:12px; color:#92400e; line-height:1.6;">
-                            <strong>Prazo de implantação:</strong> até 10 dias úteis após aprovação.<br>
-                            <strong>Validade da proposta:</strong> ${dataStr} até ${validade} (30 dias corridos). Após este período, os valores podem sofrer ajustes.
-                        </p>
-                    </div>
-
-                    <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:1px solid #eee;">
-                        <p style="font-size:11px; color:#999;">CRM Flut — crm.flut.com.br</p>
-                        <p style="font-size:10px; color:#ccc; margin-top:4px;">Documento gerado automaticamente pelo simulador de investimento.</p>
-                    </div>
-                </div>
-            `;
-
-            // Criar container isolado com fundo branco fora da viewport escura
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'position:absolute; left:-9999px; top:0; width:700px; background:#ffffff; color:#000;';
-            const el = document.createElement('div');
-            el.style.cssText = 'background:#ffffff; color:#000; padding:0; width:700px;';
-            el.innerHTML = html;
-            wrapper.appendChild(el);
-            document.body.appendChild(wrapper);
-
-            // Forçar todas as cores para impressão (sobrescrever herança do body escuro)
-            el.querySelectorAll('*').forEach(node => {
-                if (!node.style.color && node.tagName !== 'IMG') {
-                    node.style.color = '#333';
+            doc.autoTable({
+                startY: 52,
+                margin: { left: 15, right: 15 },
+                head: [['Módulo', 'Mensalidade', 'Implantação']],
+                body: items,
+                headStyles: {
+                    fillColor: [241, 245, 249],
+                    textColor: [80, 80, 80],
+                    fontStyle: 'bold',
+                    fontSize: 9,
+                    halign: 'left'
+                },
+                columnStyles: {
+                    0: { cellWidth: 'auto' },
+                    1: { halign: 'right', cellWidth: 42 },
+                    2: { halign: 'right', cellWidth: 42 }
+                },
+                bodyStyles: {
+                    fontSize: 10,
+                    textColor: [51, 51, 51],
+                    cellPadding: 5
+                },
+                alternateRowStyles: {
+                    fillColor: [250, 250, 252]
+                },
+                didParseCell: function(data) {
+                    // Estilizar linha de TOTAL
+                    if (data.section === 'body' && data.row.index === items.length - 1) {
+                        data.cell.styles.fillColor = [240, 253, 244];
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fontSize = 11;
+                        if (data.column.index === 1) {
+                            data.cell.styles.textColor = [34, 197, 94]; // verde
+                        } else if (data.column.index === 2) {
+                            data.cell.styles.textColor = [59, 130, 246]; // azul
+                        } else {
+                            data.cell.styles.textColor = [17, 17, 17];
+                        }
+                    }
                 }
             });
 
-            // Pequeno delay para garantir renderização completa
-            setTimeout(() => {
-                html2pdf().set({
-                    margin: 10,
-                    filename: 'proposta-crm-flut-' + today.toISOString().slice(0,10) + '.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                }).from(el).save().then(() => {
-                    document.body.removeChild(wrapper);
-                });
-            }, 300);
+            let y = doc.lastAutoTable.finalY + 12;
+
+            // === PRAZO DE IMPLANTAÇÃO ===
+            doc.setFillColor(255, 251, 235);
+            doc.setDrawColor(253, 230, 138);
+            doc.roundedRect(15, y, pw - 30, 22, 3, 3, 'FD');
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(146, 64, 14);
+            doc.text('Prazo de implantação: até 10 dias úteis após aprovação.', 20, y + 9);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.text('Validade da proposta: ' + dataStr + ' até ' + validade + ' (30 dias corridos).', 20, y + 17);
+
+            y += 32;
+
+            // === FOOTER ===
+            doc.setDrawColor(230, 230, 230);
+            doc.line(15, y, pw - 15, y);
+            doc.setFontSize(9);
+            doc.setTextColor(153, 153, 153);
+            doc.text('CRM Flut — crm.flut.com.br', pw / 2, y + 8, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setTextColor(200, 200, 200);
+            doc.text('Documento gerado automaticamente pelo simulador de investimento.', pw / 2, y + 14, { align: 'center' });
+
+            // === SALVAR ===
+            doc.save('proposta-crm-flut-' + today.toISOString().slice(0,10) + '.pdf');
         }
     };
 }
