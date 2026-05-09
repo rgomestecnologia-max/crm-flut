@@ -307,11 +307,18 @@
             <p style="font-size:12px; color:rgba(255,255,255,0.35);">Após a aprovação, nossa equipe inicia a configuração completa do seu CRM.</p>
         </div>
 
-        <a href="/onboarding" class="cta">Solicitar implementação</a>
+        <div style="display:flex; gap:12px; margin-top:20px;">
+            <a href="/onboarding" class="cta" style="flex:1;">Solicitar implementação</a>
+            <button @click="gerarPDF()" class="cta" style="flex:1; background:linear-gradient(135deg, #3b82f6, #2563eb); box-shadow:0 4px 20px rgba(59,130,246,0.3);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Gerar PDF da proposta
+            </button>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 function pricingSimulator() {
     const C = @json($config);
@@ -379,6 +386,96 @@ function pricingSimulator() {
 
             this.total.monthly = monthly;
             this.total.setup = setup;
+        },
+
+        gerarPDF() {
+            const today = new Date();
+            const dataStr = today.toLocaleDateString('pt-BR');
+            const validade = new Date(today.getTime() + 30*24*60*60*1000).toLocaleDateString('pt-BR');
+
+            let items = [];
+            if (this.modules.multi) {
+                items.push({ nome: `Multi-atendimento (${this.multi.users} usuários, ${this.multi.instances} número${this.multi.instances>1?'s':''})`, mensal: this.detail.multi_monthly, impl: this.detail.multi_setup });
+            }
+            if (this.modules.crm) {
+                items.push({ nome: 'CRM — Pipeline de Vendas', mensal: this.detail.crm_monthly, impl: this.detail.crm_setup });
+            }
+            if (this.modules.email) {
+                let desc = 'Disparos em Massa';
+                if (this.email.plan !== 'none') desc += ` (Email ${this.email.plan})`;
+                if (this.email.whatsapp) desc += (this.email.plan !== 'none' ? ' + ' : '(') + 'WhatsApp' + (this.email.plan === 'none' ? ')' : '');
+                items.push({ nome: desc, mensal: this.detail.email_monthly, impl: this.detail.email_setup });
+            }
+            if (this.modules.ia) {
+                items.push({ nome: `IA de Atendimento (${this.ia.flows} fluxo${this.ia.flows>1?'s':''})`, mensal: this.detail.ia_monthly, impl: this.detail.ia_setup });
+            }
+            if (this.modules.integrations) {
+                items.push({ nome: `Integrações Externas (${this.integrations.count})`, mensal: this.detail.int_monthly, impl: this.detail.int_setup });
+            }
+
+            const fmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            let rows = items.map(i => `
+                <tr>
+                    <td style="padding:10px 14px; border-bottom:1px solid #eee; font-size:13px; color:#333;">${i.nome}</td>
+                    <td style="padding:10px 14px; border-bottom:1px solid #eee; font-size:13px; color:#333; text-align:right;">R$ ${fmt(i.mensal)}</td>
+                    <td style="padding:10px 14px; border-bottom:1px solid #eee; font-size:13px; color:#333; text-align:right;">R$ ${fmt(i.impl)}</td>
+                </tr>
+            `).join('');
+
+            const html = `
+                <div style="font-family:Arial,sans-serif; max-width:700px; margin:0 auto; padding:40px;">
+                    <div style="text-align:center; margin-bottom:30px;">
+                        <img src="/images/logo-flut.webp" alt="CRM Flut" style="height:32px; margin-bottom:12px;">
+                        <h1 style="font-size:22px; color:#111; margin:0;">Proposta Comercial</h1>
+                        <p style="font-size:12px; color:#888; margin-top:6px;">Gerada em ${dataStr}</p>
+                    </div>
+
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="padding:10px 14px; text-align:left; font-size:11px; color:#666; text-transform:uppercase; border-bottom:2px solid #ddd;">Módulo</th>
+                                <th style="padding:10px 14px; text-align:right; font-size:11px; color:#666; text-transform:uppercase; border-bottom:2px solid #ddd;">Mensal</th>
+                                <th style="padding:10px 14px; text-align:right; font-size:11px; color:#666; text-transform:uppercase; border-bottom:2px solid #ddd;">Implantação</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                        <tfoot>
+                            <tr style="background:#f0fdf4;">
+                                <td style="padding:12px 14px; font-size:14px; font-weight:700; color:#111; border-top:2px solid #22c55e;">TOTAL</td>
+                                <td style="padding:12px 14px; font-size:14px; font-weight:700; color:#22c55e; text-align:right; border-top:2px solid #22c55e;">R$ ${fmt(this.total.monthly)}/mês</td>
+                                <td style="padding:12px 14px; font-size:14px; font-weight:700; color:#3b82f6; text-align:right; border-top:2px solid #22c55e;">R$ ${fmt(this.total.setup)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:14px 18px; margin-bottom:20px;">
+                        <p style="font-size:12px; color:#92400e; line-height:1.6;">
+                            <strong>Prazo de implantação:</strong> até 10 dias úteis após aprovação.<br>
+                            <strong>Validade da proposta:</strong> ${dataStr} até ${validade} (30 dias corridos). Após este período, os valores podem sofrer ajustes.
+                        </p>
+                    </div>
+
+                    <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:1px solid #eee;">
+                        <p style="font-size:11px; color:#999;">CRM Flut — crm.flut.com.br</p>
+                        <p style="font-size:10px; color:#ccc; margin-top:4px;">Documento gerado automaticamente pelo simulador de investimento.</p>
+                    </div>
+                </div>
+            `;
+
+            const el = document.createElement('div');
+            el.innerHTML = html;
+            document.body.appendChild(el);
+
+            html2pdf().set({
+                margin: 10,
+                filename: 'proposta-crm-flut-' + today.toISOString().slice(0,10) + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(el).save().then(() => {
+                document.body.removeChild(el);
+            });
         }
     };
 }
