@@ -16,7 +16,7 @@ function senderColor(?string $identifier): string {
 
     @if($conversationId && $conversation)
     {{-- Chat Header --}}
-    <div style="height:64px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0; background:rgba(11,15,28,0.6); backdrop-filter:blur(8px);">
+    <div class="chat-header" style="min-height:56px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:8px 12px; gap:8px; flex-shrink:0; background:rgba(11,15,28,0.6); backdrop-filter:blur(8px);">
         {{-- Botão voltar (mobile) --}}
         <button @click="$dispatch('conversation-deleted')"
                 class="chat-back-btn"
@@ -25,13 +25,26 @@ function senderColor(?string $identifier): string {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
         </button>
-        <style>@media (max-width: 768px) { .chat-back-btn { display: flex !important; } }</style>
+        <style>
+        @media (max-width: 768px) {
+            .chat-back-btn { display: flex !important; }
+            .chat-header-actions .action-text { display: none !important; }
+            .chat-header-actions button { padding: 6px 8px !important; min-width: 32px; justify-content: center; }
+            .chat-header-actions { gap: 4px !important; }
+            .chat-header-info .crm-badge { display: none !important; }
+            .msg-bubble { max-width: min(320px, 80vw) !important; }
+        }
+        @media (hover: none) and (pointer: coarse) {
+            .msg-action-menu { display: flex !important; opacity: 0.6; }
+            .msg-action-menu:active { opacity: 1; }
+        }
+        </style>
         <div style="position:relative; flex-shrink:0;">
             <img src="{{ $conversation->contact->avatar }}" alt=""
                  style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3);">
             <div style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #0B0F1C;"></div>
         </div>
-        <div style="flex:1; min-width:0;">
+        <div class="chat-header-info" style="flex:1; min-width:0;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <p style="font-size:13px; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.01em;">
                     {{ $conversation->is_group ? ($conversation->group_name ?: $conversation->contact->display_name) : $conversation->contact->display_name }}
@@ -55,7 +68,7 @@ function senderColor(?string $identifier): string {
                 {{-- CRM badges --}}
                 @foreach($crmCards as $crmCard)
                     @if($crmCard->pipeline && $crmCard->stage)
-                    <span style="display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:600; padding:2px 7px; border-radius:5px; flex-shrink:0; background:{{ $crmCard->stage->color }}18; color:{{ $crmCard->stage->color }}; border:1px solid {{ $crmCard->stage->color }}44;">
+                    <span class="crm-badge" style="display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:600; padding:2px 7px; border-radius:5px; flex-shrink:0; background:{{ $crmCard->stage->color }}18; color:{{ $crmCard->stage->color }}; border:1px solid {{ $crmCard->stage->color }}44;">
                         <svg width="8" height="8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/>
                         </svg>
@@ -122,7 +135,7 @@ function senderColor(?string $identifier): string {
         </button>
 
         {{-- Actions --}}
-        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        <div class="chat-header-actions" style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
             @if($conversation->isOpen() || $conversation->isPending())
                 {{-- Resolve button --}}
                 <button wire:click="resolveConversation"
@@ -133,7 +146,7 @@ function senderColor(?string $identifier): string {
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                     </svg>
-                    Encerrar
+                    <span class="action-text">Encerrar</span>
                 </button>
 
                 {{-- CRM button --}}
@@ -145,7 +158,7 @@ function senderColor(?string $identifier): string {
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
                     </svg>
-                    CRM
+                    <span class="action-text">CRM</span>
                 </button>
 
                 {{-- Transfer button (qualquer agente pode transferir) --}}
@@ -156,7 +169,7 @@ function senderColor(?string $identifier): string {
                     <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                     </svg>
-                    Transferir
+                    <span class="action-text">Transferir</span>
                 </button>
             @else
                 <button wire:click="reopenConversation"
@@ -258,7 +271,7 @@ function senderColor(?string $identifier): string {
                 </div>
             @elseif($msg->isFromContact())
                 {{-- Contact message (left) --}}
-                <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="showMenu = true" @mouseleave="showMenu = false">
+                <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     <img src="{{ $conversation->contact->avatar }}" alt=""
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(255,255,255,0.08);">
                     <div>
@@ -466,14 +479,14 @@ function senderColor(?string $identifier): string {
                         </p>
                     </div>
                     {{-- Emoji + seta: como item flex colado ao conteúdo --}}
-                    <div x-show="showMenu" x-transition.opacity
+                    <div x-show="showMenu" x-transition.opacity class="msg-action-menu"
                          style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; align-self:center; position:relative;">
                         <button @click.stop="showMenu = 'react'"
-                                style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
+                                style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
                                 onmouseover="this.style.background='rgba(255,255,255,0.15)'"
                                 onmouseout="this.style.background='rgba(255,255,255,0.08)'">😊</button>
                         <button @click.stop="showMenu = 'drop'"
-                                style="width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); transition:all 0.15s;"
+                                style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); transition:all 0.15s;"
                                 onmouseover="this.style.background='rgba(255,255,255,0.15)'"
                                 onmouseout="this.style.background='rgba(255,255,255,0.08)'">
                             <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
@@ -514,7 +527,7 @@ function senderColor(?string $identifier): string {
                 {{-- Agent message (right) --}}
                 <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
                      x-data="{ showMenu: false, editing: false, editText: '' }"
-                     @mouseenter="showMenu = true" @mouseleave="showMenu = false">
+                     @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     <img src="{{ $msg->sender?->avatar_url ?? auth()->user()->avatar_url }}" alt=""
                          title="{{ $msg->sender?->name ?? 'WhatsApp' }}"
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
@@ -734,14 +747,14 @@ function senderColor(?string $identifier): string {
                         </p>
                     </div>
                     {{-- Emoji + seta: item flex à esquerda (row-reverse) --}}
-                    <div x-show="showMenu && !editing" x-transition.opacity
+                    <div x-show="showMenu && !editing" x-transition.opacity class="msg-action-menu"
                          style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; align-self:center; position:relative;">
                         <button @click.stop="showMenu = 'react'"
-                                style="width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
+                                style="width:30px; height:30px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; transition:all 0.15s;"
                                 onmouseover="this.style.background='rgba(178,255,0,0.15)'"
                                 onmouseout="this.style.background='rgba(178,255,0,0.08)'">😊</button>
                         <button @click.stop="showMenu = 'drop'"
-                                style="width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(178,255,0,0.5); transition:all 0.15s;"
+                                style="width:30px; height:30px; border-radius:50%; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.15); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(178,255,0,0.5); transition:all 0.15s;"
                                 onmouseover="this.style.background='rgba(178,255,0,0.15)'"
                                 onmouseout="this.style.background='rgba(178,255,0,0.08)'">
                             <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
@@ -935,7 +948,7 @@ function senderColor(?string $identifier): string {
 
     {{-- Message input --}}
     @if($conversation->isOpen() || $conversation->isPending())
-    <div style="border-top:1px solid rgba(255,255,255,0.05); padding:12px 16px; flex-shrink:0; background:rgba(8,12,22,0.7); backdrop-filter:blur(8px); position:relative;"
+    <div style="border-top:1px solid rgba(255,255,255,0.05); padding:10px 12px; flex-shrink:0; background:rgba(8,12,22,0.7); backdrop-filter:blur(8px); position:relative;"
          x-data="{
             showEmoji: false,
             emojiPos: null,
