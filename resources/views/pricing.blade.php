@@ -100,29 +100,61 @@
                 </button>
             </div>
             <p class="module-desc">Kanban de vendas com pipeline, etapas, campos personalizados e exportação.</p>
+            <template x-if="modules.crm">
+                <div>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:8px;">Exemplos de pipelines que podemos criar para você:</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.15); color:#a78bfa;">Pipeline Comercial</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.15); color:#a78bfa;">Pipeline SDR</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.15); color:#a78bfa;">Pipeline Pós-venda</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.15); color:#a78bfa;">Pipeline Financeiro</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.15); color:#a78bfa;">Pipeline Suporte</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.15); color:#a78bfa;">Pipeline Marketing</span>
+                    </div>
+                </div>
+            </template>
         </div>
 
-        {{-- Disparos Email --}}
+        {{-- Disparos --}}
         <div class="module" style="border-color: rgba(59,130,246,0.1);">
             <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#3b82f680,transparent);"></div>
             <div class="module-header">
                 <div class="module-title">
                     <div class="bar" style="background:#3b82f6;"></div>
-                    <h2>Disparos de Email</h2>
+                    <h2>Disparos em Massa</h2>
                 </div>
                 <button class="toggle" :style="{ background: modules.email ? '#3b82f6' : 'rgba(255,255,255,0.1)' }" @click="modules.email = !modules.email; calc()">
                     <span :style="{ left: modules.email ? '25px' : '3px' }"></span>
                 </button>
             </div>
-            <p class="module-desc">Campanhas de email em massa com agendamento, templates e unsubscribe.</p>
+            <p class="module-desc">Campanhas de email e WhatsApp em massa com agendamento, templates e relatórios.</p>
             <template x-if="modules.email">
-                <div class="field">
-                    <label>Volume mensal de disparos</label>
-                    <select x-model="email.plan" @change="calc()">
-                        <option value="5k">Até 5.000 disparos/mês</option>
-                        <option value="20k">Até 20.000 disparos/mês</option>
-                        <option value="50k">Até 50.000 disparos/mês</option>
-                    </select>
+                <div>
+                    <div class="field">
+                        <label>Disparo por Email — Volume mensal</label>
+                        <select x-model="email.plan" @change="calc()">
+                            <option value="none">Não preciso de email</option>
+                            <option value="5k">Até 5.000 disparos/mês</option>
+                            <option value="20k">Até 20.000 disparos/mês</option>
+                            <option value="50k">Até 50.000 disparos/mês</option>
+                        </select>
+                    </div>
+                    <div class="field" style="margin-top:12px;">
+                        <label>Disparo por WhatsApp</label>
+                        <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+                            <button class="toggle" style="flex-shrink:0;" :style="{ background: email.whatsapp ? '#22c55e' : 'rgba(255,255,255,0.1)' }" @click="email.whatsapp = !email.whatsapp; calc()">
+                                <span :style="{ left: email.whatsapp ? '25px' : '3px' }"></span>
+                            </button>
+                            <span style="font-size:12px; color:rgba(255,255,255,0.5);" x-text="email.whatsapp ? 'Incluir disparo por WhatsApp (+R$ 200/mês)' : 'Sem disparo por WhatsApp'"></span>
+                        </div>
+                        <template x-if="email.whatsapp">
+                            <div style="margin-top:10px; padding:10px 14px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:10px;">
+                                <p style="font-size:11px; color:rgba(245,158,11,0.8); line-height:1.6;">
+                                    <strong>Recomendação:</strong> Para disparos em massa via WhatsApp, recomendamos utilizar a <strong>API oficial do WhatsApp (Meta)</strong> para evitar bloqueio do número. A API oficial cobra entre <strong>R$ 0,15 a R$ 0,30 por mensagem</strong> iniciada com o cliente (cobrado diretamente pela Meta).
+                                </p>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </template>
         </div>
@@ -160,11 +192,20 @@
                     <span :style="{ left: modules.integrations ? '25px' : '3px' }"></span>
                 </button>
             </div>
-            <p class="module-desc">Conexão com sistemas externos (site, ERP, CRM externo, API personalizada).</p>
+            <p class="module-desc">Conexão com sistemas externos para envio e recebimento de dados automaticamente.</p>
             <template x-if="modules.integrations">
-                <div class="field">
-                    <label>Quantidade de integrações</label>
-                    <input type="number" min="1" max="10" x-model.number="integrations.count" @input="calc()">
+                <div>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:10px;">Exemplos de integrações:</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.15); color:#22d3ee;">Site</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.15); color:#22d3ee;">Loja Virtual</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.15); color:#22d3ee;">Sistema Financeiro</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.15); color:#22d3ee;">ERP</span>
+                    </div>
+                    <div class="field">
+                        <label>Quantidade de integrações</label>
+                        <input type="number" min="1" max="10" x-model.number="integrations.count" @input="calc()">
+                    </div>
                 </div>
             </template>
         </div>
@@ -211,7 +252,7 @@
                 <template x-if="modules.email">
                     <div>
                         <div class="breakdown-item">
-                            <span>Disparos Email (<span x-text="email.plan"></span>)</span>
+                            <span>Disparos (<span x-show="email.plan !== 'none'">Email <span x-text="email.plan"></span></span><span x-show="email.plan !== 'none' && email.whatsapp"> + </span><span x-show="email.whatsapp">WhatsApp</span>)</span>
                             <span class="val">R$ <span x-text="fmt(detail.email_monthly)"></span>/mês</span>
                         </div>
                         <div class="breakdown-item">
@@ -257,8 +298,8 @@ function pricingSimulator() {
     const C = @json($config);
     return {
         modules: { multi: true, crm: false, email: false, ia: false, integrations: false },
-        multi: { users: 3, instances: 1 },
-        email: { plan: '5k' },
+        multi: { users: 1, instances: 1 },
+        email: { plan: '5k', whatsapp: false },
         ia: { flows: 1 },
         integrations: { count: 1 },
         total: { monthly: 0, setup: 0 },
@@ -290,9 +331,14 @@ function pricingSimulator() {
                 monthly += m; setup += s;
             }
             if (this.modules.email) {
-                const prices = { '5k': parseFloat(C.email_5k_price), '20k': parseFloat(C.email_20k_price), '50k': parseFloat(C.email_50k_price) };
-                const m = prices[this.email.plan] || prices['5k'];
-                const s = parseFloat(C.email_setup);
+                const prices = { 'none': 0, '5k': parseFloat(C.email_5k_price), '20k': parseFloat(C.email_20k_price), '50k': parseFloat(C.email_50k_price) };
+                let m = prices[this.email.plan] ?? 0;
+                let s = this.email.plan !== 'none' ? parseFloat(C.email_setup) : 0;
+                // WhatsApp broadcast
+                if (this.email.whatsapp) {
+                    m += 200;
+                    if (s === 0) s = parseFloat(C.email_setup); // setup se só tem WhatsApp
+                }
                 this.detail.email_monthly = m;
                 this.detail.email_setup = s;
                 monthly += m; setup += s;
