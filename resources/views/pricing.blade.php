@@ -299,6 +299,14 @@
             </div>
         </div>
 
+        <div style="margin-top:20px; padding:16px 20px; background:linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03)); border:2px solid rgba(245,158,11,0.25); border-radius:14px; text-align:center;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:6px;">
+                <svg width="20" height="20" fill="none" stroke="#fbbf24" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p style="font-size:14px; font-weight:700; color:#fbbf24; font-family:'Syne',sans-serif;">Prazo de implantação: até 10 dias úteis</p>
+            </div>
+            <p style="font-size:12px; color:rgba(255,255,255,0.35);">Após a aprovação, nossa equipe inicia a configuração completa do seu CRM.</p>
+        </div>
+
         <a href="/onboarding" class="cta">Solicitar implementação</a>
     </div>
 </div>
