@@ -141,7 +141,7 @@
         </div>
     </div>
 
-    <div style="display:flex; flex:1; overflow:hidden;">
+    <div style="display:flex; flex:1; overflow:hidden; min-height:0;">
 
     {{-- Mobile overlay (só fecha ao clicar no overlay, não na sidebar) --}}
     <template x-if="mobileMenu && window.innerWidth <= 768">
