@@ -36,15 +36,8 @@ function senderColor(?string $identifier): string {
             .chat-header-meta span { display: none !important; }
             .chat-header-meta span.mobile-dept { display: inline !important; }
             .msg-bubble { max-width: min(320px, 80vw) !important; }
-            .chat-header { padding: 8px 10px !important; gap: 6px !important; overflow: visible !important; }
+            .chat-header { padding: 8px 10px !important; gap: 6px !important; }
             #messages-container { padding: 12px 10px !important; }
-            .group-members-panel {
-                position: fixed !important;
-                top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-                width: 100% !important; max-height: 100% !important;
-                border-radius: 0 !important;
-                z-index: 9999 !important;
-            }
         }
         @media (hover: none) and (pointer: coarse) {
             .msg-action-menu { display: flex !important; opacity: 0.6; }
@@ -97,40 +90,6 @@ function senderColor(?string $identifier): string {
                 <span>#{{ $conversation->protocol }}</span>
             </p>
         </div>
-
-        {{-- Group members panel --}}
-        @if($showGroupMembers && !empty($groupMembers))
-        <div class="group-members-panel" style="position:absolute; top:60px; right:12px; z-index:50; width:320px; max-height:80vh; overflow-y:auto; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
-            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#0f1320; z-index:1;">
-                <span style="font-size:12px; font-weight:700; color:white;">Membros do grupo ({{ count($groupMembers) }})</span>
-                <button wire:click="$set('showGroupMembers', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px; padding:4px 8px;">&times;</button>
-            </div>
-            @foreach($groupMembers as $member)
-            <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.03);">
-                <div style="width:32px; height:32px; border-radius:50%; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <span style="font-size:11px; font-weight:700; color:#60a5fa;">{{ mb_substr($member['name'], 0, 1) }}</span>
-                </div>
-                <div style="flex:1; min-width:0;">
-                    <p style="font-size:12px; font-weight:600; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $member['name'] }}</p>
-                    <p style="font-size:10px; color:rgba(255,255,255,0.3);">
-                        {{ $member['phone'] }}
-                        @if($member['role'] === 'superadmin')
-                        <span style="color:#fbbf24; margin-left:4px;">Admin</span>
-                        @elseif($member['role'] === 'admin')
-                        <span style="color:#4ade80; margin-left:4px;">Admin</span>
-                        @endif
-                    </p>
-                </div>
-                @if(!str_contains($member['jid'], '@g.us'))
-                <button wire:click="chatWithMember('{{ $member['jid'] }}')"
-                        style="flex-shrink:0; padding:4px 10px; font-size:10px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">
-                    Conversar
-                </button>
-                @endif
-            </div>
-            @endforeach
-        </div>
-        @endif
 
         {{-- Search button --}}
         <button @click="searchOpen = !searchOpen; if(!searchOpen) clearSearch(); else $nextTick(() => $refs.searchInput?.focus())"
@@ -204,6 +163,40 @@ function senderColor(?string $identifier): string {
             @endif
         </div>
     </div>
+
+    {{-- Group members panel (fora do header para não ser cortado) --}}
+    @if($showGroupMembers && !empty($groupMembers))
+    <div class="group-members-panel" style="position:relative; z-index:50; max-height:70vh; overflow-y:auto; background:#0f1320; border-bottom:1px solid rgba(255,255,255,0.1); flex-shrink:0;">
+        <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#0f1320; z-index:1;">
+            <span style="font-size:12px; font-weight:700; color:white;">Membros do grupo ({{ count($groupMembers) }})</span>
+            <button wire:click="$set('showGroupMembers', false)" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.5); cursor:pointer; font-size:12px; padding:6px 12px; border-radius:8px;">Fechar</button>
+        </div>
+        @foreach($groupMembers as $member)
+        <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.03);">
+            <div style="width:32px; height:32px; border-radius:50%; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <span style="font-size:11px; font-weight:700; color:#60a5fa;">{{ mb_substr($member['name'], 0, 1) }}</span>
+            </div>
+            <div style="flex:1; min-width:0;">
+                <p style="font-size:12px; font-weight:600; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $member['name'] }}</p>
+                <p style="font-size:10px; color:rgba(255,255,255,0.3);">
+                    {{ $member['phone'] }}
+                    @if($member['role'] === 'superadmin')
+                    <span style="color:#fbbf24; margin-left:4px;">Admin</span>
+                    @elseif($member['role'] === 'admin')
+                    <span style="color:#4ade80; margin-left:4px;">Admin</span>
+                    @endif
+                </p>
+            </div>
+            @if(!str_contains($member['jid'], '@g.us'))
+            <button wire:click="chatWithMember('{{ $member['jid'] }}')"
+                    style="flex-shrink:0; padding:6px 12px; font-size:10px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">
+                Conversar
+            </button>
+            @endif
+        </div>
+        @endforeach
+    </div>
+    @endif
 
     {{-- Search bar --}}
     <div x-show="searchOpen" x-cloak
