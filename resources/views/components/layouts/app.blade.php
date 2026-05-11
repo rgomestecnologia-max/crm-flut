@@ -78,8 +78,12 @@
                 height: 100dvh !important;
                 z-index: 41;
                 background: #0B0F1C !important;
-                overflow: hidden !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
             }
+            body.mobile-menu-open { overflow: hidden !important; touch-action: none; }
             .mobile-full { width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
             .mobile-hide { display: none !important; }
             .mobile-col { flex-direction: column !important; }
@@ -90,7 +94,7 @@
         }
     </style>
 </head>
-<body style="background:#080C16; color:#e5e7eb;" class="antialiased" x-data="{ sidebarOpen: window.innerWidth > 768, mobileMenu: false }" @resize.window="if(window.innerWidth > 768) { mobileMenu = false; sidebarOpen = true; }">
+<body style="background:#080C16; color:#e5e7eb;" class="antialiased" x-data="{ sidebarOpen: window.innerWidth > 768, mobileMenu: false }" x-effect="document.body.classList.toggle('mobile-menu-open', mobileMenu && window.innerWidth <= 768)" @resize.window="if(window.innerWidth > 768) { mobileMenu = false; sidebarOpen = true; }">
 
 {{-- Toast notifications --}}
 <div
