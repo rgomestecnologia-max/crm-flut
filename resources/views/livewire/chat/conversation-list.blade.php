@@ -175,8 +175,8 @@
                         {{-- Avatar --}}
                         <div style="position:relative; flex-shrink:0;">
                             <img src="{{ $conv->contact->avatar }}" alt=""
-                                 onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode(mb_substr($conv->contact->display_name, 0, 1)) }}&background=1f2937&color=9ca3af&size=80';"
-                                 style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid {{ $activeId === $conv->id ? '#b2ff00' : 'rgba(255,255,255,0.06)' }}; background:rgba(255,255,255,0.06);">
+                                 onerror="this.onerror=null; this.src='{{ $conv->contact->avatar_fallback }}';"
+                                 style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid {{ $activeId === $conv->id ? '#b2ff00' : 'rgba(255,255,255,0.06)' }}; background:#0d1a2e;">
                             @if($conv->unread_count > 0)
                                 <span style="position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; background:#b2ff00; color:#111; font-size:9px; font-weight:800; border-radius:20px; display:flex; align-items:center; justify-content:center; padding:0 3px; border:2px solid #0B0F1C;">
                                     {{ $conv->unread_count > 9 ? '9+' : $conv->unread_count }}

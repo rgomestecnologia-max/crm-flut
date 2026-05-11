@@ -29,6 +29,35 @@ class Contact extends Model
         return $this->name ?: $this->phone;
     }
 
+    /**
+     * Avatar SVG com iniciais (fallback garantido).
+     */
+    public function getAvatarFallbackAttribute(): string
+    {
+        if ($this->name) {
+            $words    = array_filter(explode(' ', trim($this->name)));
+            $initials = collect($words)
+                ->take(2)
+                ->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))
+                ->join('');
+
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">'
+                 . '<rect width="64" height="64" rx="32" fill="#0d1a2e"/>'
+                 . '<text x="32" y="42" text-anchor="middle" dominant-baseline="auto" '
+                 . 'font-family="system-ui,sans-serif" font-size="24" font-weight="700" fill="#b2ff00">'
+                 . htmlspecialchars($initials ?: '?')
+                 . '</text></svg>';
+        } else {
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">'
+                 . '<rect width="64" height="64" rx="32" fill="#0d1a2e"/>'
+                 . '<circle cx="32" cy="25" r="11" fill="none" stroke="#b2ff00" stroke-width="2.5" opacity="0.7"/>'
+                 . '<path d="M12 55c0-11 8.95-20 20-20s20 8.95 20 20" fill="none" stroke="#b2ff00" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>'
+                 . '</svg>';
+        }
+
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+    }
+
     public function getAvatarAttribute(): string
     {
         $url = $this->avatar_url;
