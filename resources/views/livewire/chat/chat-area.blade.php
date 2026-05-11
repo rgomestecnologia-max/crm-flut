@@ -45,11 +45,8 @@ function senderColor(?string $identifier): string {
         }
         </style>
         <div style="position:relative; flex-shrink:0;">
-            <img src="{{ $conversation->contact->avatar }}" alt=""
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                 style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3);">
-            <div style="display:none; width:38px; height:38px; border-radius:50%; background:rgba(178,255,0,0.1); border:2px solid rgba(178,255,0,0.3); align-items:center; justify-content:center;">
-                <span style="font-size:14px; font-weight:700; color:#b2ff00;">{{ mb_substr($conversation->contact->display_name, 0, 1) }}</span>
+            <div style="width:38px; height:38px; border-radius:50%; border:2px solid rgba(178,255,0,0.3); background:rgba(178,255,0,0.1) url('{{ $conversation->contact->avatar }}') center/cover no-repeat; display:flex; align-items:center; justify-content:center;">
+                <span style="font-size:14px; font-weight:700; color:#b2ff00; text-shadow:0 0 4px rgba(0,0,0,0.8);">{{ mb_substr($conversation->contact->display_name, 0, 1) }}</span>
             </div>
             <div style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #0B0F1C;"></div>
         </div>
@@ -279,11 +276,8 @@ function senderColor(?string $identifier): string {
             @elseif($msg->isFromContact())
                 {{-- Contact message (left) --}}
                 <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
-                    <img src="{{ $conversation->contact->avatar }}" alt=""
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                         style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(255,255,255,0.08);">
-                    <div style="display:none; width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.08); align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
-                        <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5);">{{ mb_substr($conversation->contact->display_name, 0, 1) }}</span>
+                    <div style="width:26px; height:26px; border-radius:50%; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.08) url('{{ $conversation->contact->avatar }}') center/cover no-repeat; display:flex; align-items:center; justify-content:center;">
+                        <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-shadow:0 0 3px rgba(0,0,0,0.9);">{{ mb_substr($conversation->contact->display_name, 0, 1) }}</span>
                     </div>
                     <div>
                         @if($msg->type === 'text')
@@ -539,12 +533,9 @@ function senderColor(?string $identifier): string {
                 <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
                      x-data="{ showMenu: false, editing: false, editText: '' }"
                      @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
-                    <img src="{{ $msg->sender?->avatar_url ?? auth()->user()->avatar_url }}" alt=""
-                         title="{{ $msg->sender?->name ?? 'WhatsApp' }}"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                         style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
-                    <div style="display:none; width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
-                        <span style="font-size:10px; font-weight:700; color:#b2ff00;">{{ mb_substr($msg->sender?->name ?? 'W', 0, 1) }}</span>
+                    <div title="{{ $msg->sender?->name ?? 'WhatsApp' }}"
+                         style="width:26px; height:26px; border-radius:50%; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3); background:rgba(178,255,0,0.15) url('{{ $msg->sender?->avatar_url ?? auth()->user()->avatar_url }}') center/cover no-repeat; display:flex; align-items:center; justify-content:center;">
+                        <span style="font-size:10px; font-weight:700; color:#b2ff00; text-shadow:0 0 3px rgba(0,0,0,0.9);">{{ mb_substr($msg->sender?->name ?? 'W', 0, 1) }}</span>
                     </div>
                     <div>
                         @if($msg->type === 'text')
