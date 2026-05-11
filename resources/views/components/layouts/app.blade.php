@@ -48,6 +48,10 @@
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
+        aside::-webkit-scrollbar { width: 6px; }
+        aside::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        aside::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
         /* Lightbox overlay */
         .lightbox-overlay {
             position: fixed;
@@ -153,7 +157,7 @@
         :style="window.innerWidth > 768 ? (sidebarOpen ? 'width:220px;' : 'width:56px;') : ''"
         x-show="window.innerWidth > 768 || mobileMenu"
         :class="{ 'mobile-sidebar': window.innerWidth <= 768 }"
-        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; height:100%; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; position:relative; overflow-x:hidden; overflow-y:auto;"
+        style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; max-height:100vh; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; position:relative; overflow-x:hidden; overflow-y:auto;"
     >
         {{-- Subtle top glow --}}
         <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(178,255,0,0.3), transparent); pointer-events:none;"></div>
