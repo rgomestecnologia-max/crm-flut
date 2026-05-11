@@ -62,14 +62,7 @@ class Contact extends Model
     {
         $url = $this->avatar_url;
         if ($url && $url !== 'null' && $url !== '') {
-            // Aceitar URLs locais (/storage/...) ou do nosso R2
-            // Rejeitar URLs externas do WhatsApp (expiram e quebram no mobile)
-            $isLocal = str_starts_with($url, '/');
-            $r2Url   = config('filesystems.disks.r2.url');
-            $isR2    = $r2Url && str_starts_with($url, $r2Url);
-            if ($isLocal || $isR2) {
-                return $url;
-            }
+            return $url;
         }
 
         if ($this->name) {

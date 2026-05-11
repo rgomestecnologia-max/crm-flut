@@ -152,13 +152,7 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {
-            $url = \App\Services\MediaStorage::url($this->avatar);
-            $isLocal = str_starts_with($url, '/');
-            $r2Url   = config('filesystems.disks.r2.url');
-            $isR2    = $r2Url && str_starts_with($url, $r2Url);
-            if ($isLocal || $isR2) {
-                return $url;
-            }
+            return \App\Services\MediaStorage::url($this->avatar);
         }
 
         $words = array_filter(explode(' ', trim($this->name)));

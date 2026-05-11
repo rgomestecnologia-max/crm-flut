@@ -174,7 +174,9 @@
                     <div style="display:flex; align-items:flex-start; gap:10px;">
                         {{-- Avatar --}}
                         <div style="position:relative; flex-shrink:0;">
-                            <img src="{{ $conv->contact->avatar }}" alt=""
+                            <img x-data="{ err: false }"
+                                 :src="err ? '{{ $conv->contact->avatar_fallback }}' : '{{ $conv->contact->avatar }}'"
+                                 x-on:error="err = true" alt=""
                                  style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid {{ $activeId === $conv->id ? '#b2ff00' : 'rgba(255,255,255,0.06)' }};">
                             @if($conv->unread_count > 0)
                                 <span style="position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; background:#b2ff00; color:#111; font-size:9px; font-weight:800; border-radius:20px; display:flex; align-items:center; justify-content:center; padding:0 3px; border:2px solid #0B0F1C;">

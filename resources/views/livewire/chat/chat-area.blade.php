@@ -45,7 +45,9 @@ function senderColor(?string $identifier): string {
         }
         </style>
         <div style="position:relative; flex-shrink:0;">
-            <img src="{{ $conversation->contact->avatar }}" alt=""
+            <img x-data="{ err: false }"
+                 :src="err ? '{{ $conversation->contact->avatar_fallback }}' : '{{ $conversation->contact->avatar }}'"
+                 x-on:error="err = true" alt=""
                  style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3);">
             <div style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #0B0F1C;"></div>
         </div>
@@ -275,7 +277,9 @@ function senderColor(?string $identifier): string {
             @elseif($msg->isFromContact())
                 {{-- Contact message (left) --}}
                 <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
-                    <img src="{{ $conversation->contact->avatar }}" alt=""
+                    <img x-data="{ err: false }"
+                         :src="err ? '{{ $conversation->contact->avatar_fallback }}' : '{{ $conversation->contact->avatar }}'"
+                         x-on:error="err = true" alt=""
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(255,255,255,0.08);">
                     <div>
                         @if($msg->type === 'text')
@@ -531,8 +535,14 @@ function senderColor(?string $identifier): string {
                 <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
                      x-data="{ showMenu: false, editing: false, editText: '' }"
                      @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
-                    <img src="{{ $msg->sender?->avatar_url ?? auth()->user()->avatar_url }}" alt=""
-                         title="{{ $msg->sender?->name ?? 'WhatsApp' }}"
+                    @php
+                        $agentName = $msg->sender?->name ?? 'W';
+                        $agentInit = mb_strtoupper(mb_substr($agentName, 0, 1));
+                        $agentSvg = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="32" fill="#14B8A6"/><text x="32" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="24" font-weight="700" fill="#fff">' . htmlspecialchars($agentInit) . '</text></svg>');
+                    @endphp
+                    <img x-data="{ err: false }"
+                         :src="err ? '{{ $agentSvg }}' : '{{ $msg->sender?->avatar_url ?? auth()->user()->avatar_url }}'"
+                         x-on:error="err = true" alt="" title="{{ $agentName }}"
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
                     <div>
                         @if($msg->type === 'text')
