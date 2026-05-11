@@ -46,7 +46,11 @@ function senderColor(?string $identifier): string {
         </style>
         <div style="position:relative; flex-shrink:0;">
             <img src="{{ $conversation->contact->avatar }}" alt=""
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                  style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3);">
+            <div style="display:none; width:38px; height:38px; border-radius:50%; background:rgba(178,255,0,0.1); border:2px solid rgba(178,255,0,0.3); align-items:center; justify-content:center;">
+                <span style="font-size:14px; font-weight:700; color:#b2ff00;">{{ mb_substr($conversation->contact->display_name, 0, 1) }}</span>
+            </div>
             <div style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #0B0F1C;"></div>
         </div>
         <div class="chat-header-info" style="flex:1; min-width:0;">
@@ -276,7 +280,11 @@ function senderColor(?string $identifier): string {
                 {{-- Contact message (left) --}}
                 <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     <img src="{{ $conversation->contact->avatar }}" alt=""
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:none; width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.08); align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
+                        <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.5);">{{ mb_substr($conversation->contact->display_name, 0, 1) }}</span>
+                    </div>
                     <div>
                         @if($msg->type === 'text')
                             <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word;">
@@ -533,7 +541,11 @@ function senderColor(?string $identifier): string {
                      @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     <img src="{{ $msg->sender?->avatar_url ?? auth()->user()->avatar_url }}" alt=""
                          title="{{ $msg->sender?->name ?? 'WhatsApp' }}"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
+                    <div style="display:none; width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
+                        <span style="font-size:10px; font-weight:700; color:#b2ff00;">{{ mb_substr($msg->sender?->name ?? 'W', 0, 1) }}</span>
+                    </div>
                     <div>
                         @if($msg->type === 'text')
                             <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3);">
