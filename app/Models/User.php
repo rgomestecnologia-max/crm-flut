@@ -152,10 +152,23 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {
-            return \App\Services\MediaStorage::url($this->avatar);
+            $url = \App\Services\MediaStorage::url($this->avatar);
+            $isLocal = str_starts_with($url, '/');
+            $r2Url   = config('filesystems.disks.r2.url');
+            $isR2    = $r2Url && str_starts_with($url, $r2Url);
+            if ($isLocal || $isR2) {
+                return $url;
+            }
         }
-        $initials = urlencode(substr($this->name, 0, 1));
-        return "https://ui-avatars.com/api/?name={$initials}&background=14B8A6&color=fff&size=64";
+
+        $words = array_filter(explode(' ', trim($this->name)));
+        $initials = collect($words)->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->join('');
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">'
+             . '<rect width="64" height="64" rx="32" fill="#14B8A6"/>'
+             . '<text x="32" y="42" text-anchor="middle" font-family="system-ui,sans-serif" font-size="24" font-weight="700" fill="#fff">'
+             . htmlspecialchars($initials ?: '?')
+             . '</text></svg>';
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 
     /**
