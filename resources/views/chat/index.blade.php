@@ -31,6 +31,7 @@
             }
             .chat-area-panel {
                 width: 100% !important;
+                overflow-x: hidden !important;
             }
         }
     </style>

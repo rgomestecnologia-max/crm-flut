@@ -5,7 +5,7 @@ function senderColor(?string $identifier): string {
     return $colors[crc32($identifier) % count($colors)];
 }
 @endphp
-<div class="flex flex-col h-full"
+<div class="flex flex-col h-full" style="overflow-x:hidden; max-width:100vw;"
      wire:poll.5s
      x-data="chatArea()"
      x-init="init()"
@@ -16,7 +16,7 @@ function senderColor(?string $identifier): string {
 
     @if($conversationId && $conversation)
     {{-- Chat Header --}}
-    <div class="chat-header" style="min-height:56px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:8px 12px; gap:8px; flex-shrink:0; background:rgba(11,15,28,0.6); backdrop-filter:blur(8px);">
+    <div class="chat-header" style="min-height:56px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:8px 12px; gap:8px; flex-shrink:0; background:rgba(11,15,28,0.6); backdrop-filter:blur(8px); overflow:hidden;">
         {{-- Botão voltar (mobile) --}}
         <button @click="$dispatch('conversation-deleted')"
                 class="chat-back-btn"
@@ -32,7 +32,10 @@ function senderColor(?string $identifier): string {
             .chat-header-actions button { padding: 6px 8px !important; min-width: 32px; justify-content: center; }
             .chat-header-actions { gap: 4px !important; }
             .chat-header-info .crm-badge { display: none !important; }
+            .chat-header-info { overflow: hidden !important; }
             .msg-bubble { max-width: min(320px, 80vw) !important; }
+            .chat-header { padding: 8px 10px !important; gap: 6px !important; }
+            #messages-container { padding: 12px 10px !important; }
         }
         @media (hover: none) and (pointer: coarse) {
             .msg-action-menu { display: flex !important; opacity: 0.6; }
@@ -244,7 +247,7 @@ function senderColor(?string $identifier): string {
 
     {{-- Messages area --}}
     <div class="flex-1 overflow-y-auto" x-ref="msgContainer" id="messages-container"
-         style="padding:20px 24px; display:flex; flex-direction:column; gap:6px;
+         style="padding:20px 16px; display:flex; flex-direction:column; gap:6px; overflow-x:hidden;
                 background: radial-gradient(ellipse at 20% 0%, rgba(178,255,0,0.02) 0%, transparent 60%),
                             radial-gradient(ellipse at 80% 100%, rgba(178,255,0,0.015) 0%, transparent 60%);
                 background-attachment:local;">
