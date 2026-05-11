@@ -70,6 +70,7 @@
         /* ── Responsive ──────────────────────────────────── */
         @media (max-width: 768px) {
             html { font-size: 100%; }
+            .mobile-top-bar { display: flex !important; }
             .mobile-sidebar {
                 position: fixed !important;
                 top: 0; left: 0; bottom: 0;
@@ -122,8 +123,8 @@
 <div style="display:flex; flex-direction:column; height:100vh; height:100dvh; overflow:hidden;">
 
     {{-- MOBILE TOP BAR --}}
-    <div x-show="window.innerWidth <= 768"
-         style="height:52px; display:flex; align-items:center; padding:0 14px; background:linear-gradient(180deg, #0B0F1C, #080C16); border-bottom:1px solid rgba(255,255,255,0.05); flex-shrink:0; gap:12px; position:relative; z-index:39;">
+    <div class="mobile-top-bar"
+         style="display:none; height:52px; align-items:center; padding:0 14px; background:linear-gradient(180deg, #0B0F1C, #080C16); border-bottom:1px solid rgba(255,255,255,0.05); flex-shrink:0; gap:12px; position:relative; z-index:39;">
         <button @click="mobileMenu = !mobileMenu; if(mobileMenu) sidebarOpen = true;"
                 style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.05); border:none; cursor:pointer; padding:8px; border-radius:8px;">
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
