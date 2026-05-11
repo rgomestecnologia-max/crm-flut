@@ -33,7 +33,8 @@ function senderColor(?string $identifier): string {
             .chat-header-actions { gap: 4px !important; }
             .chat-header-info .crm-badge { display: none !important; }
             .chat-header-info { overflow: hidden !important; }
-            .chat-header-meta { display: none !important; }
+            .chat-header-meta span { display: none !important; }
+            .chat-header-meta span.mobile-dept { display: inline !important; }
             .msg-bubble { max-width: min(320px, 80vw) !important; }
             .chat-header { padding: 8px 10px !important; gap: 6px !important; }
             #messages-container { padding: 12px 10px !important; }
@@ -84,7 +85,7 @@ function senderColor(?string $identifier): string {
             <p class="chat-header-meta" style="font-size:10px; color:rgba(255,255,255,0.25); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:4px;">
                 <span>{{ $conversation->contact->phone }}</span>
                 <span style="color:rgba(255,255,255,0.1);">·</span>
-                <span style="color: {{ $conversation->department->color }}">{{ $conversation->department->name }}</span>
+                <span class="mobile-dept" style="color: {{ $conversation->department->color }}">{{ $conversation->department->name }}</span>
                 <span style="color:rgba(255,255,255,0.1);">·</span>
                 <span>#{{ $conversation->protocol }}</span>
             </p>
