@@ -100,7 +100,7 @@ function senderColor(?string $identifier): string {
 
         {{-- Group members panel --}}
         @if($showGroupMembers && !empty($groupMembers))
-        <div class="group-members-panel" style="position:absolute; top:60px; right:12px; z-index:50; width:320px; max-height:400px; overflow-y:auto; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+        <div class="group-members-panel" style="position:absolute; top:60px; right:12px; z-index:50; width:320px; max-height:80vh; overflow-y:auto; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
             <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#0f1320; z-index:1;">
                 <span style="font-size:12px; font-weight:700; color:white;">Membros do grupo ({{ count($groupMembers) }})</span>
                 <button wire:click="$set('showGroupMembers', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px; padding:4px 8px;">&times;</button>
