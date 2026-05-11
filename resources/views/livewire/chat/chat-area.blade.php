@@ -36,8 +36,15 @@ function senderColor(?string $identifier): string {
             .chat-header-meta span { display: none !important; }
             .chat-header-meta span.mobile-dept { display: inline !important; }
             .msg-bubble { max-width: min(320px, 80vw) !important; }
-            .chat-header { padding: 8px 10px !important; gap: 6px !important; }
+            .chat-header { padding: 8px 10px !important; gap: 6px !important; overflow: visible !important; }
             #messages-container { padding: 12px 10px !important; }
+            .group-members-panel {
+                position: fixed !important;
+                top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+                width: 100% !important; max-height: 100% !important;
+                border-radius: 0 !important;
+                z-index: 9999 !important;
+            }
         }
         @media (hover: none) and (pointer: coarse) {
             .msg-action-menu { display: flex !important; opacity: 0.6; }
@@ -93,14 +100,13 @@ function senderColor(?string $identifier): string {
 
         {{-- Group members panel --}}
         @if($showGroupMembers && !empty($groupMembers))
-        <div style="position:absolute; top:60px; right:12px; z-index:30; width:320px; max-height:400px; overflow-y:auto; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
-            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+        <div class="group-members-panel" style="position:absolute; top:60px; right:12px; z-index:50; width:320px; max-height:400px; overflow-y:auto; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#0f1320; z-index:1;">
                 <span style="font-size:12px; font-weight:700; color:white;">Membros do grupo ({{ count($groupMembers) }})</span>
-                <button wire:click="$set('showGroupMembers', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px;">&times;</button>
+                <button wire:click="$set('showGroupMembers', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px; padding:4px 8px;">&times;</button>
             </div>
             @foreach($groupMembers as $member)
-            <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.03); transition:background 0.1s;"
-                 onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+            <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.03);">
                 <div style="width:32px; height:32px; border-radius:50%; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <span style="font-size:11px; font-weight:700; color:#60a5fa;">{{ mb_substr($member['name'], 0, 1) }}</span>
                 </div>
@@ -117,8 +123,7 @@ function senderColor(?string $identifier): string {
                 </div>
                 @if(!str_contains($member['jid'], '@g.us'))
                 <button wire:click="chatWithMember('{{ $member['jid'] }}')"
-                        style="flex-shrink:0; padding:4px 10px; font-size:10px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;"
-                        onmouseover="this.style.background='rgba(178,255,0,0.15)'" onmouseout="this.style.background='rgba(178,255,0,0.08)'">
+                        style="flex-shrink:0; padding:4px 10px; font-size:10px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">
                     Conversar
                 </button>
                 @endif
