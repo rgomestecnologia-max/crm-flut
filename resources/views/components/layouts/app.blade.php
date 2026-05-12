@@ -154,7 +154,7 @@
 
     {{-- SIDEBAR --}}
     <aside
-        :style="window.innerWidth > 768 ? (sidebarOpen ? 'width:220px;' : 'width:56px;') : ''"
+        :style="window.innerWidth > 768 ? { width: sidebarOpen ? '220px' : '56px' } : {}"
         x-show="window.innerWidth > 768 || mobileMenu"
         :class="{ 'mobile-sidebar': window.innerWidth <= 768 }"
         style="background: linear-gradient(180deg, #0B0F1C 0%, #080C16 100%); border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; max-height:100vh; transition:width 0.25s cubic-bezier(0.4,0,0.2,1); flex-shrink:0; position:relative; overflow-x:hidden; overflow-y:auto;"
