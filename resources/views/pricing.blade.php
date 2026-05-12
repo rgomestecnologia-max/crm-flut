@@ -320,25 +320,21 @@
         </div>
 
         {{-- Botões --}}
-        <div style="display:flex; gap:12px; margin-top:16px;">
-            <a href="/onboarding" class="cta" style="flex:1;">Solicitar implementação</a>
-
-            <template x-if="!savedId">
-                <button @click="salvarProposta()" class="cta" style="flex:1; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111;" :disabled="saving">
-                    <template x-if="saving">
-                        <span>Salvando...</span>
-                    </template>
-                    <template x-if="!saving">
-                        <span>
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Salvar Proposta
-                        </span>
-                    </template>
-                </button>
-            </template>
+        <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+            <button @click="salvarProposta()" class="cta" style="flex:1; min-width:200px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111;" :disabled="saving">
+                <template x-if="saving">
+                    <span>Salvando...</span>
+                </template>
+                <template x-if="!saving">
+                    <span>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span x-text="proposalId ? 'Atualizar Proposta' : 'Salvar Proposta'"></span>
+                    </span>
+                </template>
+            </button>
 
             <template x-if="savedId">
-                <button @click="gerarPDF()" class="cta" style="flex:1; background:linear-gradient(135deg, #3b82f6, #2563eb); box-shadow:0 4px 20px rgba(59,130,246,0.3);">
+                <button @click="gerarPDF()" class="cta" style="flex:1; min-width:200px; background:linear-gradient(135deg, #3b82f6, #2563eb); box-shadow:0 4px 20px rgba(59,130,246,0.3);">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Gerar PDF da proposta
                 </button>
@@ -349,7 +345,7 @@
         <template x-if="savedId">
             <div style="margin-top:12px; padding:12px 16px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:10px; display:flex; align-items:center; gap:10px;">
                 <svg width="18" height="18" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                <p style="font-size:12px; color:#22c55e;">Proposta salva com sucesso! Agora você pode gerar o PDF.</p>
+                <p style="font-size:12px; color:#22c55e;" x-text="proposalId ? 'Proposta atualizada! Gere o PDF ou compartilhe o link.' : 'Proposta salva com sucesso! Agora você pode gerar o PDF.'"></p>
             </div>
         </template>
     </div>
@@ -361,16 +357,18 @@
 <script>
 function pricingSimulator() {
     const C = @json($config);
+    const existing = @json($proposal ?? null);
     return {
-        modules: { multi: true, crm: false, email: false, ia: false, integrations: false },
-        multi: { users: 1, instances: 1 },
-        email: { plan: '5k', whatsapp: false },
-        ia: { flows: 1 },
-        integrations: { count: 1 },
+        modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false },
+        multi: { users: existing?.config?.multi_users ?? 1, instances: existing?.config?.multi_instances ?? 1 },
+        email: { plan: existing?.config?.email_plan ?? '5k', whatsapp: existing?.config?.email_whatsapp ?? false },
+        ia: { flows: existing?.config?.ia_flows ?? 1 },
+        integrations: { count: existing?.config?.integrations_count ?? 1 },
         total: { monthly: 0, setup: 0 },
         detail: {},
-        clientName: '',
-        savedId: null,
+        clientName: existing?.client_name ?? '',
+        savedId: existing?.id ?? null,
+        proposalId: existing?.id ?? null,
         saving: false,
         nameError: false,
 
@@ -438,8 +436,11 @@ function pricingSimulator() {
             }
             this.saving = true;
             try {
-                const res = await fetch('/pricing/save', {
-                    method: 'POST',
+                const isUpdate = !!this.proposalId;
+                const url = isUpdate ? '/pricing/' + this.proposalId : '/pricing/save';
+                const method = isUpdate ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method,
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({
                         client_name: this.clientName.trim(),
@@ -460,6 +461,7 @@ function pricingSimulator() {
                 const data = await res.json();
                 if (data.success) {
                     this.savedId = data.id;
+                    this.proposalId = data.id;
                 } else {
                     alert('Erro ao salvar proposta. Tente novamente.');
                 }

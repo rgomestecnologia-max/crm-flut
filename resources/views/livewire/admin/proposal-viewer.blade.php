@@ -100,7 +100,49 @@
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                {{-- Desconto --}}
+                @if($discountId === $p['id'])
+                <div style="margin-top:12px; padding:12px 16px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:10px;">
+                    <p style="font-size:11px; font-weight:600; color:#fbbf24; margin-bottom:8px;">Aplicar desconto percentual</p>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="number" wire:model="discountPercent" min="1" max="90" placeholder="Ex: 10"
+                               style="width:80px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:6px 10px; font-size:13px; color:white; outline:none; text-align:center;">
+                        <span style="font-size:13px; color:rgba(255,255,255,0.4);">%</span>
+                        <button wire:click="applyDiscount({{ $p['id'] }})"
+                                style="padding:6px 14px; font-size:11px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#fbbf24; border-radius:8px; cursor:pointer; font-weight:600;">
+                            Aplicar
+                        </button>
+                        <button wire:click="openDiscount({{ $p['id'] }})"
+                                style="padding:6px 10px; font-size:11px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.4); border-radius:8px; cursor:pointer;">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+                @endif
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; flex-wrap:wrap;">
+                    {{-- Copiar link --}}
+                    <button x-data @click="navigator.clipboard.writeText(window.location.origin + '/pricing/' + {{ $p['id'] }} + '/editar'); $dispatch('toast', { type: 'success', message: 'Link copiado!' })"
+                            style="padding:6px 14px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); border-radius:8px; cursor:pointer;">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                        Copiar link
+                    </button>
+
+                    {{-- Editar --}}
+                    <a href="/pricing/{{ $p['id'] }}/editar" target="_blank"
+                       style="padding:6px 14px; font-size:11px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); color:#60a5fa; border-radius:8px; cursor:pointer; text-decoration:none;">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Editar
+                    </a>
+
+                    {{-- Desconto --}}
+                    <button wire:click="openDiscount({{ $p['id'] }})"
+                            style="padding:6px 14px; font-size:11px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); color:#fbbf24; border-radius:8px; cursor:pointer;">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                        Desconto %
+                    </button>
+
+                    {{-- Excluir --}}
                     <button wire:click="delete({{ $p['id'] }})" wire:confirm="Excluir esta proposta?"
                             style="padding:6px 14px; font-size:11px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; border-radius:8px; cursor:pointer;">
                         Excluir
