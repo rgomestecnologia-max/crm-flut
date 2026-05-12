@@ -65,10 +65,32 @@ class ProposalViewer extends Component
     public function applyDiscount($id)
     {
         $proposal = Proposal::findOrFail($id);
-        $pct = $this->discountPercent;
+        $pct = (float) $this->discountPercent;
 
-        if ($pct <= 0 || $pct > 90) {
-            $this->dispatch('toast', type: 'error', message: 'Desconto deve ser entre 1% e 90%');
+        if ($pct < 0 || $pct > 90) {
+            $this->dispatch('toast', type: 'error', message: 'Desconto deve ser entre 0% e 90%');
+            return;
+        }
+
+        // Remover desconto (voltar ao original)
+        if ($pct == 0 && $proposal->original_total_monthly) {
+            $proposal->update([
+                'total_monthly'          => $proposal->original_total_monthly,
+                'total_setup'            => $proposal->original_total_setup,
+                'discount_percent'       => null,
+                'original_total_monthly' => null,
+                'original_total_setup'   => null,
+            ]);
+
+            $this->discountId = null;
+            $this->discountPercent = 0;
+            $this->loadProposals();
+            $this->dispatch('toast', type: 'success', message: 'Desconto removido! Valores originais restaurados.');
+            return;
+        }
+
+        if ($pct <= 0) {
+            $this->dispatch('toast', type: 'error', message: 'Informe um percentual de desconto');
             return;
         }
 
@@ -85,12 +107,8 @@ class ProposalViewer extends Component
 
         // Recalcular details proporcionalmente
         $details = $proposal->details;
-        $oldTotal = $origMonthly + $origSetup;
-        if ($oldTotal > 0) {
-            foreach ($details as $key => $value) {
-                // Proporção: se o original era X% do total, o desconto mantém a proporção
-                $details[$key] = round($value * $factor, 2);
-            }
+        foreach ($details as $key => $value) {
+            $details[$key] = round($value * $factor, 2);
         }
 
         $proposal->update([
