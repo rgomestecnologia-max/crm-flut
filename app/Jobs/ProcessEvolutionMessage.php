@@ -500,6 +500,13 @@ class ProcessEvolutionMessage implements ShouldQueue
                 Log::warning('ProcessEvolutionMessage: broadcast falhou', ['error' => $e->getMessage()]);
             }
 
+            // ── Push Notification ────────────────────────────────────────────
+            if ($message->sender_type === 'contact') {
+                try {
+                    \App\Jobs\SendPushNotification::dispatch($message->id);
+                } catch (\Throwable) {}
+            }
+
         } catch (\Throwable $e) {
             Log::error('ProcessEvolutionMessage falhou', [
                 'error'   => $e->getMessage(),
