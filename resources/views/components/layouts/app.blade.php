@@ -557,6 +557,14 @@ async function enablePush() {
     }
 }
 
+// Converter base64url para Uint8Array
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
 // Registrar subscription no backend
 async function subscribePush() {
     const reg = await navigator.serviceWorker.ready;
@@ -564,8 +572,7 @@ async function subscribePush() {
     if (!sub) {
         const vapidKey = '{{ config("services.vapid.public_key") }}';
         if (!vapidKey) throw new Error('VAPID key not configured');
-        const keyBytes = Uint8Array.from(atob(vapidKey.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
-        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes });
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) });
     }
     const subJson = sub.toJSON();
     const res = await fetch('/push/subscribe', {
@@ -582,7 +589,7 @@ async function subscribePush() {
 
     if (Notification.permission === 'granted') {
         // Já tem permissão — subscribe silenciosamente
-        try { await subscribePush(); } catch(e) {}
+        try { await subscribePush(); console.log('[Push] Subscribed successfully'); } catch(e) { console.error('[Push] Auto-subscribe failed:', e); }
     } else if (Notification.permission === 'default' && !localStorage.getItem('push-dismissed')) {
         // Nunca decidiu — mostrar banner
         setTimeout(() => { document.getElementById('push-banner').style.display = 'block'; }, 3000);
