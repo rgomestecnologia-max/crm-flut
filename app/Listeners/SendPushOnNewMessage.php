@@ -14,7 +14,14 @@ class SendPushOnNewMessage implements ShouldQueue
 {
     public function handle(MessageReceived $event): void
     {
-        $message      = $event->message;
+        $message = \App\Models\Message::withoutGlobalScopes()
+            ->with(['conversation.contact', 'conversation.department'])
+            ->find($event->message->id);
+
+        if (!$message || !$message->conversation) {
+            return;
+        }
+
         $conversation = $message->conversation;
 
         // Só notificar mensagens de contato (não do agente)
