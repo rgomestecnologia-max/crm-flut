@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PricingController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Livewire\Auth\SelectCompany;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 // Tela de seleção de empresa (admin) — fica dentro de auth mas FORA do middleware 'company'
 // porque é justamente onde a empresa é escolhida.
 Route::middleware('auth')->group(function () {
+    // Push subscriptions
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'subscribe']);
+    Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'unsubscribe']);
+
     Route::get('/select-company', SelectCompany::class)->name('companies.select');
     Route::post('/companies/clear', function () {
         app(\App\Services\CurrentCompany::class)->clear();

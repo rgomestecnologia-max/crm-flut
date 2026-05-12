@@ -519,23 +519,42 @@ function toastManager() {
 @livewireScripts
 @stack('scripts')
 <script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
+(async function() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
-// Teste de notificação (disponível no console: testNotification())
+    const reg = await navigator.serviceWorker.register('/sw.js').catch(() => null);
+    if (!reg) return;
+
+    // Pedir permissão se ainda não foi decidido
+    if (Notification.permission === 'default') {
+        await Notification.requestPermission();
+    }
+    if (Notification.permission !== 'granted') return;
+
+    // Verificar se já tem subscription ativa
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+        const vapidKey = '{{ config("services.vapid.public_key") }}';
+        if (!vapidKey) return;
+        const keyBytes = Uint8Array.from(atob(vapidKey.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes }).catch(() => null);
+    }
+    if (!sub) return;
+
+    // Enviar subscription ao backend
+    const subJson = sub.toJSON();
+    fetch('/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys })
+    }).catch(() => {});
+})();
+
+// Teste manual (console: testNotification())
 window.testNotification = async function() {
-    if (!('Notification' in window)) { alert('Navegador não suporta notificações'); return; }
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') { alert('Permissão de notificação negada'); return; }
+    if (Notification.permission !== 'granted') { const p = await Notification.requestPermission(); if(p !== 'granted') return alert('Permissão negada'); }
     const reg = await navigator.serviceWorker.ready;
-    reg.showNotification('CRM Flut', {
-        body: 'Notificação de teste funcionando!',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-72x72.png',
-        vibrate: [200, 100, 200],
-        data: { url: '/dashboard' }
-    });
+    reg.showNotification('CRM Flut', { body: 'Notificação de teste!', icon: '/icons/icon-192x192.png', badge: '/icons/icon-72x72.png', vibrate: [200,100,200], data: { url: '/dashboard' } });
 };
 </script>
 </body>

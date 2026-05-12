@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Events\MessageReceived;
+use App\Listeners\SendPushOnNewMessage;
 use App\Services\CurrentCompany;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +24,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(MessageReceived::class, SendPushOnNewMessage::class);
     }
 }
