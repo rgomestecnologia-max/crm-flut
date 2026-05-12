@@ -11,6 +11,7 @@ class ProposalViewer extends Component
     public $expandedId = null;
     public $discountId = null;
     public $discountPercent = 0;
+    public $statusFilter = '';
 
     public function mount()
     {
@@ -19,10 +20,21 @@ class ProposalViewer extends Component
 
     public function loadProposals()
     {
-        $this->proposals = Proposal::with('user')
-            ->orderByDesc('created_at')
-            ->get()
-            ->toArray();
+        $query = Proposal::with('user')->orderByDesc('created_at');
+
+        if ($this->statusFilter) {
+            $query->where('status', $this->statusFilter);
+        }
+
+        $this->proposals = $query->get()->toArray();
+    }
+
+    public function setFilter($status)
+    {
+        $this->statusFilter = $status;
+        $this->expandedId = null;
+        $this->discountId = null;
+        $this->loadProposals();
     }
 
     public function toggle($id)
@@ -31,31 +43,66 @@ class ProposalViewer extends Component
         $this->discountId = null;
     }
 
+    public function setStatus($id, $status)
+    {
+        Proposal::findOrFail($id)->update(['status' => $status]);
+        $this->loadProposals();
+        $labels = ['analise' => 'Em Análise', 'aprovada' => 'Aprovada', 'reprovada' => 'Não Aprovada'];
+        $this->dispatch('toast', type: 'success', message: "Status alterado para: {$labels[$status]}");
+    }
+
     public function openDiscount($id)
     {
-        $this->discountId = $this->discountId === $id ? null : $id;
-        $this->discountPercent = 0;
+        if ($this->discountId === $id) {
+            $this->discountId = null;
+            return;
+        }
+        $this->discountId = $id;
+        $proposal = collect($this->proposals)->firstWhere('id', $id);
+        $this->discountPercent = $proposal['discount_percent'] ?? 0;
     }
 
     public function applyDiscount($id)
     {
         $proposal = Proposal::findOrFail($id);
         $pct = $this->discountPercent;
-        $factor = 1 - ($pct / 100);
 
+        if ($pct <= 0 || $pct > 90) {
+            $this->dispatch('toast', type: 'error', message: 'Desconto deve ser entre 1% e 90%');
+            return;
+        }
+
+        // Salvar originais na primeira aplicação
+        if (!$proposal->original_total_monthly) {
+            $proposal->original_total_monthly = $proposal->total_monthly;
+            $proposal->original_total_setup = $proposal->total_setup;
+        }
+
+        // Recalcular a partir dos originais (não acumular descontos)
+        $factor = 1 - ($pct / 100);
+        $origMonthly = $proposal->original_total_monthly;
+        $origSetup = $proposal->original_total_setup;
+
+        // Recalcular details proporcionalmente
         $details = $proposal->details;
-        foreach ($details as $key => $value) {
-            $details[$key] = round($value * $factor, 2);
+        $oldTotal = $origMonthly + $origSetup;
+        if ($oldTotal > 0) {
+            foreach ($details as $key => $value) {
+                // Proporção: se o original era X% do total, o desconto mantém a proporção
+                $details[$key] = round($value * $factor, 2);
+            }
         }
 
         $proposal->update([
-            'details'       => $details,
-            'total_monthly' => round($proposal->total_monthly * $factor, 2),
-            'total_setup'   => round($proposal->total_setup * $factor, 2),
+            'details'                => $details,
+            'total_monthly'          => round($origMonthly * $factor, 2),
+            'total_setup'            => round($origSetup * $factor, 2),
+            'discount_percent'       => $pct,
+            'original_total_monthly' => $origMonthly,
+            'original_total_setup'   => $origSetup,
         ]);
 
         $this->discountId = null;
-        $this->discountPercent = 0;
         $this->loadProposals();
 
         $this->dispatch('toast', type: 'success', message: "Desconto de {$pct}% aplicado!");
@@ -67,8 +114,20 @@ class ProposalViewer extends Component
         $this->loadProposals();
     }
 
+    public function getCounts()
+    {
+        return [
+            'all'       => Proposal::count(),
+            'analise'   => Proposal::where('status', 'analise')->count(),
+            'aprovada'  => Proposal::where('status', 'aprovada')->count(),
+            'reprovada' => Proposal::where('status', 'reprovada')->count(),
+        ];
+    }
+
     public function render()
     {
-        return view('livewire.admin.proposal-viewer');
+        return view('livewire.admin.proposal-viewer', [
+            'counts' => $this->getCounts(),
+        ]);
     }
 }

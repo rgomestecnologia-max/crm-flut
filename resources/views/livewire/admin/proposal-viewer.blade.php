@@ -9,27 +9,61 @@
         </a>
     </div>
 
+    {{-- Filtro por status --}}
+    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <button wire:click="setFilter('')"
+                style="padding:6px 14px; font-size:11px; font-weight:600; border-radius:20px; cursor:pointer; transition:all 0.15s; border:1px solid {{ $statusFilter === '' ? 'rgba(178,255,0,0.4)' : 'rgba(255,255,255,0.1)' }}; background:{{ $statusFilter === '' ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.03)' }}; color:{{ $statusFilter === '' ? '#b2ff00' : 'rgba(255,255,255,0.4)' }};">
+            Todas <span style="margin-left:4px; opacity:0.6;">{{ $counts['all'] }}</span>
+        </button>
+        <button wire:click="setFilter('analise')"
+                style="padding:6px 14px; font-size:11px; font-weight:600; border-radius:20px; cursor:pointer; transition:all 0.15s; border:1px solid {{ $statusFilter === 'analise' ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.1)' }}; background:{{ $statusFilter === 'analise' ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.03)' }}; color:{{ $statusFilter === 'analise' ? '#fbbf24' : 'rgba(255,255,255,0.4)' }};">
+            Em Análise <span style="margin-left:4px; opacity:0.6;">{{ $counts['analise'] }}</span>
+        </button>
+        <button wire:click="setFilter('aprovada')"
+                style="padding:6px 14px; font-size:11px; font-weight:600; border-radius:20px; cursor:pointer; transition:all 0.15s; border:1px solid {{ $statusFilter === 'aprovada' ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.1)' }}; background:{{ $statusFilter === 'aprovada' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.03)' }}; color:{{ $statusFilter === 'aprovada' ? '#4ade80' : 'rgba(255,255,255,0.4)' }};">
+            Aprovadas <span style="margin-left:4px; opacity:0.6;">{{ $counts['aprovada'] }}</span>
+        </button>
+        <button wire:click="setFilter('reprovada')"
+                style="padding:6px 14px; font-size:11px; font-weight:600; border-radius:20px; cursor:pointer; transition:all 0.15s; border:1px solid {{ $statusFilter === 'reprovada' ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.1)' }}; background:{{ $statusFilter === 'reprovada' ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.03)' }}; color:{{ $statusFilter === 'reprovada' ? '#f87171' : 'rgba(255,255,255,0.4)' }};">
+            Não Aprovadas <span style="margin-left:4px; opacity:0.6;">{{ $counts['reprovada'] }}</span>
+        </button>
+    </div>
+
     @if(empty($proposals))
     <div style="text-align:center; padding:60px 20px; color:rgba(255,255,255,0.3);">
         <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 12px; opacity:0.3;">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
-        <p style="font-size:13px;">Nenhuma proposta gerada ainda</p>
+        <p style="font-size:13px;">{{ $statusFilter ? 'Nenhuma proposta com este status' : 'Nenhuma proposta gerada ainda' }}</p>
     </div>
     @else
     <div style="display:flex; flex-direction:column; gap:10px;">
         @foreach($proposals as $p)
+        @php
+            $statusColors = ['analise' => ['#fbbf24','rgba(245,158,11,'], 'aprovada' => ['#4ade80','rgba(34,197,94,'], 'reprovada' => ['#f87171','rgba(239,68,68,']];
+            $st = $p['status'] ?? 'analise';
+            $stColor = $statusColors[$st][0] ?? '#fbbf24';
+            $stBg = ($statusColors[$st][1] ?? 'rgba(245,158,11,');
+            $stLabels = ['analise' => 'Em Análise', 'aprovada' => 'Aprovada', 'reprovada' => 'Não Aprovada'];
+            $hasDiscount = ($p['discount_percent'] ?? 0) > 0;
+        @endphp
         <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:14px; overflow:hidden;">
             {{-- Header do card --}}
-            <div wire:click="toggle({{ $p['id'] }})" style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; cursor:pointer;">
-                <div style="display:flex; align-items:center; gap:14px;">
-                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(178,255,0,0.08); display:flex; align-items:center; justify-content:center;">
-                        <svg width="18" height="18" fill="none" stroke="#b2ff00" stroke-width="2" viewBox="0 0 24 24">
+            <div wire:click="toggle({{ $p['id'] }})" style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; cursor:pointer; gap:12px;">
+                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
+                    <div style="width:36px; height:36px; border-radius:10px; background:{{ $stBg }}0.08); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="18" height="18" fill="none" stroke="{{ $stColor }}" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
-                    <div>
-                        <p style="font-size:14px; font-weight:700; color:white;">{{ $p['client_name'] }}</p>
+                    <div style="min-width:0;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <p style="font-size:14px; font-weight:700; color:white;">{{ $p['client_name'] }}</p>
+                            <span style="font-size:9px; font-weight:700; padding:2px 8px; border-radius:20px; background:{{ $stBg }}0.12); color:{{ $stColor }}; border:1px solid {{ $stBg }}0.3);">{{ $stLabels[$st] }}</span>
+                            @if($hasDiscount)
+                            <span style="font-size:9px; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(168,85,247,0.12); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">{{ $p['discount_percent'] }}% OFF</span>
+                            @endif
+                        </div>
                         <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-top:2px;">
                             {{ \Carbon\Carbon::parse($p['created_at'])->format('d/m/Y H:i') }}
                             @if($p['user'])
@@ -40,13 +74,19 @@
                         </p>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:16px;">
+                <div style="display:flex; align-items:center; gap:16px; flex-shrink:0;">
                     <div style="text-align:right;">
                         <p style="font-size:10px; color:rgba(255,255,255,0.3);">Mensalidade</p>
+                        @if($hasDiscount && $p['original_total_monthly'])
+                        <p style="font-size:10px; color:rgba(255,255,255,0.2); text-decoration:line-through;">R$ {{ number_format($p['original_total_monthly'], 2, ',', '.') }}</p>
+                        @endif
                         <p style="font-size:14px; font-weight:700; color:#b2ff00;">R$ {{ number_format($p['total_monthly'], 2, ',', '.') }}</p>
                     </div>
                     <div style="text-align:right;">
                         <p style="font-size:10px; color:rgba(255,255,255,0.3);">Implantação</p>
+                        @if($hasDiscount && $p['original_total_setup'])
+                        <p style="font-size:10px; color:rgba(255,255,255,0.2); text-decoration:line-through;">R$ {{ number_format($p['original_total_setup'], 2, ',', '.') }}</p>
+                        @endif
                         <p style="font-size:14px; font-weight:700; color:#3b82f6;">R$ {{ number_format($p['total_setup'], 2, ',', '.') }}</p>
                     </div>
                     <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" viewBox="0 0 24 24"
@@ -59,7 +99,21 @@
             {{-- Detalhes expandidos --}}
             @if($expandedId === $p['id'])
             <div style="padding:0 20px 20px; border-top:1px solid rgba(255,255,255,0.04);">
-                <div style="padding-top:16px;">
+                {{-- Status buttons --}}
+                <div style="padding-top:14px; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:10px; color:rgba(255,255,255,0.3); margin-right:4px;">Status:</span>
+                    @foreach(['analise' => 'Em Análise', 'aprovada' => 'Aprovada', 'reprovada' => 'Não Aprovada'] as $sKey => $sLabel)
+                    <button wire:click="setStatus({{ $p['id'] }}, '{{ $sKey }}')"
+                            style="padding:4px 12px; font-size:10px; font-weight:600; border-radius:20px; cursor:pointer; transition:all 0.15s;
+                                   border:1px solid {{ $st === $sKey ? $statusColors[$sKey][1].'0.4)' : 'rgba(255,255,255,0.08)' }};
+                                   background:{{ $st === $sKey ? $statusColors[$sKey][1].'0.15)' : 'transparent' }};
+                                   color:{{ $st === $sKey ? $statusColors[$sKey][0] : 'rgba(255,255,255,0.3)' }};">
+                        {{ $sLabel }}
+                    </button>
+                    @endforeach
+                </div>
+
+                <div>
                     <p style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">Módulos contratados</p>
                     <div style="display:grid; grid-template-columns:1fr auto auto; gap:8px; font-size:12px;">
                         <div style="color:rgba(255,255,255,0.4); font-weight:600; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.06);">Módulo</div>

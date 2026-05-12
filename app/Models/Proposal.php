@@ -10,7 +10,9 @@ class Proposal extends Model
 {
     protected $fillable = [
         'client_name', 'modules', 'config', 'details',
-        'total_monthly', 'total_setup', 'user_id', 'token',
+        'total_monthly', 'total_setup', 'discount_percent',
+        'original_total_monthly', 'original_total_setup',
+        'status', 'user_id', 'token',
     ];
 
     protected $casts = [
