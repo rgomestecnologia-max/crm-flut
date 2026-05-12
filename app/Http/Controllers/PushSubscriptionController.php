@@ -17,12 +17,13 @@ class PushSubscriptionController extends Controller
 
         PushSubscription::updateOrCreate(
             [
-                'user_id'  => auth()->id(),
-                'endpoint' => $validated['endpoint'],
+                'user_id'       => auth()->id(),
+                'endpoint_hash' => hash('sha256', $validated['endpoint']),
             ],
             [
-                'p256dh' => $validated['keys']['p256dh'],
-                'auth'   => $validated['keys']['auth'],
+                'endpoint' => $validated['endpoint'],
+                'p256dh'   => $validated['keys']['p256dh'],
+                'auth'     => $validated['keys']['auth'],
             ]
         );
 
@@ -32,7 +33,7 @@ class PushSubscriptionController extends Controller
     public function unsubscribe(Request $request)
     {
         PushSubscription::where('user_id', auth()->id())
-            ->where('endpoint', $request->input('endpoint'))
+            ->where('endpoint_hash', hash('sha256', $request->input('endpoint')))
             ->delete();
 
         return response()->json(['success' => true]);
