@@ -518,41 +518,80 @@ function toastManager() {
 
 @livewireScripts
 @stack('scripts')
+{{-- Banner de ativar notificações --}}
+<div id="push-banner" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:9998; background:linear-gradient(135deg, #0f172a, #1e293b); border:1px solid rgba(178,255,0,0.3); border-radius:14px; padding:14px 20px; box-shadow:0 8px 32px rgba(0,0,0,0.5); max-width:400px; width:calc(100% - 32px);">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:36px; height:36px; border-radius:10px; background:rgba(178,255,0,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="18" height="18" fill="none" stroke="#b2ff00" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        </div>
+        <div style="flex:1; min-width:0;">
+            <p style="font-size:13px; font-weight:600; color:white;">Ativar notificações</p>
+            <p style="font-size:11px; color:rgba(255,255,255,0.4);">Receba alertas de novas mensagens</p>
+        </div>
+        <button onclick="enablePush()" style="padding:8px 16px; font-size:12px; font-weight:700; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border:none; border-radius:8px; cursor:pointer; flex-shrink:0;">
+            Ativar
+        </button>
+        <button onclick="document.getElementById('push-banner').style.display='none'; localStorage.setItem('push-dismissed','1')" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; padding:4px; flex-shrink:0;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
+</div>
+
 <script>
-(async function() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
 
-    const reg = await navigator.serviceWorker.register('/sw.js').catch(() => null);
-    if (!reg) return;
-
-    // Pedir permissão se ainda não foi decidido
-    if (Notification.permission === 'default') {
-        await Notification.requestPermission();
+// Função para ativar push (chamada pelo botão)
+async function enablePush() {
+    try {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') { alert('Permissão de notificação negada pelo navegador.'); return; }
+        await subscribePush();
+        document.getElementById('push-banner').style.display = 'none';
+        localStorage.setItem('push-subscribed', '1');
+    } catch(e) {
+        console.error('Push subscribe error:', e);
+        alert('Erro ao ativar notificações. Tente novamente.');
     }
-    if (Notification.permission !== 'granted') return;
+}
 
-    // Verificar se já tem subscription ativa
+// Registrar subscription no backend
+async function subscribePush() {
+    const reg = await navigator.serviceWorker.ready;
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
         const vapidKey = '{{ config("services.vapid.public_key") }}';
-        if (!vapidKey) return;
+        if (!vapidKey) throw new Error('VAPID key not configured');
         const keyBytes = Uint8Array.from(atob(vapidKey.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
-        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes }).catch(() => null);
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes });
     }
-    if (!sub) return;
-
-    // Enviar subscription ao backend
     const subJson = sub.toJSON();
-    fetch('/push/subscribe', {
+    const res = await fetch('/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys })
-    }).catch(() => {});
+    });
+    if (!res.ok) throw new Error('Failed to save subscription');
+}
+
+// Auto-subscribe se já tem permissão, senão mostrar banner
+(async function() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+
+    if (Notification.permission === 'granted') {
+        // Já tem permissão — subscribe silenciosamente
+        try { await subscribePush(); } catch(e) {}
+    } else if (Notification.permission === 'default' && !localStorage.getItem('push-dismissed')) {
+        // Nunca decidiu — mostrar banner
+        setTimeout(() => { document.getElementById('push-banner').style.display = 'block'; }, 3000);
+    }
 })();
 
-// Teste manual (console: testNotification())
+// Teste manual
 window.testNotification = async function() {
-    if (Notification.permission !== 'granted') { const p = await Notification.requestPermission(); if(p !== 'granted') return alert('Permissão negada'); }
+    if (Notification.permission !== 'granted') { const p = await Notification.requestPermission(); if(p !== 'granted') return alert('Negada'); }
     const reg = await navigator.serviceWorker.ready;
     reg.showNotification('CRM Flut', { body: 'Notificação de teste!', icon: '/icons/icon-192x192.png', badge: '/icons/icon-72x72.png', vibrate: [200,100,200], data: { url: '/dashboard' } });
 };
