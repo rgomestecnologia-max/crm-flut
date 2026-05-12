@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flut-crm-v1';
+const CACHE_NAME = 'flut-crm-v2';
 const OFFLINE_URL = '/offline';
 
 // Assets to pre-cache
@@ -51,18 +51,24 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// Push notifications (preparado para uso futuro)
+// Push notifications
 self.addEventListener('push', (event) => {
-    if (!event.data) return;
+    console.log('[SW] Push received', event);
+    let data = {};
+    try {
+        data = event.data ? event.data.json() : {};
+    } catch(e) {
+        data = { title: 'CRM Flut', body: event.data ? event.data.text() : 'Nova mensagem' };
+    }
 
-    const data = event.data.json();
     const options = {
-        body: data.body || '',
+        body: data.body || 'Nova mensagem recebida',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         vibrate: [200, 100, 200],
-        data: { url: data.url || '/' },
-        actions: data.actions || [],
+        data: { url: data.url || '/chat' },
+        tag: 'crm-message-' + Date.now(),
+        renotify: true,
     };
 
     event.waitUntil(
