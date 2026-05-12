@@ -122,14 +122,14 @@
 
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; flex-wrap:wrap;">
                     {{-- Copiar link --}}
-                    <button x-data @click="navigator.clipboard.writeText(window.location.origin + '/pricing/' + {{ $p['id'] }} + '/editar'); $dispatch('toast', { type: 'success', message: 'Link copiado!' })"
+                    <button x-data @click="navigator.clipboard.writeText(window.location.origin + '/pricing/{{ $p['token'] }}/editar'); $dispatch('toast', { type: 'success', message: 'Link copiado!' })"
                             style="padding:6px 14px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); border-radius:8px; cursor:pointer;">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
                         Copiar link
                     </button>
 
                     {{-- Editar --}}
-                    <a href="/pricing/{{ $p['id'] }}/editar" target="_blank"
+                    <a href="/pricing/{{ $p['token'] }}/editar" target="_blank"
                        style="padding:6px 14px; font-size:11px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); color:#60a5fa; border-radius:8px; cursor:pointer; text-decoration:none;">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         Editar

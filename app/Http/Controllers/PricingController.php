@@ -37,15 +37,17 @@ class PricingController extends Controller
         ]);
     }
 
-    public function edit(Proposal $proposal)
+    public function edit(string $token)
     {
+        $proposal = Proposal::where('token', $token)->firstOrFail();
         PricingConfig::seed();
         $config = PricingConfig::getAll();
         return view('pricing', compact('config', 'proposal'));
     }
 
-    public function update(Request $request, Proposal $proposal)
+    public function update(Request $request, string $token)
     {
+        $proposal = Proposal::where('token', $token)->firstOrFail();
         $validated = $request->validate([
             'client_name'   => 'required|string|max:255',
             'modules'       => 'required|array',

@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 // Pricing simulator (público, sem auth)
 Route::get('/pricing', [PricingController::class, 'show'])->name('pricing');
 Route::post('/pricing/save', [PricingController::class, 'save'])->name('pricing.save');
-Route::get('/pricing/{proposal}/editar', [PricingController::class, 'edit'])->name('pricing.edit');
-Route::put('/pricing/{proposal}', [PricingController::class, 'update'])->name('pricing.update');
+Route::get('/pricing/{token}/editar', [PricingController::class, 'edit'])->name('pricing.edit');
+Route::put('/pricing/{token}', [PricingController::class, 'update'])->name('pricing.update');
 
 // Onboarding (público, sem auth)
 Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');

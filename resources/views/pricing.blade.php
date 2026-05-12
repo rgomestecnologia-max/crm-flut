@@ -369,6 +369,7 @@ function pricingSimulator() {
         clientName: existing?.client_name ?? '',
         savedId: existing?.id ?? null,
         proposalId: existing?.id ?? null,
+        proposalToken: existing?.token ?? null,
         saving: false,
         nameError: false,
 
@@ -436,8 +437,8 @@ function pricingSimulator() {
             }
             this.saving = true;
             try {
-                const isUpdate = !!this.proposalId;
-                const url = isUpdate ? '/pricing/' + this.proposalId : '/pricing/save';
+                const isUpdate = !!this.proposalToken;
+                const url = isUpdate ? '/pricing/' + this.proposalToken : '/pricing/save';
                 const method = isUpdate ? 'PUT' : 'POST';
                 const res = await fetch(url, {
                     method,
