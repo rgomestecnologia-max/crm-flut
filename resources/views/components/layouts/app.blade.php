@@ -522,6 +522,21 @@ function toastManager() {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
+
+// Teste de notificação (disponível no console: testNotification())
+window.testNotification = async function() {
+    if (!('Notification' in window)) { alert('Navegador não suporta notificações'); return; }
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { alert('Permissão de notificação negada'); return; }
+    const reg = await navigator.serviceWorker.ready;
+    reg.showNotification('CRM Flut', {
+        body: 'Notificação de teste funcionando!',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-72x72.png',
+        vibrate: [200, 100, 200],
+        data: { url: '/dashboard' }
+    });
+};
 </script>
 </body>
 </html>
