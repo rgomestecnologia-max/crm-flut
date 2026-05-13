@@ -143,11 +143,90 @@
                 </div>
 
                 {{-- Corpo --}}
-                <div style="margin-bottom:14px;">
-                    <label style="display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Corpo do texto * <span style="float:right; color:rgba(255,255,255,0.2);">{{ strlen($bodyText) }}/1024</span></label>
-                    <textarea wire:model.live.debounce.300ms="bodyText" rows="6" placeholder="Digite o texto da mensagem aqui..."
-                              style="width:100%; padding:10px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical; line-height:1.5;"></textarea>
-                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">Use @{{1}}, @{{2}} para variáveis. Ex: "Olá @{{1}}, sua proposta está pronta!"</p>
+                <div style="margin-bottom:14px;" x-data="{
+                    showEmoji: false,
+                    varCount: 0,
+                    getTextarea() { return this.$refs.bodyArea; },
+                    wrapSelection(before, after) {
+                        const ta = this.getTextarea();
+                        const start = ta.selectionStart;
+                        const end = ta.selectionEnd;
+                        const text = ta.value;
+                        const selected = text.substring(start, end);
+                        const replacement = before + (selected || 'texto') + after;
+                        ta.value = text.substring(0, start) + replacement + text.substring(end);
+                        $wire.set('bodyText', ta.value);
+                        ta.focus();
+                        ta.selectionStart = start + before.length;
+                        ta.selectionEnd = start + before.length + (selected || 'texto').length;
+                    },
+                    insertVar() {
+                        const ta = this.getTextarea();
+                        const pos = ta.selectionStart;
+                        const text = ta.value;
+                        const matches = text.match(/\{\{\d+\}\}/g);
+                        const next = matches ? matches.length + 1 : 1;
+                        const varStr = '{{' + next + '}}';
+                        ta.value = text.substring(0, pos) + varStr + text.substring(pos);
+                        $wire.set('bodyText', ta.value);
+                        ta.focus();
+                        ta.selectionStart = ta.selectionEnd = pos + varStr.length;
+                    },
+                    insertEmoji(emoji) {
+                        const ta = this.getTextarea();
+                        const pos = ta.selectionStart;
+                        const text = ta.value;
+                        ta.value = text.substring(0, pos) + emoji + text.substring(pos);
+                        $wire.set('bodyText', ta.value);
+                        ta.focus();
+                        ta.selectionStart = ta.selectionEnd = pos + emoji.length;
+                        this.showEmoji = false;
+                    }
+                }">
+                    <label style="display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Corpo do texto *</label>
+                    <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden;">
+                        <textarea x-ref="bodyArea" wire:model.live.debounce.300ms="bodyText" rows="6" maxlength="1024" placeholder="Digite o texto da sua mensagem aqui..."
+                                  style="width:100%; padding:10px 12px; font-size:12px; background:transparent; border:none; color:white; outline:none; resize:vertical; line-height:1.5;"></textarea>
+                        {{-- Toolbar --}}
+                        <div style="display:flex; align-items:center; gap:2px; padding:6px 10px; border-top:1px solid rgba(255,255,255,0.06); position:relative;">
+                            <button type="button" @click="insertVar()" title="Inserir variável"
+                                    style="width:30px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.35); font-size:13px; font-weight:700; transition:all 0.15s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.7)'"
+                                    onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.35)'">
+                                <span style="font-size:11px; font-family:monospace;">{...}</span>
+                            </button>
+                            <button type="button" @click="showEmoji = !showEmoji" title="Emojis"
+                                    style="width:30px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.35); font-size:15px; transition:all 0.15s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+                                😊
+                            </button>
+                            <button type="button" @click="wrapSelection('*', '*')" title="Negrito"
+                                    style="width:30px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.35); font-size:14px; font-weight:900; transition:all 0.15s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.7)'"
+                                    onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.35)'">
+                                B
+                            </button>
+                            <button type="button" @click="wrapSelection('_', '_')" title="Itálico"
+                                    style="width:30px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.35); font-size:14px; font-style:italic; transition:all 0.15s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.7)'"
+                                    onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.35)'">
+                                I
+                            </button>
+                            <span style="margin-left:auto; font-size:10px; color:rgba(255,255,255,0.2);">{{ strlen($bodyText) }}/1024</span>
+
+                            {{-- Emoji picker --}}
+                            <div x-show="showEmoji" x-transition @click.outside="showEmoji=false"
+                                 style="position:absolute; bottom:36px; left:30px; z-index:20; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,0.5); width:260px;">
+                                <div style="display:grid; grid-template-columns:repeat(8, 1fr); gap:2px; max-height:180px; overflow-y:auto;">
+                                    @foreach(['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','🤗','🤩','🙏','❤️','🧡','💛','💚','💙','💜','🖤','💔','💯','🔥','✨','⭐','🎉','🎊','👋','👌','✌️','🤞','👍','👎','✊','👏','🙌','🤝','💪','📱','💻','📧','📞','💰','💳','🛒','🚀','✈️','🏠','🚗','✅','❌','⚠️','🔔','📢','⏰','📅','📎','📄','🎯','💡','🏆','🥇'] as $emoji)
+                                    <button type="button" @click="insertEmoji('{{ $emoji }}')"
+                                            style="font-size:18px; padding:3px; border:none; background:transparent; border-radius:4px; cursor:pointer; text-align:center; line-height:1; transition:background 0.1s;"
+                                            onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">{{ $emoji }}</button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     @error('bodyText') <p style="font-size:10px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
                 </div>
 
