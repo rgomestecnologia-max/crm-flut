@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
 
 // Push notifications
 self.addEventListener('push', (event) => {
-    console.log('[SW] Push received', event);
+    console.log('[SW] Push received');
     let data = {};
     try {
         data = event.data ? event.data.json() : {};
@@ -61,18 +61,27 @@ self.addEventListener('push', (event) => {
         data = { title: 'CRM Flut', body: event.data ? event.data.text() : 'Nova mensagem' };
     }
 
+    const title = data.title || 'CRM Flut';
     const options = {
         body: data.body || 'Nova mensagem recebida',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         vibrate: [200, 100, 200],
         data: { url: data.url || '/chat' },
-        tag: 'crm-message-' + Date.now(),
+        tag: 'crm-msg-' + Date.now(),
         renotify: true,
+        requireInteraction: false,
+        silent: false,
     };
 
+    // Sempre mostrar, mesmo se aba está em foco
     event.waitUntil(
-        self.registration.showNotification(data.title || 'CRM Flut', options)
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+            console.log('[SW] Showing notification:', title);
+            return self.registration.showNotification(title, options);
+        }).catch(err => {
+            console.error('[SW] showNotification error:', err);
+        })
     );
 });
 
