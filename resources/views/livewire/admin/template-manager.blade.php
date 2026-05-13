@@ -319,13 +319,139 @@
                     <td style="padding:10px 8px; color:rgba(255,255,255,0.4); font-size:11px;">{{ $t['category'] ?? '—' }}</td>
                     <td style="padding:10px 8px; color:rgba(255,255,255,0.4); font-size:11px;">{{ $t['language'] ?? 'pt_BR' }}</td>
                     <td style="padding:10px 8px; color:rgba(255,255,255,0.3); font-size:11px; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ \Illuminate\Support\Str::limit($bodyPreview, 80) }}</td>
-                    <td style="padding:10px 8px; text-align:right;">
+                    <td style="padding:10px 8px; text-align:right; white-space:nowrap;">
+                        <button wire:click="viewTemplate({{ $t['id'] }})"
+                                style="padding:4px 8px; font-size:10px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.15); color:#60a5fa; border-radius:6px; cursor:pointer; margin-right:4px;">
+                            Ver
+                        </button>
                         <button wire:click="deleteTemplate({{ $t['id'] }})" wire:confirm="Excluir este template?"
                                 style="padding:4px 8px; font-size:10px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.15); color:#f87171; border-radius:6px; cursor:pointer;">
                             Excluir
                         </button>
                     </td>
                 </tr>
+                {{-- Painel de visualização expandido --}}
+                @if($viewingId === $t['id'])
+                @php
+                    $vHeader = null; $vBody = ''; $vFooter = ''; $vButtons = [];
+                    foreach ($t['components'] ?? [] as $comp) {
+                        match($comp['type'] ?? '') {
+                            'HEADER' => $vHeader = $comp,
+                            'BODY' => $vBody = $comp['text'] ?? '',
+                            'FOOTER' => $vFooter = $comp['text'] ?? '',
+                            'BUTTONS' => $vButtons = $comp['buttons'] ?? [],
+                            default => null,
+                        };
+                    }
+                @endphp
+                <tr><td colspan="6" style="padding:0;">
+                    <div style="padding:16px 20px; background:rgba(255,255,255,0.015); border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+                            {{-- Detalhes --}}
+                            <div style="flex:1; min-width:250px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                                    <h4 style="font-size:13px; font-weight:700; color:white;">{{ $t['name'] }}</h4>
+                                    <button wire:click="closeView" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px;">&times;</button>
+                                </div>
+
+                                <div style="display:grid; grid-template-columns:auto 1fr; gap:6px 16px; font-size:11px;">
+                                    <span style="color:rgba(255,255,255,0.3);">Status:</span>
+                                    <span style="color:{{ $sc }}; font-weight:600;">{{ $sl }}</span>
+                                    <span style="color:rgba(255,255,255,0.3);">Categoria:</span>
+                                    <span style="color:rgba(255,255,255,0.6);">{{ $t['category'] ?? '—' }}</span>
+                                    <span style="color:rgba(255,255,255,0.3);">Idioma:</span>
+                                    <span style="color:rgba(255,255,255,0.6);">{{ $t['language'] ?? 'pt_BR' }}</span>
+                                    @if($t['template_id'])
+                                    <span style="color:rgba(255,255,255,0.3);">Template ID:</span>
+                                    <span style="color:rgba(255,255,255,0.4); font-family:monospace; font-size:10px;">{{ $t['template_id'] }}</span>
+                                    @endif
+                                </div>
+
+                                @if($vHeader)
+                                <div style="margin-top:12px;">
+                                    <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:4px;">CABEÇALHO ({{ $vHeader['format'] ?? 'TEXT' }})</p>
+                                    <p style="font-size:12px; color:rgba(255,255,255,0.6);">{{ $vHeader['text'] ?? ($vHeader['format'] ?? '—') }}</p>
+                                </div>
+                                @endif
+
+                                <div style="margin-top:12px;">
+                                    <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:4px;">CORPO</p>
+                                    <p style="font-size:12px; color:rgba(255,255,255,0.7); white-space:pre-wrap; line-height:1.6;">{{ $vBody }}</p>
+                                </div>
+
+                                @if($vFooter)
+                                <div style="margin-top:10px;">
+                                    <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:4px;">RODAPÉ</p>
+                                    <p style="font-size:11px; color:rgba(255,255,255,0.4);">{{ $vFooter }}</p>
+                                </div>
+                                @endif
+
+                                @if(!empty($vButtons))
+                                <div style="margin-top:10px;">
+                                    <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:6px;">BOTÕES</p>
+                                    @foreach($vButtons as $vb)
+                                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                                        <span style="font-size:10px; color:rgba(255,255,255,0.3);">{{ ($vb['type'] ?? '') === 'QUICK_REPLY' ? '↩️' : (($vb['type'] ?? '') === 'URL' ? '🔗' : '📞') }}</span>
+                                        <span style="font-size:11px; color:rgba(255,255,255,0.6);">{{ $vb['text'] ?? '' }}</span>
+                                        @if(isset($vb['url']))<span style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $vb['url'] }}</span>@endif
+                                        @if(isset($vb['phone_number']))<span style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $vb['phone_number'] }}</span>@endif
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @endif
+                            </div>
+
+                            {{-- Preview iPhone --}}
+                            <div style="width:260px; flex-shrink:0;">
+                                <div style="background:#e8e8e8; border-radius:30px; padding:10px;">
+                                    <div style="background:#000; border-radius:20px; overflow:hidden;">
+                                        <div style="display:flex; justify-content:space-between; padding:6px 16px 3px; background:#075e54;">
+                                            <span style="font-size:9px; color:white;">19:12</span>
+                                            <div style="width:60px; height:16px; background:#000; border-radius:0 0 10px 10px;"></div>
+                                            <span style="font-size:8px; color:white;">📶🔋</span>
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:6px; padding:4px 10px 6px; background:#075e54;">
+                                            <span style="color:white; font-size:12px;">‹</span>
+                                            <div style="width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.2);"></div>
+                                            <span style="font-size:10px; color:white; flex:1;">Contato</span>
+                                        </div>
+                                        <div style="min-height:280px; background:#e5ddd5; padding:12px 8px; display:flex; flex-direction:column; justify-content:flex-end;">
+                                            <div style="background:white; border-radius:6px 6px 6px 0; overflow:hidden; max-width:220px;">
+                                                @if($vHeader && in_array($vHeader['format'] ?? '', ['IMAGE','VIDEO']))
+                                                <div style="background:linear-gradient(135deg,#a78bfa,#7c3aed); height:100px; display:flex; align-items:center; justify-content:center;">
+                                                    <span style="font-size:24px;">🖼️</span>
+                                                </div>
+                                                @endif
+                                                <div style="padding:5px 7px;">
+                                                    @if($vHeader && ($vHeader['format'] ?? '') === 'TEXT')
+                                                    <p style="font-size:10px; font-weight:700; color:#111; margin-bottom:2px;">{{ $vHeader['text'] }}</p>
+                                                    @endif
+                                                    <p style="font-size:10px; color:#333; line-height:1.4; white-space:pre-wrap;">{{ $vBody }}</p>
+                                                    @if($vFooter)
+                                                    <p style="font-size:8px; color:#999; margin-top:3px;">{{ $vFooter }}</p>
+                                                    @endif
+                                                    <p style="font-size:7px; color:#bbb; text-align:right; margin-top:1px;">19:12 ✓✓</p>
+                                                </div>
+                                                @foreach($vButtons as $vb)
+                                                <div style="text-align:center; padding:5px; font-size:10px; color:#0088cc; border-top:1px solid #f0f0f0;">
+                                                    {{ $vb['text'] ?? '' }}
+                                                </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:4px; padding:5px 6px; background:#f0f0f0;">
+                                            <span style="font-size:12px;">+</span>
+                                            <div style="flex:1; background:white; border-radius:16px; padding:4px 10px; font-size:9px; color:#999;">Mensagem</div>
+                                            <span style="font-size:12px;">📷</span>
+                                            <span style="font-size:12px;">🎤</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td></tr>
+                @endif
                 @endforeach
             </tbody>
         </table>

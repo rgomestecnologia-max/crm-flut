@@ -17,6 +17,7 @@ class TemplateManager extends Component
     public $templates = [];
     public string $statusFilter = '';
     public string $searchQuery = '';
+    public ?int $viewingId = null;
 
     // Create form
     public bool $showForm = false;
@@ -56,6 +57,16 @@ class TemplateManager extends Component
     {
         $this->statusFilter = $status;
         $this->loadTemplates();
+    }
+
+    public function viewTemplate($id)
+    {
+        $this->viewingId = $this->viewingId === $id ? null : $id;
+    }
+
+    public function closeView()
+    {
+        $this->viewingId = null;
     }
 
     public function updatedSearchQuery()
