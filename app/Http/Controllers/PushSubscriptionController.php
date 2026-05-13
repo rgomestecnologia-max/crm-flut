@@ -15,13 +15,23 @@ class PushSubscriptionController extends Controller
             'keys.auth' => 'required|string',
         ]);
 
+        $userId   = auth()->id();
+        $endpoint = $validated['endpoint'];
+
+        // Detectar tipo (apple ou fcm) e remover subscriptions antigas do mesmo tipo
+        $isApple = str_contains($endpoint, 'web.push.apple.com');
+        PushSubscription::where('user_id', $userId)
+            ->where('endpoint', $isApple ? 'like' : 'not like', '%web.push.apple.com%')
+            ->where('endpoint', '!=', $endpoint)
+            ->delete();
+
         PushSubscription::updateOrCreate(
             [
-                'user_id'       => auth()->id(),
-                'endpoint_hash' => hash('sha256', $validated['endpoint']),
+                'user_id'       => $userId,
+                'endpoint_hash' => hash('sha256', $endpoint),
             ],
             [
-                'endpoint' => $validated['endpoint'],
+                'endpoint' => $endpoint,
                 'p256dh'   => $validated['keys']['p256dh'],
                 'auth'     => $validated['keys']['auth'],
             ]

@@ -538,9 +538,22 @@ function toastManager() {
 </div>
 
 <script>
-// Registrar Service Worker
+// Registrar Service Worker (limpar duplicatas primeiro)
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.getRegistrations().then(regs => {
+        // Se há mais de 1 SW, desregistrar todos e re-registrar 1 só
+        if (regs.length > 1) {
+            console.log('[Push] Found', regs.length, 'SW registrations, cleaning...');
+            Promise.all(regs.map(r => r.unregister())).then(() => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        } else if (regs.length === 0) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+        // Se já tem exatamente 1, não faz nada (já está ok)
+    }).catch(() => {
+        navigator.serviceWorker.register('/sw.js');
+    });
 }
 
 // Função para ativar push (chamada pelo botão)
