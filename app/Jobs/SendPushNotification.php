@@ -83,6 +83,7 @@ class SendPushNotification implements ShouldQueue
             'title' => "{$contactName} — {$deptName}",
             'body'  => $body,
             'url'   => '/chat',
+            'msg_id' => $this->messageId,
         ]);
 
         $auth = [

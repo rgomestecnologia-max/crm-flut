@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flut-crm-v4';
+const CACHE_NAME = 'flut-crm-v5';
 const OFFLINE_URL = '/offline';
 
 // Assets to pre-cache
@@ -63,7 +63,8 @@ self.addEventListener('push', (event) => {
 
     const title = data.title || 'CRM Flut';
     const body = data.body || 'Nova mensagem recebida';
-    const tag = 'crm-new-message';
+    const msgId = data.msg_id || Date.now();
+    const tag = 'crm-msg-' + msgId;
     const options = {
         body: body,
         icon: '/icons/icon-192x192.png',
@@ -71,11 +72,17 @@ self.addEventListener('push', (event) => {
         vibrate: [200, 100, 200],
         data: { url: data.url || '/chat' },
         tag: tag,
-        renotify: true,
     };
 
+    // Só mostrar se não existe notificação com este tag
     event.waitUntil(
-        self.registration.showNotification(title, options)
+        self.registration.getNotifications({ tag: tag }).then(existing => {
+            if (existing.length > 0) {
+                console.log('[SW] Notification already shown for', tag);
+                return;
+            }
+            return self.registration.showNotification(title, options);
+        })
     );
 });
 
