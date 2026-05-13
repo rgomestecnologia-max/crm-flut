@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
@@ -25,6 +26,13 @@ class SendPushNotification implements ShouldQueue
 
     public function handle(): void
     {
+        // Evitar push duplicado para a mesma mensagem
+        $lockKey = 'push_sent_' . $this->messageId;
+        if (Cache::has($lockKey)) {
+            return;
+        }
+        Cache::put($lockKey, true, 60);
+
         $message = Message::withoutGlobalScopes()
             ->with(['conversation.contact', 'conversation.department'])
             ->find($this->messageId);
