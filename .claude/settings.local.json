@@ -115,7 +115,17 @@
       "Bash(php -l app/Livewire/Admin/AgentManager.php)",
       "Bash(php -l app/Http/Middleware/EnsureModuleEnabled.php)",
       "Bash(php -l app/Models/Department.php)",
-      "Bash(php -l app/Livewire/Admin/DepartmentManager.php)"
+      "Bash(php -l app/Livewire/Admin/DepartmentManager.php)",
+      "Bash(xargs basename:*)",
+      "Bash(ssh:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git log:*)",
+      "Bash(git restore:*)",
+      "Bash(mkdir -p /Users/rogerio/Downloads/projeto-crm/public/icons)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/rogerio/Downloads/projeto-crm/public/images/logo-flut.webp)",
+      "Bash(pip3 install:*)",
+      "Bash(php:*)"
     ]
   }
 }
