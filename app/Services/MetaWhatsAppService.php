@@ -204,6 +204,49 @@ class MetaWhatsAppService
     }
 
     /**
+     * Cria um template de mensagem na conta WABA via Meta API.
+     */
+    public function createTemplate(string $wabaId, array $templateData): array
+    {
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->timeout(20)
+                ->post("https://graph.facebook.com/v21.0/{$wabaId}/message_templates", $templateData);
+
+            if (!$response->successful()) {
+                $error = $response->json()['error']['message'] ?? $response->body();
+                Log::error('MetaWhatsApp: createTemplate failed', ['error' => $error, 'data' => $templateData]);
+                return ['success' => false, 'error' => $error];
+            }
+
+            return ['success' => true, 'data' => $response->json()];
+        } catch (\Exception $e) {
+            Log::error('MetaWhatsApp: createTemplate exception', ['error' => $e->getMessage()]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Deleta um template de mensagem da conta WABA.
+     */
+    public function deleteTemplate(string $wabaId, string $templateName): array
+    {
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->timeout(20)
+                ->delete("https://graph.facebook.com/v21.0/{$wabaId}/message_templates", [
+                    'name' => $templateName,
+                ]);
+
+            return $response->successful()
+                ? ['success' => true]
+                : ['success' => false, 'error' => $response->json()['error']['message'] ?? $response->body()];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
      * Meta Cloud API não suporta edição de mensagens.
      */
     public function updateMessage(string $messageId, string $phone, string $text): array

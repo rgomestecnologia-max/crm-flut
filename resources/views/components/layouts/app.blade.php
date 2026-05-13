@@ -409,6 +409,15 @@
                     <span x-show="sidebarOpen">Meta WhatsApp</span>
                 </a>
 
+                <a href="{{ route('admin.templates.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.templates*') ? 'active' : '' }}"
+                   style="color:{{ request()->routeIs('admin.templates*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                    </svg>
+                    <span x-show="sidebarOpen">Templates</span>
+                </a>
+
                 <a href="{{ route('admin.onboardings.index') }}"
                    class="nav-item {{ request()->routeIs('admin.onboardings*') ? 'active' : '' }}"
                    style="color:{{ request()->routeIs('admin.onboardings*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">

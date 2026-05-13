@@ -85,6 +85,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('onboardings', fn() => view('admin.onboardings.index'))->name('onboardings.index');
         Route::get('pricing', fn() => view('admin.pricing.index'))->name('pricing.index');
         Route::get('proposals', fn() => view('admin.proposals.index'))->name('proposals.index');
+        Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
     });
 
     // Exportação CRM
