@@ -14,13 +14,15 @@ class Company extends Model
     protected $fillable = [
         'name', 'slug', 'color', 'logo', 'is_active', 'modules', 'whatsapp_provider',
         'sendgrid_api_key', 'sendgrid_from_email', 'sendgrid_from_name',
+        'push_notifications',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
-            'modules'   => 'array',
+            'is_active'          => 'boolean',
+            'modules'            => 'array',
+            'push_notifications' => 'boolean',
         ];
     }
 

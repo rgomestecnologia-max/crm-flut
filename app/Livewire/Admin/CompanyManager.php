@@ -31,6 +31,9 @@ class CompanyManager extends Component
     public string $sendgrid_from_email = '';
     public string $sendgrid_from_name  = '';
 
+    // Push Notifications
+    public bool $push_notifications = true;
+
     /** Estado do modal de exclusão. */
     public ?int   $deletingId       = null;
     public string $deleteConfirmName = '';
@@ -64,6 +67,7 @@ class CompanyManager extends Component
         $this->sendgrid_api_key   = $company->sendgrid_api_key ?? '';
         $this->sendgrid_from_email= $company->sendgrid_from_email ?? '';
         $this->sendgrid_from_name = $company->sendgrid_from_name ?? '';
+        $this->push_notifications = $company->push_notifications ?? true;
         $this->showForm           = true;
     }
 
@@ -113,6 +117,7 @@ class CompanyManager extends Component
             'sendgrid_api_key'    => $this->sendgrid_api_key ?: null,
             'sendgrid_from_email' => $this->sendgrid_from_email ?: null,
             'sendgrid_from_name'  => $this->sendgrid_from_name ?: null,
+            'push_notifications'  => $this->push_notifications,
         ];
 
         if ($this->editingId) {

@@ -156,10 +156,14 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         </div>
         @endif
 
-        <div style="display:flex; align-items:center; gap:14px; margin-top:18px;">
+        <div style="display:flex; align-items:center; gap:20px; margin-top:18px;">
             <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
                 <input type="checkbox" wire:model="is_active" style="width:14px; height:14px; accent-color:#b2ff00; cursor:pointer;">
                 <span style="font-size:12px; color:rgba(255,255,255,0.7);">Ativa</span>
+            </label>
+            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" wire:model="push_notifications" style="width:14px; height:14px; accent-color:#b2ff00; cursor:pointer;">
+                <span style="font-size:12px; color:rgba(255,255,255,0.7);">Push Notifications</span>
             </label>
         </div>
 

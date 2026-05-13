@@ -34,7 +34,7 @@ class SendPushNotification implements ShouldQueue
         Cache::put($lockKey, true, 60);
 
         $message = Message::withoutGlobalScopes()
-            ->with(['conversation.contact', 'conversation.department'])
+            ->with(['conversation.contact', 'conversation.department', 'conversation.company'])
             ->find($this->messageId);
 
         if (!$message || !$message->conversation) {
@@ -42,6 +42,12 @@ class SendPushNotification implements ShouldQueue
         }
 
         $conversation = $message->conversation;
+
+        // Verificar se push está ativado para esta empresa
+        if (!($conversation->company->push_notifications ?? true)) {
+            return;
+        }
+
         $departmentId = $conversation->department_id;
         $companyId    = $conversation->company_id;
         $contactName  = $conversation->contact->display_name ?? 'Contato';
