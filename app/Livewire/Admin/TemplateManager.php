@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\MetaMessageTemplate;
+use Livewire\WithFileUploads;
 use App\Models\MetaWhatsAppConfig;
 use App\Services\MetaWhatsAppService;
 use Livewire\Component;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\Log;
 
 class TemplateManager extends Component
 {
+    use WithFileUploads;
+
     // List
     public $templates = [];
     public string $statusFilter = '';
@@ -21,8 +24,10 @@ class TemplateManager extends Component
     public string $templateName = '';
     public string $category = 'MARKETING'; // MARKETING, UTILITY
     public string $language = 'pt_BR';
-    public string $headerType = 'none'; // none, text, image, video, document
+    public string $headerType = 'none'; // none, text, image
     public string $headerText = '';
+    public $headerImage = null; // Livewire upload
+    public ?string $headerImageUrl = null;
     public string $bodyText = '';
     public string $footerText = '';
     public array $buttons = [];
@@ -102,6 +107,30 @@ class TemplateManager extends Component
         $this->buttons = array_values($this->buttons);
     }
 
+    public function saveDraft()
+    {
+        $this->validate([
+            'templateName' => 'required|string|max:512|regex:/^[a-z0-9_]+$/',
+            'bodyText'     => 'required|string|max:1024',
+        ]);
+
+        $components = $this->buildComponents();
+
+        MetaMessageTemplate::updateOrCreate(
+            ['name' => $this->templateName, 'language' => $this->language],
+            [
+                'category'   => $this->category,
+                'status'     => 'DRAFT',
+                'components' => $components,
+            ]
+        );
+
+        $this->dispatch('toast', type: 'success', message: 'Rascunho salvo!');
+        $this->showForm = false;
+        $this->resetForm();
+        $this->loadTemplates();
+    }
+
     public function submitTemplate()
     {
         $this->validate([
@@ -116,40 +145,7 @@ class TemplateManager extends Component
             return;
         }
 
-        // Montar components
-        $components = [];
-
-        // Header
-        if ($this->headerType === 'text' && $this->headerText) {
-            $components[] = ['type' => 'HEADER', 'format' => 'TEXT', 'text' => $this->headerText];
-        } elseif (in_array($this->headerType, ['image', 'video', 'document'])) {
-            $components[] = ['type' => 'HEADER', 'format' => strtoupper($this->headerType)];
-        }
-
-        // Body
-        $components[] = ['type' => 'BODY', 'text' => $this->bodyText];
-
-        // Footer
-        if ($this->footerText) {
-            $components[] = ['type' => 'FOOTER', 'text' => $this->footerText];
-        }
-
-        // Buttons
-        if (!empty($this->buttons)) {
-            $btns = [];
-            foreach ($this->buttons as $btn) {
-                if ($btn['type'] === 'quick_reply') {
-                    $btns[] = ['type' => 'QUICK_REPLY', 'text' => $btn['text']];
-                } elseif ($btn['type'] === 'url') {
-                    $btns[] = ['type' => 'URL', 'text' => $btn['text'], 'url' => $btn['value']];
-                } elseif ($btn['type'] === 'phone') {
-                    $btns[] = ['type' => 'PHONE_NUMBER', 'text' => $btn['text'], 'phone_number' => $btn['value']];
-                }
-            }
-            if (!empty($btns)) {
-                $components[] = ['type' => 'BUTTONS', 'buttons' => $btns];
-            }
-        }
+        $components = $this->buildComponents();
 
         $payload = [
             'name'       => $this->templateName,
@@ -232,6 +228,47 @@ class TemplateManager extends Component
         $this->dispatch('toast', type: 'success', message: 'Template removido');
     }
 
+    private function buildComponents(): array
+    {
+        $components = [];
+
+        if ($this->headerType === 'text' && $this->headerText) {
+            $components[] = ['type' => 'HEADER', 'format' => 'TEXT', 'text' => $this->headerText];
+        } elseif ($this->headerType === 'image') {
+            $header = ['type' => 'HEADER', 'format' => 'IMAGE'];
+            if ($this->headerImage) {
+                $path = $this->headerImage->store('template-headers', 'public');
+                $this->headerImageUrl = '/storage/' . $path;
+                $header['example'] = ['header_handle' => [$this->headerImageUrl]];
+            }
+            $components[] = $header;
+        }
+
+        $components[] = ['type' => 'BODY', 'text' => $this->bodyText];
+
+        if ($this->footerText) {
+            $components[] = ['type' => 'FOOTER', 'text' => $this->footerText];
+        }
+
+        if (!empty($this->buttons)) {
+            $btns = [];
+            foreach ($this->buttons as $btn) {
+                if ($btn['type'] === 'quick_reply') {
+                    $btns[] = ['type' => 'QUICK_REPLY', 'text' => $btn['text']];
+                } elseif ($btn['type'] === 'url') {
+                    $btns[] = ['type' => 'URL', 'text' => $btn['text'], 'url' => $btn['value']];
+                } elseif ($btn['type'] === 'phone') {
+                    $btns[] = ['type' => 'PHONE_NUMBER', 'text' => $btn['text'], 'phone_number' => $btn['value']];
+                }
+            }
+            if (!empty($btns)) {
+                $components[] = ['type' => 'BUTTONS', 'buttons' => $btns];
+            }
+        }
+
+        return $components;
+    }
+
     private function resetForm()
     {
         $this->step = 'category';
@@ -240,6 +277,8 @@ class TemplateManager extends Component
         $this->language = 'pt_BR';
         $this->headerType = 'none';
         $this->headerText = '';
+        $this->headerImage = null;
+        $this->headerImageUrl = null;
         $this->bodyText = '';
         $this->footerText = '';
         $this->buttons = [];
@@ -255,6 +294,7 @@ class TemplateManager extends Component
             'approved' => MetaMessageTemplate::where('status', 'APPROVED')->count(),
             'pending'  => MetaMessageTemplate::whereIn('status', ['PENDING', 'IN_REVIEW'])->count(),
             'rejected' => MetaMessageTemplate::where('status', 'REJECTED')->count(),
+            'draft'    => MetaMessageTemplate::where('status', 'DRAFT')->count(),
         ];
 
         return view('livewire.admin.template-manager', compact('counts'));
