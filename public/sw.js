@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flut-crm-v2';
+const CACHE_NAME = 'flut-crm-v3';
 const OFFLINE_URL = '/offline';
 
 // Assets to pre-cache
@@ -62,26 +62,18 @@ self.addEventListener('push', (event) => {
     }
 
     const title = data.title || 'CRM Flut';
+    const body = data.body || 'Nova mensagem recebida';
     const options = {
-        body: data.body || 'Nova mensagem recebida',
+        body: body,
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         vibrate: [200, 100, 200],
         data: { url: data.url || '/chat' },
-        tag: 'crm-msg-' + Date.now(),
-        renotify: true,
-        requireInteraction: false,
-        silent: false,
+        tag: 'crm-' + title.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20),
     };
 
-    // Sempre mostrar, mesmo se aba está em foco
     event.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-            console.log('[SW] Showing notification:', title);
-            return self.registration.showNotification(title, options);
-        }).catch(err => {
-            console.error('[SW] showNotification error:', err);
-        })
+        self.registration.showNotification(title, options)
     );
 });
 
