@@ -62,6 +62,8 @@ class DashboardService
         if ($conversationIds->isEmpty()) return null;
 
         // Subquery: pra cada conversa, pega a primeira msg do contato e a primeira do agente
+        $placeholders = $conversationIds->map(fn() => '?')->implode(',');
+        $bindings = $conversationIds->values()->all();
         $result = DB::select("
             SELECT AVG(response_minutes) as avg_minutes FROM (
                 SELECT
@@ -69,16 +71,16 @@ class DashboardService
                     TIMESTAMPDIFF(MINUTE, c.first_contact, a.first_agent) as response_minutes
                 FROM
                     (SELECT conversation_id, MIN(created_at) as first_contact
-                     FROM messages WHERE sender_type = 'contact' AND conversation_id IN (" . $conversationIds->implode(',') . ")
+                     FROM messages WHERE sender_type = 'contact' AND conversation_id IN ({$placeholders})
                      GROUP BY conversation_id) c
                 JOIN
                     (SELECT conversation_id, MIN(created_at) as first_agent
-                     FROM messages WHERE sender_type = 'agent' AND conversation_id IN (" . $conversationIds->implode(',') . ")
+                     FROM messages WHERE sender_type = 'agent' AND conversation_id IN ({$placeholders})
                      GROUP BY conversation_id) a
                 ON c.conversation_id = a.conversation_id
                 WHERE a.first_agent > c.first_contact
             ) sub
-        ");
+        ", array_merge($bindings, $bindings));
 
         $avg = $result[0]->avg_minutes ?? null;
         return $avg !== null ? round((float) $avg, 1) : null;

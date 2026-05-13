@@ -53,7 +53,12 @@ class UnsubscribeController extends Controller
     private function decodeToken(string $token): ?array
     {
         try {
-            $decoded = base64_decode($token);
+            // Suporte ao formato novo (encrypt) e legado (base64)
+            try {
+                $decoded = decrypt($token);
+            } catch (\Throwable) {
+                $decoded = base64_decode($token);
+            }
             $parts = explode('|', $decoded);
             if (count($parts) !== 2) return null;
             return ['email' => $parts[0], 'company_id' => (int) $parts[1]];
@@ -64,6 +69,6 @@ class UnsubscribeController extends Controller
 
     public static function generateToken(string $email, int $companyId): string
     {
-        return base64_encode("{$email}|{$companyId}");
+        return encrypt("{$email}|{$companyId}");
     }
 }
