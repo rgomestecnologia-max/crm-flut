@@ -175,7 +175,7 @@
                         {{-- Avatar --}}
                         <div style="position:relative; flex-shrink:0;">
                             <img x-data="{ err: false }"
-                                 :src="err ? '{{ $conv->contact->avatar_fallback }}' : '{{ $conv->contact->avatar }}'"
+                                 :src="err ? '{{ $conv->contact?->avatar_fallback ?? '' }}' : '{{ $conv->contact?->avatar ?? '' }}'"
                                  x-on:error="err = true" alt=""
                                  style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid {{ $activeId === $conv->id ? '#b2ff00' : 'rgba(255,255,255,0.06)' }};">
                             @if($conv->unread_count > 0)
@@ -190,7 +190,7 @@
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
                                 <div style="display:flex; align-items:center; gap:5px; min-width:0; overflow:hidden;">
                                     <span style="font-size:12px; font-weight:600; color:{{ $conv->unread_count > 0 ? 'white' : 'rgba(255,255,255,0.8)' }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                        {{ $conv->is_group ? ($conv->group_name ?: $conv->contact->display_name) : $conv->contact->display_name }}
+                                        {{ $conv->is_group ? ($conv->group_name ?: $conv->contact?->display_name ?? 'Sem nome') : ($conv->contact?->display_name ?? 'Sem nome') }}
                                     </span>
                                     @if($conv->is_group)
                                     <span style="flex-shrink:0; display:inline-flex; align-items:center; gap:2px; font-size:8px; font-weight:700; padding:2px 5px; border-radius:20px; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.25);">
@@ -247,7 +247,7 @@
                             @endif
 
                             {{-- CRM badge --}}
-                            @php $crmCard = $conv->contact->crmCards->first(); @endphp
+                            @php $crmCard = $conv->contact?->crmCards?->first(); @endphp
                             @if($crmCard && $crmCard->pipeline && $crmCard->stage)
                                 <div style="display:flex; margin-top:4px;">
                                     <span style="display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:500; padding:2px 6px; border-radius:5px; background:{{ $crmCard->stage->color }}18; color:{{ $crmCard->stage->color }}; border:1px solid {{ $crmCard->stage->color }}33;">
