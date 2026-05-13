@@ -370,7 +370,11 @@
                                 @if($vHeader)
                                 <div style="margin-top:12px;">
                                     <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:4px;">CABEÇALHO ({{ $vHeader['format'] ?? 'TEXT' }})</p>
+                                    @if(($vHeader['format'] ?? '') === 'IMAGE' && ($vHeader['example']['header_handle'][0] ?? null))
+                                    <img src="{{ $vHeader['example']['header_handle'][0] }}" style="max-width:200px; max-height:120px; border-radius:8px; margin-top:4px; object-fit:cover;">
+                                    @else
                                     <p style="font-size:12px; color:rgba(255,255,255,0.6);">{{ $vHeader['text'] ?? ($vHeader['format'] ?? '—') }}</p>
+                                    @endif
                                 </div>
                                 @endif
 
@@ -417,9 +421,14 @@
                                         </div>
                                         <div style="min-height:280px; background-color:#ddd6c9; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 200 200%22><g fill=%22none%22 stroke=%22%23c9c2b6%22 stroke-width=%221.2%22 opacity=%220.4%22><rect x=%2210%22 y=%2210%22 width=%2222%22 height=%2216%22 rx=%222%22/><circle cx=%22100%22 cy=%2220%22 r=%228%22/><rect x=%22150%22 y=%228%22 width=%2230%22 height=%2220%22 rx=%2210%22/><rect x=%2250%22 y=%2260%22 width=%2220%22 height=%2215%22 rx=%222%22/><polygon points=%22140,55 150,45 160,55%22/><rect x=%2220%22 y=%22120%22 width=%2224%22 height=%2218%22 rx=%229%22/><circle cx=%22120%22 cy=%22130%22 r=%226%22/><rect x=%2280%22 y=%22160%22 width=%2230%22 height=%2222%22 rx=%224%22/><polygon points=%22170,165 180,155 190,165%22/></g></svg>'); background-size:200px 200px; padding:12px 8px; display:flex; flex-direction:column; justify-content:flex-start;">
                                             <div style="background:white; border-radius:6px 6px 6px 0; overflow:hidden; max-width:220px;">
-                                                @if($vHeader && in_array($vHeader['format'] ?? '', ['IMAGE','VIDEO']))
-                                                <div style="background:linear-gradient(135deg,#a78bfa,#7c3aed); height:100px; display:flex; align-items:center; justify-content:center;">
+                                                @if($vHeader && ($vHeader['format'] ?? '') === 'IMAGE')
+                                                @php $vImageUrl = $vHeader['example']['header_handle'][0] ?? null; @endphp
+                                                <div style="background:linear-gradient(135deg,#a78bfa,#7c3aed); height:100px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                                    @if($vImageUrl)
+                                                    <img src="{{ $vImageUrl }}" style="width:100%; height:100px; object-fit:cover;">
+                                                    @else
                                                     <span style="font-size:24px;">🖼️</span>
+                                                    @endif
                                                 </div>
                                                 @endif
                                                 <div style="padding:5px 7px;">
