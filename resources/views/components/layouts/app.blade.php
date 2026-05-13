@@ -538,19 +538,18 @@ function toastManager() {
 </div>
 
 <script>
-// Registrar Service Worker (limpar duplicatas primeiro)
+// Registrar Service Worker (limpar SWs estranhos)
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(regs => {
-        // Se há mais de 1 SW, desregistrar todos e re-registrar 1 só
-        if (regs.length > 1) {
-            console.log('[Push] Found', regs.length, 'SW registrations, cleaning...');
-            Promise.all(regs.map(r => r.unregister())).then(() => {
-                navigator.serviceWorker.register('/sw.js');
-            });
-        } else if (regs.length === 0) {
-            navigator.serviceWorker.register('/sw.js');
-        }
-        // Se já tem exatamente 1, não faz nada (já está ok)
+        // Remover SWs que não são o nosso sw.js
+        regs.forEach(r => {
+            if (!r.active?.scriptURL?.endsWith('/sw.js')) {
+                console.log('[Push] Removing foreign SW:', r.active?.scriptURL || r.scope);
+                r.unregister();
+            }
+        });
+        // Registrar o nosso
+        navigator.serviceWorker.register('/sw.js');
     }).catch(() => {
         navigator.serviceWorker.register('/sw.js');
     });
