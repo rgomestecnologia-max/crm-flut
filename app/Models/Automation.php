@@ -16,6 +16,7 @@ class Automation extends Model
         'name',
         'pipeline_id',
         'trigger',
+        'trigger_stage_id',
         'message_template',
         'meta_template_name',
         'is_active',

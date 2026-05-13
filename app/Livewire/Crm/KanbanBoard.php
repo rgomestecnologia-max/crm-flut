@@ -55,6 +55,7 @@ class KanbanBoard extends Component
         if (!$card || !$stage || $stage->pipeline_id !== $this->selectedPipelineId) return;
 
         $old = $card->stage?->name ?? '—';
+        $oldStageId = $card->stage_id;
         $card->update(['stage_id' => $stageId, 'pipeline_id' => $stage->pipeline_id]);
 
         CrmCardActivity::create([
@@ -63,6 +64,45 @@ class KanbanBoard extends Component
             'type'    => 'stage_change',
             'content' => "Movido de «{$old}» para «{$stage->name}»",
         ]);
+
+        // Disparar automações de follow-up para a nova etapa
+        if ($oldStageId !== $stageId) {
+            $this->triggerStageAutomations($card, $stageId);
+        }
+    }
+
+    private function triggerStageAutomations(CrmCard $card, int $stageId): void
+    {
+        $automations = \App\Models\Automation::withoutGlobalScopes()
+            ->where('trigger', 'stage_changed')
+            ->where('trigger_stage_id', $stageId)
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($automations as $automation) {
+            $delays = array_filter(array_map('intval', explode(',', $automation->delay_minutes ?? '0')));
+            if (empty($delays)) $delays = [0];
+
+            $companyId = $card->company_id ?? app(\App\Services\CurrentCompany::class)->id();
+
+            foreach ($delays as $seq => $delayMinutes) {
+                $delaySeconds = $delayMinutes * 60;
+                \App\Jobs\SendStageFollowUp::dispatch(
+                    $card->id,
+                    $stageId,
+                    $companyId,
+                    $automation->message_template ?? 'Follow-up da proposta comercial',
+                    $seq + 1,
+                )->delay(now()->addSeconds($delaySeconds));
+            }
+
+            \Illuminate\Support\Facades\Log::info('Stage automation triggered', [
+                'card' => $card->id,
+                'stage' => $stageId,
+                'automation' => $automation->name,
+                'delays' => $delays,
+            ]);
+        }
     }
 
     // ── Card CRUD ─────────────────────────────────────────────────
@@ -119,7 +159,8 @@ class KanbanBoard extends Component
         if ($this->editingCardId) {
             $card = CrmCard::findOrFail($this->editingCardId);
 
-            if ($card->stage_id !== (int) $this->card_stage_id) {
+            $oldStageId = $card->stage_id;
+            if ($oldStageId !== (int) $this->card_stage_id) {
                 $old = $card->stage?->name ?? '—';
                 CrmCardActivity::create([
                     'card_id' => $card->id,
@@ -130,6 +171,11 @@ class KanbanBoard extends Component
             }
 
             $card->update($data);
+
+            // Disparar automações de follow-up para a nova etapa
+            if ($oldStageId !== (int) $this->card_stage_id) {
+                $this->triggerStageAutomations($card, (int) $this->card_stage_id);
+            }
 
             // Atualiza telefone do contato se alterado
             if ($card->contact_id && trim($this->contact_phone)) {
