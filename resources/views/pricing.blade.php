@@ -476,140 +476,236 @@ function pricingSimulator() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
             const pw = doc.internal.pageSize.getWidth();
+            const ph = doc.internal.pageSize.getHeight();
             const today = new Date();
             const dataStr = today.toLocaleDateString('pt-BR');
             const validade = new Date(today.getTime() + 30*24*60*60*1000).toLocaleDateString('pt-BR');
             const fmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const mx = 20; // margem
 
-            // === HEADER (fundo escuro) ===
+            // Helper: footer em todas as páginas
+            const addFooter = () => {
+                doc.setFontSize(8);
+                doc.setTextColor(180, 180, 180);
+                doc.text('CRM Flut — crm.flut.com.br', pw / 2, ph - 10, { align: 'center' });
+                doc.setDrawColor(230, 230, 230);
+                doc.line(mx, ph - 15, pw - mx, ph - 15);
+            };
+
+            // Helper: texto com quebra de linha automática
+            const addWrappedText = (text, x, startY, maxW, fontSize, color, lineH) => {
+                doc.setFontSize(fontSize);
+                doc.setTextColor(...color);
+                doc.setFont('helvetica', 'normal');
+                const lines = doc.splitTextToSize(text, maxW);
+                let y = startY;
+                for (const line of lines) {
+                    if (y > ph - 25) { addFooter(); doc.addPage(); y = 25; }
+                    doc.text(line, x, y);
+                    y += lineH;
+                }
+                return y;
+            };
+
+            // ╔══════════════════════════════════════╗
+            // ║         PÁGINA 1: CAPA               ║
+            // ╚══════════════════════════════════════╝
             doc.setFillColor(15, 23, 42);
-            doc.roundedRect(15, 12, pw - 30, 38, 4, 4, 'F');
+            doc.rect(0, 0, pw, ph, 'F');
+
+            // Linha decorativa
+            doc.setFillColor(178, 255, 0);
+            doc.rect(0, ph * 0.38, pw, 1.5, 'F');
+
+            // Título
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(20);
+            doc.setFontSize(32);
             doc.setFont('helvetica', 'bold');
-            doc.text('Proposta Comercial', pw / 2, 26, { align: 'center' });
-            doc.setFontSize(12);
+            doc.text('Proposta', pw / 2, ph * 0.28, { align: 'center' });
+            doc.text('Comercial', pw / 2, ph * 0.35, { align: 'center' });
+
+            // Nome do cliente
+            doc.setFontSize(16);
             doc.setTextColor(178, 255, 0);
-            doc.text(this.clientName, pw / 2, 35, { align: 'center' });
-            doc.setFontSize(9);
+            doc.text(this.clientName, pw / 2, ph * 0.48, { align: 'center' });
+
+            // Data
+            doc.setFontSize(11);
+            doc.setTextColor(140, 140, 160);
             doc.setFont('helvetica', 'normal');
-            doc.setTextColor(180, 180, 200);
-            doc.text('CRM Flut  |  Gerada em ' + dataStr, pw / 2, 44, { align: 'center' });
+            doc.text('Gerada em ' + dataStr, pw / 2, ph * 0.54, { align: 'center' });
+            doc.text('Válida até ' + validade, pw / 2, ph * 0.58, { align: 'center' });
 
-            // === MÓDULOS SELECIONADOS (tabela) ===
-            let items = [];
-            if (this.modules.multi) {
-                items.push([
-                    `Multi-atendimento (${this.multi.users} usuário${this.multi.users>1?'s':''}, ${this.multi.instances} número${this.multi.instances>1?'s':''})`,
-                    'R$ ' + fmt(this.detail.multi_monthly) + '/mês',
-                    'R$ ' + fmt(this.detail.multi_setup)
-                ]);
-            }
-            if (this.modules.crm) {
-                items.push([
-                    'CRM — Pipeline de Vendas',
-                    'R$ ' + fmt(this.detail.crm_monthly) + '/mês',
-                    'R$ ' + fmt(this.detail.crm_setup)
-                ]);
-            }
+            // CRM Flut
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 120);
+            doc.text('CRM Flut — Plataforma de Atendimento e Vendas', pw / 2, ph * 0.85, { align: 'center' });
+            doc.text('crm.flut.com.br', pw / 2, ph * 0.89, { align: 'center' });
+
+            // ╔══════════════════════════════════════╗
+            // ║   PÁGINAS: MÓDULOS COM BENEFÍCIOS    ║
+            // ╚══════════════════════════════════════╝
+            const moduleColors = {
+                multi: [178, 255, 0], crm: [139, 92, 246], email: [59, 130, 246],
+                ia: [236, 72, 153], integrations: [6, 182, 212]
+            };
+            const moduleData = [];
+            if (this.modules.multi) moduleData.push({
+                key: 'multi', title: 'Multi-atendimento WhatsApp',
+                subtitle: `${this.multi.users} usuário${this.multi.users>1?'s':''}, ${this.multi.instances} número${this.multi.instances>1?'s':''}`,
+                monthly: this.detail.multi_monthly, setup: this.detail.multi_setup,
+                benefits: C.multi_benefits || ''
+            });
+            if (this.modules.crm) moduleData.push({
+                key: 'crm', title: 'CRM — Pipeline de Vendas', subtitle: 'Gestão completa de vendas',
+                monthly: this.detail.crm_monthly, setup: this.detail.crm_setup,
+                benefits: C.crm_benefits || ''
+            });
             if (this.modules.email) {
-                let desc = 'Disparos em Massa';
-                if (this.email.plan !== 'none') desc += ` (Email ${this.email.plan})`;
-                if (this.email.whatsapp) desc += (this.email.plan !== 'none' ? ' + ' : ' (') + 'WhatsApp' + (this.email.plan === 'none' ? ')' : '');
-                items.push([
-                    desc,
-                    'R$ ' + fmt(this.detail.email_monthly) + '/mês',
-                    'R$ ' + fmt(this.detail.email_setup)
-                ]);
+                let sub = 'Email';
+                if (this.email.plan !== 'none') sub += ` ${this.email.plan}`;
+                if (this.email.whatsapp) sub += ' + WhatsApp';
+                moduleData.push({
+                    key: 'email', title: 'Disparos em Massa', subtitle: sub,
+                    monthly: this.detail.email_monthly, setup: this.detail.email_setup,
+                    benefits: C.email_benefits || ''
+                });
             }
-            if (this.modules.ia) {
-                items.push([
-                    `IA de Atendimento (${this.ia.flows} fluxo${this.ia.flows>1?'s':''})`,
-                    'R$ ' + fmt(this.detail.ia_monthly) + '/mês',
-                    'R$ ' + fmt(this.detail.ia_setup)
-                ]);
-            }
-            if (this.modules.integrations) {
-                items.push([
-                    `Integrações Externas (${this.integrations.count})`,
-                    'R$ ' + fmt(this.detail.int_monthly) + '/mês',
-                    'R$ ' + fmt(this.detail.int_setup)
-                ]);
+            if (this.modules.ia) moduleData.push({
+                key: 'ia', title: 'IA de Atendimento',
+                subtitle: `${this.ia.flows} fluxo${this.ia.flows>1?'s':''}`,
+                monthly: this.detail.ia_monthly, setup: this.detail.ia_setup,
+                benefits: C.ia_benefits || ''
+            });
+            if (this.modules.integrations) moduleData.push({
+                key: 'integrations', title: 'Integrações Externas',
+                subtitle: `${this.integrations.count} integração${this.integrations.count>1?'ões':''}`,
+                monthly: this.detail.int_monthly, setup: this.detail.int_setup,
+                benefits: C.integration_benefits || ''
+            });
+
+            for (const mod of moduleData) {
+                doc.addPage();
+                const col = moduleColors[mod.key] || [178, 255, 0];
+
+                // Barra colorida no topo
+                doc.setFillColor(...col);
+                doc.rect(0, 0, pw, 4, 'F');
+
+                // Título do módulo
+                doc.setFontSize(22);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(30, 30, 40);
+                doc.text(mod.title, mx, 28);
+
+                // Subtítulo
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(120, 120, 130);
+                doc.text(mod.subtitle, mx, 36);
+
+                // Valores em destaque
+                doc.setFillColor(245, 247, 250);
+                doc.roundedRect(mx, 42, pw - mx * 2, 20, 3, 3, 'F');
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(34, 197, 94);
+                doc.text('Mensalidade: R$ ' + fmt(mod.monthly) + '/mês', mx + 8, 54);
+                doc.setTextColor(59, 130, 246);
+                doc.text('Implantação: R$ ' + fmt(mod.setup), pw / 2 + 10, 54);
+
+                // Linha separadora
+                doc.setDrawColor(...col);
+                doc.setLineWidth(0.5);
+                doc.line(mx, 68, pw - mx, 68);
+
+                // Benefícios
+                let y = 78;
+                if (mod.benefits) {
+                    const benefitLines = mod.benefits.split('\n').filter(l => l.trim());
+                    for (const line of benefitLines) {
+                        if (y > ph - 30) { addFooter(); doc.addPage(); y = 25; }
+                        const trimmed = line.trim();
+                        if (trimmed.startsWith('✅')) {
+                            doc.setFontSize(10);
+                            doc.setFont('helvetica', 'normal');
+                            doc.setTextColor(50, 50, 60);
+                            const wrapped = doc.splitTextToSize(trimmed, pw - mx * 2 - 5);
+                            for (const wl of wrapped) {
+                                if (y > ph - 30) { addFooter(); doc.addPage(); y = 25; }
+                                doc.text(wl, mx + 2, y);
+                                y += 5.5;
+                            }
+                        } else {
+                            doc.setFontSize(10.5);
+                            doc.setFont('helvetica', 'normal');
+                            doc.setTextColor(60, 60, 70);
+                            const wrapped = doc.splitTextToSize(trimmed, pw - mx * 2);
+                            for (const wl of wrapped) {
+                                if (y > ph - 30) { addFooter(); doc.addPage(); y = 25; }
+                                doc.text(wl, mx, y);
+                                y += 5.5;
+                            }
+                            y += 2;
+                        }
+                    }
+                }
+
+                addFooter();
             }
 
-            // Linha de total
-            items.push([
-                'TOTAL',
-                'R$ ' + fmt(this.total.monthly) + '/mês',
-                'R$ ' + fmt(this.total.setup)
-            ]);
+            // ╔══════════════════════════════════════╗
+            // ║      PÁGINA FINAL: RESUMO            ║
+            // ╚══════════════════════════════════════╝
+            doc.addPage();
+
+            doc.setFillColor(15, 23, 42);
+            doc.roundedRect(mx, 15, pw - mx * 2, 30, 4, 4, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Resumo do Investimento', pw / 2, 34, { align: 'center' });
+
+            // Tabela resumo
+            let summaryItems = moduleData.map(m => [m.title, 'R$ ' + fmt(m.monthly) + '/mês', 'R$ ' + fmt(m.setup)]);
+            summaryItems.push(['TOTAL', 'R$ ' + fmt(this.total.monthly) + '/mês', 'R$ ' + fmt(this.total.setup)]);
 
             doc.autoTable({
-                startY: 58,
-                margin: { left: 15, right: 15 },
+                startY: 52,
+                margin: { left: mx, right: mx },
                 head: [['Módulo', 'Mensalidade', 'Implantação']],
-                body: items,
-                headStyles: {
-                    fillColor: [241, 245, 249],
-                    textColor: [80, 80, 80],
-                    fontStyle: 'bold',
-                    fontSize: 9,
-                    halign: 'left'
-                },
-                columnStyles: {
-                    0: { cellWidth: 'auto' },
-                    1: { halign: 'right', cellWidth: 42 },
-                    2: { halign: 'right', cellWidth: 42 }
-                },
-                bodyStyles: {
-                    fontSize: 10,
-                    textColor: [51, 51, 51],
-                    cellPadding: 5
-                },
-                alternateRowStyles: {
-                    fillColor: [250, 250, 252]
-                },
+                body: summaryItems,
+                headStyles: { fillColor: [241, 245, 249], textColor: [80, 80, 80], fontStyle: 'bold', fontSize: 9 },
+                columnStyles: { 0: { cellWidth: 'auto' }, 1: { halign: 'right', cellWidth: 40 }, 2: { halign: 'right', cellWidth: 40 } },
+                bodyStyles: { fontSize: 10, textColor: [51, 51, 51], cellPadding: 5 },
+                alternateRowStyles: { fillColor: [250, 250, 252] },
                 didParseCell: function(data) {
-                    if (data.section === 'body' && data.row.index === items.length - 1) {
+                    if (data.section === 'body' && data.row.index === summaryItems.length - 1) {
                         data.cell.styles.fillColor = [240, 253, 244];
                         data.cell.styles.fontStyle = 'bold';
                         data.cell.styles.fontSize = 11;
-                        if (data.column.index === 1) {
-                            data.cell.styles.textColor = [34, 197, 94];
-                        } else if (data.column.index === 2) {
-                            data.cell.styles.textColor = [59, 130, 246];
-                        } else {
-                            data.cell.styles.textColor = [17, 17, 17];
-                        }
+                        if (data.column.index === 1) data.cell.styles.textColor = [34, 197, 94];
+                        else if (data.column.index === 2) data.cell.styles.textColor = [59, 130, 246];
+                        else data.cell.styles.textColor = [17, 17, 17];
                     }
                 }
             });
 
-            let y = doc.lastAutoTable.finalY + 12;
+            let fy = doc.lastAutoTable.finalY + 14;
 
-            // === PRAZO DE IMPLANTAÇÃO ===
+            // Prazo
             doc.setFillColor(255, 251, 235);
             doc.setDrawColor(253, 230, 138);
-            doc.roundedRect(15, y, pw - 30, 22, 3, 3, 'FD');
+            doc.roundedRect(mx, fy, pw - mx * 2, 24, 3, 3, 'FD');
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(146, 64, 14);
-            doc.text('Prazo de implantação: até 10 dias úteis após aprovação.', 20, y + 9);
+            doc.text('Prazo de implantação: até 10 dias úteis após aprovação.', mx + 6, fy + 10);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text('Validade da proposta: ' + dataStr + ' até ' + validade + ' (30 dias corridos).', 20, y + 17);
+            doc.text('Validade da proposta: ' + dataStr + ' até ' + validade + ' (30 dias corridos).', mx + 6, fy + 18);
 
-            y += 32;
-
-            // === FOOTER ===
-            doc.setDrawColor(230, 230, 230);
-            doc.line(15, y, pw - 15, y);
-            doc.setFontSize(9);
-            doc.setTextColor(153, 153, 153);
-            doc.text('CRM Flut — crm.flut.com.br', pw / 2, y + 8, { align: 'center' });
-            doc.setFontSize(8);
-            doc.setTextColor(200, 200, 200);
-            doc.text('Documento gerado automaticamente pelo simulador de investimento.', pw / 2, y + 14, { align: 'center' });
+            addFooter();
 
             // === SALVAR ===
             const filename = 'proposta-' + this.clientName.trim().toLowerCase().replace(/\s+/g, '-') + '-' + today.toISOString().slice(0,10) + '.pdf';

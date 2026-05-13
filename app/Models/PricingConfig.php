@@ -51,6 +51,17 @@ class PricingConfig extends Model
             // Integrações
             'integration_setup'       => '800.00',
             'integration_monthly'     => '200.00',
+
+            // Conteúdo da proposta (PDF)
+            'multi_benefits' => "Centralize todo o atendimento WhatsApp da sua empresa em uma única plataforma profissional.\n\n✅ Múltiplos agentes atendendo simultaneamente no mesmo número\n✅ Departamentos organizados (Comercial, Suporte, Financeiro, etc.)\n✅ Chatbot inteligente para triagem automática 24h\n✅ Histórico completo de todas as conversas\n✅ Transferência de atendimento entre agentes e departamentos\n✅ Indicadores de performance por agente\n✅ Respostas rápidas para agilizar o atendimento\n✅ Suporte a múltiplos números de WhatsApp conectados\n\nAumente a produtividade da equipe e nunca mais perca um cliente por falta de atendimento.",
+
+            'crm_benefits' => "Pipeline visual estilo Kanban para acompanhar cada oportunidade de vendas do início ao fechamento.\n\n✅ Visualização completa do funil de vendas em tempo real\n✅ Cards personalizáveis com campos sob medida para seu negócio\n✅ Arraste e solte para mover oportunidades entre etapas\n✅ Histórico de atividades e anotações por card\n✅ Múltiplos pipelines (Comercial, Pós-venda, Suporte, etc.)\n✅ Exportação de dados para Excel\n✅ Filtros avançados e busca inteligente\n✅ Integração direta com o atendimento WhatsApp\n\nTenha controle total sobre suas vendas e não deixe nenhuma oportunidade escapar.",
+
+            'email_benefits' => "Campanhas de email e WhatsApp em massa com agendamento, templates profissionais e relatórios detalhados.\n\n✅ Disparo de email marketing em massa (até 50.000/mês)\n✅ Disparo de mensagens WhatsApp em massa\n✅ Templates personalizáveis com editor visual\n✅ Agendamento de campanhas para data e hora específicas\n✅ Segmentação de contatos por tags e filtros\n✅ Relatórios de abertura, cliques e entregas\n✅ Gestão de descadastros automática\n✅ API oficial do WhatsApp (Meta) para maior segurança\n\nAlcance seus clientes no canal certo, na hora certa, com a mensagem certa.",
+
+            'ia_benefits' => "Inteligência artificial que atende seus clientes 24 horas por dia, 7 dias por semana, com base de conhecimento personalizada.\n\n✅ Atendimento automático 24h via WhatsApp\n✅ Base de conhecimento treinada com informações do seu negócio\n✅ Respostas naturais e contextualizadas\n✅ Transferência automática para humano quando necessário\n✅ Múltiplos fluxos de IA (SDR, SAC, Agendamento, Cobranças, etc.)\n✅ Aprendizado contínuo com feedback dos atendimentos\n✅ Redução drástica no tempo de resposta\n✅ Economia de até 70% nos custos de atendimento\n\nDeixe a IA cuidar das perguntas frequentes enquanto sua equipe foca no que realmente importa.",
+
+            'integration_benefits' => "Conexão inteligente com seus sistemas externos para automatizar processos e eliminar trabalho manual.\n\n✅ Integração com sites e landing pages\n✅ Integração com lojas virtuais e e-commerces\n✅ Integração com sistemas financeiros e ERPs\n✅ Webhooks para receber e enviar dados automaticamente\n✅ API RESTful para integrações customizadas\n✅ Sincronização automática de leads e contatos\n✅ Automação de fluxos entre sistemas\n✅ Suporte técnico dedicado para implementação\n\nConecte o CRM Flut ao ecossistema da sua empresa e automatize tudo.",
         ];
     }
 

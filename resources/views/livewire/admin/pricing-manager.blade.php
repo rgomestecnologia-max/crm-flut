@@ -19,6 +19,13 @@
                 'IA de Atendimento' => ['ia_flow_price','ia_flow_setup'],
                 'Integrações' => ['integration_setup','integration_monthly'],
             ];
+            $benefitsKeys = [
+                'Multi-atendimento' => 'multi_benefits',
+                'CRM' => 'crm_benefits',
+                'Disparos Email' => 'email_benefits',
+                'IA de Atendimento' => 'ia_benefits',
+                'Integrações' => 'integration_benefits',
+            ];
             $colors = ['#b2ff00','#8b5cf6','#3b82f6','#ec4899','#06b6d4'];
         @endphp
 
@@ -43,6 +50,19 @@
                 @endif
                 @endforeach
             </div>
+            {{-- Conteúdo da proposta (PDF) --}}
+            @if(isset($benefitsKeys[$section]))
+            <div style="margin-top:12px; padding:12px 14px; background:rgba(255,255,255,0.015); border-radius:10px; border:1px solid rgba(255,255,255,0.04);">
+                <label style="display:flex; align-items:center; gap:6px; font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:6px;">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Conteúdo da proposta (PDF) — benefícios e diferenciais
+                </label>
+                <textarea wire:model="prices.{{ $benefitsKeys[$section] }}" rows="6"
+                          style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 12px; font-size:11px; color:rgba(255,255,255,0.7); outline:none; resize:vertical; line-height:1.6;"
+                          onfocus="this.style.borderColor='rgba(178,255,0,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.06)'"
+                          placeholder="Descreva os benefícios e diferenciais deste módulo que aparecerão no PDF da proposta..."></textarea>
+            </div>
+            @endif
         </div>
         @endforeach
 
