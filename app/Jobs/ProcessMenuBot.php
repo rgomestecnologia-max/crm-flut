@@ -131,9 +131,10 @@ class ProcessMenuBot implements ShouldQueue
 
         // Roteia para o departamento escolhido
         $this->conversation->update([
-            'department_id' => $department->id,
-            'menu_awaiting' => false,
-            'status'        => 'open',
+            'department_id'      => $department->id,
+            'menu_awaiting'      => false,
+            'status'             => 'open',
+            'waiting_human_reason' => 'Menu: direcionado para ' . $department->name,
         ]);
 
         // Mensagem de confirmação
