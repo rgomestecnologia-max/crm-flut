@@ -122,7 +122,7 @@ class TemplateManager extends Component
     {
         $this->validate([
             'templateName' => 'required|string|max:512|regex:/^[a-z0-9_]+$/',
-            'bodyText'     => 'required|string|max:1024',
+            'bodyText'     => 'required|string|max:1014',
         ]);
 
         $components = $this->buildComponents();
@@ -146,7 +146,7 @@ class TemplateManager extends Component
     {
         $this->validate([
             'templateName' => 'required|string|max:512|regex:/^[a-z0-9_]+$/',
-            'bodyText'     => 'required|string|max:1024',
+            'bodyText'     => 'required|string|max:1014',
             'category'     => 'required|in:MARKETING,UTILITY',
         ]);
 

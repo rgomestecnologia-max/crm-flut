@@ -119,7 +119,10 @@
                         <option value="image">Imagem</option>
                     </select>
                     @if($headerType === 'text')
-                    <input wire:model.live.debounce.300ms="headerText" type="text" placeholder="Texto do cabeçalho" style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
+                    <div style="position:relative;">
+                        <input wire:model.live.debounce.300ms="headerText" type="text" maxlength="60" placeholder="Texto do cabeçalho" style="width:100%; padding:8px 12px; padding-right:55px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid {{ strlen($headerText) >= 60 ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.08)' }}; border-radius:8px; color:white; outline:none;">
+                        <span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:10px; color:{{ strlen($headerText) >= 55 ? '#f87171' : 'rgba(255,255,255,0.2)' }};">{{ strlen($headerText) }}/60</span>
+                    </div>
                     @elseif($headerType === 'image')
                     <div style="margin-top:6px;">
                         <label style="display:flex; align-items:center; gap:10px; padding:16px; background:rgba(255,255,255,0.02); border:2px dashed rgba(255,255,255,0.1); border-radius:10px; cursor:pointer; transition:all 0.15s;"
@@ -185,7 +188,7 @@
                 }">
                     <label style="display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Corpo do texto *</label>
                     <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden;">
-                        <textarea x-ref="bodyArea" wire:model.live.debounce.300ms="bodyText" rows="6" maxlength="1024" placeholder="Digite o texto da sua mensagem aqui..."
+                        <textarea x-ref="bodyArea" wire:model.live.debounce.300ms="bodyText" rows="6" maxlength="1014" placeholder="Digite o texto da sua mensagem aqui..."
                                   style="width:100%; padding:10px 12px; font-size:12px; background:transparent; border:none; color:white; outline:none; resize:vertical; line-height:1.5;"></textarea>
                         {{-- Toolbar --}}
                         <div style="display:flex; align-items:center; gap:2px; padding:6px 10px; border-top:1px solid rgba(255,255,255,0.06); position:relative;">
@@ -212,7 +215,7 @@
                                     onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.35)'">
                                 I
                             </button>
-                            <span style="margin-left:auto; font-size:10px; color:rgba(255,255,255,0.2);">{{ strlen($bodyText) }}/1024</span>
+                            <span style="margin-left:auto; font-size:10px; color:{{ strlen($bodyText) >= 950 ? '#f87171' : 'rgba(255,255,255,0.2)' }};">{{ strlen($bodyText) }}/1014</span>
 
                             {{-- Emoji picker --}}
                             <div x-show="showEmoji" x-transition @click.outside="showEmoji=false"
@@ -232,9 +235,12 @@
 
                 {{-- Rodapé --}}
                 <div style="margin-bottom:14px;">
-                    <label style="display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Rodapé (Opcional) <span style="float:right; color:rgba(255,255,255,0.2);">{{ strlen($footerText) }}/60</span></label>
-                    <input wire:model.live.debounce.300ms="footerText" type="text" placeholder="Mensagem no rodapé" maxlength="60"
-                           style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
+                    <label style="display:block; font-size:10px; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:4px;">Rodapé (Opcional)</label>
+                    <div style="position:relative;">
+                        <input wire:model.live.debounce.300ms="footerText" type="text" placeholder="Mensagem no rodapé" maxlength="60"
+                               style="width:100%; padding:8px 12px; padding-right:55px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid {{ strlen($footerText) >= 60 ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.08)' }}; border-radius:8px; color:white; outline:none;">
+                        <span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:10px; color:{{ strlen($footerText) >= 55 ? '#f87171' : 'rgba(255,255,255,0.2)' }};">{{ strlen($footerText) }}/60</span>
+                    </div>
                 </div>
 
                 {{-- Botões --}}
