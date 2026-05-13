@@ -77,32 +77,31 @@ class KanbanBoard extends Component
             ->where('trigger', 'stage_changed')
             ->where('trigger_stage_id', $stageId)
             ->where('is_active', true)
+            ->orderBy('delay_minutes')
             ->get();
 
-        foreach ($automations as $automation) {
-            $delays = array_filter(array_map('intval', explode(',', $automation->delay_minutes ?? '0')));
-            if (empty($delays)) $delays = [0];
+        if ($automations->isEmpty()) return;
 
-            $companyId = $card->company_id ?? app(\App\Services\CurrentCompany::class)->id();
+        $companyId = $card->company_id ?? app(\App\Services\CurrentCompany::class)->id();
 
-            foreach ($delays as $seq => $delayMinutes) {
-                $delaySeconds = $delayMinutes * 60;
-                \App\Jobs\SendStageFollowUp::dispatch(
-                    $card->id,
-                    $stageId,
-                    $companyId,
-                    $automation->message_template ?? 'Follow-up da proposta comercial',
-                    $seq + 1,
-                )->delay(now()->addSeconds($delaySeconds));
-            }
+        foreach ($automations as $seq => $automation) {
+            $delaySeconds = ($automation->delay_minutes ?? 0) * 60;
 
-            \Illuminate\Support\Facades\Log::info('Stage automation triggered', [
-                'card' => $card->id,
-                'stage' => $stageId,
-                'automation' => $automation->name,
-                'delays' => $delays,
-            ]);
+            \App\Jobs\SendStageFollowUp::dispatch(
+                $card->id,
+                $stageId,
+                $companyId,
+                $automation->message_template ?? 'Follow-up da proposta comercial',
+                $seq + 1,
+            )->delay(now()->addSeconds($delaySeconds));
         }
+
+        \Illuminate\Support\Facades\Log::info('Stage automations triggered', [
+            'card' => $card->id,
+            'stage' => $stageId,
+            'count' => $automations->count(),
+            'delays' => $automations->pluck('delay_minutes')->toArray(),
+        ]);
     }
 
     // ── Card CRUD ─────────────────────────────────────────────────
