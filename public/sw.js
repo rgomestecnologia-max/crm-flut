@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flut-crm-v3';
+const CACHE_NAME = 'flut-crm-v4';
 const OFFLINE_URL = '/offline';
 
 // Assets to pre-cache
@@ -63,13 +63,15 @@ self.addEventListener('push', (event) => {
 
     const title = data.title || 'CRM Flut';
     const body = data.body || 'Nova mensagem recebida';
+    const tag = 'crm-new-message';
     const options = {
         body: body,
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-72x72.png',
         vibrate: [200, 100, 200],
         data: { url: data.url || '/chat' },
-        tag: 'crm-' + title.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20),
+        tag: tag,
+        renotify: true,
     };
 
     event.waitUntil(
