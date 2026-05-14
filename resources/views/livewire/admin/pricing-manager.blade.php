@@ -26,6 +26,8 @@
                 'IA de Atendimento' => 'ia_benefits',
                 'Integrações' => 'integration_benefits',
             ];
+            $imgModels = ['multi_image','crm_image','email_image','ia_image','integration_image'];
+            $imgConfigs = ['multi_screenshot','crm_screenshot','email_screenshot','ia_screenshot','integration_screenshot'];
             $colors = ['#b2ff00','#8b5cf6','#3b82f6','#ec4899','#06b6d4'];
         @endphp
 
@@ -50,7 +52,7 @@
                 @endif
                 @endforeach
             </div>
-            {{-- Conteúdo da proposta (PDF) --}}
+            {{-- Conteúdo da proposta (PDF) + Upload de screenshot --}}
             @if(isset($benefitsKeys[$section]))
             <div style="margin-top:12px; padding:12px 14px; background:rgba(255,255,255,0.015); border-radius:10px; border:1px solid rgba(255,255,255,0.04);">
                 <label style="display:flex; align-items:center; gap:6px; font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:6px;">
@@ -61,28 +63,20 @@
                           style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 12px; font-size:11px; color:rgba(255,255,255,0.7); outline:none; resize:vertical; line-height:1.6;"
                           onfocus="this.style.borderColor='rgba(178,255,0,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.06)'"
                           placeholder="Descreva os benefícios e diferenciais deste módulo que aparecerão no PDF da proposta..."></textarea>
-                {{-- Upload de screenshot do módulo --}}
-                @php
-                    $imgKeys = ['Multi-atendimento'=>'multi_image','CRM'=>'crm_image','Disparos Email'=>'email_image','IA de Atendimento'=>'ia_image','Integrações'=>'integration_image'];
-                    $imgConfigKeys = ['Multi-atendimento'=>'multi_screenshot','CRM'=>'crm_screenshot','Disparos Email'=>'email_screenshot','IA de Atendimento'=>'ia_screenshot','Integrações'=>'integration_screenshot'];
-                    $imgWireModel = $imgKeys[$section] ?? null;
-                    $imgConfigKey = $imgConfigKeys[$section] ?? null;
-                @endphp
-                @if($imgWireModel)
-                <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.04);">
-                    <label style="display:flex; align-items:center; gap:6px; font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:6px;">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                        Ilustração do módulo (PDF)
-                    </label>
-                    @if(!empty($prices[$imgConfigKey]))
-                    <div style="margin-bottom:8px;">
-                        <img src="{{ $prices[$imgConfigKey] }}" style="max-width:100%; max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
-                    </div>
-                    @endif
-                    <input type="file" wire:model="{{ $imgWireModel }}" accept="image/*"
-                           style="font-size:11px; color:rgba(255,255,255,0.5);">
+            </div>
+            {{-- Upload de ilustração do módulo --}}
+            <div style="margin-top:8px; padding:12px 14px; background:rgba(255,255,255,0.015); border-radius:10px; border:1px solid rgba(255,255,255,0.04);">
+                <label style="display:flex; align-items:center; gap:6px; font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:6px;">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Ilustração do módulo (PDF)
+                </label>
+                @if(!empty($prices[$imgConfigs[$loop->index]]))
+                <div style="margin-bottom:8px;">
+                    <img src="{{ $prices[$imgConfigs[$loop->index]] }}" style="max-width:100%; max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
                 </div>
                 @endif
+                <input type="file" wire:model="{{ $imgModels[$loop->index] }}" accept="image/*"
+                       style="font-size:11px; color:rgba(255,255,255,0.5);">
             </div>
             @endif
         </div>
