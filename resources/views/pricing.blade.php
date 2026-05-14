@@ -737,18 +737,18 @@ function pricingSimulator() {
             }
 
             doc.setFillColor(15, 23, 42);
-            doc.roundedRect(mx, 15, pw - mx * 2, 30, 4, 4, 'F');
+            doc.roundedRect(mx, 24, pw - mx * 2, 30, 4, 4, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(18);
             doc.setFont('helvetica', 'bold');
-            doc.text('Resumo do Investimento', pw / 2, 34, { align: 'center' });
+            doc.text('Resumo do Investimento', pw / 2, 43, { align: 'center' });
 
             // Tabela resumo
             let summaryItems = moduleData.map(m => [m.title, 'R$ ' + fmt(m.monthly) + '/mês', 'R$ ' + fmt(m.setup)]);
             summaryItems.push(['TOTAL', 'R$ ' + fmt(this.total.monthly) + '/mês', 'R$ ' + fmt(this.total.setup)]);
 
             doc.autoTable({
-                startY: 52,
+                startY: 58,
                 margin: { left: mx, right: mx },
                 head: [['Módulo', 'Mensalidade', 'Implantação']],
                 body: summaryItems,
