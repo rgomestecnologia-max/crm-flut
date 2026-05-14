@@ -700,29 +700,26 @@ function pricingSimulator() {
                     try {
                         const imgData = moduleScreenshots[mod.key];
                         const img = new Image();
-                        await new Promise((resolve) => { img.onload = resolve; img.src = imgData; });
-                        const imgW = pw - mx * 2; // largura total entre margens
-                        const imgH = (img.height / img.width) * imgW; // proporcional
-                        const maxImgH = 90; // altura máxima
-                        const finalH = Math.min(imgH, maxImgH);
-                        const finalW = imgH > maxImgH ? (img.width / img.height) * maxImgH : imgW;
-
-                        // Se não couber na página atual, nova página
-                        if (y + finalH + 10 > ph - 25) {
-                            addFooter();
-                            doc.addPage();
-                            y = 25;
+                        const loaded = await Promise.race([
+                            new Promise((ok, fail) => { img.onload = () => ok(true); img.onerror = () => ok(false); img.src = imgData; }),
+                            new Promise(ok => setTimeout(() => ok(false), 5000))
+                        ]);
+                        if (loaded && img.width > 0) {
+                            const imgW = pw - mx * 2;
+                            const imgH = (img.height / img.width) * imgW;
+                            const maxImgH = 90;
+                            const finalH = Math.min(imgH, maxImgH);
+                            const finalW = imgH > maxImgH ? (img.width / img.height) * maxImgH : imgW;
+                            if (y + finalH + 10 > ph - 25) { addFooter(); doc.addPage(); y = 25; }
+                            y += 6;
+                            const imgX = (pw - finalW) / 2;
+                            doc.setDrawColor(220, 220, 220);
+                            doc.setLineWidth(0.3);
+                            doc.roundedRect(imgX - 1, y - 1, finalW + 2, finalH + 2, 2, 2, 'S');
+                            doc.addImage(imgData, 'PNG', imgX, y, finalW, finalH);
+                            y += finalH + 6;
                         }
-
-                        y += 6;
-                        const imgX = (pw - finalW) / 2; // centralizado
-                        // Borda/sombra leve
-                        doc.setDrawColor(220, 220, 220);
-                        doc.setLineWidth(0.3);
-                        doc.roundedRect(imgX - 1, y - 1, finalW + 2, finalH + 2, 2, 2, 'S');
-                        doc.addImage(imgData, 'PNG', imgX, y, finalW, finalH);
-                        y += finalH + 6;
-                    } catch(e) {}
+                    } catch(e) { console.warn('Screenshot error:', e); }
                 }
 
                 addFooter();
