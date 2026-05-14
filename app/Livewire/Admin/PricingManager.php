@@ -4,10 +4,14 @@ namespace App\Livewire\Admin;
 
 use App\Models\PricingConfig;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class PricingManager extends Component
 {
+    use WithFileUploads;
+
     public array $prices = [];
+    public $multi_image, $crm_image, $email_image, $ia_image, $integration_image;
 
     public function mount(): void
     {
@@ -22,6 +26,23 @@ class PricingManager extends Component
 
     public function save(): void
     {
+        $imageKeys = [
+            'multi_image' => 'multi_screenshot',
+            'crm_image' => 'crm_screenshot',
+            'email_image' => 'email_screenshot',
+            'ia_image' => 'ia_screenshot',
+            'integration_image' => 'integration_screenshot',
+        ];
+
+        foreach ($imageKeys as $prop => $configKey) {
+            if ($this->$prop) {
+                $filename = str_replace('_image', '', $prop) . '.' . $this->$prop->getClientOriginalExtension();
+                $this->$prop->storeAs('public/modules', $filename);
+                $this->prices[$configKey] = '/storage/modules/' . $filename;
+                $this->$prop = null;
+            }
+        }
+
         foreach ($this->prices as $key => $value) {
             PricingConfig::set($key, $value);
         }

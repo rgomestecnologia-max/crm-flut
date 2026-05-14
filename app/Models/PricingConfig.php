@@ -62,6 +62,13 @@ class PricingConfig extends Model
             'ia_benefits' => "Inteligência artificial que atende seus clientes 24 horas por dia, 7 dias por semana, com base de conhecimento personalizada.\n\n✅ Atendimento automático 24h via WhatsApp\n✅ Base de conhecimento treinada com informações do seu negócio\n✅ Respostas naturais e contextualizadas\n✅ Transferência automática para humano quando necessário\n✅ Múltiplos fluxos de IA (SDR, SAC, Agendamento, Cobranças, etc.)\n✅ Aprendizado contínuo com feedback dos atendimentos\n✅ Redução drástica no tempo de resposta\n✅ Economia de até 70% nos custos de atendimento\n\nDeixe a IA cuidar das perguntas frequentes enquanto sua equipe foca no que realmente importa.",
 
             'integration_benefits' => "Conexão inteligente com seus sistemas externos para automatizar processos e eliminar trabalho manual.\n\n✅ Integração com sites e landing pages\n✅ Integração com lojas virtuais e e-commerces\n✅ Integração com sistemas financeiros e ERPs\n✅ Webhooks para receber e enviar dados automaticamente\n✅ API RESTful para integrações customizadas\n✅ Sincronização automática de leads e contatos\n✅ Automação de fluxos entre sistemas\n✅ Suporte técnico dedicado para implementação\n\nConecte o CRM Flut ao ecossistema da sua empresa e automatize tudo.",
+
+            // Screenshots dos módulos (PDF)
+            'multi_screenshot' => '',
+            'crm_screenshot' => '',
+            'email_screenshot' => '',
+            'ia_screenshot' => '',
+            'integration_screenshot' => '',
         ];
     }
 

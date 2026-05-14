@@ -481,6 +481,15 @@ function pricingSimulator() {
                 logoColor = await toBase64('/images/logo-flut-large.png');
             } catch(e) {}
 
+            // Carregar screenshots dos módulos
+            const moduleScreenshots = {};
+            for (const key of ['multi','crm','email','ia','integration']) {
+                const url = C[key + '_screenshot'];
+                if (url) {
+                    try { moduleScreenshots[key] = await toBase64(url); } catch(e) {}
+                }
+            }
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
             const pw = doc.internal.pageSize.getWidth();
@@ -684,6 +693,36 @@ function pricingSimulator() {
                             y += 3;
                         }
                     }
+                }
+
+                // Screenshot/ilustração do módulo
+                if (moduleScreenshots[mod.key]) {
+                    try {
+                        const imgData = moduleScreenshots[mod.key];
+                        const img = new Image();
+                        await new Promise((resolve) => { img.onload = resolve; img.src = imgData; });
+                        const imgW = pw - mx * 2; // largura total entre margens
+                        const imgH = (img.height / img.width) * imgW; // proporcional
+                        const maxImgH = 90; // altura máxima
+                        const finalH = Math.min(imgH, maxImgH);
+                        const finalW = imgH > maxImgH ? (img.width / img.height) * maxImgH : imgW;
+
+                        // Se não couber na página atual, nova página
+                        if (y + finalH + 10 > ph - 25) {
+                            addFooter();
+                            doc.addPage();
+                            y = 25;
+                        }
+
+                        y += 6;
+                        const imgX = (pw - finalW) / 2; // centralizado
+                        // Borda/sombra leve
+                        doc.setDrawColor(220, 220, 220);
+                        doc.setLineWidth(0.3);
+                        doc.roundedRect(imgX - 1, y - 1, finalW + 2, finalH + 2, 2, 2, 'S');
+                        doc.addImage(imgData, 'PNG', imgX, y, finalW, finalH);
+                        y += finalH + 6;
+                    } catch(e) {}
                 }
 
                 addFooter();
