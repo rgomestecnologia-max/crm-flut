@@ -495,8 +495,8 @@ function pricingSimulator() {
             const addFooter = () => {
                 doc.setDrawColor(230, 230, 230);
                 doc.line(mx, ph - 18, pw - mx, ph - 18);
-                if (logoWhite) {
-                    try { doc.addImage(logoWhite, 'PNG', pw / 2 - 12, ph - 16, 24, 6); } catch(e) {}
+                if (logoColor) {
+                    try { doc.addImage(logoColor, 'PNG', pw / 2 - 12, ph - 16, 24, 6); } catch(e) {}
                 }
                 doc.setFontSize(7);
                 doc.setTextColor(180, 180, 180);
