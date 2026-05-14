@@ -24,7 +24,7 @@ class MetaWhatsAppManager extends Component
     public string $testResult    = '';
     public string $testStatus    = '';
     public string $webhookUrl    = '';
-    public string $metaAppId     = '';
+    public ?string $metaAppId    = '';
 
     public function mount(): void
     {
@@ -47,7 +47,7 @@ class MetaWhatsAppManager extends Component
         $this->whatsapp_provider = $company?->whatsapp_provider ?? 'evolution';
 
         $this->webhookUrl = rtrim(config('app.url'), '/') . '/api/webhook/meta';
-        $this->metaAppId  = config('services.meta.app_id', '');
+        $this->metaAppId  = config('services.meta.app_id') ?? '';
     }
 
     public function save(): void
