@@ -602,7 +602,7 @@ function pricingSimulator() {
             });
             if (this.modules.integrations) moduleData.push({
                 key: 'integrations', title: 'Integrações Externas',
-                subtitle: `${this.integrations.count} integração${this.integrations.count>1?'ões':''}`,
+                subtitle: `${this.integrations.count} ${this.integrations.count>1?'integrações':'integração'}`,
                 monthly: this.detail.int_monthly, setup: this.detail.int_setup,
                 benefits: C.integration_benefits || ''
             });
