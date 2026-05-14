@@ -23,6 +23,20 @@ Route::get('/privacy', fn() => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn() => view('legal.terms'))->name('terms');
 Route::get('/data-deletion', fn() => view('legal.data-deletion'))->name('data-deletion');
 
+// Meta Data Deletion Callback (POST recebido automaticamente pelo Meta)
+Route::post('/data-deletion', function (\Illuminate\Http\Request $request) {
+    $signedRequest = $request->input('signed_request');
+    $confirmationCode = 'DEL-' . strtoupper(bin2hex(random_bytes(8)));
+    \Illuminate\Support\Facades\Log::info('Meta data deletion request', [
+        'signed_request' => $signedRequest ? substr($signedRequest, 0, 50) . '...' : null,
+        'confirmation_code' => $confirmationCode,
+    ]);
+    return response()->json([
+        'url' => url('/data-deletion') . '?code=' . $confirmationCode,
+        'confirmation_code' => $confirmationCode,
+    ]);
+})->name('data-deletion.callback');
+
 // Onboarding (público, sem auth)
 Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
 Route::post('/onboarding', [OnboardingController::class, 'submit']);
