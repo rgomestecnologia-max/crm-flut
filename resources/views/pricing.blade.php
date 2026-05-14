@@ -483,8 +483,9 @@ function pricingSimulator() {
 
             // Carregar screenshots dos módulos
             const moduleScreenshots = {};
-            for (const key of ['multi','crm','email','ia','integration']) {
-                const url = C[key + '_screenshot'];
+            for (const key of ['multi','crm','email','ia','integrations']) {
+                const configKey = key === 'integrations' ? 'integration' : key;
+                const url = C[configKey + '_screenshot'];
                 if (url) {
                     try { moduleScreenshots[key] = await toBase64(url); } catch(e) {}
                 }
