@@ -26,9 +26,13 @@
                 'IA de Atendimento' => 'ia_benefits',
                 'Integrações' => 'integration_benefits',
             ];
-            $imgModels = ['multi_image','crm_image','email_image','ia_image','integration_image'];
-            $imgConfigs = ['multi_screenshot','crm_screenshot','email_screenshot','ia_screenshot','integration_screenshot'];
             $colors = ['#b2ff00','#8b5cf6','#3b82f6','#ec4899','#06b6d4'];
+            $sectionImgModel = [
+                'Multi-atendimento' => 'multi_image',
+                'CRM' => 'crm_image',
+                'Disparos Email' => 'email_image',
+                'IA de Atendimento' => 'ia_image',
+            ];
         @endphp
 
         @foreach($sections as $section => $keys)
@@ -68,12 +72,17 @@
                         Ilustração do módulo (PDF)
                     </label>
                     @if(!empty($prices[$imgConfigs[$loop->index]]))
-                    <div style="margin-bottom:8px;">
-                        <img src="{{ $prices[$imgConfigs[$loop->index]] }}" style="max-width:100%; max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <img src="{{ $prices[$imgConfigs[$loop->index]] }}" style="max-height:80px; border-radius:6px; border:1px solid rgba(255,255,255,0.08);">
+                        <button wire:click="removeScreenshot('{{ $imgConfigs[$loop->index] }}')" type="button"
+                                style="padding:4px 10px; font-size:10px; color:#ef4444; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">
+                            Remover
+                        </button>
                     </div>
                     @endif
                     <input type="file" wire:model="{{ $imgModels[$loop->index] }}" accept="image/*"
                            style="font-size:11px; color:rgba(255,255,255,0.5);">
+                    <div wire:loading wire:target="{{ $imgModels[$loop->index] }}" style="font-size:10px; color:#b2ff00; margin-top:4px;">Enviando...</div>
                 </div>
             </div>
             @endif

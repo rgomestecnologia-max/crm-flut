@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\PricingConfig;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -37,7 +38,7 @@ class PricingManager extends Component
         foreach ($imageKeys as $prop => $configKey) {
             if ($this->$prop) {
                 $filename = str_replace('_image', '', $prop) . '.' . $this->$prop->getClientOriginalExtension();
-                $this->$prop->storeAs('public/modules', $filename);
+                $this->$prop->storeAs('modules', $filename, 'public');
                 $this->prices[$configKey] = '/storage/modules/' . $filename;
                 $this->$prop = null;
             }
@@ -47,6 +48,18 @@ class PricingManager extends Component
             PricingConfig::set($key, $value);
         }
         $this->dispatch('toast', type: 'success', message: 'Preços atualizados.');
+    }
+
+    public function removeScreenshot(string $configKey): void
+    {
+        $path = $this->prices[$configKey] ?? '';
+        if ($path) {
+            $storagePath = str_replace('/storage/', '', $path);
+            Storage::disk('public')->delete($storagePath);
+        }
+        $this->prices[$configKey] = '';
+        PricingConfig::set($configKey, '');
+        $this->dispatch('toast', type: 'success', message: 'Imagem removida.');
     }
 
     public function render()
