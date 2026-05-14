@@ -91,9 +91,6 @@
                 @endif
                 <input type="file" wire:model="{{ $screenshotKeys[$section] }}" accept="image/*"
                        style="font-size:11px; color:rgba(255,255,255,0.5);">
-                @if($this->{$screenshotKeys[$section]})
-                <span style="font-size:10px; color:#b2ff00; margin-left:8px;">Nova imagem selecionada</span>
-                @endif
             </div>
             @endif
         </div>
