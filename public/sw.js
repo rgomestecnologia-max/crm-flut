@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flut-crm-v5';
+const CACHE_NAME = 'flut-crm-v6';
 const OFFLINE_URL = '/offline';
 
 // Assets to pre-cache
@@ -33,8 +33,8 @@ self.addEventListener('fetch', (event) => {
     // Skip non-GET and external requests
     if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) return;
 
-    // Static assets: cache-first
-    if (request.url.match(/\.(png|jpg|jpeg|webp|svg|css|js|woff2?)(\?|$)/)) {
+    // Static assets versionados (/build/*): cache-first (Vite já gera hashes)
+    if (request.url.includes('/build/')) {
         event.respondWith(
             caches.match(request).then((cached) => cached || fetch(request).then((response) => {
                 const clone = response.clone();
