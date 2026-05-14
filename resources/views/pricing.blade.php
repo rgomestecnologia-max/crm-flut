@@ -495,14 +495,9 @@ function pricingSimulator() {
             const addFooter = () => {
                 doc.setDrawColor(230, 230, 230);
                 doc.line(mx, ph - 18, pw - mx, ph - 18);
-                if (logoColor) {
-                    try { doc.addImage(logoColor, 'PNG', pw / 2 - 12, ph - 16, 24, 6); } catch(e) {}
-                }
                 doc.setFontSize(7);
                 doc.setTextColor(180, 180, 180);
-                doc.text('CRM Flut — crm.flut.com.br', pw / 2, ph - 10, { align: 'center' });
-                doc.setDrawColor(230, 230, 230);
-                doc.line(mx, ph - 15, pw - mx, ph - 15);
+                doc.text('CRM Flut — crm.flut.com.br', pw / 2, ph - 12, { align: 'center' });
             };
 
             // Helper: texto com quebra de linha automática
