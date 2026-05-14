@@ -33,6 +33,10 @@ return [
         'private_key' => env('VAPID_PRIVATE_KEY'),
     ],
 
+    'meta' => [
+        'app_secret' => env('META_APP_SECRET'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

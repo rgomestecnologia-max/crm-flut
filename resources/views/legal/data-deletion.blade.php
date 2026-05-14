@@ -3,7 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Data Deletion / Exclusao de Dados — CRM Flut</title>
+    <title>Data Deletion / Exclusão de Dados — CRM Flut</title>
+    <meta name="description" content="Request deletion of your personal data from CRM Flut platform. Instructions for data removal in compliance with LGPD and Meta/WhatsApp policies.">
+    <meta property="og:title" content="Data Deletion Instructions — CRM Flut">
+    <meta property="og:description" content="Request deletion of your personal data from CRM Flut — WhatsApp Business Platform customer service and CRM solution.">
+    <meta property="og:url" content="https://crm.flut.com.br/data-deletion">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="CRM Flut">
+    <meta property="og:image" content="https://crm.flut.com.br/images/logo-flut-large.png">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -18,7 +25,7 @@
         ul, ol { padding-left:20px; margin-bottom:14px; }
         a { color:#b2ff00; }
         .lang-toggle { text-align:center; margin-bottom:24px; }
-        .lang-toggle a { display:inline-block; padding:6px 16px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:12px; color:rgba(255,255,255,0.5); text-decoration:none; margin:0 4px; }
+        .lang-toggle a { display:inline-block; padding:6px 16px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:12px; color:rgba(255,255,255,0.5); text-decoration:none; margin:0 4px; cursor:pointer; }
         .lang-toggle a.active { border-color:rgba(178,255,0,0.3); color:#b2ff00; }
         .section-en { display:none; }
         .highlight { background:rgba(178,255,0,0.06); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:20px; margin:20px 0; }
@@ -42,78 +49,78 @@
     <div class="logo"><img src="/images/logo-flut.webp" alt="CRM Flut"></div>
 
     <div class="lang-toggle">
-        <a href="#" data-lang="pt" class="active" onclick="switchLang('pt'); return false;">Portugues</a>
-        <a href="#" data-lang="en" onclick="switchLang('en'); return false;">English</a>
+        <a data-lang="pt" class="active" onclick="switchLang('pt')">Português</a>
+        <a data-lang="en" onclick="switchLang('en')">English</a>
     </div>
 
-    @if(isset($confirmation_code))
+    @if(request('code'))
     <div class="status-box">
-        <p><strong>Data deletion request received.</strong></p>
-        <p>Confirmation code: <strong>{{ $confirmation_code }}</strong></p>
-        <p>Your data will be deleted within 15 business days.</p>
+        <p><strong>Data deletion request received / Solicitação de exclusão recebida.</strong></p>
+        <p>Confirmation code / Código de confirmação: <strong>{{ request('code') }}</strong></p>
+        <p>Your data will be deleted within 15 business days.<br>Seus dados serão excluídos em até 15 dias úteis.</p>
     </div>
     @endif
 
-    {{-- ==================== PORTUGUES ==================== --}}
+    {{-- ==================== PORTUGUÊS ==================== --}}
     <div class="section-pt">
-        <h1>Instrucoes para Exclusao de Dados</h1>
-        <p class="updated">Ultima atualizacao: 14 de maio de 2026</p>
+        <h1>Instruções para Exclusão de Dados</h1>
+        <p class="updated">Última atualização: 14 de maio de 2026</p>
 
         <div class="legal-entity">
-            <strong>Razao Social:</strong> ROGERIO SILVA GOMES TECNOLOGIA E INFORMATICA<br>
+            <strong>Razão Social:</strong> ROGERIO SILVA GOMES TECNOLOGIA E INFORMATICA<br>
             <strong>CNPJ:</strong> 46.724.626/0001-41<br>
             <strong>Nome Fantasia:</strong> Flut / CRM Flut
         </div>
 
-        <p>A <strong>ROGERIO SILVA GOMES TECNOLOGIA E INFORMATICA</strong> (CNPJ 46.724.626/0001-41), operando sob o nome fantasia <strong>Flut</strong>, respeita seu direito a privacidade e oferece meios simples para solicitar a exclusao dos seus dados pessoais armazenados na plataforma <strong>CRM Flut</strong>.</p>
+        <p>A <strong>ROGERIO SILVA GOMES TECNOLOGIA E INFORMATICA</strong> (CNPJ 46.724.626/0001-41), operando sob o nome fantasia <strong>Flut</strong>, respeita seu direito à privacidade e oferece meios simples para solicitar a exclusão dos seus dados pessoais armazenados na plataforma <strong>CRM Flut</strong>.</p>
 
         <h2>Quais dados armazenamos</h2>
-        <p>Quando voce interage com empresas que utilizam o CRM Flut via WhatsApp Business API, podemos armazenar:</p>
+        <p>Quando você interage com empresas que utilizam o CRM Flut via WhatsApp Business API, podemos armazenar:</p>
         <ul>
-            <li>Numero de telefone e nome de perfil do WhatsApp.</li>
-            <li>Historico de mensagens trocadas com a empresa.</li>
+            <li>Número de telefone e nome de perfil do WhatsApp.</li>
+            <li>Histórico de mensagens trocadas com a empresa.</li>
             <li>Dados fornecidos durante o atendimento (nome, e-mail, etc.).</li>
         </ul>
 
-        <h2>Como solicitar a exclusao</h2>
-        <p>Voce pode solicitar a exclusao dos seus dados de duas formas:</p>
+        <h2>Como solicitar a exclusão</h2>
+        <p>Você pode solicitar a exclusão dos seus dados de duas formas:</p>
 
         <div class="highlight">
-            <p><strong>Opcao 1 — Por e-mail</strong></p>
-            <p>Envie um e-mail para <strong>privacidade@flut.com.br</strong> com o assunto "Exclusao de Dados" incluindo:</p>
+            <p><strong>Opção 1 — Por e-mail</strong></p>
+            <p>Envie um e-mail para <strong>privacidade@flut.com.br</strong> com o assunto "Exclusão de Dados" incluindo:</p>
             <ul>
                 <li>Seu nome completo</li>
-                <li>Numero de telefone associado ao WhatsApp</li>
+                <li>Número de telefone associado ao WhatsApp</li>
                 <li>Nome da empresa com quem interagiu (se souber)</li>
             </ul>
         </div>
 
         <div class="highlight">
-            <p><strong>Opcao 2 — Pelo WhatsApp</strong></p>
-            <p>Envie uma mensagem para o mesmo numero da empresa solicitando a exclusao dos seus dados. A empresa sera notificada e procedera com a remocao.</p>
+            <p><strong>Opção 2 — Pelo WhatsApp</strong></p>
+            <p>Envie uma mensagem para o mesmo número da empresa solicitando a exclusão dos seus dados. A empresa será notificada e procederá com a remoção.</p>
         </div>
 
-        <h2>Exclusao automatica via Facebook/Meta</h2>
-        <p>Se voce conectou sua conta do Facebook a um servico que utiliza o CRM Flut, o Meta pode enviar automaticamente uma solicitacao de exclusao de dados em seu nome. Este processo e tratado automaticamente pela nossa plataforma.</p>
+        <h2>Exclusão automática via Facebook/Meta</h2>
+        <p>Se você conectou sua conta do Facebook a um serviço que utiliza o CRM Flut, o Meta pode enviar automaticamente uma solicitação de exclusão de dados em seu nome. Este processo é tratado automaticamente pela nossa plataforma.</p>
 
-        <h2>Prazo para exclusao</h2>
-        <p>Sua solicitacao sera processada em ate <strong>15 dias uteis</strong>. Voce recebera uma confirmacao por e-mail quando a exclusao for concluida.</p>
+        <h2>Prazo para exclusão</h2>
+        <p>Sua solicitação será processada em até <strong>15 dias úteis</strong>. Você receberá uma confirmação por e-mail quando a exclusão for concluída.</p>
 
-        <h2>O que sera excluido</h2>
+        <h2>O que será excluído</h2>
         <ul>
             <li>Dados de contato (nome, telefone, e-mail).</li>
-            <li>Historico de conversas e mensagens.</li>
+            <li>Histórico de conversas e mensagens.</li>
             <li>Qualquer dado pessoal associado ao seu perfil.</li>
         </ul>
 
-        <h2>Excecoes</h2>
-        <p>Alguns dados podem ser retidos quando exigido por lei ou regulamentacao aplicavel (por exemplo, registros fiscais ou obrigacoes contratuais). Nesses casos, os dados serao mantidos pelo prazo legal minimo e depois excluidos.</p>
+        <h2>Exceções</h2>
+        <p>Alguns dados podem ser retidos quando exigido por lei ou regulamentação aplicável (por exemplo, registros fiscais ou obrigações contratuais). Nesses casos, os dados serão mantidos pelo prazo legal mínimo e depois excluídos.</p>
 
         <h2>Contato</h2>
         <ul>
             <li><strong>E-mail:</strong> privacidade@flut.com.br</li>
-            <li><strong>Politica de Privacidade:</strong> <a href="/privacy">crm.flut.com.br/privacy</a></li>
-            <li><strong>Termos de Servico:</strong> <a href="/terms">crm.flut.com.br/terms</a></li>
+            <li><strong>Política de Privacidade:</strong> <a href="/privacy">crm.flut.com.br/privacy</a></li>
+            <li><strong>Termos de Serviço:</strong> <a href="/terms">crm.flut.com.br/terms</a></li>
         </ul>
     </div>
 

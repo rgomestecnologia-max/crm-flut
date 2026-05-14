@@ -26,11 +26,31 @@ Route::get('/data-deletion', fn() => view('legal.data-deletion'))->name('data-de
 // Meta Data Deletion Callback (POST recebido automaticamente pelo Meta)
 Route::post('/data-deletion', function (\Illuminate\Http\Request $request) {
     $signedRequest = $request->input('signed_request');
+    $appSecret = config('services.meta.app_secret');
+    $userId = null;
+
+    if ($signedRequest && $appSecret) {
+        $parts = explode('.', $signedRequest, 2);
+        if (count($parts) === 2) {
+            [$encodedSig, $payload] = $parts;
+            $sig = base64_decode(strtr($encodedSig, '-_', '+/'));
+            $data = json_decode(base64_decode(strtr($payload, '-_', '+/')), true);
+            $expectedSig = hash_hmac('sha256', $payload, $appSecret, true);
+
+            if (hash_equals($sig, $expectedSig) && $data) {
+                $userId = $data['user_id'] ?? null;
+            }
+        }
+    }
+
     $confirmationCode = 'DEL-' . strtoupper(bin2hex(random_bytes(8)));
+
     \Illuminate\Support\Facades\Log::info('Meta data deletion request', [
-        'signed_request' => $signedRequest ? substr($signedRequest, 0, 50) . '...' : null,
+        'user_id' => $userId,
         'confirmation_code' => $confirmationCode,
+        'signature_valid' => $userId !== null,
     ]);
+
     return response()->json([
         'url' => url('/data-deletion') . '?code=' . $confirmationCode,
         'confirmation_code' => $confirmationCode,
