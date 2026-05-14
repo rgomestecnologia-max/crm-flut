@@ -472,7 +472,15 @@ function pricingSimulator() {
             this.saving = false;
         },
 
-        gerarPDF() {
+        async gerarPDF() {
+            // Carregar logos como base64
+            const toBase64 = (url) => fetch(url).then(r => r.blob()).then(b => new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); }));
+            let logoWhite = null, logoColor = null;
+            try {
+                logoWhite = await toBase64('/images/logo-flut-white.png');
+                logoColor = await toBase64('/images/logo-flut-large.png');
+            } catch(e) {}
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
             const pw = doc.internal.pageSize.getWidth();
@@ -483,9 +491,14 @@ function pricingSimulator() {
             const fmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const mx = 20; // margem
 
-            // Helper: footer em todas as páginas
+            // Helper: footer com logo em todas as páginas
             const addFooter = () => {
-                doc.setFontSize(8);
+                doc.setDrawColor(230, 230, 230);
+                doc.line(mx, ph - 18, pw - mx, ph - 18);
+                if (logoWhite) {
+                    try { doc.addImage(logoWhite, 'PNG', pw / 2 - 12, ph - 16, 24, 6); } catch(e) {}
+                }
+                doc.setFontSize(7);
                 doc.setTextColor(180, 180, 180);
                 doc.text('CRM Flut — crm.flut.com.br', pw / 2, ph - 10, { align: 'center' });
                 doc.setDrawColor(230, 230, 230);
@@ -513,28 +526,33 @@ function pricingSimulator() {
             doc.setFillColor(15, 23, 42);
             doc.rect(0, 0, pw, ph, 'F');
 
+            // Logo no topo da capa
+            if (logoWhite) {
+                try { doc.addImage(logoWhite, 'PNG', pw / 2 - 20, ph * 0.12, 40, 10); } catch(e) {}
+            }
+
             // Linha decorativa
             doc.setFillColor(178, 255, 0);
-            doc.rect(0, ph * 0.38, pw, 1.5, 'F');
+            doc.rect(0, ph * 0.40, pw, 1.5, 'F');
 
             // Título
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(32);
             doc.setFont('helvetica', 'bold');
-            doc.text('Proposta', pw / 2, ph * 0.28, { align: 'center' });
-            doc.text('Comercial', pw / 2, ph * 0.35, { align: 'center' });
+            doc.text('Proposta', pw / 2, ph * 0.30, { align: 'center' });
+            doc.text('Comercial', pw / 2, ph * 0.37, { align: 'center' });
 
             // Nome do cliente
             doc.setFontSize(16);
             doc.setTextColor(178, 255, 0);
-            doc.text(this.clientName, pw / 2, ph * 0.48, { align: 'center' });
+            doc.text(this.clientName, pw / 2, ph * 0.50, { align: 'center' });
 
             // Data
             doc.setFontSize(11);
             doc.setTextColor(140, 140, 160);
             doc.setFont('helvetica', 'normal');
-            doc.text('Gerada em ' + dataStr, pw / 2, ph * 0.54, { align: 'center' });
-            doc.text('Válida até ' + validade, pw / 2, ph * 0.58, { align: 'center' });
+            doc.text('Gerada em ' + dataStr, pw / 2, ph * 0.56, { align: 'center' });
+            doc.text('Válida até ' + validade, pw / 2, ph * 0.60, { align: 'center' });
 
             // CRM Flut
             doc.setFontSize(10);
@@ -590,63 +608,85 @@ function pricingSimulator() {
 
                 // Barra colorida no topo
                 doc.setFillColor(...col);
-                doc.rect(0, 0, pw, 4, 'F');
+                doc.rect(0, 0, pw, 3, 'F');
+
+                // Logo pequeno no canto superior direito
+                if (logoColor) {
+                    try { doc.addImage(logoColor, 'PNG', pw - mx - 30, 10, 30, 8); } catch(e) {}
+                }
 
                 // Título do módulo
-                doc.setFontSize(22);
+                doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(30, 30, 40);
-                doc.text(mod.title, mx, 28);
+                doc.text(mod.title, mx, 24);
 
                 // Subtítulo
-                doc.setFontSize(11);
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                doc.setTextColor(120, 120, 130);
-                doc.text(mod.subtitle, mx, 36);
+                doc.setTextColor(130, 130, 140);
+                doc.text(mod.subtitle, mx, 31);
 
                 // Valores em destaque
-                doc.setFillColor(245, 247, 250);
-                doc.roundedRect(mx, 42, pw - mx * 2, 20, 3, 3, 'F');
-                doc.setFontSize(11);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(34, 197, 94);
-                doc.text('Mensalidade: R$ ' + fmt(mod.monthly) + '/mês', mx + 8, 54);
-                doc.setTextColor(59, 130, 246);
-                doc.text('Implantação: R$ ' + fmt(mod.setup), pw / 2 + 10, 54);
+                doc.setFillColor(...col);
+                doc.roundedRect(mx, 37, (pw - mx * 2) / 2 - 4, 18, 3, 3, 'F');
+                doc.setFillColor(59, 130, 246);
+                doc.roundedRect(pw / 2 + 2, 37, (pw - mx * 2) / 2 - 4, 18, 3, 3, 'F');
 
-                // Linha separadora
-                doc.setDrawColor(...col);
-                doc.setLineWidth(0.5);
-                doc.line(mx, 68, pw - mx, 68);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(255, 255, 255);
+                doc.text('MENSALIDADE', mx + 6, 44);
+                doc.text('IMPLANTAÇÃO', pw / 2 + 8, 44);
+                doc.setFontSize(13);
+                doc.setFont('helvetica', 'bold');
+                doc.text('R$ ' + fmt(mod.monthly) + '/mês', mx + 6, 52);
+                doc.text('R$ ' + fmt(mod.setup), pw / 2 + 8, 52);
 
                 // Benefícios
-                let y = 78;
+                let y = 66;
                 if (mod.benefits) {
                     const benefitLines = mod.benefits.split('\n').filter(l => l.trim());
                     for (const line of benefitLines) {
-                        if (y > ph - 30) { addFooter(); doc.addPage(); y = 25; }
+                        if (y > ph - 28) { addFooter(); doc.addPage(); y = 25; }
                         const trimmed = line.trim();
-                        if (trimmed.startsWith('✅')) {
+
+                        // Linhas com check (✅ ou começando com bullet)
+                        const isCheck = trimmed.startsWith('✅');
+                        const cleanText = isCheck ? trimmed.replace('✅', '').trim() : trimmed;
+
+                        if (isCheck) {
+                            // Ícone de check circle
+                            doc.setFillColor(...col);
+                            doc.circle(mx + 3, y - 1.2, 2, 'F');
+                            doc.setFontSize(7);
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('✓', mx + 1.6, y + 0.2);
+
+                            // Texto do benefício
                             doc.setFontSize(10);
                             doc.setFont('helvetica', 'normal');
                             doc.setTextColor(50, 50, 60);
-                            const wrapped = doc.splitTextToSize(trimmed, pw - mx * 2 - 5);
-                            for (const wl of wrapped) {
-                                if (y > ph - 30) { addFooter(); doc.addPage(); y = 25; }
-                                doc.text(wl, mx + 2, y);
+                            const wrapped = doc.splitTextToSize(cleanText, pw - mx * 2 - 12);
+                            for (let wi = 0; wi < wrapped.length; wi++) {
+                                if (y > ph - 28) { addFooter(); doc.addPage(); y = 25; }
+                                doc.text(wrapped[wi], mx + 9, y);
                                 y += 5.5;
                             }
-                        } else {
-                            doc.setFontSize(10.5);
+                            y += 1;
+                        } else if (cleanText) {
+                            // Parágrafo normal (descrição)
+                            doc.setFontSize(10);
                             doc.setFont('helvetica', 'normal');
-                            doc.setTextColor(60, 60, 70);
-                            const wrapped = doc.splitTextToSize(trimmed, pw - mx * 2);
+                            doc.setTextColor(70, 70, 80);
+                            const wrapped = doc.splitTextToSize(cleanText, pw - mx * 2);
                             for (const wl of wrapped) {
-                                if (y > ph - 30) { addFooter(); doc.addPage(); y = 25; }
+                                if (y > ph - 28) { addFooter(); doc.addPage(); y = 25; }
                                 doc.text(wl, mx, y);
                                 y += 5.5;
                             }
-                            y += 2;
+                            y += 3;
                         }
                     }
                 }
@@ -658,6 +698,11 @@ function pricingSimulator() {
             // ║      PÁGINA FINAL: RESUMO            ║
             // ╚══════════════════════════════════════╝
             doc.addPage();
+
+            // Logo no canto
+            if (logoColor) {
+                try { doc.addImage(logoColor, 'PNG', pw - mx - 30, 10, 30, 8); } catch(e) {}
+            }
 
             doc.setFillColor(15, 23, 42);
             doc.roundedRect(mx, 15, pw - mx * 2, 30, 4, 4, 'F');
