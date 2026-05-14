@@ -18,6 +18,11 @@ Route::post('/pricing/save', [PricingController::class, 'save'])->name('pricing.
 Route::get('/pricing/{token}/editar', [PricingController::class, 'edit'])->name('pricing.edit');
 Route::put('/pricing/{token}', [PricingController::class, 'update'])->name('pricing.update');
 
+// Legal (público, sem auth — Meta App Verification)
+Route::get('/privacy', fn() => view('legal.privacy'))->name('privacy');
+Route::get('/terms', fn() => view('legal.terms'))->name('terms');
+Route::get('/data-deletion', fn() => view('legal.data-deletion'))->name('data-deletion');
+
 // Onboarding (público, sem auth)
 Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding');
 Route::post('/onboarding', [OnboardingController::class, 'submit']);
