@@ -28,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.token'      => ValidateApiToken::class,
         ]);
 
+        // Excluir CSRF para callbacks externos (Meta data deletion)
+        $middleware->validateCsrfTokens(except: [
+            '/data-deletion',
+        ]);
+
         // CORS: permite requisições de origens externas para /api/*
         $middleware->api(prepend: [\Illuminate\Http\Middleware\HandleCors::class]);
 
