@@ -26,13 +26,9 @@
                 'IA de Atendimento' => 'ia_benefits',
                 'Integrações' => 'integration_benefits',
             ];
+            $imgModels = ['multi_image','crm_image','email_image','ia_image','integration_image'];
+            $imgConfigs = ['multi_screenshot','crm_screenshot','email_screenshot','ia_screenshot','integration_screenshot'];
             $colors = ['#b2ff00','#8b5cf6','#3b82f6','#ec4899','#06b6d4'];
-            $sectionImgModel = [
-                'Multi-atendimento' => 'multi_image',
-                'CRM' => 'crm_image',
-                'Disparos Email' => 'email_image',
-                'IA de Atendimento' => 'ia_image',
-            ];
         @endphp
 
         @foreach($sections as $section => $keys)
