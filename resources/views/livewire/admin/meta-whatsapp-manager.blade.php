@@ -103,7 +103,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     Conecte seu WhatsApp Business em <strong style="color:rgba(255,255,255,0.6);">1 clique</strong>. O token, número e webhook serão configurados automaticamente.
                 </p>
             </div>
-            <a href="https://business.facebook.com/messaging/whatsapp/onboard/?app_id={{ $metaAppId }}&config_id=985404944212338&extras=%7B%22sessionInfoVersion%22%3A%223%22%2C%22version%22%3A%22v4%22%7D&redirect_uri={{ urlencode(route('admin.meta-whatsapp.callback')) }}"
+            <a href="https://business.facebook.com/messaging/whatsapp/onboard/?app_id={{ $metaAppId }}&config_id=985404944212338&extras=%7B%22sessionInfoVersion%22%3A%223%22%2C%22version%22%3A%22v4%22%7D"
                     style="display:flex; align-items:center; gap:10px; padding:12px 24px; background:#1877f2; border:none; border-radius:10px; color:white; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 12px rgba(24,119,242,0.3); white-space:nowrap; text-decoration:none;"
                     onmouseover="this.style.background='#166fe5'; this.style.transform='translateY(-1px)'"
                     onmouseout="this.style.background='#1877f2'; this.style.transform='translateY(0)'">
