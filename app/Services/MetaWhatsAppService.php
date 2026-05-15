@@ -411,6 +411,17 @@ class MetaWhatsAppService
             $phone = '55' . $phone;
         }
 
+        // Números móveis BR: adiciona o 9º dígito se faltante (55 + DD + 8 dígitos → 12 chars)
+        // Formato correto: 55 + DD(2) + 9 + número(8) = 13 dígitos
+        if (strlen($phone) === 12 && str_starts_with($phone, '55')) {
+            $ddd    = substr($phone, 2, 2);
+            $number = substr($phone, 4);
+            // Celulares BR: o número local começa com 9,8,7,6 (faixas móveis)
+            if (preg_match('/^[6-9]/', $number)) {
+                $phone = '55' . $ddd . '9' . $number;
+            }
+        }
+
         return $phone;
     }
 }
