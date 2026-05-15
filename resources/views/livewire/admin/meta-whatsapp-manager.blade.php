@@ -104,6 +104,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 </p>
             </div>
             <a href="https://business.facebook.com/messaging/whatsapp/onboard/?app_id={{ $metaAppId }}&config_id=985404944212338&extras=%7B%22sessionInfoVersion%22%3A%223%22%2C%22version%22%3A%22v4%22%7D"
+                    target="_blank" rel="noopener"
                     style="display:flex; align-items:center; gap:10px; padding:12px 24px; background:#1877f2; border:none; border-radius:10px; color:white; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 12px rgba(24,119,242,0.3); white-space:nowrap; text-decoration:none;"
                     onmouseover="this.style.background='#166fe5'; this.style.transform='translateY(-1px)'"
                     onmouseout="this.style.background='#1877f2'; this.style.transform='translateY(0)'">
@@ -236,60 +237,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         </div>
     </form>
 
-    {{-- Facebook SDK + Embedded Signup --}}
-    @if($metaAppId)
-    <script>
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId: '{{ $metaAppId }}',
-                autoLogAppEvents: true,
-                xfbml: true,
-                version: 'v21.0'
-            });
-        };
-
-        // Listener para mensagens do popup do Embedded Signup
-        window.addEventListener('message', function(event) {
-            if (event.origin !== 'https://www.facebook.com' && event.origin !== 'https://web.facebook.com') return;
-            try {
-                var data = JSON.parse(event.data);
-                if (data.type === 'WA_EMBEDDED_SIGNUP') {
-                    if (data.event === 'FINISH') {
-                        console.log('Embedded Signup finished:', data.data);
-                        // data.data contém { phone_number_id, waba_id }
-                    } else if (data.event === 'CANCEL') {
-                        console.log('Embedded Signup cancelled');
-                    }
-                }
-            } catch(e) {}
-        });
-
-        function launchWhatsAppSignup() {
-            FB.login(function(response) {
-                if (response.authResponse) {
-                    var code = response.authResponse.code;
-                    if (code) {
-                        @this.call('processEmbeddedSignup', code);
-                    } else if (response.authResponse.accessToken) {
-                        @this.call('processEmbeddedSignupToken', response.authResponse.accessToken);
-                    }
-                } else {
-                    console.log('User cancelled login or did not fully authorize.');
-                }
-            }, {
-                config_id: '985404944212338',
-                response_type: 'code',
-                override_default_response_type: true,
-                extras: {
-                    feature: 'whatsapp_embedded_signup',
-                    sessionInfoVersion: 3,
-                    setup: {}
-                }
-            });
-        }
-    </script>
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/pt_BR/sdk.js"></script>
-    @endif
+    {{-- Facebook SDK removido: usamos URL hospedada do Meta em vez de FB.login() --}}
 
     {{-- Templates --}}
     <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; position:relative; overflow:hidden;">
