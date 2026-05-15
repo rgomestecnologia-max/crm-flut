@@ -390,17 +390,34 @@ class ProcessEvolutionMessage implements ShouldQueue
             if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content) {
                 $sourceAuto = $conversation->sourceAutomation;
                 if ($sourceAuto && ($sourceAuto->reply_yes_message || $sourceAuto->reply_no_message)) {
-                    $reply = mb_strtolower(trim($content));
-                    // Detecta SIM/NÃO em frases maiores (word boundary)
-                    $yesWords = 'sim|confirmo|confirmado|confirmar|pode|vou|ok|beleza|perfeito|combinado|certo|bora|yes';
-                    $noWords  = 'não|nao|remarcar|cancelar|cancela|desmarcar|reagendar|desmarco';
-                    $isYes = (bool) preg_match('/\b(' . $yesWords . ')\b/iu', $reply) || $reply === 's' || $reply === '✅';
-                    $isNo  = (bool) preg_match('/\b(' . $noWords . ')\b/iu', $reply) || $reply === 'n';
-                    // Se contém palavras de ambos, ignora (ambíguo)
-                    if ($isYes && $isNo) { $isYes = false; $isNo = false; }
+                    // Ignora auto-reply se a última msg de automação tem mais de 48h (agendamento já passou)
+                    $lastAutoMsg = Message::where('conversation_id', $conversation->id)
+                        ->where('sender_type', 'agent')
+                        ->whereNull('sender_id')
+                        ->latest()
+                        ->first();
 
-                    if ($isYes || $isNo) {
-                        $this->handleYesNoReply($sourceAuto, $conversation, $contact, $isYes, $reply);
+                    $autoExpired = !$lastAutoMsg || $lastAutoMsg->created_at->diffInHours(now()) > 48;
+
+                    if ($autoExpired) {
+                        Log::info('Auto-reply SIM/NÃO ignorado: automação expirada (>48h)', [
+                            'conv' => $conversation->id,
+                            'last_auto_msg' => $lastAutoMsg?->created_at,
+                            'content' => substr($content, 0, 50),
+                        ]);
+                    } else {
+                        $reply = mb_strtolower(trim($content));
+                        // Detecta SIM/NÃO em frases maiores (word boundary)
+                        $yesWords = 'sim|confirmo|confirmado|confirmar|pode|vou|ok|beleza|perfeito|combinado|certo|bora|yes';
+                        $noWords  = 'não|nao|remarcar|cancelar|cancela|desmarcar|reagendar|desmarco';
+                        $isYes = (bool) preg_match('/\b(' . $yesWords . ')\b/iu', $reply) || $reply === 's' || $reply === '✅';
+                        $isNo  = (bool) preg_match('/\b(' . $noWords . ')\b/iu', $reply) || $reply === 'n';
+                        // Se contém palavras de ambos, ignora (ambíguo)
+                        if ($isYes && $isNo) { $isYes = false; $isNo = false; }
+
+                        if ($isYes || $isNo) {
+                            $this->handleYesNoReply($sourceAuto, $conversation, $contact, $isYes, $reply);
+                        }
                     }
                 }
             }
