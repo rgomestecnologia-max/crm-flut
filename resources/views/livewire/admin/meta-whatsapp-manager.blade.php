@@ -258,23 +258,16 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     var code = response.authResponse.code;
                     if (code) {
                         @this.call('processEmbeddedSignup', code);
-                    } else {
-                        // Fallback: se veio accessToken em vez de code
-                        console.warn('No code returned, got accessToken instead');
+                    } else if (response.authResponse.accessToken) {
+                        @this.call('processEmbeddedSignupToken', response.authResponse.accessToken);
                     }
                 } else {
                     console.log('User cancelled login or did not fully authorize.');
                 }
             }, {
-                config_id: '', // Deixe vazio para usar o default ou configure um config_id no Meta
+                scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
                 response_type: 'code',
-                override_default_response_type: true,
-                scope: 'whatsapp_business_management,whatsapp_business_messaging',
-                extras: {
-                    feature: 'whatsapp_embedded_signup',
-                    sessionInfoVersion: 2,
-                    setup: {}
-                }
+                override_default_response_type: true
             });
         }
     </script>

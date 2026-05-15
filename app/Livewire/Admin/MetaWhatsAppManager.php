@@ -248,6 +248,94 @@ class MetaWhatsAppManager extends Component
         }
     }
 
+    /**
+     * Fallback: processa quando o FB.login retorna accessToken direto (sem code).
+     */
+    public function processEmbeddedSignupToken(string $accessToken): void
+    {
+        try {
+            $appId     = config('services.meta.app_id');
+            $appSecret = config('services.meta.app_secret');
+
+            // Tentar trocar por long-lived token
+            if ($appId && $appSecret) {
+                $longResponse = Http::get('https://graph.facebook.com/v21.0/oauth/access_token', [
+                    'grant_type'        => 'fb_exchange_token',
+                    'client_id'         => $appId,
+                    'client_secret'     => $appSecret,
+                    'fb_exchange_token' => $accessToken,
+                ]);
+
+                if ($longResponse->successful() && ($longResponse->json()['access_token'] ?? null)) {
+                    $accessToken = $longResponse->json()['access_token'];
+                }
+            }
+
+            // Reutilizar a lógica de buscar WABA + phone do processEmbeddedSignup
+            $wabaId = null;
+            $phoneNumberId = null;
+            $phoneDisplay = null;
+
+            $sharedResponse = Http::withToken($accessToken)
+                ->get('https://graph.facebook.com/v21.0/debug_token', [
+                    'input_token' => $accessToken,
+                ]);
+
+            $granularScopes = $sharedResponse->json()['data']['granular_scopes'] ?? [];
+            foreach ($granularScopes as $scope) {
+                if ($scope['permission'] === 'whatsapp_business_messaging' && !empty($scope['target_ids'])) {
+                    $wabaId = $scope['target_ids'][0];
+                    break;
+                }
+                if ($scope['permission'] === 'whatsapp_business_management' && !empty($scope['target_ids']) && !$wabaId) {
+                    $wabaId = $scope['target_ids'][0];
+                }
+            }
+
+            if ($wabaId) {
+                $phonesResponse = Http::withToken($accessToken)
+                    ->get("https://graph.facebook.com/v21.0/{$wabaId}/phone_numbers");
+
+                if ($phonesResponse->successful()) {
+                    $phones = $phonesResponse->json()['data'] ?? [];
+                    if (!empty($phones[0])) {
+                        $phoneNumberId = $phones[0]['id'];
+                        $phoneDisplay  = $phones[0]['display_phone_number'] ?? null;
+                    }
+                }
+            }
+
+            $this->access_token = $accessToken;
+            if ($wabaId) $this->whatsapp_business_account_id = $wabaId;
+            if ($phoneNumberId) $this->phone_number_id = $phoneNumberId;
+            if ($phoneDisplay) $this->phone_display = $phoneDisplay;
+
+            if (!$this->verify_token) {
+                $this->verify_token = Str::random(32);
+            }
+
+            $this->save();
+
+            if ($wabaId) {
+                Http::withToken($accessToken)->post("https://graph.facebook.com/v21.0/{$wabaId}/subscribed_apps");
+            }
+
+            $this->switchProvider('meta');
+
+            $this->dispatch('toast', type: 'success', message: 'WhatsApp conectado com sucesso!' . ($phoneDisplay ? " ({$phoneDisplay})" : ''));
+
+            Log::info('Embedded Signup (token): sucesso', [
+                'waba_id' => $wabaId,
+                'phone_number_id' => $phoneNumberId,
+                'phone_display' => $phoneDisplay,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Embedded Signup (token): erro', ['error' => $e->getMessage()]);
+            $this->dispatch('toast', type: 'error', message: 'Erro: ' . $e->getMessage());
+        }
+    }
+
     public function syncTemplates(): void
     {
         if (!$this->whatsapp_business_account_id || !$this->access_token) {
