@@ -48,71 +48,6 @@
             </div>
         </div>
 
-        {{-- Tipo de gatilho --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-                <label class="block text-xs text-gray-400 mb-1">Tipo de gatilho</label>
-                <select wire:model.live="trigger"
-                        class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
-                    <option value="lead_created">Quando lead é criado</option>
-                    <option value="stage_changed">Quando card mover para etapa</option>
-                </select>
-            </div>
-            @if($trigger === 'stage_changed')
-            <div>
-                <label class="block text-xs text-gray-400 mb-1">Etapa gatilho <span class="text-red-400">*</span></label>
-                <select wire:model="trigger_stage_id"
-                        class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
-                    <option value="">Selecione a etapa...</option>
-                    @foreach($pipelines as $pl)
-                        <optgroup label="{{ $pl->name }}">
-                            @foreach($pl->stages as $st)
-                                <option value="{{ $st->id }}">{{ $st->name }}</option>
-                            @endforeach
-                        </optgroup>
-                    @endforeach
-                </select>
-                <p class="text-[10px] text-gray-600 mt-1">Quando o card for movido para esta etapa, a automação dispara.</p>
-            </div>
-            @endif
-        </div>
-
-        {{-- Duplicar card para outro pipeline --}}
-        @if($trigger === 'stage_changed')
-        <div class="mb-5 p-4 bg-violet-500/5 border border-violet-500/20 rounded-lg">
-            <div class="flex items-center gap-2 mb-3">
-                <div class="w-0.5 h-4 bg-violet-500 rounded"></div>
-                <p class="text-sm text-gray-200 font-semibold">Duplicar card para outro pipeline</p>
-            </div>
-            <p class="text-[10px] text-gray-500 mb-3">Quando o card chegar nesta etapa, cria uma cópia automática no pipeline e etapa de destino (com todos os dados e campos personalizados).</p>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Pipeline de destino</label>
-                    <select wire:model.live="duplicate_to_pipeline_id"
-                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500">
-                        <option value="">Não duplicar</option>
-                        @foreach($pipelines as $pl)
-                            <option value="{{ $pl->id }}">{{ $pl->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Etapa de destino</label>
-                    <select wire:model="duplicate_to_stage_id"
-                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500">
-                        <option value="">Selecione...</option>
-                        @foreach($pipelines as $pl)
-                            @if($duplicate_to_pipeline_id && $pl->id == $duplicate_to_pipeline_id)
-                                @foreach($pl->stages as $st)
-                                    <option value="{{ $st->id }}">{{ $st->name }}</option>
-                                @endforeach
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-        </div>
-        @endif
 
         {{-- Variáveis disponíveis --}}
         <div class="mb-3">
@@ -371,7 +306,10 @@
     {{-- ═══════════════════════════════════════════════════════ --}}
     {{-- LISTA DE AUTOMAÇÕES                                    --}}
     {{-- ═══════════════════════════════════════════════════════ --}}
-    @if($automations->isEmpty())
+    @php
+        $messageAutomations = $automations->where('trigger', '!=', 'stage_changed');
+    @endphp
+    @if($messageAutomations->isEmpty())
         <div class="flex flex-col items-center justify-center py-12 text-gray-600">
             <svg class="w-10 h-10 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -381,7 +319,7 @@
         </div>
     @else
         <div class="space-y-3">
-            @foreach($automations as $auto)
+            @foreach($messageAutomations as $auto)
             <div class="border border-surface-600 rounded-xl p-4 bg-surface-800/50">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex-1 min-w-0">
@@ -465,4 +403,156 @@
             @endforeach
         </div>
     @endif
+
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    {{-- REGRAS DE ETAPA (seção separada)                        --}}
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    <div class="mt-10">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-base font-semibold text-white">Regras de Etapa</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Ações automáticas quando um card é movido para uma etapa específica no pipeline.</p>
+            </div>
+            <button wire:click="openStageRule"
+                    class="flex items-center gap-2 px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nova Regra
+            </button>
+        </div>
+
+        {{-- Form de Regra de Etapa --}}
+        @if($showStageRuleForm)
+        <div class="bg-violet-500/5 border border-violet-500/20 rounded-xl p-5 mb-6">
+            <h3 class="text-sm font-semibold text-white mb-4">
+                {{ $editingStageRuleId ? 'Editar Regra' : 'Nova Regra de Etapa' }}
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nome da regra <span class="text-red-400">*</span></label>
+                    <input wire:model="stageRuleName" type="text" placeholder="Ex: Duplicar para Pós-Venda"
+                           class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Quando o card chegar na etapa <span class="text-red-400">*</span></label>
+                    <select wire:model="stageRuleTriggerStageId"
+                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500">
+                        <option value="">Selecione a etapa...</option>
+                        @foreach($pipelines as $pl)
+                            <optgroup label="{{ $pl->name }}">
+                                @foreach($pl->stages as $st)
+                                    <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Duplicar para pipeline</label>
+                    <select wire:model.live="duplicate_to_pipeline_id"
+                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500">
+                        <option value="">Selecione...</option>
+                        @foreach($pipelines as $pl)
+                            <option value="{{ $pl->id }}">{{ $pl->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Na etapa</label>
+                    <select wire:model="duplicate_to_stage_id"
+                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500">
+                        <option value="">Selecione...</option>
+                        @foreach($pipelines as $pl)
+                            @if($duplicate_to_pipeline_id && $pl->id == $duplicate_to_pipeline_id)
+                                @foreach($pl->stages as $st)
+                                    <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                @endforeach
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button wire:click="saveStageRule"
+                        class="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                    {{ $editingStageRuleId ? 'Salvar alterações' : 'Criar regra' }}
+                </button>
+                <button wire:click="$set('showStageRuleForm', false)"
+                        class="px-4 py-2 bg-surface-700 hover:bg-surface-600 text-gray-300 text-sm rounded-lg transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+        @endif
+
+        {{-- Lista de regras de etapa --}}
+        @php
+            $stageRules = $automations->where('trigger', 'stage_changed');
+        @endphp
+        @if($stageRules->isEmpty())
+            <div class="flex flex-col items-center justify-center py-8 text-gray-600">
+                <svg class="w-8 h-8 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                <p class="text-sm">Nenhuma regra de etapa configurada.</p>
+            </div>
+        @else
+            <div class="space-y-3">
+                @foreach($stageRules as $rule)
+                @php
+                    $triggerStage = $pipelines->flatMap->stages->firstWhere('id', $rule->trigger_stage_id);
+                    $triggerPipeline = $triggerStage ? $pipelines->firstWhere('id', $triggerStage->pipeline_id) : null;
+                    $destStage = $pipelines->flatMap->stages->firstWhere('id', $rule->duplicate_to_stage_id);
+                    $destPipeline = $rule->duplicate_to_pipeline_id ? $pipelines->firstWhere('id', $rule->duplicate_to_pipeline_id) : null;
+                @endphp
+                <div class="border border-violet-500/20 rounded-xl p-4 bg-violet-500/5">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full shrink-0 {{ $rule->is_active ? 'bg-violet-400' : 'bg-gray-500' }}"></span>
+                                <span class="text-sm font-semibold text-white">{{ $rule->name }}</span>
+                                @if(!$rule->is_active)
+                                    <span class="text-[10px] px-1.5 py-0.5 bg-gray-500/20 text-gray-400 rounded">Pausada</span>
+                                @endif
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                                <span class="px-2 py-0.5 bg-surface-800 rounded text-gray-300">{{ $triggerStage?->name ?? '?' }}</span>
+                                <span class="text-gray-600">({{ $triggerPipeline?->name ?? '?' }})</span>
+                                <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                </svg>
+                                <span class="px-2 py-0.5 bg-violet-500/15 border border-violet-500/25 rounded text-violet-300">{{ $destStage?->name ?? '?' }}</span>
+                                <span class="text-gray-600">({{ $destPipeline?->name ?? '?' }})</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button wire:click="toggleActive({{ $rule->id }})" title="{{ $rule->is_active ? 'Pausar' : 'Ativar' }}"
+                                    class="p-2 rounded-lg text-gray-500 hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors">
+                                @if($rule->is_active)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                @else
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                @endif
+                            </button>
+                            <button wire:click="editStageRule({{ $rule->id }})"
+                                    class="p-2 rounded-lg text-gray-500 hover:text-violet-400 hover:bg-violet-400/10 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button wire:click="delete({{ $rule->id }})" wire:confirm="Remover esta regra?"
+                                    class="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
 </div>
