@@ -15,6 +15,8 @@ class AiBotManager extends Component
     public array  $voice_tones               = [];
     public string $company_description       = '';
     public string $website_url               = '';
+    public string $faq                        = '';
+    public string $checklist                 = '';
     public string $department_routing_prompt  = '';
     public string $initial_greeting          = '';
     public int    $max_bot_turns             = 5;
@@ -38,6 +40,8 @@ class AiBotManager extends Component
             }
             $this->company_description       = $config->company_description ?? '';
             $this->website_url               = $config->website_url ?? '';
+            $this->faq                       = $config->faq ?? '';
+            $this->checklist                 = $config->checklist ?? '';
             $this->department_routing_prompt  = $config->department_routing_prompt ?? '';
             $this->initial_greeting          = $config->initial_greeting ?? '';
             $this->max_bot_turns             = $config->max_bot_turns ?? 5;
@@ -111,6 +115,8 @@ class AiBotManager extends Component
             'voice_tones'               => 'nullable|array',
             'company_description'       => 'nullable|string|max:4000',
             'website_url'               => 'nullable|string|max:500',
+            'faq'                       => 'nullable|string|max:8000',
+            'checklist'                 => 'nullable|string|max:4000',
             'department_routing_prompt' => 'nullable|string|max:2000',
             'initial_greeting'          => 'nullable|string|max:1000',
             'max_bot_turns'             => 'required|integer|min:1|max:50',
@@ -123,6 +129,8 @@ class AiBotManager extends Component
             'voice_tones'               => !empty($this->voice_tones) ? json_encode(array_values($this->voice_tones)) : null,
             'company_description'       => $this->company_description ?: null,
             'website_url'               => $this->website_url ?: null,
+            'faq'                       => $this->faq ?: null,
+            'checklist'                 => $this->checklist ?: null,
             'department_routing_prompt' => $this->department_routing_prompt ?: null,
             'initial_greeting'          => $this->initial_greeting ?: null,
             'max_bot_turns'             => $this->max_bot_turns,

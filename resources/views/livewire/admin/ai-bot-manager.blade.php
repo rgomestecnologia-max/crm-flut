@@ -147,6 +147,40 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
             </div>
         </div>
 
+        {{-- FAQ --}}
+        <div style="{{ $cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:2px; height:16px; background:#3b82f6; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">FAQ — Perguntas Frequentes</h3>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">Liste as perguntas mais comuns dos seus clientes com as respostas ideais. A IA usará essas informações para responder de forma precisa.</p>
+
+            <div>
+                <label style="{{ $labelStyle }}">Perguntas e respostas</label>
+                <textarea wire:model="faq" rows="8"
+                          placeholder="Pergunta: Qual o horário de funcionamento?&#10;Resposta: Funcionamos de segunda a sexta, das 8h às 18h.&#10;&#10;Pergunta: Vocês fazem entrega?&#10;Resposta: Sim, fazemos entrega para toda a região metropolitana.&#10;&#10;Pergunta: Qual o prazo de entrega?&#10;Resposta: O prazo varia de 3 a 7 dias úteis."
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                @error('faq') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        {{-- Checklist --}}
+        <div style="{{ $cardStyle }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:2px; height:16px; background:#f97316; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Checklist de Atendimento</h3>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:16px; padding-left:10px;">Informações que a IA deve coletar durante o atendimento. A IA vai perguntar esses dados ao cliente durante a conversa.</p>
+
+            <div>
+                <label style="{{ $labelStyle }}">Informações a coletar</label>
+                <textarea wire:model="checklist" rows="6"
+                          placeholder="- Nome completo do cliente&#10;- Cidade e estado&#10;- Qual produto ou serviço tem interesse&#10;- Orçamento disponível&#10;- Prazo desejado&#10;- Como conheceu a empresa"
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                @error('checklist') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
         {{-- Controles --}}
         <div style="{{ $cardStyle }}">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">

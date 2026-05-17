@@ -20,6 +20,8 @@ class AiBotConfig extends Model
         'company_description',
         'website_url',
         'website_content',
+        'faq',
+        'checklist',
         'department_routing_prompt',
         'initial_greeting',
         'max_bot_turns',

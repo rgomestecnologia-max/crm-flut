@@ -217,8 +217,12 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label>Perguntas frequentes dos clientes</label>
-                    <textarea name="faq" rows="4" placeholder="Liste as perguntas mais comuns que seus clientes fazem e as respostas ideais..."></textarea>
+                    <label>Perguntas frequentes dos clientes (FAQ)</label>
+                    <textarea name="faq" rows="4" placeholder="Pergunta: Qual o horário de funcionamento?&#10;Resposta: Funcionamos de segunda a sexta, das 8h às 18h.&#10;&#10;Pergunta: Vocês fazem entrega?&#10;Resposta: Sim, para toda a região."></textarea>
+                </div>
+                <div class="field">
+                    <label>Checklist de Atendimento</label>
+                    <textarea name="checklist" rows="4" placeholder="Informações que a IA deve coletar durante o atendimento:&#10;- Nome completo&#10;- Cidade/Estado&#10;- Produto de interesse&#10;- Orçamento disponível"></textarea>
                 </div>
                 <div class="field-row">
                     <div class="field">

@@ -34,6 +34,7 @@ class OnboardingController extends Controller
             'voice_tone'         => 'nullable|string|max:500',
             'business_hours'     => 'nullable|string|max:500',
             'faq'                => 'nullable|string|max:5000',
+            'checklist'          => 'nullable|string|max:5000',
             'site_for_ai'        => 'nullable|string|max:300',
             'has_catalog'        => 'nullable|string',
             'catalog_files.*'    => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:20480',

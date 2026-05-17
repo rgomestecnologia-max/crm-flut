@@ -17,6 +17,7 @@ $labels = [
     'voice_tone'         => 'Tom de voz',
     'business_hours'     => 'Horário',
     'faq'                => 'FAQ',
+    'checklist'          => 'Checklist de Atendimento',
     'site_for_ai'        => 'Site para IA',
     'has_catalog'        => 'Tem catálogo?',
     'has_site_leads'     => 'Leads do site?',
@@ -88,7 +89,7 @@ $skipKeys = ['_file', 'logo_path', 'catalog_paths', '_token'];
                         </div>
                     </div>
                     @else
-                    <div style="padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:8px; {{ in_array($key, ['company_description','faq','departments','department_leads','sales_pipeline','auto_message','notes']) ? 'grid-column:span 2;' : '' }}">
+                    <div style="padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:8px; {{ in_array($key, ['company_description','faq','checklist','departments','department_leads','sales_pipeline','auto_message','notes']) ? 'grid-column:span 2;' : '' }}">
                         <p style="font-size:9px; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">{{ $labels[$key] ?? $key }}</p>
                         <p style="font-size:12px; color:rgba(255,255,255,0.7); white-space:pre-wrap; line-height:1.5;">{{ is_array($value) ? implode(', ', $value) : $value }}</p>
                     </div>
