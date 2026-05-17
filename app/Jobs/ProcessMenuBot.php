@@ -157,6 +157,12 @@ class ProcessMenuBot implements ShouldQueue
         ]);
         $this->broadcast($sysMsg);
 
+        // Machinery Prime (empresa 11): criar card + ativar IA ao selecionar Comercial
+        $companyId = app(\App\Services\CurrentCompany::class)->id();
+        if ($companyId === 11 && $department->id === 21) {
+            $this->createCardAndStartAi($triggerMessage);
+        }
+
         Log::info('MenuBot: cliente selecionou departamento', [
             'conv' => $this->conversation->id,
             'dept' => $department->name,
@@ -235,6 +241,61 @@ class ProcessMenuBot implements ShouldQueue
             broadcast(new MessageReceived($message));
         } catch (\Throwable $e) {
             Log::warning('MenuBot: broadcast falhou', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Machinery Prime: cria card no Pipeline Comercial e ativa IA para atendimento.
+     */
+    private function createCardAndStartAi(Message $triggerMessage): void
+    {
+        try {
+            $contact = $this->conversation->contact;
+            if (!$contact) return;
+
+            $pipeline   = \App\Models\CrmPipeline::find(15); // Comercial
+            $firstStage = $pipeline?->stages()->orderBy('sort_order')->first();
+            if (!$pipeline || !$firstStage) return;
+
+            // Cria card se não existe para este contato neste pipeline (etapa Lead)
+            $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                ->where('pipeline_id', $pipeline->id)
+                ->first();
+
+            if (!$card) {
+                $card = \App\Models\CrmCard::create([
+                    'pipeline_id' => $pipeline->id,
+                    'stage_id'    => $firstStage->id,
+                    'contact_id'  => $contact->id,
+                    'title'       => $contact->display_name,
+                ]);
+
+                \App\Models\CrmCardActivity::create([
+                    'card_id' => $card->id,
+                    'type'    => 'note',
+                    'content' => 'Card criado automaticamente via chatbot (selecionou Comercial)',
+                ]);
+
+                Log::info('MenuBot: card criado automaticamente', [
+                    'card'     => $card->id,
+                    'contact'  => $contact->name,
+                    'pipeline' => $pipeline->name,
+                    'stage'    => $firstStage->name,
+                ]);
+            }
+
+            // Ativa IA para atender
+            $botConfig = AiBotConfig::current();
+            if ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
+                $this->conversation->update(['waiting_human_reason' => null]);
+                ProcessBotResponse::dispatch($this->conversation, $botConfig, $triggerMessage->id);
+
+                Log::info('MenuBot: IA ativada para atendimento comercial', [
+                    'conv' => $this->conversation->id,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('MenuBot: createCardAndStartAi falhou', ['error' => $e->getMessage()]);
         }
     }
 }
