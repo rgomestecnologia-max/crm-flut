@@ -159,7 +159,7 @@
             </div>
         </div>
 
-        @if(app(\App\Services\CurrentCompany::class)->id() !== 3)
+        @if(!in_array(app(\App\Services\CurrentCompany::class)->id(), [3, 11]))
         {{-- Follow-up (lembrete se não responder) --}}
         <div class="mb-5 p-4 bg-sky-500/5 border border-sky-500/20 rounded-lg">
             <div class="flex items-center gap-2 mb-3">
