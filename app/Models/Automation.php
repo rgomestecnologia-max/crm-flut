@@ -32,6 +32,8 @@ class Automation extends Model
         'reply_no_stage_id',
         'move_on_reply_from_stage_id',
         'move_on_reply_to_stage_id',
+        'duplicate_to_pipeline_id',
+        'duplicate_to_stage_id',
     ];
 
     protected $casts = [

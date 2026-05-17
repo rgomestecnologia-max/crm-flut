@@ -48,6 +48,72 @@
             </div>
         </div>
 
+        {{-- Tipo de gatilho --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Tipo de gatilho</label>
+                <select wire:model.live="trigger"
+                        class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
+                    <option value="lead_created">Quando lead é criado</option>
+                    <option value="stage_changed">Quando card mover para etapa</option>
+                </select>
+            </div>
+            @if($trigger === 'stage_changed')
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Etapa gatilho <span class="text-red-400">*</span></label>
+                <select wire:model="trigger_stage_id"
+                        class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent">
+                    <option value="">Selecione a etapa...</option>
+                    @foreach($pipelines as $pl)
+                        <optgroup label="{{ $pl->name }}">
+                            @foreach($pl->stages as $st)
+                                <option value="{{ $st->id }}">{{ $st->name }}</option>
+                            @endforeach
+                        </optgroup>
+                    @endforeach
+                </select>
+                <p class="text-[10px] text-gray-600 mt-1">Quando o card for movido para esta etapa, a automação dispara.</p>
+            </div>
+            @endif
+        </div>
+
+        {{-- Duplicar card para outro pipeline --}}
+        @if($trigger === 'stage_changed')
+        <div class="mb-5 p-4 bg-violet-500/5 border border-violet-500/20 rounded-lg">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-0.5 h-4 bg-violet-500 rounded"></div>
+                <p class="text-sm text-gray-200 font-semibold">Duplicar card para outro pipeline</p>
+            </div>
+            <p class="text-[10px] text-gray-500 mb-3">Quando o card chegar nesta etapa, cria uma cópia automática no pipeline e etapa de destino (com todos os dados e campos personalizados).</p>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Pipeline de destino</label>
+                    <select wire:model.live="duplicate_to_pipeline_id"
+                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500">
+                        <option value="">Não duplicar</option>
+                        @foreach($pipelines as $pl)
+                            <option value="{{ $pl->id }}">{{ $pl->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Etapa de destino</label>
+                    <select wire:model="duplicate_to_stage_id"
+                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500">
+                        <option value="">Selecione...</option>
+                        @foreach($pipelines as $pl)
+                            @if($duplicate_to_pipeline_id && $pl->id == $duplicate_to_pipeline_id)
+                                @foreach($pl->stages as $st)
+                                    <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                @endforeach
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+        @endif
+
         {{-- Variáveis disponíveis --}}
         <div class="mb-3">
             <p class="text-xs text-gray-400 mb-2">Variáveis disponíveis — clique para inserir no texto:</p>

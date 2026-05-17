@@ -94,6 +94,11 @@ class KanbanBoard extends Component
                 $automation->message_template ?? 'Follow-up da proposta comercial',
                 $seq + 1,
             )->delay(now()->addSeconds($delaySeconds));
+
+            // Duplicar card para outro pipeline se configurado
+            if ($automation->duplicate_to_pipeline_id && $automation->duplicate_to_stage_id) {
+                $this->duplicateCardToPipeline($card, $automation);
+            }
         }
 
         \Illuminate\Support\Facades\Log::info('Stage automations triggered', [
@@ -101,6 +106,58 @@ class KanbanBoard extends Component
             'stage' => $stageId,
             'count' => $automations->count(),
             'delays' => $automations->pluck('delay_minutes')->toArray(),
+        ]);
+    }
+
+    private function duplicateCardToPipeline(CrmCard $card, \App\Models\Automation $automation): void
+    {
+        $targetPipeline = CrmPipeline::find($automation->duplicate_to_pipeline_id);
+        $targetStage    = CrmStage::find($automation->duplicate_to_stage_id);
+
+        if (!$targetPipeline || !$targetStage) return;
+
+        // Evita duplicação repetida: se já existe card do mesmo contato nessa etapa destino
+        $exists = CrmCard::where('contact_id', $card->contact_id)
+            ->where('pipeline_id', $targetPipeline->id)
+            ->where('stage_id', $targetStage->id)
+            ->exists();
+
+        if ($exists) return;
+
+        $newCard = CrmCard::create([
+            'pipeline_id'  => $targetPipeline->id,
+            'stage_id'     => $targetStage->id,
+            'contact_id'   => $card->contact_id,
+            'assigned_to'  => $card->assigned_to,
+            'title'        => $card->title,
+            'description'  => $card->description,
+            'priority'     => $card->priority,
+        ]);
+
+        // Copiar campos personalizados
+        foreach ($card->fieldValues as $fv) {
+            CrmCardFieldValue::create([
+                'card_id'  => $newCard->id,
+                'field_id' => $fv->field_id,
+                'value'    => $fv->value,
+            ]);
+        }
+
+        $fromStage    = $card->stage?->name ?? '—';
+        $fromPipeline = $card->pipeline?->name ?? '—';
+
+        CrmCardActivity::create([
+            'card_id' => $newCard->id,
+            'user_id' => auth()->id(),
+            'type'    => 'stage_change',
+            'content' => "Card duplicado de «{$fromStage}» ({$fromPipeline}) → «{$targetStage->name}» ({$targetPipeline->name})",
+        ]);
+
+        \Illuminate\Support\Facades\Log::info('Card duplicado para outro pipeline', [
+            'original_card' => $card->id,
+            'new_card'      => $newCard->id,
+            'to_pipeline'   => $targetPipeline->name,
+            'to_stage'      => $targetStage->name,
         ]);
     }
 

@@ -28,10 +28,19 @@ class AutomationManager extends Component
     public ?int    $reply_no_stage_id  = null;
     public string  $meta_template_name = '';
 
+    // Trigger por etapa
+    public string  $trigger             = 'lead_created';
+    public ?int    $trigger_stage_id    = null;
+
+    // Duplicar card
+    public ?int    $duplicate_to_pipeline_id = null;
+    public ?int    $duplicate_to_stage_id    = null;
+
     public function openCreate(): void
     {
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'follow_up_message', 'follow_up_delay_minutes', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'follow_up_message', 'follow_up_delay_minutes', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id', 'trigger', 'trigger_stage_id', 'duplicate_to_pipeline_id', 'duplicate_to_stage_id']);
         $this->follow_up_delay_minutes = 120;
+        $this->trigger   = 'lead_created';
         $this->is_active = true;
         $this->showForm  = true;
     }
@@ -55,6 +64,10 @@ class AutomationManager extends Component
         $this->reply_yes_stage_id = $a->reply_yes_stage_id;
         $this->reply_no_stage_id  = $a->reply_no_stage_id;
         $this->meta_template_name = $a->meta_template_name ?? '';
+        $this->trigger                = $a->trigger ?? 'lead_created';
+        $this->trigger_stage_id       = $a->trigger_stage_id;
+        $this->duplicate_to_pipeline_id = $a->duplicate_to_pipeline_id;
+        $this->duplicate_to_stage_id    = $a->duplicate_to_stage_id;
         $this->showForm           = true;
     }
 
@@ -65,8 +78,8 @@ class AutomationManager extends Component
             'pipeline_id'      => 'nullable|exists:crm_pipelines,id',
         ];
 
-        // Mensagem template só é obrigatória se não usar IA direta
-        if (!$this->ai_first_response) {
+        // Mensagem template só é obrigatória se não usar IA direta e não for trigger de etapa (que pode ser só duplicação)
+        if (!$this->ai_first_response && $this->trigger !== 'stage_changed') {
             $rules['message_template'] = 'required|string|max:4096';
         }
 
@@ -75,7 +88,8 @@ class AutomationManager extends Component
         $data = [
             'name'               => $this->name,
             'pipeline_id'        => $this->pipeline_id ?: null,
-            'trigger'            => 'lead_created',
+            'trigger'            => $this->trigger,
+            'trigger_stage_id'   => $this->trigger === 'stage_changed' ? ($this->trigger_stage_id ?: null) : null,
             'message_template'   => $this->message_template ?: null,
             'is_active'           => $this->is_active,
             'enable_ai_on_reply'  => $this->enable_ai_on_reply,
@@ -88,6 +102,8 @@ class AutomationManager extends Component
             'reply_yes_stage_id'  => $this->reply_yes_stage_id ?: null,
             'reply_no_stage_id'   => $this->reply_no_stage_id ?: null,
             'meta_template_name'  => $this->meta_template_name ?: null,
+            'duplicate_to_pipeline_id' => $this->trigger === 'stage_changed' ? ($this->duplicate_to_pipeline_id ?: null) : null,
+            'duplicate_to_stage_id'    => $this->trigger === 'stage_changed' ? ($this->duplicate_to_stage_id ?: null) : null,
         ];
 
         if ($this->editingId) {
@@ -99,8 +115,9 @@ class AutomationManager extends Component
         }
 
         $this->showForm = false;
-        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'follow_up_message', 'follow_up_delay_minutes', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id']);
+        $this->reset(['editingId', 'name', 'pipeline_id', 'message_template', 'meta_template_name', 'is_active', 'enable_ai_on_reply', 'ai_first_response', 'ai_greeting', 'follow_up_message', 'follow_up_delay_minutes', 'reply_yes_message', 'reply_no_message', 'reply_yes_stage_id', 'reply_no_stage_id', 'trigger', 'trigger_stage_id', 'duplicate_to_pipeline_id', 'duplicate_to_stage_id']);
         $this->follow_up_delay_minutes = 120;
+        $this->trigger = 'lead_created';
     }
 
     public function toggleActive(int $id): void
