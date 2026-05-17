@@ -451,30 +451,61 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Duplicar para pipeline</label>
-                    <select wire:model.live="duplicate_to_pipeline_id"
-                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500">
-                        <option value="">Selecione...</option>
-                        @foreach($pipelines as $pl)
-                            <option value="{{ $pl->id }}">{{ $pl->name }}</option>
-                        @endforeach
-                    </select>
+            {{-- Ação: Enviar mensagem de follow-up --}}
+            <div class="p-4 bg-sky-500/5 border border-sky-500/20 rounded-lg mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-0.5 h-4 bg-sky-500 rounded"></div>
+                    <p class="text-xs text-gray-300 font-semibold">Ação: Enviar mensagem</p>
+                    <span class="text-[10px] text-gray-500">(opcional)</span>
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Na etapa</label>
-                    <select wire:model="duplicate_to_stage_id"
-                            class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500">
-                        <option value="">Selecione...</option>
-                        @foreach($pipelines as $pl)
-                            @if($duplicate_to_pipeline_id && $pl->id == $duplicate_to_pipeline_id)
-                                @foreach($pl->stages as $st)
-                                    <option value="{{ $st->id }}">{{ $st->name }}</option>
-                                @endforeach
-                            @endif
-                        @endforeach
-                    </select>
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="col-span-3">
+                        <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Mensagem de follow-up</label>
+                        <textarea wire:model="stageRuleMessage" rows="3"
+                                  placeholder="Ex: Olá {nome}, estamos acompanhando sua proposta..."
+                                  class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-sky-500 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Delay (minutos)</label>
+                        <input wire:model="stageRuleDelayMinutes" type="number" min="0"
+                               class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                        <p class="text-[9px] text-gray-600 mt-1">2880 = 2 dias · 10080 = 7 dias</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Ação: Duplicar card --}}
+            <div class="p-4 bg-violet-500/5 border border-violet-500/20 rounded-lg mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-0.5 h-4 bg-violet-500 rounded"></div>
+                    <p class="text-xs text-gray-300 font-semibold">Ação: Duplicar card para outro pipeline</p>
+                    <span class="text-[10px] text-gray-500">(opcional)</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Pipeline de destino</label>
+                        <select wire:model.live="duplicate_to_pipeline_id"
+                                class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500">
+                            <option value="">Não duplicar</option>
+                            @foreach($pipelines as $pl)
+                                <option value="{{ $pl->id }}">{{ $pl->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1 uppercase font-bold tracking-wider">Etapa de destino</label>
+                        <select wire:model="duplicate_to_stage_id"
+                                class="w-full bg-surface-800 border border-surface-600 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500">
+                            <option value="">Selecione...</option>
+                            @foreach($pipelines as $pl)
+                                @if($duplicate_to_pipeline_id && $pl->id == $duplicate_to_pipeline_id)
+                                    @foreach($pl->stages as $st)
+                                        <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                    @endforeach
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -521,15 +552,29 @@
                                     <span class="text-[10px] px-1.5 py-0.5 bg-gray-500/20 text-gray-400 rounded">Pausada</span>
                                 @endif
                             </div>
-                            <div class="flex items-center gap-2 text-xs text-gray-400">
+                            <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400">
+                                <span class="text-gray-500">Gatilho:</span>
                                 <span class="px-2 py-0.5 bg-surface-800 rounded text-gray-300">{{ $triggerStage?->name ?? '?' }}</span>
                                 <span class="text-gray-600">({{ $triggerPipeline?->name ?? '?' }})</span>
-                                <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                                </svg>
-                                <span class="px-2 py-0.5 bg-violet-500/15 border border-violet-500/25 rounded text-violet-300">{{ $destStage?->name ?? '?' }}</span>
-                                <span class="text-gray-600">({{ $destPipeline?->name ?? '?' }})</span>
+
+                                @if($rule->duplicate_to_pipeline_id && $destStage)
+                                    <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                    </svg>
+                                    <span class="text-gray-500">Duplicar para:</span>
+                                    <span class="px-2 py-0.5 bg-violet-500/15 border border-violet-500/25 rounded text-violet-300">{{ $destStage?->name }}</span>
+                                    <span class="text-gray-600">({{ $destPipeline?->name ?? '?' }})</span>
+                                @endif
+
+                                @if($rule->message_template)
+                                    <span class="px-2 py-0.5 bg-sky-500/15 border border-sky-500/25 rounded text-sky-300">
+                                        Follow-up {{ $rule->delay_minutes ? '(' . ($rule->delay_minutes >= 1440 ? round($rule->delay_minutes / 1440) . ' dias' : $rule->delay_minutes . ' min') . ')' : '' }}
+                                    </span>
+                                @endif
                             </div>
+                            @if($rule->message_template)
+                                <div class="mt-2 bg-surface-900 rounded-lg p-2 text-[11px] text-gray-500 font-mono whitespace-pre-wrap line-clamp-2 max-h-10 overflow-hidden">{{ $rule->message_template }}</div>
+                            @endif
                         </div>
                         <div class="flex items-center gap-1 shrink-0">
                             <button wire:click="toggleActive({{ $rule->id }})" title="{{ $rule->is_active ? 'Pausar' : 'Ativar' }}"

@@ -33,10 +33,12 @@ class AutomationManager extends Component
     public ?int    $duplicate_to_stage_id    = null;
 
     // Regras de Etapa — form separado
-    public bool    $showStageRuleForm      = false;
-    public ?int    $editingStageRuleId     = null;
-    public string  $stageRuleName          = '';
-    public ?int    $stageRuleTriggerStageId = null;
+    public bool    $showStageRuleForm       = false;
+    public ?int    $editingStageRuleId      = null;
+    public string  $stageRuleName           = '';
+    public ?int    $stageRuleTriggerStageId  = null;
+    public string  $stageRuleMessage        = '';
+    public int     $stageRuleDelayMinutes   = 0;
 
     public function openCreate(): void
     {
@@ -135,7 +137,8 @@ class AutomationManager extends Component
 
     public function openStageRule(): void
     {
-        $this->reset(['editingStageRuleId', 'stageRuleName', 'stageRuleTriggerStageId', 'duplicate_to_pipeline_id', 'duplicate_to_stage_id']);
+        $this->reset(['editingStageRuleId', 'stageRuleName', 'stageRuleTriggerStageId', 'stageRuleMessage', 'stageRuleDelayMinutes', 'duplicate_to_pipeline_id', 'duplicate_to_stage_id']);
+        $this->stageRuleDelayMinutes = 0;
         $this->showStageRuleForm = true;
     }
 
@@ -145,6 +148,8 @@ class AutomationManager extends Component
         $this->editingStageRuleId       = $id;
         $this->stageRuleName            = $rule->name;
         $this->stageRuleTriggerStageId  = $rule->trigger_stage_id;
+        $this->stageRuleMessage         = $rule->message_template ?? '';
+        $this->stageRuleDelayMinutes    = $rule->delay_minutes ?? 0;
         $this->duplicate_to_pipeline_id = $rule->duplicate_to_pipeline_id;
         $this->duplicate_to_stage_id    = $rule->duplicate_to_stage_id;
         $this->showStageRuleForm        = true;
@@ -161,6 +166,8 @@ class AutomationManager extends Component
             'name'                     => $this->stageRuleName,
             'trigger'                  => 'stage_changed',
             'trigger_stage_id'         => $this->stageRuleTriggerStageId,
+            'message_template'         => $this->stageRuleMessage ?: null,
+            'delay_minutes'            => $this->stageRuleDelayMinutes ?: 0,
             'is_active'                => true,
             'duplicate_to_pipeline_id' => $this->duplicate_to_pipeline_id ?: null,
             'duplicate_to_stage_id'    => $this->duplicate_to_stage_id ?: null,
@@ -175,7 +182,7 @@ class AutomationManager extends Component
         }
 
         $this->showStageRuleForm = false;
-        $this->reset(['editingStageRuleId', 'stageRuleName', 'stageRuleTriggerStageId', 'duplicate_to_pipeline_id', 'duplicate_to_stage_id']);
+        $this->reset(['editingStageRuleId', 'stageRuleName', 'stageRuleTriggerStageId', 'stageRuleMessage', 'stageRuleDelayMinutes', 'duplicate_to_pipeline_id', 'duplicate_to_stage_id']);
     }
 
     public function render()
