@@ -58,6 +58,10 @@ class CrmCard extends Model
     public function getPriorityLabelAttribute(): ?string
     {
         return match($this->priority) {
+            'quente'  => 'Quente',
+            'morno'   => 'Morno',
+            'frio'    => 'Frio',
+            // Legado (cards antigos)
             'critico' => 'Crítico',
             'alto'    => 'Alto',
             'medio'   => 'Médio',
@@ -69,6 +73,10 @@ class CrmCard extends Model
     public function getPriorityColorAttribute(): string
     {
         return match($this->priority) {
+            'quente'  => 'bg-red-500/20 text-red-400 border-red-500/30',
+            'morno'   => 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+            'frio'    => 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+            // Legado (cards antigos)
             'critico' => 'bg-red-500/20 text-red-400 border-red-500/30',
             'alto'    => 'bg-orange-500/20 text-orange-400 border-orange-500/30',
             'medio'   => 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',

@@ -378,10 +378,9 @@
                 </div>
                 <div class="flex gap-2 flex-wrap">
                     @foreach(['' => ['label' => 'Nenhuma', 'color' => '#6b7280', 'bg' => 'rgba(107,114,128,0.12)'],
-                               'baixo'   => ['label' => 'Baixo',    'color' => '#3b82f6', 'bg' => 'rgba(59,130,246,0.1)'],
-                               'medio'   => ['label' => 'Médio',    'color' => '#eab308', 'bg' => 'rgba(234,179,8,0.1)'],
-                               'alto'    => ['label' => 'Alto',     'color' => '#f97316', 'bg' => 'rgba(249,115,22,0.1)'],
-                               'critico' => ['label' => 'Crítico',  'color' => '#ef4444', 'bg' => 'rgba(239,68,68,0.1)']]
+                               'frio'    => ['label' => 'Frio',     'color' => '#3b82f6', 'bg' => 'rgba(59,130,246,0.1)'],
+                               'morno'   => ['label' => 'Morno',    'color' => '#eab308', 'bg' => 'rgba(234,179,8,0.1)'],
+                               'quente'  => ['label' => 'Quente',   'color' => '#ef4444', 'bg' => 'rgba(239,68,68,0.1)']]
                         as $val => $cfg)
                     <button type="button" wire:click="$set('card_priority', '{{ $val }}')"
                             class="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150"
