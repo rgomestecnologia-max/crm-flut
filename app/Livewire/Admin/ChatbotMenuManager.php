@@ -35,7 +35,8 @@ class ChatbotMenuManager extends Component
             $this->after_selection_message = $config->after_selection_message ?? '';
             $this->menu_departments        = $config->menu_departments ?? [];
             $this->business_hours_enabled  = $config->business_hours_enabled ?? false;
-            $this->business_hours          = $config->business_hours ?? $this->defaultBusinessHours();
+            $bh = $config->business_hours ?? $this->defaultBusinessHours();
+            $this->business_hours          = is_string($bh) ? json_decode($bh, true) ?? $this->defaultBusinessHours() : $bh;
             $this->outside_hours_message   = $config->outside_hours_message ?? '';
         } else {
             $this->welcome_template       = "Olá {nome}!\nSeja muito bem-vindo(a) ao atendimento digital da {empresa}.";
