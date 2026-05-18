@@ -278,7 +278,7 @@ class ProcessMenuBot implements ShouldQueue
             $contact = $this->conversation->contact;
             if (!$contact) return;
 
-            $pipeline   = \App\Models\CrmPipeline::find(15); // Comercial
+            $pipeline   = \App\Models\CrmPipeline::where('name', 'Comercial')->first();
             $firstStage = $pipeline?->stages()->orderBy('sort_order')->first();
             if (!$pipeline || !$firstStage) return;
 
