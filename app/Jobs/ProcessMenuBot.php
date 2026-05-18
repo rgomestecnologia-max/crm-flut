@@ -69,6 +69,11 @@ class ProcessMenuBot implements ShouldQueue
 
             if ($this->conversation->menu_awaiting) {
                 $this->processSelection($triggerMessage);
+            } elseif ($this->conversation->department_id) {
+                // Menu já foi concluído (departamento selecionado) — encaminha para IA
+                if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
+                    ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $this->triggerMessageId);
+                }
             } else {
                 $this->sendWelcomeMenu();
             }
@@ -129,12 +134,14 @@ class ProcessMenuBot implements ShouldQueue
 
         $department = $departments->get($choice - 1);
 
+        $hasAi = $this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey();
+
         // Roteia para o departamento escolhido
         $this->conversation->update([
-            'department_id'      => $department->id,
-            'menu_awaiting'      => false,
-            'status'             => 'open',
-            'waiting_human_reason' => 'Menu: direcionado para ' . $department->name,
+            'department_id'        => $department->id,
+            'menu_awaiting'        => false,
+            'status'               => 'open',
+            'waiting_human_reason' => $hasAi ? null : ('Menu: direcionado para ' . $department->name),
         ]);
 
         // Mensagem de confirmação
@@ -163,10 +170,10 @@ class ProcessMenuBot implements ShouldQueue
             $this->createCardForDepartment($triggerMessage);
         }
 
-        // Ativa IA após seleção do menu (se IA está ativa)
-        if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
-            $this->conversation->update(['waiting_human_reason' => null]);
+        // Ativa IA após seleção do menu
+        if ($hasAi) {
             ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $triggerMessage->id);
+            Log::info('MenuBot: IA ativada após seleção do menu', ['conv' => $this->conversation->id]);
         }
 
         Log::info('MenuBot: cliente selecionou departamento', [
