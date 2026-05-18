@@ -11,20 +11,6 @@
     <div style="flex:1; overflow-y:auto; padding:24px;" class="mobile-p-sm">
         <div class="max-w-4xl mx-auto space-y-8">
 
-            {{-- Aviso de exclusividade --}}
-            @php $chatbotActive = \App\Models\ChatbotMenuConfig::current()?->is_active; @endphp
-            @if($chatbotActive)
-            <div class="flex items-start gap-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 text-sm text-yellow-400">
-                <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
-                </svg>
-                <span>
-                    O <strong>Chatbot</strong> está ativo no momento.
-                    Ao ativar a IA, o Chatbot será desativado automaticamente.
-                    <a href="{{ route('admin.chatbot.index') }}" class="underline hover:text-yellow-300 ml-1">Gerenciar Chatbot →</a>
-                </span>
-            </div>
-            @endif
 
             {{-- IA Manager --}}
             <livewire:admin.ai-bot-manager />
