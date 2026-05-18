@@ -323,7 +323,13 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'status'        => 'open',
                         'assigned_to'   => null,
                         'menu_awaiting' => false,
+                        'waiting_human_reason' => null,
                     ]);
+                    // Remove mensagens de sistema do menu anterior para permitir novo menu
+                    Message::where('conversation_id', $conversation->id)
+                        ->where('sender_type', 'system')
+                        ->where('content', 'like', 'Menu: cliente selecionou%')
+                        ->delete();
                 }
             }
 

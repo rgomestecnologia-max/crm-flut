@@ -69,8 +69,8 @@ class ProcessMenuBot implements ShouldQueue
 
             if ($this->conversation->menu_awaiting) {
                 $this->processSelection($triggerMessage);
-            } elseif ($this->conversation->department_id) {
-                // Menu já foi concluído (departamento selecionado) — encaminha para IA
+            } elseif ($this->menuAlreadyCompleted()) {
+                // Menu já foi concluído nesta sessão — encaminha para IA
                 if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
                     ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $this->triggerMessageId);
                 }
@@ -235,6 +235,18 @@ class ProcessMenuBot implements ShouldQueue
         $this->broadcast($msg);
 
         return $msg;
+    }
+
+    /**
+     * Verifica se o menu já foi concluído nesta sessão da conversa,
+     * procurando pela mensagem de sistema "Menu: cliente selecionou".
+     */
+    private function menuAlreadyCompleted(): bool
+    {
+        return Message::where('conversation_id', $this->conversation->id)
+            ->where('sender_type', 'system')
+            ->where('content', 'like', 'Menu: cliente selecionou%')
+            ->exists();
     }
 
     private function getMenuDepartments()
