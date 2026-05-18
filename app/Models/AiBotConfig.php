@@ -27,6 +27,7 @@ class AiBotConfig extends Model
         'max_bot_turns',
         'response_delay',
         'handoff_message',
+        'handoff_prompt',
     ];
 
     protected $casts = [

@@ -22,6 +22,7 @@ class AiBotManager extends Component
     public int    $max_bot_turns             = 5;
     public int    $response_delay            = 0;
     public string $handoff_message           = '';
+    public string $handoff_prompt            = '';
 
     public function mount(): void
     {
@@ -47,6 +48,7 @@ class AiBotManager extends Component
             $this->max_bot_turns             = $config->max_bot_turns ?? 5;
             $this->response_delay            = $config->response_delay ?? 0;
             $this->handoff_message           = $config->handoff_message ?? '';
+            $this->handoff_prompt            = $config->handoff_prompt ?? '';
         }
     }
 
@@ -121,6 +123,7 @@ class AiBotManager extends Component
             'max_bot_turns'             => 'required|integer|min:1|max:50',
             'response_delay'            => 'required|integer|min:0|max:120',
             'handoff_message'           => 'nullable|string|max:1000',
+            'handoff_prompt'            => 'nullable|string|max:4000',
         ]);
 
         $data = [
@@ -135,6 +138,7 @@ class AiBotManager extends Component
             'max_bot_turns'             => $this->max_bot_turns,
             'response_delay'            => $this->response_delay,
             'handoff_message'           => $this->handoff_message ?: null,
+            'handoff_prompt'            => $this->handoff_prompt ?: null,
         ];
 
         // Se URL foi removida, limpa o conteúdo do site

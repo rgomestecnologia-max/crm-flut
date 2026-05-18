@@ -408,7 +408,13 @@ class ProcessBotResponse implements ShouldQueue
         $prompt .= "- NUNCA repita sua descrição ou apresentação a não ser na primeira mensagem.\n";
         $prompt .= "- Responda de forma direta e natural, como uma conversa humana.\n";
         $prompt .= "- Mantenha respostas objetivas e no contexto da conversa atual.\n";
-        $prompt .= "- Quando NÃO souber responder algo ou não tiver informação suficiente, inclua EXATAMENTE [HANDOFF] ao final da sua resposta. A resposta antes do [HANDOFF] deve informar educadamente que vai transferir para um atendente.\n";
+        // Instruções de handoff (transferir para humano)
+        if ($this->config->handoff_prompt) {
+            $prompt .= "- TRANSFERÊNCIA PARA HUMANO: " . $this->config->handoff_prompt . "\n";
+            $prompt .= "- Quando qualquer uma dessas condições for atendida, inclua EXATAMENTE [HANDOFF] ao final da sua resposta. A resposta antes do [HANDOFF] deve informar educadamente que vai transferir para um atendente.\n";
+        } else {
+            $prompt .= "- Quando NÃO souber responder algo ou não tiver informação suficiente, inclua EXATAMENTE [HANDOFF] ao final da sua resposta. A resposta antes do [HANDOFF] deve informar educadamente que vai transferir para um atendente.\n";
+        }
         $prompt .= "- Quando o cliente pedir para falar com um humano, atendente, ou pessoa real, inclua [HANDOFF] ao final.\n";
 
         // Catálogo de produtos e serviços ativos

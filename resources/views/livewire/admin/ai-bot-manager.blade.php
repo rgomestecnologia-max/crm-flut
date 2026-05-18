@@ -212,6 +212,14 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
                     </div>
                 </div>
                 <div>
+                    <label style="{{ $labelStyle }}">Instruções para transferir ao humano</label>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-bottom:6px;">Defina em quais situações a IA deve parar de atender e transferir para um atendente humano. A conversa entrará no filtro <strong style="color:rgba(255,255,255,0.4);">Aguardando</strong>.</p>
+                    <textarea wire:model="handoff_prompt" rows="4"
+                              placeholder="Transferir para humano quando:&#10;- Cliente pedir para falar com uma pessoa&#10;- Cliente perguntar sobre preço ou condições de pagamento&#10;- Cliente quiser agendar visita técnica&#10;- IA não souber responder após 2 tentativas"
+                              style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+                    @error('handoff_prompt') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+                </div>
+                <div>
                     <label style="{{ $labelStyle }}">Mensagem de transferência para atendente</label>
                     <textarea wire:model="handoff_message" rows="2"
                               placeholder="Vou transferir você para um de nossos atendentes. Em breve alguém irá te responder!"
