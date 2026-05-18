@@ -63,8 +63,7 @@ class AiBotManager extends Component
         $config->update(['is_active' => $this->is_active]);
 
         if ($this->is_active) {
-            ChatbotMenuConfig::query()->update(['is_active' => false]);
-            $this->dispatch('toast', type: 'success', message: 'IA ativada. Chatbot foi desativado automaticamente.');
+            $this->dispatch('toast', type: 'success', message: 'IA de atendimento ativada.');
         } else {
             $this->dispatch('toast', type: 'success', message: 'IA de atendimento desativada.');
         }

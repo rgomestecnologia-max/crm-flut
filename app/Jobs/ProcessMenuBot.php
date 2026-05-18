@@ -157,10 +157,16 @@ class ProcessMenuBot implements ShouldQueue
         ]);
         $this->broadcast($sysMsg);
 
-        // Machinery Prime (empresa 11): criar card + ativar IA ao selecionar Comercial
+        // Machinery Prime (empresa 11): criar card no pipeline ao selecionar Comercial
         $companyId = app(\App\Services\CurrentCompany::class)->id();
         if ($companyId === 11 && $department->id === 21) {
-            $this->createCardAndStartAi($triggerMessage);
+            $this->createCardForDepartment($triggerMessage);
+        }
+
+        // Ativa IA após seleção do menu (se IA está ativa)
+        if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
+            $this->conversation->update(['waiting_human_reason' => null]);
+            ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $triggerMessage->id);
         }
 
         Log::info('MenuBot: cliente selecionou departamento', [
@@ -245,9 +251,9 @@ class ProcessMenuBot implements ShouldQueue
     }
 
     /**
-     * Machinery Prime: cria card no Pipeline Comercial e ativa IA para atendimento.
+     * Machinery Prime: cria card no Pipeline Comercial quando cliente seleciona departamento.
      */
-    private function createCardAndStartAi(Message $triggerMessage): void
+    private function createCardForDepartment(Message $triggerMessage): void
     {
         try {
             $contact = $this->conversation->contact;
@@ -257,7 +263,6 @@ class ProcessMenuBot implements ShouldQueue
             $firstStage = $pipeline?->stages()->orderBy('sort_order')->first();
             if (!$pipeline || !$firstStage) return;
 
-            // Cria card se não existe para este contato neste pipeline (etapa Lead)
             $card = \App\Models\CrmCard::where('contact_id', $contact->id)
                 ->where('pipeline_id', $pipeline->id)
                 ->first();
@@ -283,19 +288,8 @@ class ProcessMenuBot implements ShouldQueue
                     'stage'    => $firstStage->name,
                 ]);
             }
-
-            // Ativa IA para atender
-            $botConfig = AiBotConfig::current();
-            if ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
-                $this->conversation->update(['waiting_human_reason' => null]);
-                ProcessBotResponse::dispatch($this->conversation, $botConfig, $triggerMessage->id);
-
-                Log::info('MenuBot: IA ativada para atendimento comercial', [
-                    'conv' => $this->conversation->id,
-                ]);
-            }
         } catch (\Throwable $e) {
-            Log::error('MenuBot: createCardAndStartAi falhou', ['error' => $e->getMessage()]);
+            Log::error('MenuBot: createCardForDepartment falhou', ['error' => $e->getMessage()]);
         }
     }
 }
