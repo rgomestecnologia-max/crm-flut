@@ -341,11 +341,26 @@ class ProcessEvolutionMessage implements ShouldQueue
             // ── Conteúdo da mensagem ──────────────────────────────────────────
             [$content, $type, $mediaUrl, $mediaFilename] = $this->extractContent($data);
 
-            if (!$content && !$mediaUrl) {
-                Log::info('ProcessEvolutionMessage: mensagem sem conteúdo suportado', [
+            // Log detalhado para mídia (rastrear perdas)
+            if (in_array($messageType, ['imageMessage', 'videoMessage', 'audioMessage', 'documentMessage', 'documentWithCaptionMessage', 'stickerMessage'])) {
+                Log::info('ProcessEvolutionMessage: mídia recebida', [
                     'messageType' => $messageType,
                     'remoteJid'   => $remoteJid,
+                    'messageId'   => $messageId,
+                    'mediaUrl'    => $mediaUrl ? 'OK' : 'FALHOU',
+                    'type'        => $type,
+                    'hasBase64'   => !empty($data['message'][$messageType]['base64'] ?? null),
                     'msgKeys'     => array_keys($data['message'] ?? []),
+                ]);
+            }
+
+            if (!$content && !$mediaUrl) {
+                Log::warning('ProcessEvolutionMessage: mensagem sem conteúdo suportado', [
+                    'messageType' => $messageType,
+                    'remoteJid'   => $remoteJid,
+                    'messageId'   => $messageId,
+                    'msgKeys'     => array_keys($data['message'] ?? []),
+                    'msgData'     => substr(json_encode($data['message'] ?? []), 0, 500),
                 ]);
                 return;
             }
@@ -766,7 +781,11 @@ class ProcessEvolutionMessage implements ShouldQueue
         // 1) Base64 já no payload
         if (!empty($node['base64'])) {
             $saved = $this->saveMedia($node['base64'], $mime, $type);
-            if ($saved) return $saved;
+            if ($saved) {
+                Log::info('Mídia: salva via base64 do payload', ['messageId' => $messageId, 'type' => $type]);
+                return $saved;
+            }
+            Log::warning('Mídia: base64 do payload inválido', ['messageId' => $messageId, 'type' => $type]);
         }
 
         // 2) Download decifrado via Evolution
@@ -777,12 +796,19 @@ class ProcessEvolutionMessage implements ShouldQueue
 
                 if ($fetched) {
                     $saved = $this->saveMedia($fetched['base64'], $fetched['mimetype'] ?? $mime, $type);
-                    if ($saved) return $saved;
+                    if ($saved) {
+                        Log::info('Mídia: salva via getBase64FromMediaMessage', ['messageId' => $messageId, 'type' => $type]);
+                        return $saved;
+                    }
+                    Log::warning('Mídia: getBase64 retornou mas saveMedia falhou', ['messageId' => $messageId, 'type' => $type]);
+                } else {
+                    Log::warning('Mídia: getBase64FromMediaMessage retornou vazio', ['messageId' => $messageId, 'type' => $type]);
                 }
             } catch (\Throwable $e) {
-                Log::warning('ProcessEvolutionMessage: getBase64FromMediaMessage falhou', [
-                    'message_id' => $messageId,
-                    'error'      => $e->getMessage(),
+                Log::warning('Mídia: getBase64FromMediaMessage exception', [
+                    'messageId' => $messageId,
+                    'type'      => $type,
+                    'error'     => $e->getMessage(),
                 ]);
             }
         }
@@ -790,8 +816,19 @@ class ProcessEvolutionMessage implements ShouldQueue
         // 3) Thumbnail como último recurso (apenas preview minúsculo)
         if ($thumbnail) {
             $saved = $this->saveMedia($thumbnail, $mime, $type);
-            if ($saved) return $saved;
+            if ($saved) {
+                Log::info('Mídia: salva via thumbnail (fallback)', ['messageId' => $messageId, 'type' => $type]);
+                return $saved;
+            }
         }
+
+        Log::error('Mídia: TODAS as tentativas falharam', [
+            'messageId'    => $messageId,
+            'type'         => $type,
+            'mime'         => $mime,
+            'hasBase64'    => !empty($node['base64']),
+            'hasThumbnail' => !empty($thumbnail),
+        ]);
 
         return null;
     }

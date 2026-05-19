@@ -148,7 +148,7 @@ class EvolutionWebhookController extends Controller
             $msgType = $data['messageType'] ?? null;
 
             // Ignora: status do WhatsApp, protocolMessages
-            $ignored = ['protocolMessage', 'ephemeralMessage', 'senderKeyDistributionMessage'];
+            $ignored = ['protocolMessage', 'senderKeyDistributionMessage'];
             if (in_array($msgType, $ignored)) {
                 return response()->json(['ok' => true]);
             }
