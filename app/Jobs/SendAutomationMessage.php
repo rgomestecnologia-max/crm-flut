@@ -36,6 +36,39 @@ class SendAutomationMessage implements ShouldQueue
         app(\App\Services\CurrentCompany::class)->set((int) $this->automation->company_id, persist: false);
 
         try {
+            // Verifica se já houve atendimento humano recente (conversa aberta ou resolvida recentemente)
+            $recentConv = Conversation::where('contact_id', $this->contact->id)
+                ->where('is_group', false)
+                ->latest()
+                ->first();
+
+            if ($recentConv) {
+                // Se humano já respondeu (via WhatsApp ou CRM), não envia automação
+                $humanResponded = $recentConv->waiting_human_reason
+                    || Message::where('conversation_id', $recentConv->id)
+                        ->where('sender_type', 'agent')
+                        ->where('created_at', '>=', now()->subHours(1))
+                        ->exists();
+
+                if ($humanResponded) {
+                    Log::info('SendAutomationMessage: humano já atendeu, automação cancelada', [
+                        'contact' => $this->contact->name,
+                        'conv'    => $recentConv->id,
+                        'reason'  => $recentConv->waiting_human_reason ?? 'agent msg recente',
+                    ]);
+                    return;
+                }
+
+                // Se conversa resolvida recentemente (< 1h), não reabrir
+                if ($recentConv->status === 'resolved' && $recentConv->updated_at >= now()->subHour()) {
+                    Log::info('SendAutomationMessage: conversa resolvida recentemente, automação cancelada', [
+                        'contact' => $this->contact->name,
+                        'conv'    => $recentConv->id,
+                    ]);
+                    return;
+                }
+            }
+
             $conversation = Conversation::where('contact_id', $this->contact->id)
                 ->where('is_group', false)
                 ->whereIn('status', ['open', 'pending'])
