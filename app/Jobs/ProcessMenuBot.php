@@ -137,11 +137,12 @@ class ProcessMenuBot implements ShouldQueue
         $hasAi = $this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey();
 
         // Roteia para o departamento escolhido
+        // waiting_human_reason fica null para a conversa entrar na Fila do departamento
         $this->conversation->update([
             'department_id'        => $department->id,
             'menu_awaiting'        => false,
             'status'               => 'open',
-            'waiting_human_reason' => $hasAi ? null : ('Menu: direcionado para ' . $department->name),
+            'waiting_human_reason' => null,
         ]);
 
         // Mensagem de confirmação
