@@ -52,17 +52,17 @@ function senderColor(?string $identifier): string {
                  style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3); cursor:pointer;">
             <div style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #0B0F1C;"></div>
 
-            {{-- Modal avatar ampliado --}}
-            <template x-if="showAvatar">
-                <div @click="showAvatar = false" style="position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                    <div @click.stop style="position:relative; cursor:default;">
+            {{-- Modal avatar ampliado (teleportado para body) --}}
+            <template x-teleport="body">
+                <div x-show="showAvatar" x-transition.opacity @click="showAvatar = false"
+                     style="position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.88); display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    <div @click.stop style="cursor:default; text-align:center;">
                         <img x-data="{ err: false }"
                              :src="err ? '{{ $conversation->contact->avatar_fallback }}' : '{{ $conversation->contact->avatar }}'"
                              x-on:error="err = true" alt=""
-                             style="width:280px; height:280px; border-radius:50%; object-fit:cover; border:3px solid rgba(178,255,0,0.4); box-shadow:0 0 60px rgba(0,0,0,0.5);">
-                        <p style="text-align:center; margin-top:16px; font-size:16px; font-weight:700; color:white;">{{ $conversation->contact->display_name }}</p>
-                        <p style="text-align:center; margin-top:4px; font-size:13px; color:rgba(255,255,255,0.4);">{{ $conversation->contact->phone }}</p>
-                        <button @click="showAvatar = false" style="position:absolute; top:-10px; right:-10px; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+                             style="width:250px; height:250px; border-radius:50%; object-fit:cover; border:3px solid rgba(178,255,0,0.4); box-shadow:0 0 80px rgba(0,0,0,0.6);">
+                        <p style="margin-top:20px; font-size:18px; font-weight:700; color:white;">{{ $conversation->contact->display_name }}</p>
+                        <p style="margin-top:6px; font-size:14px; color:rgba(255,255,255,0.4);">{{ $conversation->contact->phone }}</p>
                     </div>
                 </div>
             </template>
