@@ -126,6 +126,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('pricing', fn() => view('admin.pricing.index'))->name('pricing.index');
         Route::get('proposals', fn() => view('admin.proposals.index'))->name('proposals.index');
         Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
+        Route::get('quick-replies', fn() => view('admin.quick-replies.index'))->name('quick-replies.index');
     });
 
     // Download de mídia (proxy para evitar CORS em URLs externas)

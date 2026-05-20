@@ -1212,6 +1212,32 @@ function senderColor(?string $identifier): string {
             </div>
             @endif
 
+            {{-- Painel de respostas rápidas --}}
+            @if($showQuickReplies)
+            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:250px; overflow:hidden; display:flex; flex-direction:column;">
+                <div style="padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
+                    <svg width="14" height="14" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <input wire:model.live.debounce.200ms="quickReplySearch" type="text" placeholder="Buscar resposta rápida..."
+                           style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
+                    <button wire:click="$set('showQuickReplies', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:14px;">✕</button>
+                </div>
+                <div style="overflow-y:auto; max-height:200px;">
+                    @forelse($quickReplies as $qr)
+                    <button wire:click="useQuickReply('{{ addslashes($qr->content) }}')"
+                            style="width:100%; text-align:left; padding:10px 12px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.1s; color:white;"
+                            onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
+                        <p style="font-size:12px; font-weight:600; color:#b2ff00; margin:0 0 2px;">⚡ {{ $qr->title }}</p>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.4); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;">{{ \Illuminate\Support\Str::limit($qr->content, 80) }}</p>
+                    </button>
+                    @empty
+                    <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">
+                        {{ $quickReplySearch ? 'Nenhuma resposta encontrada.' : 'Nenhuma resposta rápida cadastrada. Crie em Respostas Rápidas no admin.' }}
+                    </p>
+                    @endforelse
+                </div>
+            </div>
+            @endif
+
             {{-- Preview imagem colada --}}
             <template x-if="pastedImage">
                 <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(178,255,0,0.06); border:1px solid rgba(178,255,0,0.2); border-radius:10px; margin-bottom:4px;">
@@ -1257,6 +1283,14 @@ function senderColor(?string $identifier): string {
                     x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $wire.set('messageText', ''); $el.focus()"
                     x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'; $el.focus(); })"
                 ></textarea>
+                {{-- Quick Reply button --}}
+                <button type="button" @click.stop="$wire.set('showQuickReplies', !$wire.showQuickReplies)" title="Respostas rápidas"
+                        style="padding:8px 6px 10px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; transition:color 0.15s; flex-shrink:0;"
+                        onmouseover="this.style.color='#b2ff00'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </button>
                 {{-- Emoji button --}}
                 <button type="button" @click.stop="const r=$el.getBoundingClientRect(); emojiPos={bottom: window.innerHeight - r.top + 8, right: window.innerWidth - r.right}; showEmoji=!showEmoji" title="Emojis"
                         style="padding:8px 10px 10px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; transition:color 0.15s; flex-shrink:0;"
