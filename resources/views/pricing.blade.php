@@ -523,17 +523,17 @@ function pricingSimulator() {
 
             let logoWhite = null, logoColor = null;
             try {
-                logoWhite = await loadAndCompress('/images/logo-flut-white.png', 400, 0.8);
-                logoColor = await loadAndCompress('/images/logo-flut-large.png', 300, 0.8);
+                logoWhite = await loadAndCompress('/images/logo-flut-white.png', 600, 0.9);
+                logoColor = await loadAndCompress('/images/logo-flut-large.png', 500, 0.9);
             } catch(e) {}
 
-            // Carregar screenshots dos módulos (comprimidos)
+            // Carregar screenshots dos módulos (boa qualidade)
             const moduleScreenshots = {};
             for (const key of ['multi','crm','email','ia','integrations']) {
                 const configKey = key === 'integrations' ? 'integration' : key;
                 const url = C[configKey + '_screenshot'];
                 if (url) {
-                    try { moduleScreenshots[key] = await loadAndCompress(url, 600, 0.5); } catch(e) {}
+                    try { moduleScreenshots[key] = await loadAndCompress(url, 1200, 0.75); } catch(e) {}
                 }
             }
 
