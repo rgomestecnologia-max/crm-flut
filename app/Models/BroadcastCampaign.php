@@ -15,15 +15,17 @@ class BroadcastCampaign extends Model
     protected $fillable = [
         'company_id', 'name', 'channel', 'message', 'meta_template_name', 'subject', 'html_content',
         'image_path', 'status', 'interval_seconds', 'scheduled_at', 'total_recipients',
+        'recipient_mode', 'filter_tag', 'manual_recipient_ids',
         'sent_count', 'failed_count', 'started_at', 'completed_at', 'created_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'scheduled_at'  => 'datetime',
-            'started_at'    => 'datetime',
-            'completed_at'  => 'datetime',
+            'scheduled_at'         => 'datetime',
+            'started_at'           => 'datetime',
+            'completed_at'         => 'datetime',
+            'manual_recipient_ids' => 'array',
         ];
     }
 

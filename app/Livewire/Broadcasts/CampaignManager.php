@@ -34,6 +34,8 @@ class CampaignManager extends Component
     public ?string $existingImageUrl = null;
     public string $filterTag            = '';
     public string $recipientMode        = 'all';
+    public array  $manualRecipientIds   = [];
+    public string $contactSearch        = '';
     public string $meta_template_name   = '';
     public string $scheduled_at         = '';
 
@@ -43,7 +45,7 @@ class CampaignManager extends Component
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode', 'scheduled_at', 'existingLogoUrl', 'existingImageUrl');
+        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode', 'manualRecipientIds', 'contactSearch', 'scheduled_at', 'existingLogoUrl', 'existingImageUrl');
         $this->emailColor = '#2563eb';
         $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
@@ -130,10 +132,13 @@ class CampaignManager extends Component
             'message'             => $this->message ?: null,
             'meta_template_name'  => ($this->channel === 'whatsapp' && $this->meta_template_name) ? $this->meta_template_name : null,
             'subject'          => $this->channel === 'email' ? $this->subject : null,
-            'status'           => $isScheduled ? 'scheduled' : 'draft',
-            'interval_seconds' => $this->interval_seconds,
-            'scheduled_at'     => $this->scheduled_at ?: null,
-            'total_recipients' => $recipientCount,
+            'status'               => $isScheduled ? 'scheduled' : 'draft',
+            'interval_seconds'     => $this->interval_seconds,
+            'scheduled_at'         => $this->scheduled_at ?: null,
+            'total_recipients'     => $recipientCount,
+            'recipient_mode'       => $this->recipientMode,
+            'filter_tag'           => $this->recipientMode === 'tag' ? ($this->filterTag ?: null) : null,
+            'manual_recipient_ids' => $this->recipientMode === 'manual' ? $this->manualRecipientIds : null,
         ];
 
         if ($htmlContent) $campaignData['html_content'] = $htmlContent;
@@ -227,8 +232,9 @@ class CampaignManager extends Component
         $this->meta_template_name = $campaign->meta_template_name ?? '';
         $this->scheduled_at       = $campaign->scheduled_at ? \Carbon\Carbon::parse($campaign->scheduled_at)->format('Y-m-d\TH:i') : '';
         $this->interval_seconds   = $campaign->interval_seconds ?? 10;
-        $this->recipientMode      = 'all';
-        $this->filterTag          = '';
+        $this->recipientMode      = $campaign->recipient_mode ?? 'all';
+        $this->filterTag          = $campaign->filter_tag ?? '';
+        $this->manualRecipientIds = $campaign->manual_recipient_ids ?? [];
         $this->campaignImage      = null;
         $this->emailLogo          = null;
         $this->emailImage         = null;
@@ -268,8 +274,11 @@ class CampaignManager extends Component
     {
         $campaign = BroadcastCampaign::findOrFail($campaignId);
 
-        // Usa o channel da campanha para filtrar corretamente
-        $this->channel = $campaign->channel;
+        // Restaura filtros da campanha para buscar destinatários corretos
+        $this->channel          = $campaign->channel;
+        $this->recipientMode    = $campaign->recipient_mode ?? 'all';
+        $this->filterTag        = $campaign->filter_tag ?? '';
+        $this->manualRecipientIds = $campaign->manual_recipient_ids ?? [];
         $recipients = $this->getRecipientsQuery()->get();
         $run = BroadcastCampaignRun::create([
             'campaign_id'      => $campaign->id,
@@ -350,11 +359,22 @@ class CampaignManager extends Component
 
         if ($this->recipientMode === 'tag' && $this->filterTag) {
             $query->whereJsonContains('tags', $this->filterTag);
+        } elseif ($this->recipientMode === 'manual' && !empty($this->manualRecipientIds)) {
+            $query->whereIn('id', $this->manualRecipientIds);
         }
         if ($this->channel === 'email') {
             $query->whereNotNull('email')->where('email', '!=', '');
         }
         return $query;
+    }
+
+    public function toggleRecipient(int $id): void
+    {
+        if (in_array($id, $this->manualRecipientIds)) {
+            $this->manualRecipientIds = array_values(array_diff($this->manualRecipientIds, [$id]));
+        } else {
+            $this->manualRecipientIds[] = $id;
+        }
     }
 
     private function getAllActiveContacts()
@@ -372,13 +392,22 @@ class CampaignManager extends Component
         $allTags = BroadcastContact::whereNotNull('tags')->pluck('tags')->flatten()->unique()->sort()->values();
         $activeLeadCount = BroadcastContact::where('is_active', true)->count();
         $emailLeadCount = BroadcastContact::where('is_active', true)->whereNotNull('email')->where('email', '!=', '')->count();
+        $allContacts = collect();
+        if ($this->recipientMode === 'manual') {
+            $q = BroadcastContact::where('is_active', true)->orderBy('name');
+            if ($this->contactSearch) {
+                $s = $this->contactSearch;
+                $q->where(fn($q2) => $q2->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"));
+            }
+            $allContacts = $q->limit(100)->get();
+        }
         $company = app(\App\Services\CurrentCompany::class)->model();
         $sendgridConfigured = !empty($company?->sendgrid_api_key) || !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
         $isMeta        = WhatsAppProvider::isMeta();
         $metaTemplates = $isMeta ? MetaMessageTemplate::approved()->orderBy('name')->get() : collect();
 
         return view('livewire.broadcasts.campaign-manager', compact(
-            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured', 'isMeta', 'metaTemplates'
+            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'allContacts', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured', 'isMeta', 'metaTemplates'
         ));
     }
 }

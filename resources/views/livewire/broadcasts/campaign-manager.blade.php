@@ -301,19 +301,54 @@
                                 style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white;">
                             <option value="all">Todos os leads ativos ({{ $activeLeadCount }})</option>
                             <option value="tag">Filtrar por tag</option>
+                            <option value="manual">Selecionar manualmente</option>
                         </select>
                     </div>
                 </div>
                 @if($recipientMode === 'tag')
                 <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Tag</label>
-                    <select wire:model="filterTag"
+                    <select wire:model.live="filterTag"
                             style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white;">
                         <option value="">Selecione...</option>
                         @foreach($allTags as $tag)
                         <option value="{{ $tag }}">{{ $tag }}</option>
                         @endforeach
                     </select>
+                </div>
+                @endif
+                @if($recipientMode === 'manual')
+                <div style="margin-top:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Selecionar destinatários</label>
+                        @if(count($manualRecipientIds) > 0)
+                        <span style="font-size:11px; font-weight:700; color:#b2ff00;">{{ count($manualRecipientIds) }} selecionado(s)</span>
+                        @endif
+                    </div>
+                    <input wire:model.live.debounce.300ms="contactSearch" type="text" placeholder="Buscar por nome ou telefone..."
+                           style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; margin-bottom:6px;">
+                    <div style="max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.06); border-radius:8px; background:rgba(0,0,0,0.2);">
+                        @foreach($allContacts as $contact)
+                        @php $isSelected = in_array($contact->id, $manualRecipientIds); @endphp
+                        <div wire:click="toggleRecipient({{ $contact->id }})"
+                             style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.1s; {{ $isSelected ? 'background:rgba(178,255,0,0.08);' : '' }}"
+                             onmouseover="this.style.background='{{ $isSelected ? 'rgba(178,255,0,0.12)' : 'rgba(255,255,255,0.04)' }}'"
+                             onmouseout="this.style.background='{{ $isSelected ? 'rgba(178,255,0,0.08)' : 'transparent' }}'">
+                            <div style="width:18px; height:18px; border-radius:4px; border:2px solid {{ $isSelected ? '#b2ff00' : 'rgba(255,255,255,0.2)' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0; {{ $isSelected ? 'background:#b2ff00;' : '' }}">
+                                @if($isSelected)
+                                <svg width="10" height="10" fill="none" stroke="#111" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                                @endif
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <p style="font-size:12px; color:white; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $contact->name ?? 'Sem nome' }}</p>
+                                <p style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $contact->phone }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                        @if($allContacts->isEmpty())
+                        <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">Nenhum contato encontrado</p>
+                        @endif
+                    </div>
                 </div>
                 @endif
             </div>
