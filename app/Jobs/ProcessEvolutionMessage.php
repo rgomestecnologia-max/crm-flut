@@ -324,6 +324,11 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'status'                   => 'open',
                         'is_group'                 => false,
                     ]);
+
+                    // Machinery Prime: criar card no pipeline Comercial quando conversa nova no dept Comercial
+                    if ($companyId === 11 && $department->name === 'Comercial') {
+                        $this->createCardForDepartment($contact, $department);
+                    }
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
                     $conversation->update([
@@ -922,6 +927,46 @@ class ProcessEvolutionMessage implements ShouldQueue
             MediaStorage::put($thumbRelative, $thumb);
         } catch (\Throwable $e) {
             Log::warning('saveVideoThumbnail falhou', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Cria card no pipeline vinculado ao departamento (Machinery Prime: Comercial).
+     */
+    private function createCardForDepartment($contact, $department): void
+    {
+        try {
+            $pipeline = \App\Models\CrmPipeline::where('name', 'Comercial')->first();
+            $firstStage = $pipeline?->stages()->orderBy('sort_order')->first();
+            if (!$pipeline || !$firstStage) return;
+
+            $exists = \App\Models\CrmCard::where('contact_id', $contact->id)
+                ->where('pipeline_id', $pipeline->id)
+                ->exists();
+
+            if (!$exists) {
+                $card = \App\Models\CrmCard::create([
+                    'pipeline_id' => $pipeline->id,
+                    'stage_id'    => $firstStage->id,
+                    'contact_id'  => $contact->id,
+                    'title'       => $contact->display_name,
+                ]);
+
+                \App\Models\CrmCardActivity::create([
+                    'card_id' => $card->id,
+                    'type'    => 'note',
+                    'content' => 'Card criado automaticamente (novo lead via WhatsApp ' . $department->name . ')',
+                ]);
+
+                Log::info('Card criado automaticamente', [
+                    'card'     => $card->id,
+                    'contact'  => $contact->name,
+                    'pipeline' => $pipeline->name,
+                    'dept'     => $department->name,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('createCardForDepartment falhou', ['error' => $e->getMessage()]);
         }
     }
 
