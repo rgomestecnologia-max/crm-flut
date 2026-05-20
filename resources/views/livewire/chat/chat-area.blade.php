@@ -1160,7 +1160,7 @@ function senderColor(?string $identifier): string {
             <div style="display:grid; grid-template-columns:repeat(9, 1fr); gap:2px; max-height:200px; overflow-y:auto;">
                 @foreach(['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','🤗','🤩','😐','🙄','😏','😔','😴','😷','🤒','🤧','🥵','🤯','😈','💀','💩','👻','🤖','💪','👋','👌','✌','🤞','👍','👎','✊','👏','🙌','🤝','🙏','❤','🧡','💛','💚','💙','💜','🖤','💔','💯','🔥','✨','⭐','🎉','🎊','🎈','🎁','🏆','🥇','👀','💡','💬','📱','💻','⏰','📅','✅','❌','⚠️','🔔','📢','💰','💳','🛒','🚀','✈️','🌍','🏠','🚗','🍕','🍔','🍟','🌮','🍜','🍣','🍦','🎂','🍺','🍻','☕','🧃','🌹','🌺','🌸','🌻','🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🦋','🌈','⛅','🌙','⚡','🌊'] as $emoji)
                     <button type="button"
-                            @click.stop="$wire.set('messageText', ($wire.messageText||'') + '{{ $emoji }}'); showEmoji=false;"
+                            @click.stop="$wire.set('messageText', ($wire.messageText||'') + '{{ $emoji }}'); showEmoji=false; $dispatch('focus-message-input');"
                             style="font-size:18px; padding:4px; border-radius:6px; border:none; background:transparent; cursor:pointer; text-align:center; line-height:1; transition:background 0.1s;"
                             onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">{{ $emoji }}</button>
                 @endforeach

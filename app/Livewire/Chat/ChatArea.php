@@ -691,6 +691,7 @@ class ChatArea extends Component
     {
         $this->messageText      = $content;
         $this->showQuickReplies = false;
+        $this->dispatch('focus-message-input');
     }
 
     public function toggleTag(int $tagId): void
