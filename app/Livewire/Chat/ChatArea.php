@@ -487,6 +487,53 @@ class ChatArea extends Component
         $this->dispatch('scroll-to-bottom');
     }
 
+    public function sendPastedImage(string $dataUrl): void
+    {
+        if (!$this->conversationId) return;
+
+        [$header, $base64] = explode(',', $dataUrl, 2);
+        $raw = base64_decode($base64);
+        if (!$raw || strlen($raw) < 100) return;
+
+        $dir       = 'attachments/' . date('Y/m');
+        $baseName  = uniqid('paste_', true);
+        $optimizer = app(\App\Services\ImageOptimizer::class);
+        $result    = $optimizer->tryOptimize($raw, 'image/png');
+
+        if ($result) {
+            $path = "{$dir}/{$baseName}.webp";
+            \App\Services\MediaStorage::put($path, $result['optimized']);
+            $thumbPath = "{$dir}/{$baseName}_thumb.webp";
+            \App\Services\MediaStorage::put($thumbPath, $result['thumbnail']);
+        } else {
+            $path = "{$dir}/{$baseName}.png";
+            \App\Services\MediaStorage::put($path, $raw);
+        }
+
+        $url = \App\Services\MediaStorage::url($path);
+
+        $message = Message::create([
+            'conversation_id' => $this->conversationId,
+            'sender_type'     => 'agent',
+            'sender_id'       => Auth::id(),
+            'type'            => 'image',
+            'media_url'       => $url,
+            'delivery_status' => 'pending',
+        ]);
+
+        $updates = ['last_message_at' => now()];
+        if (!$this->conversation->assigned_to) {
+            $updates['assigned_to'] = Auth::id();
+            $updates['status']      = 'open';
+        }
+        $this->conversation->update($updates);
+
+        try { SendWhatsAppMessage::dispatch($message, $dataUrl); } catch (\Throwable) {}
+        try { broadcast(new MessageReceived($message)); } catch (\Throwable) {}
+
+        $this->dispatch('scroll-to-bottom');
+    }
+
     public function cancelFile(): void
     {
         $this->pendingFile    = null;

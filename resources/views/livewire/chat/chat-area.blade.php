@@ -1196,6 +1196,21 @@ function senderColor(?string $identifier): string {
                     wire:model="messageText"
                     wire:ignore
                     x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); $wire.sendMessage(); }"
+                    x-on:paste="
+                        const items = $event.clipboardData?.items;
+                        if (items) {
+                            for (const item of items) {
+                                if (item.type.startsWith('image/')) {
+                                    $event.preventDefault();
+                                    const file = item.getAsFile();
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => $wire.sendPastedImage(e.target.result);
+                                    reader.readAsDataURL(file);
+                                    return;
+                                }
+                            }
+                        }
+                    "
                     placeholder="{{ $editingMessageId ? 'Edite a mensagem...' : 'Digite uma mensagem...' }}"
                     rows="1"
                     style="flex:1; background:transparent; padding:10px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:200px; font-family:inherit; line-height:1.5; overflow-y:auto;"
