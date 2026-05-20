@@ -107,9 +107,9 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         <div style="margin-top:18px;">
             <label style="{{ $labelStyle }}">Horário de trabalho</label>
             <p style="font-size:11px; color:rgba(255,255,255,0.3); margin:-2px 0 10px;">
-                Se preenchido, o agente só pode fazer login dentro deste horário. Deixe em branco para sem restrição.
+                Se preenchido, o agente só pode fazer login dentro deste horário e nos dias selecionados.
             </p>
-            <div style="display:flex; gap:12px; align-items:center;">
+            <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
                 <div>
                     <label style="font-size:10px; color:rgba(255,255,255,0.3);">Entrada</label>
                     <input wire:model="work_start" type="time" style="{{ $inputStyle }} width:130px;" {!! $inputFocus !!}>
@@ -120,6 +120,20 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     <input wire:model="work_end" type="time" style="{{ $inputStyle }} width:130px;" {!! $inputFocus !!}>
                 </div>
             </div>
+            <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; display:block;">Dias da semana</label>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                @foreach(['seg' => 'Seg', 'ter' => 'Ter', 'qua' => 'Qua', 'qui' => 'Qui', 'sex' => 'Sex', 'sab' => 'Sáb', 'dom' => 'Dom'] as $key => $label)
+                @php $checked = in_array($key, $work_days); @endphp
+                <label style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px; cursor:pointer; transition:all 0.15s;
+                              background:{{ $checked ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.03)' }};
+                              border:1px solid {{ $checked ? 'rgba(178,255,0,0.4)' : 'rgba(255,255,255,0.07)' }};">
+                    <input type="checkbox" value="{{ $key }}" wire:model.live="work_days"
+                           style="width:14px; height:14px; accent-color:#b2ff00; cursor:pointer;">
+                    <span style="font-size:11px; font-weight:600; color:{{ $checked ? '#b2ff00' : 'rgba(255,255,255,0.5)' }};">{{ $label }}</span>
+                </label>
+                @endforeach
+            </div>
+            <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:6px;">Deixe todos desmarcados para sem restrição de dia.</p>
         </div>
 
         {{-- Módulos do agente --}}
@@ -236,6 +250,14 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                         <span style="font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; margin-left:4px;
                                      background:rgba(96,165,250,0.12); color:#60a5fa; border:1px solid rgba(96,165,250,0.2);">
                             {{ substr($agent->work_start, 0, 5) }}-{{ substr($agent->work_end, 0, 5) }}
+                            @if(!empty($agent->work_days))
+                                · {{ implode(',', array_map(fn($d) => ucfirst($d), $agent->work_days)) }}
+                            @endif
+                        </span>
+                        @elseif(!empty($agent->work_days))
+                        <span style="font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; margin-left:4px;
+                                     background:rgba(96,165,250,0.12); color:#60a5fa; border:1px solid rgba(96,165,250,0.2);">
+                            {{ implode(',', array_map(fn($d) => ucfirst($d), $agent->work_days)) }}
                         </span>
                         @endif
                     </td>

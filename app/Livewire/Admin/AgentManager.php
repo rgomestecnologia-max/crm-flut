@@ -25,10 +25,11 @@ class AgentManager extends Component
     public array  $agent_modules = [];
     public string $work_start = '';
     public string $work_end   = '';
+    public array  $work_days  = [];
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'email', 'password', 'role', 'department_id', 'extra_department_ids', 'is_active', 'agent_modules', 'work_start', 'work_end');
+        $this->reset('editingId', 'name', 'email', 'password', 'role', 'department_id', 'extra_department_ids', 'is_active', 'agent_modules', 'work_start', 'work_end', 'work_days');
         $this->role           = 'agent';
         $this->is_active      = true;
         $this->agent_modules  = $this->getCompanyPrincipalModules();
@@ -54,6 +55,7 @@ class AgentManager extends Component
         $this->agent_modules        = $user->modules ?? $this->getCompanyPrincipalModules();
         $this->work_start           = $user->work_start ? substr($user->work_start, 0, 5) : '';
         $this->work_end             = $user->work_end ? substr($user->work_end, 0, 5) : '';
+        $this->work_days            = $user->work_days ?? [];
         $this->showForm             = true;
     }
 
@@ -114,6 +116,7 @@ class AgentManager extends Component
         // Horário de trabalho
         $validated['work_start'] = $this->work_start ?: null;
         $validated['work_end']   = $this->work_end ?: null;
+        $validated['work_days']  = !empty($this->work_days) ? array_values($this->work_days) : null;
 
         $currentCompanyId = app(CurrentCompany::class)->id();
 

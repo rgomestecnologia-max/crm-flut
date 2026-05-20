@@ -30,13 +30,19 @@ class AuthController extends Controller
         if (Auth::attempt(array_merge($credentials, ['is_active' => true]), $remember)) {
             // Verificar horário de trabalho (não aplica para admin/supervisor)
             if (!Auth::user()->isWithinWorkHours()) {
-                $start = substr(Auth::user()->work_start, 0, 5);
-                $end   = substr(Auth::user()->work_end, 0, 5);
+                $user = Auth::user();
+                $msg  = 'Acesso fora do horário permitido.';
+                if ($user->work_start && $user->work_end) {
+                    $msg .= ' Horário: ' . substr($user->work_start, 0, 5) . ' às ' . substr($user->work_end, 0, 5) . '.';
+                }
+                if (!empty($user->work_days)) {
+                    $dayLabels = ['seg'=>'Seg','ter'=>'Ter','qua'=>'Qua','qui'=>'Qui','sex'=>'Sex','sab'=>'Sáb','dom'=>'Dom'];
+                    $dias = implode(', ', array_map(fn($d) => $dayLabels[$d] ?? $d, $user->work_days));
+                    $msg .= " Dias: {$dias}.";
+                }
                 Auth::logout();
                 $request->session()->invalidate();
-                return back()->withErrors([
-                    'email' => "Acesso permitido apenas no horário de trabalho ({$start} às {$end}).",
-                ])->onlyInput('email');
+                return back()->withErrors(['email' => $msg])->onlyInput('email');
             }
 
             $request->session()->regenerate();

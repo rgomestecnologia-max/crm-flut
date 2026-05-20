@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'password', 'role', 'department_id', 'company_id',
-        'avatar', 'status', 'is_active', 'modules', 'work_start', 'work_end', 'last_seen_at',
+        'avatar', 'status', 'is_active', 'modules', 'work_start', 'work_end', 'work_days', 'last_seen_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -30,6 +30,7 @@ class User extends Authenticatable
             'password'          => 'hashed',
             'is_active'         => 'boolean',
             'modules'           => 'array',
+            'work_days'         => 'array',
             'last_seen_at'      => 'datetime',
         ];
     }
@@ -180,9 +181,20 @@ class User extends Authenticatable
     public function isWithinWorkHours(): bool
     {
         if ($this->canManageCompany()) return true;
+
+        $hoje = now('America/Sao_Paulo');
+
+        // Verificar dia da semana
+        if (!empty($this->work_days)) {
+            $dayMap = [0 => 'dom', 1 => 'seg', 2 => 'ter', 3 => 'qua', 4 => 'qui', 5 => 'sex', 6 => 'sab'];
+            $todayKey = $dayMap[$hoje->dayOfWeek];
+            if (!in_array($todayKey, $this->work_days)) return false;
+        }
+
+        // Verificar horário
         if (!$this->work_start || !$this->work_end) return true;
 
-        $now   = now('America/Sao_Paulo')->format('H:i');
+        $now   = $hoje->format('H:i');
         $start = substr($this->work_start, 0, 5);
         $end   = substr($this->work_end, 0, 5);
 
