@@ -82,6 +82,11 @@ class LeadManager extends Component
             $this->dispatch('toast', type: 'success', message: 'Lead adicionado.');
         }
 
+        // Sincronizar nome com Contact do atendimento
+        if ($this->name && $phone) {
+            \App\Models\Contact::where('phone', $phone)->update(['name' => $this->name]);
+        }
+
         $this->showForm = false;
     }
 
