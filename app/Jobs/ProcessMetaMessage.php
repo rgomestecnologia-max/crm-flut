@@ -74,6 +74,16 @@ class ProcessMetaMessage implements ShouldQueue
                 $contact->update(['name' => $contactName]);
             }
 
+            // ── Registrar como lead (menu Leads / Disparos) ────────────────
+            if ($contact->phone) {
+                try {
+                    \App\Models\BroadcastContact::firstOrCreate(
+                        ['company_id' => $this->companyId, 'phone' => $contact->phone],
+                        ['name' => $contact->name, 'is_active' => true, 'tags' => ['atendimento']]
+                    );
+                } catch (\Throwable) {}
+            }
+
             // ── Conversa ─────────────────────────────────────────────────
             $conversation = Conversation::where('contact_id', $contact->id)
                 ->where('is_group', false)

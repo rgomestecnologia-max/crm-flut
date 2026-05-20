@@ -266,6 +266,16 @@ class ProcessEvolutionMessage implements ShouldQueue
                 }
             }
 
+            // ── Registrar como lead (menu Leads / Disparos) ────────────────
+            if (!$isGroup && !$fromMe && $contact->phone) {
+                try {
+                    \App\Models\BroadcastContact::firstOrCreate(
+                        ['company_id' => $companyId, 'phone' => $contact->phone],
+                        ['name' => $contact->name, 'is_active' => true, 'tags' => ['atendimento']]
+                    );
+                } catch (\Throwable) {}
+            }
+
             // ── Conversa ─────────────────────────────────────────────────────
             if ($isGroup) {
                 // $groupName já definido na seção de contato acima
