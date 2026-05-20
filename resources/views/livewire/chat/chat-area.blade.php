@@ -1210,7 +1210,7 @@ function senderColor(?string $identifier): string {
                 <textarea
                     wire:model="messageText"
                     wire:ignore
-                    x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); $wire.sendMessage(); }"
+                    x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage(); } }"
                     x-on:paste="
                         const items = $event.clipboardData?.items;
                         if (items) {
