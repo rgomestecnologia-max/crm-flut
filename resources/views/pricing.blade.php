@@ -227,10 +227,16 @@
             <div class="result-row">
                 <div class="result-item">
                     <p class="label">Implantação (único)</p>
+                    <template x-if="discountPercent > 0">
+                        <p style="font-size:13px; color:rgba(100,100,100,0.6); text-decoration:line-through; margin:0 0 2px;">R$ <span x-text="fmt(originalTotal.setup)"></span></p>
+                    </template>
                     <p class="value blue">R$ <span x-text="fmt(total.setup)"></span></p>
                 </div>
                 <div class="result-item">
                     <p class="label">Mensalidade</p>
+                    <template x-if="discountPercent > 0">
+                        <p style="font-size:13px; color:rgba(100,100,100,0.6); text-decoration:line-through; margin:0 0 2px;">R$ <span x-text="fmt(originalTotal.monthly)"></span></p>
+                    </template>
                     <p class="value green">R$ <span x-text="fmt(total.monthly)"></span></p>
                 </div>
             </div>
@@ -372,6 +378,7 @@ function pricingSimulator() {
         ia: { flows: existing?.config?.ia_flows ?? 1 },
         integrations: { count: existing?.config?.integrations_count ?? 1 },
         total: { monthly: 0, setup: 0 },
+        originalTotal: { monthly: 0, setup: 0 },
         detail: {},
         clientName: existing?.client_name ?? '',
         savedId: existing?.id ?? null,
@@ -433,6 +440,10 @@ function pricingSimulator() {
                 this.detail.int_setup = s;
                 monthly += m; setup += s;
             }
+
+            // Salva originais antes do desconto
+            this.originalTotal.monthly = monthly;
+            this.originalTotal.setup = setup;
 
             // Aplica desconto se existir
             if (this.discountPercent > 0) {
@@ -763,6 +774,10 @@ function pricingSimulator() {
 
             // Tabela resumo
             let summaryItems = moduleData.map(m => [m.title, 'R$ ' + fmt(m.monthly) + '/mês', 'R$ ' + fmt(m.setup)]);
+            if (this.discountPercent > 0) {
+                summaryItems.push(['Subtotal (antes do desconto)', 'R$ ' + fmt(this.originalTotal.monthly) + '/mês', 'R$ ' + fmt(this.originalTotal.setup)]);
+                summaryItems.push(['Desconto ' + this.discountPercent + '%', '- R$ ' + fmt(this.originalTotal.monthly - this.total.monthly) + '/mês', '- R$ ' + fmt(this.originalTotal.setup - this.total.setup)]);
+            }
             summaryItems.push(['TOTAL', 'R$ ' + fmt(this.total.monthly) + '/mês', 'R$ ' + fmt(this.total.setup)]);
 
             doc.autoTable({
@@ -775,13 +790,28 @@ function pricingSimulator() {
                 bodyStyles: { fontSize: 10, textColor: [51, 51, 51], cellPadding: 5 },
                 alternateRowStyles: { fillColor: [250, 250, 252] },
                 didParseCell: function(data) {
-                    if (data.section === 'body' && data.row.index === summaryItems.length - 1) {
+                    const lastIdx = summaryItems.length - 1;
+                    const discountIdx = lastIdx - 1;
+                    const subtotalIdx = lastIdx - 2;
+                    // Linha TOTAL
+                    if (data.section === 'body' && data.row.index === lastIdx) {
                         data.cell.styles.fillColor = [240, 253, 244];
                         data.cell.styles.fontStyle = 'bold';
                         data.cell.styles.fontSize = 11;
                         if (data.column.index === 1) data.cell.styles.textColor = [34, 197, 94];
                         else if (data.column.index === 2) data.cell.styles.textColor = [59, 130, 246];
                         else data.cell.styles.textColor = [17, 17, 17];
+                    }
+                    // Linha de desconto (amarela)
+                    if (data.section === 'body' && data.row.raw && data.row.raw[0] && data.row.raw[0].startsWith('Desconto')) {
+                        data.cell.styles.fillColor = [255, 251, 235];
+                        data.cell.styles.textColor = [146, 64, 14];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                    // Linha subtotal (cinza claro)
+                    if (data.section === 'body' && data.row.raw && data.row.raw[0] && data.row.raw[0].startsWith('Subtotal')) {
+                        data.cell.styles.textColor = [150, 150, 150];
+                        data.cell.styles.fontStyle = 'italic';
                     }
                 }
             });
