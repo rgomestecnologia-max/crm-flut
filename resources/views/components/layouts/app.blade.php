@@ -102,6 +102,8 @@
             .mobile-p-sm { padding: 12px !important; }
             .mobile-scroll-x { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
         }
+        /* Fix: opções de select visíveis no tema escuro */
+        select option { background: #1a1f2e; color: #e5e7eb; }
     </style>
 </head>
 <body style="background:#080C16; color:#e5e7eb;" class="antialiased" x-data="{ sidebarOpen: window.innerWidth > 768, mobileMenu: false }" x-effect="document.body.classList.toggle('mobile-menu-open', mobileMenu && window.innerWidth <= 768)" @resize.window="if(window.innerWidth > 768) { mobileMenu = false; sidebarOpen = true; }">
