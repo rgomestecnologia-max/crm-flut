@@ -631,6 +631,18 @@ class ChatArea extends Component
         $this->showQuickReplies = false;
     }
 
+    public function toggleTag(int $tagId): void
+    {
+        if (!$this->conversationId) return;
+        $conv = $this->conversation;
+        if ($conv->tags()->where('tags.id', $tagId)->exists()) {
+            $conv->tags()->detach($tagId);
+        } else {
+            $conv->tags()->attach($tagId);
+        }
+        $this->conversation->refresh();
+    }
+
     public function resolveConversation(): void
     {
         if (!$this->conversationId) return;

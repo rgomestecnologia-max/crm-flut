@@ -125,6 +125,18 @@
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
+        // Tags como filtros
+        foreach ($tags as $tag) {
+            $tagColor = $tag->color ?: '#8b5cf6';
+            $tabs[] = [
+                'key'         => 'tag_' . $tag->id,
+                'label'       => $tag->name,
+                'count'       => $tagCounts[$tag->id] ?? 0,
+                'color'       => $tagColor,
+                'activeBg'    => $tagColor . '20',
+                'activeColor' => $tagColor,
+            ];
+        }
         @endphp
         @foreach($tabs as $tab)
         <button wire:click="setFilter('{{ $tab['key'] }}')"

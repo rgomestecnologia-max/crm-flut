@@ -272,6 +272,12 @@ class ConversationList extends Component
             default    => null,
         };
 
+        // Filtro por tag (ex: 'tag_5' filtra pela tag ID 5)
+        if (str_starts_with($this->filter, 'tag_')) {
+            $tagId = (int) substr($this->filter, 4);
+            $query->whereHas('tags', fn($q) => $q->where('tags.id', $tagId));
+        }
+
         if ($this->search) {
             $search = $this->search;
             $query->where(function ($q) use ($search) {
@@ -301,6 +307,15 @@ class ConversationList extends Component
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
 
-        return view('livewire.chat.conversation-list', compact('conversations', 'counts', 'departments'));
+        // Tags da empresa para filtros na sidebar
+        $tags = \App\Models\Tag::orderBy('name')->get();
+        $tagCounts = [];
+        foreach ($tags as $tag) {
+            $tagCounts[$tag->id] = (clone $baseQuery)
+                ->whereHas('tags', fn($q) => $q->where('tags.id', $tag->id))
+                ->count();
+        }
+
+        return view('livewire.chat.conversation-list', compact('conversations', 'counts', 'departments', 'tags', 'tagCounts'));
     }
 }

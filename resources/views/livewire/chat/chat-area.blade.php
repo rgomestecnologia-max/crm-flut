@@ -151,6 +151,20 @@ function senderColor(?string $identifier): string {
                 </button>
             @endif
 
+            {{-- Tags --}}
+            @php $convTags = $conversation->tags->pluck('id')->toArray(); $allTags = \App\Models\Tag::orderBy('name')->get(); @endphp
+            @if($allTags->isNotEmpty())
+            <div style="display:flex; gap:4px; align-items:center;">
+                @foreach($allTags as $tag)
+                @php $hasTag = in_array($tag->id, $convTags); @endphp
+                <button wire:click="toggleTag({{ $tag->id }})" title="{{ $hasTag ? 'Remover' : 'Adicionar' }} tag {{ $tag->name }}"
+                        style="display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:600; cursor:pointer; transition:all 0.15s; border:1px solid {{ $hasTag ? ($tag->color ?: '#8b5cf6') . '60' : 'rgba(255,255,255,0.08)' }}; background:{{ $hasTag ? ($tag->color ?: '#8b5cf6') . '20' : 'transparent' }}; color:{{ $hasTag ? ($tag->color ?: '#8b5cf6') : 'rgba(255,255,255,0.3)' }};">
+                    {{ $tag->name }}
+                </button>
+                @endforeach
+            </div>
+            @endif
+
             {{-- Delete button (admin + supervisor) --}}
             @if(auth()->user()->canManageCompany())
             <button wire:click="deleteConversation"
