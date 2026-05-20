@@ -151,8 +151,8 @@ function senderColor(?string $identifier): string {
                 </button>
             @endif
 
-            {{-- Delete button (admin only) --}}
-            @if(auth()->user()->isAdmin())
+            {{-- Delete button (admin + supervisor) --}}
+            @if(auth()->user()->canManageCompany())
             <button wire:click="deleteConversation"
                     wire:confirm="Excluir esta conversa permanentemente do CRM? Esta ação não pode ser desfeita."
                     style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; background:rgba(239,68,68,0.08); color:rgba(239,68,68,0.6); border:1px solid rgba(239,68,68,0.15); cursor:pointer; transition:all 0.2s;"

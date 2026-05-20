@@ -674,7 +674,7 @@ class ChatArea extends Component
 
     public function deleteConversation(): void
     {
-        if (!$this->conversationId || !Auth::user()->isAdmin()) return;
+        if (!$this->conversationId || !Auth::user()->canManageCompany()) return;
 
         $conv = $this->conversation;
 
