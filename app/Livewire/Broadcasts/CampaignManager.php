@@ -42,6 +42,8 @@ class CampaignManager extends Component
     // Detail
     public ?int $viewingCampaignId = null;
     public ?int $previewingId      = null;
+    public bool $showReport        = false;
+    public ?int $reportCampaignId  = null;
 
     public function openCreate(): void
     {
@@ -368,6 +370,18 @@ class CampaignManager extends Component
         return $query;
     }
 
+    public function openReport(?int $campaignId = null): void
+    {
+        $this->reportCampaignId = $campaignId;
+        $this->showReport = true;
+    }
+
+    public function closeReport(): void
+    {
+        $this->showReport = false;
+        $this->reportCampaignId = null;
+    }
+
     public function toggleRecipient(int $id): void
     {
         if (in_array($id, $this->manualRecipientIds)) {
@@ -401,13 +415,72 @@ class CampaignManager extends Component
             }
             $allContacts = $q->limit(100)->get();
         }
+        // Relatório
+        $reportData = null;
+        if ($this->showReport) {
+            $rQuery = BroadcastCampaign::query();
+            if ($this->reportCampaignId) {
+                $rQuery->where('id', $this->reportCampaignId);
+            }
+            $reportCampaigns = $rQuery->whereIn('status', ['completed', 'sending', 'paused'])->latest()->get();
+
+            $totalSent = $reportCampaigns->sum('sent_count');
+            $totalFailed = $reportCampaigns->sum('failed_count');
+            $totalRecipients = $reportCampaigns->sum('total_recipients');
+
+            // Erros mais comuns
+            $topErrors = BroadcastCampaignRecipient::where('status', 'failed')
+                ->whereNotNull('error')
+                ->when($this->reportCampaignId, fn($q) => $q->where('campaign_id', $this->reportCampaignId))
+                ->selectRaw('error, COUNT(*) as total')
+                ->groupBy('error')
+                ->orderByDesc('total')
+                ->limit(5)
+                ->get();
+
+            // Detalhes por campanha
+            $campaignDetails = $reportCampaigns->map(function ($c) {
+                $duration = null;
+                if ($c->started_at && $c->completed_at) {
+                    $duration = $c->started_at->diffForHumans($c->completed_at, true);
+                }
+                return [
+                    'id'              => $c->id,
+                    'name'            => $c->name,
+                    'channel'         => $c->channel,
+                    'status'          => $c->status,
+                    'total'           => $c->total_recipients,
+                    'sent'            => $c->sent_count ?? 0,
+                    'failed'          => $c->failed_count ?? 0,
+                    'delivery_rate'   => $c->total_recipients > 0 ? round(($c->sent_count ?? 0) / $c->total_recipients * 100, 1) : 0,
+                    'duration'        => $duration,
+                    'recipient_mode'  => $c->recipient_mode ?? 'all',
+                    'filter_tag'      => $c->filter_tag,
+                    'created_at'      => $c->created_at,
+                    'completed_at'    => $c->completed_at,
+                ];
+            });
+
+            // Destinatários com falha (para campanha específica)
+            $failedRecipients = collect();
+            if ($this->reportCampaignId) {
+                $failedRecipients = BroadcastCampaignRecipient::where('campaign_id', $this->reportCampaignId)
+                    ->where('status', 'failed')
+                    ->with('broadcastContact')
+                    ->limit(50)
+                    ->get();
+            }
+
+            $reportData = compact('totalSent', 'totalFailed', 'totalRecipients', 'topErrors', 'campaignDetails', 'failedRecipients');
+        }
+
         $company = app(\App\Services\CurrentCompany::class)->model();
         $sendgridConfigured = !empty($company?->sendgrid_api_key) || !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
         $isMeta        = WhatsAppProvider::isMeta();
         $metaTemplates = $isMeta ? MetaMessageTemplate::approved()->orderBy('name')->get() : collect();
 
         return view('livewire.broadcasts.campaign-manager', compact(
-            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'allContacts', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured', 'isMeta', 'metaTemplates'
+            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'allContacts', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured', 'isMeta', 'metaTemplates', 'reportData'
         ));
     }
 }

@@ -8,11 +8,18 @@
             <h1 style="font-size:15px; font-weight:800; color:white; font-family:Syne,sans-serif; letter-spacing:-0.02em;">Disparos</h1>
             <span style="font-size:10px; color:rgba(255,255,255,0.3); margin-left:4px;">{{ $activeLeadCount }} leads ativos</span>
         </div>
-        <button wire:click="openCreate"
-                style="display:flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:8px; cursor:pointer;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Nova Campanha
-        </button>
+        <div style="display:flex; gap:8px;">
+            <button wire:click="openReport"
+                    style="display:flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px; font-weight:600; color:#60a5fa; background:rgba(96,165,250,0.08); border:1px solid rgba(96,165,250,0.2); border-radius:8px; cursor:pointer;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Relatório
+            </button>
+            <button wire:click="openCreate"
+                    style="display:flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:8px; cursor:pointer;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Nova Campanha
+            </button>
+        </div>
     </div>
 
     <div style="padding:20px 24px;">
@@ -400,6 +407,123 @@
                     @endif
                 </div>
                 @endforeach
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
+    {{-- Modal: Relatório de Desempenho --}}
+    @if($showReport && $reportData)
+    <div style="position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);" wire:click.self="closeReport">
+        <div style="background:#0f1320; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:100%; max-width:800px; max-height:85vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div>
+                    <h2 style="font-size:16px; font-weight:800; color:white; font-family:Syne,sans-serif;">Relatório de Disparos</h2>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-top:2px;">
+                        {{ $reportCampaignId ? 'Campanha específica' : 'Visão geral de todas as campanhas' }}
+                    </p>
+                </div>
+                <button wire:click="closeReport" style="color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; font-size:20px;">&times;</button>
+            </div>
+
+            {{-- Cards de métricas --}}
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:20px;">
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:16px; text-align:center;">
+                    <p style="font-size:10px; color:rgba(255,255,255,0.3); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Total Destinatários</p>
+                    <p style="font-size:24px; font-weight:800; color:white; margin-top:4px;">{{ number_format($reportData['totalRecipients'], 0, ',', '.') }}</p>
+                </div>
+                <div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.15); border-radius:12px; padding:16px; text-align:center;">
+                    <p style="font-size:10px; color:rgba(34,197,94,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Enviados</p>
+                    <p style="font-size:24px; font-weight:800; color:#4ade80; margin-top:4px;">{{ number_format($reportData['totalSent'], 0, ',', '.') }}</p>
+                </div>
+                <div style="background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.15); border-radius:12px; padding:16px; text-align:center;">
+                    <p style="font-size:10px; color:rgba(239,68,68,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Falhas</p>
+                    <p style="font-size:24px; font-weight:800; color:#f87171; margin-top:4px;">{{ number_format($reportData['totalFailed'], 0, ',', '.') }}</p>
+                </div>
+                <div style="background:rgba(96,165,250,0.06); border:1px solid rgba(96,165,250,0.15); border-radius:12px; padding:16px; text-align:center;">
+                    <p style="font-size:10px; color:rgba(96,165,250,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Taxa de Entrega</p>
+                    <p style="font-size:24px; font-weight:800; color:#60a5fa; margin-top:4px;">{{ $reportData['totalRecipients'] > 0 ? round($reportData['totalSent'] / $reportData['totalRecipients'] * 100, 1) : 0 }}%</p>
+                </div>
+            </div>
+
+            {{-- Detalhes por campanha --}}
+            <div style="margin-bottom:20px;">
+                <h3 style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:10px;">Campanhas</h3>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    @foreach($reportData['campaignDetails'] as $cd)
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:13px; font-weight:700; color:white;">{{ $cd['name'] }}</span>
+                                <span style="font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; {{ $cd['channel'] === 'whatsapp' ? 'background:rgba(34,197,94,0.15); color:#4ade80;' : 'background:rgba(96,165,250,0.15); color:#60a5fa;' }}">{{ strtoupper($cd['channel']) }}</span>
+                                @if($cd['filter_tag'])
+                                <span style="font-size:9px; padding:2px 6px; border-radius:4px; background:rgba(168,85,247,0.15); color:#a78bfa;">TAG: {{ $cd['filter_tag'] }}</span>
+                                @endif
+                            </div>
+                            @if(!$reportCampaignId)
+                            <button wire:click="openReport({{ $cd['id'] }})" style="font-size:10px; color:#60a5fa; background:none; border:none; cursor:pointer; text-decoration:underline;">Detalhar</button>
+                            @endif
+                        </div>
+                        <div style="display:flex; gap:16px; font-size:11px;">
+                            <span style="color:rgba(255,255,255,0.5);">{{ $cd['total'] }} destinatários</span>
+                            <span style="color:#4ade80;">{{ $cd['sent'] }} enviados</span>
+                            <span style="color:#f87171;">{{ $cd['failed'] }} falhas</span>
+                            <span style="color:#60a5fa; font-weight:700;">{{ $cd['delivery_rate'] }}% entrega</span>
+                            @if($cd['duration'])
+                            <span style="color:rgba(255,255,255,0.3);">Duração: {{ $cd['duration'] }}</span>
+                            @endif
+                        </div>
+                        <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">
+                            Criada em {{ $cd['created_at']->format('d/m/Y H:i') }}
+                            @if($cd['completed_at']) — Concluída em {{ $cd['completed_at']->format('d/m/Y H:i') }} @endif
+                        </p>
+                    </div>
+                    @endforeach
+
+                    @if(collect($reportData['campaignDetails'])->isEmpty())
+                    <p style="font-size:12px; color:rgba(255,255,255,0.3); text-align:center; padding:20px;">Nenhuma campanha com disparos realizados.</p>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Erros mais comuns --}}
+            @if($reportData['topErrors']->isNotEmpty())
+            <div style="margin-bottom:20px;">
+                <h3 style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:10px;">Erros mais frequentes</h3>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    @foreach($reportData['topErrors'] as $err)
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.1); border-radius:8px; padding:8px 12px;">
+                        <span style="font-size:11px; color:rgba(255,255,255,0.5); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ \Illuminate\Support\Str::limit($err->error, 80) }}</span>
+                        <span style="font-size:11px; font-weight:700; color:#f87171; flex-shrink:0; margin-left:12px;">{{ $err->total }}x</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Lista de falhas (campanha específica) --}}
+            @if($reportCampaignId && $reportData['failedRecipients']->isNotEmpty())
+            <div>
+                <h3 style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:10px;">Destinatários com falha</h3>
+                <div style="max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.06); border-radius:10px;">
+                    @foreach($reportData['failedRecipients'] as $fr)
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04);">
+                        <div>
+                            <span style="font-size:12px; color:white;">{{ $fr->broadcastContact?->name ?? 'Sem nome' }}</span>
+                            <span style="font-size:10px; color:rgba(255,255,255,0.3); margin-left:8px;">{{ $fr->phone }}</span>
+                        </div>
+                        <span style="font-size:10px; color:#f87171; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $fr->error }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Voltar para visão geral --}}
+            @if($reportCampaignId)
+            <div style="margin-top:16px; text-align:center;">
+                <button wire:click="openReport" style="font-size:11px; color:#60a5fa; background:none; border:none; cursor:pointer; text-decoration:underline;">← Ver todas as campanhas</button>
             </div>
             @endif
         </div>
