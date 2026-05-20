@@ -417,8 +417,13 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             // ── Humano respondeu pelo WhatsApp direto → para a IA ──
             if ($fromMe && !$isGroup) {
-                // Se a conversa não tem waiting_human_reason, marca para parar IA
-                if (!$conversation->waiting_human_reason) {
+                // Só marca waiting_human_reason se empresa tem IA ou chatbot ativo
+                // Sem IA/chatbot, não faz sentido e a conversa ficaria presa em "Aguardando"
+                $botConfig  = AiBotConfig::current();
+                $menuConfig = ChatbotMenuConfig::current();
+                $hasBot = ($botConfig && $botConfig->is_active) || ($menuConfig && $menuConfig->is_active);
+
+                if ($hasBot && !$conversation->waiting_human_reason) {
                     $conversation->update(['waiting_human_reason' => 'Atendente respondeu pelo WhatsApp']);
                     Log::info('Humano detectado via WhatsApp direto, IA parada', [
                         'conv' => $conversation->id, 'content' => substr($content, 0, 50),
