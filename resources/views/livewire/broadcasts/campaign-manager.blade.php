@@ -214,10 +214,11 @@
                 </div>
                 @endif
                 <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">{{ $campaignImage ? 'Legenda da imagem *' : 'Mensagem *' }} <span style="color:rgba(255,255,255,0.2); font-weight:400;">(use {nome} para o nome do lead)</span></label>
-                    <textarea wire:model="message" rows="5" placeholder="Olá {nome}! Temos uma oferta especial..."
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">{{ $campaignImage ? 'Legenda da imagem *' : 'Contexto para IA *' }}</label>
+                    <textarea wire:model="message" rows="5" placeholder="Escreva o contexto da mensagem. A IA vai gerar variações únicas para cada destinatário, evitando bloqueio por repetição.&#10;&#10;Ex: Olá {nome}! Temos uma oferta especial de máquinas para panificação com 20% de desconto até sexta-feira..."
                               style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical;"></textarea>
                     @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                    <p style="font-size:10px; color:rgba(139,92,246,0.7); margin-top:4px;">A IA gera uma mensagem diferente para cada lead com base neste contexto. Use {nome} para personalizar.</p>
                 </div>
                 @else
                 {{-- Email: campos simples --}}

@@ -50,14 +50,28 @@ class SendBroadcastMessage implements ShouldQueue
         $sent   = 0;
         $failed = 0;
 
+        // Verifica se Gemini está disponível para gerar variações
+        $geminiKey   = \App\Models\GlobalSetting::get('gemini_api_key');
+        $geminiModel = \App\Models\GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
+        $useAi       = $campaign->channel === 'whatsapp' && $geminiKey && !$campaign->meta_template_name;
+
         foreach ($recipients as $recipient) {
             try {
                 $contactName = $recipient->broadcastContact?->name ?? '';
-                $text = str_replace(
+                $baseText = str_replace(
                     ['{nome}', '{name}'],
                     [$contactName, $contactName],
                     $campaign->message
                 );
+
+                // Gera variação via IA para cada destinatário (evita bloqueio por repetição)
+                $text = $baseText;
+                if ($useAi) {
+                    $variation = $this->generateVariation($baseText, $contactName, $geminiKey, $geminiModel);
+                    if ($variation) {
+                        $text = $variation;
+                    }
+                }
 
                 // Se Meta com template, envia via template
                 if ($campaign->meta_template_name && $api instanceof MetaWhatsAppService) {
@@ -124,5 +138,40 @@ class SendBroadcastMessage implements ShouldQueue
             'sent'     => $sent,
             'failed'   => $failed,
         ]);
+    }
+
+    private function generateVariation(string $baseText, string $contactName, string $apiKey, string $model): ?string
+    {
+        try {
+            $charCount = mb_strlen($baseText);
+
+            $prompt = "Você é um assistente que reescreve mensagens de WhatsApp Business com variações naturais.\n\n"
+                . "CONTEXTO/INSTRUÇÃO DA MENSAGEM:\n---\n" . $baseText . "\n---\n\n"
+                . "DADOS DO CONTATO:\n- Nome: {$contactName}\n\n"
+                . "REGRAS:\n"
+                . "- Gere uma mensagem ÚNICA baseada no contexto acima\n"
+                . "- Personalize para o contato usando o nome quando natural\n"
+                . "- Mantenha o mesmo objetivo e informações da mensagem original\n"
+                . "- Varie: estrutura, palavras, emojis, ordem das frases\n"
+                . "- Tamanho similar ao original ({$charCount} caracteres)\n"
+                . "- Formato WhatsApp: use *negrito* e emojis\n"
+                . "- Responda APENAS com a mensagem, sem explicações";
+
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+            $response = \Illuminate\Support\Facades\Http::timeout(30)->post($url, [
+                'contents' => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['temperature' => 1.2, 'maxOutputTokens' => 4096],
+            ]);
+
+            $text = $response->json('candidates.0.content.parts.0.text');
+            if ($text && mb_strlen($text) >= ($charCount * 0.4)) {
+                return trim($text);
+            }
+            return null;
+        } catch (\Throwable $e) {
+            Log::warning('Broadcast: AI variation falhou', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 }
