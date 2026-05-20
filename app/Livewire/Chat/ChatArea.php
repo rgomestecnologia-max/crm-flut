@@ -672,6 +672,21 @@ class ChatArea extends Component
         return null;
     }
 
+    private function syncConversationTagFromPipeline(CrmCard $card): void
+    {
+        if (!$card->contact_id || !$this->conversationId) return;
+
+        $pipelineName = $card->pipeline?->name;
+        if (!$pipelineName) return;
+
+        $tag = \App\Models\Tag::where('name', $pipelineName)->first();
+        if (!$tag) return;
+
+        if (!$this->conversation->tags()->where('tags.id', $tag->id)->exists()) {
+            $this->conversation->tags()->attach($tag->id);
+        }
+    }
+
     public function useQuickReply(string $content): void
     {
         $this->messageText      = $content;
@@ -810,6 +825,7 @@ class ChatArea extends Component
                 'content' => "Movido via Atendimento: {$oldPipeline} / {$oldStage} → {$pipeline->name} / {$stage->name}",
             ]);
             $this->dispatch('toast', type: 'success', message: "Contato movido para {$pipeline->name} · {$stage->name}.");
+            $this->syncConversationTagFromPipeline($existing);
         } else {
             $card = CrmCard::create([
                 'pipeline_id' => $this->crmPipelineId,
@@ -826,6 +842,7 @@ class ChatArea extends Component
                 'content' => "Adicionado via Atendimento — conversa #{$this->conversation->protocol}",
             ]);
             $this->dispatch('toast', type: 'success', message: "Contato adicionado ao CRM em {$pipeline->name} · {$stage->name}.");
+            $this->syncConversationTagFromPipeline($card);
         }
 
         $this->showCrmPanel  = false;

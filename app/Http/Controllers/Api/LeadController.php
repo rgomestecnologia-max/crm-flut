@@ -268,6 +268,18 @@ class LeadController extends Controller
             }
         }
 
+        // Auto-tag: se pipeline tem tag com mesmo nome, taguear conversa
+        if (isset($card) && $card->contact_id) {
+            $pipelineName = CrmPipeline::find($card->pipeline_id)?->name;
+            $tag = $pipelineName ? \App\Models\Tag::where('name', $pipelineName)->first() : null;
+            if ($tag) {
+                $conv = Conversation::where('contact_id', $card->contact_id)->where('is_group', false)->latest()->first();
+                if ($conv && !$conv->tags()->where('tags.id', $tag->id)->exists()) {
+                    $conv->tags()->attach($tag->id);
+                }
+            }
+        }
+
         // ── Converte campos datetime de UTC para timezone local ──────
         foreach ($customFields as $key => $field) {
             if (in_array($field->type, ['datetime']) && !empty($data[$key])) {
