@@ -30,6 +30,17 @@ class EnsureCurrentCompany
         // Heartbeat: atualiza last_seen_at (no máximo 1x por minuto)
         $user->touchLastSeen();
 
+        // Verificar horário de trabalho (logout automático se fora do horário)
+        if (!$user->isWithinWorkHours() && !$request->routeIs('logout')) {
+            $user->update(['status' => 'offline']);
+            \Illuminate\Support\Facades\Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Seu horário de trabalho encerrou. Acesso bloqueado fora do expediente.',
+            ]);
+        }
+
         // Agente/supervisor: empresa fixa, vinda do próprio user.
         if (!$user->isAdmin()) {
             if ($user->company_id) {

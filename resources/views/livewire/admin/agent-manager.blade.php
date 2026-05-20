@@ -103,6 +103,25 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             @error('extra_department_ids.*') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
         </div>
 
+        {{-- Horário de trabalho --}}
+        <div style="margin-top:18px;">
+            <label style="{{ $labelStyle }}">Horário de trabalho</label>
+            <p style="font-size:11px; color:rgba(255,255,255,0.3); margin:-2px 0 10px;">
+                Se preenchido, o agente só pode fazer login dentro deste horário. Deixe em branco para sem restrição.
+            </p>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <div>
+                    <label style="font-size:10px; color:rgba(255,255,255,0.3);">Entrada</label>
+                    <input wire:model="work_start" type="time" style="{{ $inputStyle }} width:130px;" {!! $inputFocus !!}>
+                </div>
+                <span style="color:rgba(255,255,255,0.2); margin-top:16px;">até</span>
+                <div>
+                    <label style="font-size:10px; color:rgba(255,255,255,0.3);">Saída</label>
+                    <input wire:model="work_end" type="time" style="{{ $inputStyle }} width:130px;" {!! $inputFocus !!}>
+                </div>
+            </div>
+        </div>
+
         {{-- Módulos do agente --}}
         @if($role === 'agent' && !empty($companyPrincipalModules))
         <div style="margin-top:18px;">
@@ -213,6 +232,12 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                                      border:1px solid {{ $agent->is_active ? 'rgba(34,197,94,0.2)' : 'rgba(107,114,128,0.2)' }};">
                             {{ $agent->is_active ? 'Ativo' : 'Inativo' }}
                         </span>
+                        @if($agent->work_start && $agent->work_end)
+                        <span style="font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; margin-left:4px;
+                                     background:rgba(96,165,250,0.12); color:#60a5fa; border:1px solid rgba(96,165,250,0.2);">
+                            {{ substr($agent->work_start, 0, 5) }}-{{ substr($agent->work_end, 0, 5) }}
+                        </span>
+                        @endif
                     </td>
                     <td style="padding:14px 20px; text-align:right;">
                         <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px;">

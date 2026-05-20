@@ -15,7 +15,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'password', 'role', 'department_id', 'company_id',
-        'avatar', 'status', 'is_active', 'modules', 'last_seen_at',
+        'avatar', 'status', 'is_active', 'modules', 'work_start', 'work_end', 'last_seen_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -171,6 +171,22 @@ class User extends Authenticatable
     public function isOnline(): bool
     {
         return $this->last_seen_at && $this->last_seen_at->greaterThan(now()->subMinutes(5));
+    }
+
+    /**
+     * Verifica se o agente está dentro do horário de trabalho.
+     * Admin/supervisor não têm restrição. Se não configurado, sem restrição.
+     */
+    public function isWithinWorkHours(): bool
+    {
+        if ($this->canManageCompany()) return true;
+        if (!$this->work_start || !$this->work_end) return true;
+
+        $now   = now('America/Sao_Paulo')->format('H:i');
+        $start = substr($this->work_start, 0, 5);
+        $end   = substr($this->work_end, 0, 5);
+
+        return $now >= $start && $now <= $end;
     }
 
     /**

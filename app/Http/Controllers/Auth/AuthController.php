@@ -28,6 +28,17 @@ class AuthController extends Controller
         $remember = $request->boolean('remember');
 
         if (Auth::attempt(array_merge($credentials, ['is_active' => true]), $remember)) {
+            // Verificar horário de trabalho (não aplica para admin/supervisor)
+            if (!Auth::user()->isWithinWorkHours()) {
+                $start = substr(Auth::user()->work_start, 0, 5);
+                $end   = substr(Auth::user()->work_end, 0, 5);
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'email' => "Acesso permitido apenas no horário de trabalho ({$start} às {$end}).",
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
             Auth::user()->update(['status' => 'online', 'last_seen_at' => now()]);
             return $this->redirectAfterLogin();

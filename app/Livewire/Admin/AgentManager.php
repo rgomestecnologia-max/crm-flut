@@ -23,10 +23,12 @@ class AgentManager extends Component
     public bool   $is_active   = true;
     /** Módulos que o agente pode acessar. */
     public array  $agent_modules = [];
+    public string $work_start = '';
+    public string $work_end   = '';
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'email', 'password', 'role', 'department_id', 'extra_department_ids', 'is_active', 'agent_modules');
+        $this->reset('editingId', 'name', 'email', 'password', 'role', 'department_id', 'extra_department_ids', 'is_active', 'agent_modules', 'work_start', 'work_end');
         $this->role           = 'agent';
         $this->is_active      = true;
         $this->agent_modules  = $this->getCompanyPrincipalModules();
@@ -50,6 +52,8 @@ class AgentManager extends Component
             ->all();
         $this->is_active            = $user->is_active;
         $this->agent_modules        = $user->modules ?? $this->getCompanyPrincipalModules();
+        $this->work_start           = $user->work_start ? substr($user->work_start, 0, 5) : '';
+        $this->work_end             = $user->work_end ? substr($user->work_end, 0, 5) : '';
         $this->showForm             = true;
     }
 
@@ -106,6 +110,10 @@ class AgentManager extends Component
         // Módulos do agente (filtra só os que a empresa tem contratado)
         $companyModules = app(CurrentCompany::class)->model()?->modules ?? [];
         $validated['modules'] = array_values(array_intersect($this->agent_modules, $companyModules));
+
+        // Horário de trabalho
+        $validated['work_start'] = $this->work_start ?: null;
+        $validated['work_end']   = $this->work_end ?: null;
 
         $currentCompanyId = app(CurrentCompany::class)->id();
 
