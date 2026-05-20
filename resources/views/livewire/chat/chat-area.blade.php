@@ -979,6 +979,7 @@ function senderColor(?string $identifier): string {
          x-data="{
             showEmoji: false,
             emojiPos: null,
+            pastedImage: null,
             recording: false,
             recSeconds: 0,
             recTimer: null,
@@ -1188,6 +1189,20 @@ function senderColor(?string $identifier): string {
             </div>
             @endif
 
+            {{-- Preview imagem colada --}}
+            <template x-if="pastedImage">
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(178,255,0,0.06); border:1px solid rgba(178,255,0,0.2); border-radius:10px; margin-bottom:4px;">
+                    <img :src="pastedImage" style="width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">
+                    <span style="font-size:11px; color:rgba(255,255,255,0.5); flex:1;">Imagem copiada pronta para enviar</span>
+                    <button @click="$wire.sendPastedImage(pastedImage); pastedImage=null;"
+                            style="display:flex; align-items:center; gap:4px; padding:5px 14px; background:#b2ff00; color:#111; font-size:11px; font-weight:700; border:none; border-radius:8px; cursor:pointer;">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        Enviar
+                    </button>
+                    <button @click="pastedImage=null" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:18px;">&times;</button>
+                </div>
+            </template>
+
             {{-- Text input --}}
             <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid {{ $editingMessageId ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.08)' }}; border-radius:14px; overflow:hidden; display:flex; align-items:flex-end; transition:all 0.2s;"
                  onfocusin="this.style.borderColor='rgba(178,255,0,0.4)'; this.style.background='rgba(178,255,0,0.03)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.06)'"
@@ -1204,7 +1219,7 @@ function senderColor(?string $identifier): string {
                                     $event.preventDefault();
                                     const file = item.getAsFile();
                                     const reader = new FileReader();
-                                    reader.onload = (e) => $wire.sendPastedImage(e.target.result);
+                                    reader.onload = (e) => { pastedImage = e.target.result; };
                                     reader.readAsDataURL(file);
                                     return;
                                 }
