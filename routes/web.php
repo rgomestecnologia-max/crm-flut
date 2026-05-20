@@ -126,6 +126,10 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('pricing', fn() => view('admin.pricing.index'))->name('pricing.index');
         Route::get('proposals', fn() => view('admin.proposals.index'))->name('proposals.index');
         Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
+    });
+
+    // Admin/Supervisor — acessível por quem gerencia a empresa
+    Route::middleware('manager')->prefix('admin')->name('admin.')->group(function () {
         Route::get('quick-replies', fn() => view('admin.quick-replies.index'))->name('quick-replies.index');
     });
 
