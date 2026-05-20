@@ -69,6 +69,9 @@ class KanbanBoard extends Component
         if ($oldStageId !== $stageId) {
             $this->triggerStageAutomations($card, $stageId);
         }
+
+        // Auto-tag conversa com base no pipeline
+        $this->syncConversationTag($card);
     }
 
     private function triggerStageAutomations(CrmCard $card, int $stageId): void
