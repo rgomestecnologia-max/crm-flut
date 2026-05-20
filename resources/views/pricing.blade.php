@@ -502,26 +502,43 @@ function pricingSimulator() {
         },
 
         async gerarPDF() {
-            // Carregar logos como base64
-            const toBase64 = (url) => fetch(url).then(r => r.blob()).then(b => new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); }));
+            // Carregar e comprimir imagens para JPEG (reduz ~90% do tamanho do PDF)
+            const loadAndCompress = (url, maxW = 800, quality = 0.6) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        const scale = Math.min(1, maxW / img.width);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = () => resolve(null);
+                    img.src = url;
+                });
+            };
+
             let logoWhite = null, logoColor = null;
             try {
-                logoWhite = await toBase64('/images/logo-flut-white.png');
-                logoColor = await toBase64('/images/logo-flut-large.png');
+                logoWhite = await loadAndCompress('/images/logo-flut-white.png', 400, 0.8);
+                logoColor = await loadAndCompress('/images/logo-flut-large.png', 300, 0.8);
             } catch(e) {}
 
-            // Carregar screenshots dos módulos
+            // Carregar screenshots dos módulos (comprimidos)
             const moduleScreenshots = {};
             for (const key of ['multi','crm','email','ia','integrations']) {
                 const configKey = key === 'integrations' ? 'integration' : key;
                 const url = C[configKey + '_screenshot'];
                 if (url) {
-                    try { moduleScreenshots[key] = await toBase64(url); } catch(e) {}
+                    try { moduleScreenshots[key] = await loadAndCompress(url, 600, 0.5); } catch(e) {}
                 }
             }
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
             const today = new Date();
@@ -562,7 +579,7 @@ function pricingSimulator() {
 
             // Logo no topo da capa
             if (logoWhite) {
-                try { doc.addImage(logoWhite, 'PNG', pw / 2 - 20, ph * 0.12, 40, 10); } catch(e) {}
+                try { doc.addImage(logoWhite, 'JPEG', pw / 2 - 20, ph * 0.12, 40, 10); } catch(e) {}
             }
 
             // Linha decorativa
@@ -646,7 +663,7 @@ function pricingSimulator() {
 
                 // Logo pequeno no canto superior direito
                 if (logoColor) {
-                    try { doc.addImage(logoColor, 'PNG', pw - mx - 30, 10, 30, 8); } catch(e) {}
+                    try { doc.addImage(logoColor, 'JPEG', pw - mx - 30, 10, 30, 8); } catch(e) {}
                 }
 
                 // Título do módulo
@@ -746,7 +763,7 @@ function pricingSimulator() {
                             doc.setDrawColor(220, 220, 220);
                             doc.setLineWidth(0.3);
                             doc.roundedRect(imgX - 1, y - 1, finalW + 2, finalH + 2, 2, 2, 'S');
-                            doc.addImage(imgData, 'PNG', imgX, y, finalW, finalH);
+                            doc.addImage(imgData, 'JPEG', imgX, y, finalW, finalH);
                             y += finalH + 6;
                         }
                     } catch(e) { console.warn('Screenshot error:', e); }
@@ -762,7 +779,7 @@ function pricingSimulator() {
 
             // Logo no canto
             if (logoColor) {
-                try { doc.addImage(logoColor, 'PNG', pw - mx - 30, 10, 30, 8); } catch(e) {}
+                try { doc.addImage(logoColor, 'JPEG', pw - mx - 30, 10, 30, 8); } catch(e) {}
             }
 
             doc.setFillColor(15, 23, 42);
