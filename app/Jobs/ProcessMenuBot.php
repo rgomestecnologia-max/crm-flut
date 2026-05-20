@@ -138,12 +138,17 @@ class ProcessMenuBot implements ShouldQueue
 
         // Roteia para o departamento escolhido
         // waiting_human_reason fica null para a conversa entrar na Fila do departamento
-        $this->conversation->update([
+        // Multi-instância: atualiza instância da conversa para o número do departamento
+        $updateData = [
             'department_id'        => $department->id,
             'menu_awaiting'        => false,
             'status'               => 'open',
             'waiting_human_reason' => null,
-        ]);
+        ];
+        if ($department->evolution_api_config_id) {
+            $updateData['evolution_api_config_id'] = $department->evolution_api_config_id;
+        }
+        $this->conversation->update($updateData);
 
         // Mensagem de confirmação
         $afterMsg = $this->config->after_selection_message;

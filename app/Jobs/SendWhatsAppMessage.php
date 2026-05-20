@@ -33,7 +33,16 @@ class SendWhatsAppMessage implements ShouldQueue
         $phone     = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
-        $service = WhatsAppProvider::service();
+        // Multi-instância: prioridade conversa → departamento → padrão
+        $specificConfig = null;
+        $conversation = $this->message->conversation;
+        if ($conversation->evolution_api_config_id) {
+            $specificConfig = \App\Models\EvolutionApiConfig::find($conversation->evolution_api_config_id);
+        } elseif ($conversation->department?->evolution_api_config_id) {
+            $specificConfig = \App\Models\EvolutionApiConfig::find($conversation->department->evolution_api_config_id);
+        }
+
+        $service = WhatsAppProvider::service($specificConfig);
         if (!$service) {
             Log::error('SendWhatsAppMessage: nenhum provider WhatsApp ativo', [
                 'message_id' => $this->message->id,

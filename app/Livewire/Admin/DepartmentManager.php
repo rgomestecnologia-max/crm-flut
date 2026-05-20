@@ -15,10 +15,11 @@ class DepartmentManager extends Component
     public string $icon        = 'chat-bubble-left-right';
     public bool   $is_active   = true;
     public int    $sort_order  = 0;
+    public ?int   $evolution_api_config_id = null;
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'description', 'color', 'icon', 'is_active', 'sort_order');
+        $this->reset('editingId', 'name', 'description', 'color', 'icon', 'is_active', 'sort_order', 'evolution_api_config_id');
         $this->color      = '#b2ff00';
         $this->icon       = 'chat-bubble-left-right';
         $this->is_active  = true;
@@ -36,6 +37,7 @@ class DepartmentManager extends Component
         $this->icon        = $dept->icon;
         $this->is_active   = $dept->is_active;
         $this->sort_order  = $dept->sort_order ?? 0;
+        $this->evolution_api_config_id = $dept->evolution_api_config_id;
         $this->showForm    = true;
     }
 
@@ -49,6 +51,7 @@ class DepartmentManager extends Component
             'is_active'   => 'boolean',
             'sort_order'  => 'integer|min:0',
         ]);
+        $validated['evolution_api_config_id'] = $this->evolution_api_config_id ?: null;
 
         if ($this->editingId) {
             Department::findOrFail($this->editingId)->update($validated);
@@ -59,7 +62,7 @@ class DepartmentManager extends Component
         }
 
         $this->showForm = false;
-        $this->reset('editingId', 'name', 'description', 'color', 'icon', 'sort_order');
+        $this->reset('editingId', 'name', 'description', 'color', 'icon', 'sort_order', 'evolution_api_config_id');
     }
 
     public function delete(int $id): void
@@ -76,9 +79,11 @@ class DepartmentManager extends Component
     public function render()
     {
         $departments = Department::withCount('users', 'conversations')
+            ->with('evolutionConfig')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
-        return view('livewire.admin.department-manager', compact('departments'));
+        $whatsappInstances = \App\Models\EvolutionApiConfig::where('is_active', true)->get();
+        return view('livewire.admin.department-manager', compact('departments', 'whatsappInstances'));
     }
 }

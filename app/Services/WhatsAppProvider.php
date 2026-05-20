@@ -9,9 +9,15 @@ class WhatsAppProvider
 {
     /**
      * Retorna o service de WhatsApp ativo para a empresa atual.
+     * Aceita config específico para multi-instância.
      */
-    public static function service(): EvolutionApiService|MetaWhatsAppService|null
+    public static function service(?EvolutionApiConfig $specificConfig = null): EvolutionApiService|MetaWhatsAppService|null
     {
+        // Se passou config específico (multi-instância), usa direto
+        if ($specificConfig && $specificConfig->is_active) {
+            return new EvolutionApiService($specificConfig);
+        }
+
         $provider = static::currentProvider();
 
         if ($provider === 'meta') {

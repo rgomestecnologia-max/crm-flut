@@ -61,6 +61,19 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             </div>
         </div>
 
+        @if($whatsappInstances->count() > 0)
+        <div style="margin-top:14px;">
+            <label style="{{ $labelStyle }}">Instância WhatsApp vinculada</label>
+            <select wire:model="evolution_api_config_id" style="{{ $inputStyle }}">
+                <option value="">Padrão (instância principal)</option>
+                @foreach($whatsappInstances as $inst)
+                    <option value="{{ $inst->id }}">{{ $inst->instance_name }} {{ $inst->phone_number ? '(' . $inst->phone_number . ')' : '' }}</option>
+                @endforeach
+            </select>
+            <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">Se vinculado, as respostas deste departamento saem por este número de WhatsApp</p>
+        </div>
+        @endif
+
         <div style="display:flex; align-items:center; gap:10px; margin-top:20px;">
             <button wire:click="save"
                     style="padding:8px 20px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; font-size:12px; font-weight:700; border-radius:9px; border:none; cursor:pointer; transition:all 0.2s;"
@@ -100,7 +113,12 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                                 <div style="width:10px; height:10px; border-radius:50%; background:{{ $dept->color }};"></div>
                             </div>
                             <div>
-                                <p style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.85);">{{ $dept->name }}</p>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <p style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.85);">{{ $dept->name }}</p>
+                                    @if($dept->evolutionConfig)
+                                    <span style="font-size:9px; font-weight:600; padding:2px 6px; border-radius:4px; background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.2);">{{ $dept->evolutionConfig->instance_name }}</span>
+                                    @endif
+                                </div>
                                 @if($dept->description)
                                 <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:1px;">{{ $dept->description }}</p>
                                 @endif

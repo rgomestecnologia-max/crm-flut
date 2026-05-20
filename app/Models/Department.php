@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Department extends Model
 {
     use Auditable, BelongsToCompany;
 
-    protected $fillable = ['company_id', 'name', 'description', 'color', 'icon', 'is_active', 'sort_order'];
+    protected $fillable = ['company_id', 'name', 'description', 'color', 'icon', 'is_active', 'sort_order', 'evolution_api_config_id'];
 
     protected $casts = ['is_active' => 'boolean'];
 
@@ -33,6 +34,11 @@ class Department extends Model
     public function tags(): HasMany
     {
         return $this->hasMany(Tag::class);
+    }
+
+    public function evolutionConfig(): BelongsTo
+    {
+        return $this->belongsTo(EvolutionApiConfig::class, 'evolution_api_config_id');
     }
 
     public function scopeActive($query)

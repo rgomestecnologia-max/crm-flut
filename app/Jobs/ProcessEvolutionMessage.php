@@ -305,17 +305,24 @@ class ProcessEvolutionMessage implements ShouldQueue
                 if (!$conversation) {
                     if ($fromMe) return;
 
-                    $department = Department::active()->first();
+                    // Multi-instância: usa departamento padrão da instância se configurado
+                    $evoConfig = EvolutionApiConfig::withoutCompanyScope()
+                        ->where('instance_name', $instanceName)
+                        ->first();
+                    $department = ($evoConfig && $evoConfig->default_department_id)
+                        ? Department::find($evoConfig->default_department_id)
+                        : Department::active()->first();
                     if (!$department) {
                         Log::error('ProcessEvolutionMessage: no active department found');
                         return;
                     }
 
                     $conversation = Conversation::create([
-                        'contact_id'    => $contact->id,
-                        'department_id' => $department->id,
-                        'status'        => 'open',
-                        'is_group'      => false,
+                        'contact_id'              => $contact->id,
+                        'department_id'            => $department->id,
+                        'evolution_api_config_id'  => $evoConfig?->id,
+                        'status'                   => 'open',
+                        'is_group'                 => false,
                     ]);
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EvolutionApiConfig extends Model
 {
@@ -16,7 +17,7 @@ class EvolutionApiConfig extends Model
         'webhook_token', 'connection_status', 'phone_number', 'profile_name',
         'groups_ignore', 'always_online', 'read_messages', 'reject_call', 'msg_call',
         'qr_code', 'pairing_code',
-        'is_active',
+        'is_active', 'default_department_id',
     ];
 
     protected $hidden = ['global_api_key', 'instance_api_key', 'webhook_token'];
@@ -32,6 +33,11 @@ class EvolutionApiConfig extends Model
     public static function current(): ?self
     {
         return static::first();
+    }
+
+    public function defaultDepartment(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'default_department_id');
     }
 
     public function isConnected(): bool
