@@ -450,9 +450,9 @@ function senderColor(?string $identifier): string {
                                                 onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'"
                                                 onmouseout="this.style.color='rgba(255,255,255,0.55)'; this.style.background='rgba(255,255,255,0.05)'">Ver</button>
                                         @endif
-                                        <a href="{{ $msg->media_url }}" target="_blank" download
-                                           style="font-size:11px; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; padding:3px 9px; text-decoration:none; font-weight:600;"
-                                           onmouseover="this.style.background='rgba(178,255,0,0.16)'" onmouseout="this.style.background='rgba(178,255,0,0.08)'">↓</a>
+                                        <button onclick="fetch('{{ $msg->media_url }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='{{ $msg->media_filename ?? basename($msg->media_url) }}';a.click();URL.revokeObjectURL(a.href);})"
+                                           style="font-size:11px; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; padding:3px 9px; font-weight:600; cursor:pointer;"
+                                           onmouseover="this.style.background='rgba(178,255,0,0.16)'" onmouseout="this.style.background='rgba(178,255,0,0.08)'">↓</button>
                                     </div>
                                 </div>
                                 @if($docCanPv)
@@ -463,8 +463,8 @@ function senderColor(?string $identifier): string {
                                         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0;">
                                             <p style="font-size:13px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ $docFile }}</p>
                                             <div style="display:flex; gap:8px;">
-                                                <a href="{{ $msg->media_url }}" target="_blank" download
-                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.25); border-radius:8px; padding:5px 14px; text-decoration:none; font-weight:600;">Download</a>
+                                                <button onclick="fetch('{{ $msg->media_url }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='{{ $msg->media_filename ?? basename($msg->media_url) }}';a.click();URL.revokeObjectURL(a.href);})"
+                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.25); border-radius:8px; padding:5px 14px; font-weight:600; cursor:pointer;">Download</button>
                                                 <button @click="pvOpen = false"
                                                         style="width:30px; height:30px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.5); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;"
                                                         onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"
@@ -717,8 +717,8 @@ function senderColor(?string $identifier): string {
                                         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0;">
                                             <p style="font-size:13px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ $aDocFile }}</p>
                                             <div style="display:flex; gap:8px;">
-                                                <a href="{{ $msg->media_url }}" target="_blank" download
-                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.25); border-radius:8px; padding:5px 14px; text-decoration:none; font-weight:600;">Download</a>
+                                                <button onclick="fetch('{{ $msg->media_url }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='{{ $msg->media_filename ?? basename($msg->media_url) }}';a.click();URL.revokeObjectURL(a.href);})"
+                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.25); border-radius:8px; padding:5px 14px; font-weight:600; cursor:pointer;">Download</button>
                                                 <button @click="pvOpen = false"
                                                         style="width:30px; height:30px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.5); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;"
                                                         onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"
