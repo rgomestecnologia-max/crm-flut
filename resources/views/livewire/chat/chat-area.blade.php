@@ -52,17 +52,24 @@ function senderColor(?string $identifier): string {
                  style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3); cursor:pointer;">
             <div style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:#22c55e; border:2px solid #0B0F1C;"></div>
 
-            {{-- Modal avatar ampliado (teleportado para body) --}}
+            {{-- Modal avatar ampliado --}}
             <template x-teleport="body">
-                <div x-show="showAvatar" x-transition.opacity @click="showAvatar = false"
-                     style="position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.88); display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                    <div @click.stop style="cursor:default; text-align:center;">
+                <div x-show="showAvatar" x-transition.opacity
+                     @click="showAvatar = false"
+                     @keydown.escape.window="showAvatar = false"
+                     style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:99999; background:rgba(0,0,0,0.88); cursor:pointer;"
+                     x-cloak>
+                    <div @click.stop style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); cursor:default; text-align:center;">
                         <img x-data="{ err: false }"
                              :src="err ? '{{ $conversation->contact->avatar_fallback }}' : '{{ $conversation->contact->avatar }}'"
                              x-on:error="err = true" alt=""
-                             style="width:250px; height:250px; border-radius:50%; object-fit:cover; border:3px solid rgba(178,255,0,0.4); box-shadow:0 0 80px rgba(0,0,0,0.6);">
+                             style="width:220px; height:220px; border-radius:50%; object-fit:cover; border:3px solid rgba(178,255,0,0.4); box-shadow:0 0 80px rgba(0,0,0,0.6); display:block; margin:0 auto;">
                         <p style="margin-top:20px; font-size:18px; font-weight:700; color:white;">{{ $conversation->contact->display_name }}</p>
                         <p style="margin-top:6px; font-size:14px; color:rgba(255,255,255,0.4);">{{ $conversation->contact->phone }}</p>
+                        <button @click="showAvatar = false"
+                                style="margin-top:20px; padding:6px 20px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; color:white; font-size:12px; font-weight:600; cursor:pointer;">
+                            Fechar
+                        </button>
                     </div>
                 </div>
             </template>
