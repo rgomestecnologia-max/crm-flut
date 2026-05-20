@@ -18,6 +18,9 @@ class EvolutionApiManager extends Component
     public bool   $reject_call    = false;
     public string $msg_call       = '';
 
+    // Multi-instância
+    public ?int    $selectedConfigId = null;
+
     // State
     public ?string $connectionStatus = null;
     public ?string $profileName      = null;
@@ -31,7 +34,8 @@ class EvolutionApiManager extends Component
 
     public function mount(): void
     {
-        $config = EvolutionApiConfig::current();
+        $config = EvolutionApiConfig::first();
+        if ($config) $this->selectedConfigId = $config->id;
 
         if ($config) {
             $this->server_url     = $config->server_url;
@@ -66,6 +70,49 @@ class EvolutionApiManager extends Component
         }
     }
 
+    public function selectInstance(int $id): void
+    {
+        $this->selectedConfigId = $id;
+        $config = EvolutionApiConfig::find($id);
+        if (!$config) return;
+
+        $this->server_url     = $config->server_url;
+        $this->global_api_key = $config->getRawOriginal('global_api_key');
+        $this->instance_name  = $config->instance_name;
+        $this->instanceApiKey = $config->getRawOriginal('instance_api_key') ?? '';
+        $this->groups_ignore  = $config->groups_ignore;
+        $this->always_online  = $config->always_online;
+        $this->read_messages  = $config->read_messages;
+        $this->reject_call    = $config->reject_call;
+        $this->msg_call       = $config->msg_call ?? '';
+        $this->connectionStatus = $config->connection_status;
+        $this->profileName    = $config->profile_name;
+        $this->phoneNumber    = $config->phone_number;
+        $this->qrBase64       = null;
+        $this->pairingCode    = null;
+        $this->loadWebhookInfo();
+    }
+
+    public function addNewInstance(): void
+    {
+        $company = app(\App\Services\CurrentCompany::class)->model();
+        $existing = EvolutionApiConfig::withoutCompanyScope()->first();
+        $count = EvolutionApiConfig::count();
+
+        $this->selectedConfigId = null;
+        $this->instance_name    = ($company?->slug ?? 'instance') . '-' . ($count + 1);
+        $this->server_url       = $existing?->server_url ?? '';
+        $this->global_api_key   = $existing?->getRawOriginal('global_api_key') ?? '';
+        $this->instanceApiKey   = '';
+        $this->connectionStatus = null;
+        $this->profileName      = null;
+        $this->phoneNumber      = null;
+        $this->qrBase64         = null;
+        $this->pairingCode      = null;
+        $this->webhookInfo      = null;
+        $this->instanceExists   = false;
+    }
+
     public function saveConfig(): void
     {
         $this->validate([
@@ -74,7 +121,10 @@ class EvolutionApiManager extends Component
             'instance_name'  => 'required|string|max:50',
         ]);
 
-        $config = EvolutionApiConfig::current() ?? new EvolutionApiConfig();
+        $config = $this->selectedConfigId
+            ? EvolutionApiConfig::find($this->selectedConfigId)
+            : new EvolutionApiConfig();
+        $config = $config ?? new EvolutionApiConfig();
         $config->fill([
             'server_url'     => rtrim($this->server_url, '/'),
             'global_api_key' => $this->global_api_key,
@@ -87,6 +137,7 @@ class EvolutionApiManager extends Component
             'is_active'      => true,
         ]);
         $config->save();
+        $this->selectedConfigId = $config->id;
 
         $this->dispatch('toast', type: 'success', message: 'Configuração salva com sucesso.');
     }
@@ -141,7 +192,7 @@ class EvolutionApiManager extends Component
                 $created = true;
 
                 // Persiste a instance key
-                $config = EvolutionApiConfig::current();
+                $config = $this->selectedConfig();
                 if ($config && $key) {
                     $config->update(['instance_api_key' => $key]);
                 }
@@ -185,7 +236,7 @@ class EvolutionApiManager extends Component
 
         try {
             // Limpa QR anterior no banco
-            $config = EvolutionApiConfig::current();
+            $config = $this->selectedConfig();
             if ($config) {
                 $config->update(['qr_code' => null, 'pairing_code' => null, 'connection_status' => 'connecting']);
             }
@@ -227,7 +278,7 @@ class EvolutionApiManager extends Component
 
     public function pollQrCode(): void
     {
-        $config = EvolutionApiConfig::current();
+        $config = $this->selectedConfig();
         if (!$config) return;
 
         // Atualiza estado a partir do banco (webhook já pode ter gravado o QR)
@@ -253,7 +304,7 @@ class EvolutionApiManager extends Component
                 $state = $result['instance']['state'] ?? $result['state'] ?? 'unknown';
                 $this->connectionStatus = $state;
 
-                $config = EvolutionApiConfig::current();
+                $config = $this->selectedConfig();
                 if ($config) {
                     $config->update(['connection_status' => $state]);
                 }
@@ -306,7 +357,7 @@ class EvolutionApiManager extends Component
                 $this->qrBase64         = null;
                 $this->pairingCode      = null;
 
-                $config = EvolutionApiConfig::current();
+                $config = $this->selectedConfig();
                 if ($config) {
                     $config->update(['connection_status' => 'disconnected', 'phone_number' => null, 'profile_name' => null]);
                 }
@@ -338,7 +389,7 @@ class EvolutionApiManager extends Component
             ]);
 
             // Salva também no banco
-            $config = EvolutionApiConfig::current();
+            $config = $this->selectedConfig();
             if ($config) {
                 $config->update([
                     'groups_ignore' => $this->groups_ignore,
@@ -402,7 +453,7 @@ class EvolutionApiManager extends Component
                     $this->profileName = $profile;
                     $this->phoneNumber = $phone ? preg_replace('/\D/', '', $phone) : null;
 
-                    $config = EvolutionApiConfig::current();
+                    $config = $this->selectedConfig();
                     if ($config) {
                         $config->update([
                             'profile_name' => $this->profileName,
@@ -504,10 +555,17 @@ class EvolutionApiManager extends Component
         }
     }
 
+    private function selectedConfig(): ?EvolutionApiConfig
+    {
+        return $this->selectedConfigId
+            ? EvolutionApiConfig::find($this->selectedConfigId)
+            : EvolutionApiConfig::first();
+    }
+
     private function makeService(): EvolutionApiService
     {
         // Sempre busca do banco para garantir chaves atualizadas
-        $config = EvolutionApiConfig::current() ?? new EvolutionApiConfig();
+        $config = $this->selectedConfig() ?? new EvolutionApiConfig();
 
         // Sobrepõe com os valores do form (que podem ter sido editados mas não salvos)
         $config->server_url      = rtrim($this->server_url, '/');
@@ -527,6 +585,7 @@ class EvolutionApiManager extends Component
 
     public function render()
     {
-        return view('livewire.admin.evolution-api-manager');
+        $instances = EvolutionApiConfig::orderBy('id')->get();
+        return view('livewire.admin.evolution-api-manager', compact('instances'));
     }
 }

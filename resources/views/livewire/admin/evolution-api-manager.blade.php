@@ -1,6 +1,27 @@
 <div style="padding:28px; max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:24px;"
      @if(in_array($connectionStatus, ['connecting', 'close'])) wire:poll.3s="pollQrCode" @endif>
 
+    {{-- Seletor de instâncias --}}
+    @if($instances->count() > 0)
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        @foreach($instances as $inst)
+        <button wire:click="selectInstance({{ $inst->id }})"
+                style="display:flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px; font-weight:600; border-radius:8px; cursor:pointer; transition:all 0.15s; border:1px solid {{ $selectedConfigId === $inst->id ? 'rgba(178,255,0,0.4)' : 'rgba(255,255,255,0.08)' }}; background:{{ $selectedConfigId === $inst->id ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.03)' }}; color:{{ $selectedConfigId === $inst->id ? '#b2ff00' : 'rgba(255,255,255,0.5)' }};">
+            <span style="width:6px; height:6px; border-radius:50%; background:{{ $inst->connection_status === 'open' ? '#22c55e' : ($inst->connection_status === 'connecting' ? '#f59e0b' : '#6b7280') }};"></span>
+            {{ $inst->instance_name }}
+            @if($inst->phone_number)
+            <span style="font-size:9px; color:rgba(255,255,255,0.3);">({{ $inst->phone_number }})</span>
+            @endif
+        </button>
+        @endforeach
+        <button wire:click="addNewInstance"
+                style="display:flex; align-items:center; gap:4px; padding:6px 14px; font-size:11px; font-weight:600; color:#60a5fa; background:rgba(96,165,250,0.08); border:1px solid rgba(96,165,250,0.2); border-radius:8px; cursor:pointer;">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Nova instância
+        </button>
+    </div>
+    @endif
+
     {{-- Header --}}
     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
         <div>
