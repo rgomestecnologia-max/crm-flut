@@ -262,8 +262,31 @@ class KanbanBoard extends Component
             );
         }
 
+        // Auto-tag: se pipeline tem tag com mesmo nome, taguear conversa do contato
+        $this->syncConversationTag($card);
+
         $this->showCardPanel = false;
         $this->resetCardForm();
+    }
+
+    private function syncConversationTag(CrmCard $card): void
+    {
+        if (!$card->contact_id) return;
+
+        $pipelineName = $card->pipeline?->name;
+        if (!$pipelineName) return;
+
+        $tag = \App\Models\Tag::where('name', $pipelineName)->first();
+        if (!$tag) return;
+
+        $conversation = \App\Models\Conversation::where('contact_id', $card->contact_id)
+            ->where('is_group', false)
+            ->latest()
+            ->first();
+
+        if ($conversation && !$conversation->tags()->where('tags.id', $tag->id)->exists()) {
+            $conversation->tags()->attach($tag->id);
+        }
     }
 
     public function deleteCard(int $cardId): void
