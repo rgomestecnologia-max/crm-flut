@@ -128,6 +128,29 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
     });
 
+    // Download de mídia (proxy para evitar CORS em URLs externas)
+    Route::get('/media/download/{messageId}', function (int $messageId) {
+        $msg = \App\Models\Message::findOrFail($messageId);
+        if (!$msg->media_url) abort(404);
+
+        $filename = $msg->media_filename ?? basename(parse_url($msg->media_url, PHP_URL_PATH));
+        $content  = file_get_contents($msg->media_url);
+        if (!$content) abort(404);
+
+        $mime = match(true) {
+            str_ends_with($filename, '.pdf')  => 'application/pdf',
+            str_ends_with($filename, '.doc')  => 'application/msword',
+            str_ends_with($filename, '.docx') => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            str_ends_with($filename, '.xls')  => 'application/vnd.ms-excel',
+            str_ends_with($filename, '.xlsx') => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            default => 'application/octet-stream',
+        };
+
+        return response($content)
+            ->header('Content-Type', $mime)
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    })->name('media.download');
+
     // Exportação CRM
     Route::get('/crm/export', function (\Illuminate\Http\Request $request) {
         $pipelineId = $request->query('pipeline_id');
