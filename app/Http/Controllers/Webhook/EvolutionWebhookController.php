@@ -101,13 +101,13 @@ class EvolutionWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        // ── Mensagem excluída pelo remetente ──────────────────────────────
+        // ── Status de mensagem (entregue, lida, revogada) ──────────────────
         if ($event === 'messages.update') {
             $data   = $payload['data'] ?? [];
             $msgId  = $data['keyId'] ?? $data['id'] ?? $data['key']['id'] ?? null;
             $status = $data['status'] ?? null;
 
-            // Mensagem revogada/excluída (status REVOKE ou messageStubType)
+            // Mensagem revogada/excluída
             if ($msgId && ($status === 'REVOKE' || ($data['messageStubType'] ?? null) === 'REVOKE')) {
                 $msg = \App\Models\Message::withoutGlobalScope(\App\Models\Scopes\CompanyScope::class)
                     ->where('zapi_message_id', $msgId)
@@ -116,6 +116,36 @@ class EvolutionWebhookController extends Controller
                 if ($msg) {
                     Log::info('Mensagem excluída pelo remetente', ['message_id' => $msg->id, 'zapi_id' => $msgId]);
                     $msg->delete();
+                }
+            }
+
+            // Rastrear entrega e leitura (broadcast + mensagens regulares)
+            if ($msgId && in_array($status, ['DELIVERY_ACK', 'READ', 'PLAYED'])) {
+                $deliveryStatus = match ($status) {
+                    'DELIVERY_ACK' => 'delivered',
+                    'READ', 'PLAYED' => 'read',
+                };
+
+                // Atualizar mensagem regular
+                \App\Models\Message::withoutGlobalScope(\App\Models\Scopes\CompanyScope::class)
+                    ->where('zapi_message_id', $msgId)
+                    ->whereIn('delivery_status', ['pending', 'sent', 'delivered'])
+                    ->update(['delivery_status' => $deliveryStatus]);
+
+                // Atualizar recipient de broadcast
+                $recipient = \App\Models\BroadcastCampaignRecipient::where('message_id', $msgId)->first();
+                if ($recipient) {
+                    $updates = [];
+                    if ($deliveryStatus === 'delivered' && !$recipient->delivered_at) {
+                        $updates['delivered_at'] = now();
+                        $updates['status'] = 'delivered';
+                    }
+                    if ($deliveryStatus === 'read' && !$recipient->read_at) {
+                        $updates['read_at'] = now();
+                        $updates['status'] = 'read';
+                        if (!$recipient->delivered_at) $updates['delivered_at'] = now();
+                    }
+                    if (!empty($updates)) $recipient->update($updates);
                 }
             }
 

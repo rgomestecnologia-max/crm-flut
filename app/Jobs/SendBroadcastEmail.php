@@ -99,17 +99,29 @@ class SendBroadcastEmail implements ShouldQueue
                     'Content-Type'  => 'application/json',
                 ])->post('https://api.sendgrid.com/v3/mail/send', [
                     'personalizations' => [
-                        ['to' => [['email' => $email, 'name' => $name]]],
+                        [
+                            'to'              => [['email' => $email, 'name' => $name]],
+                            'custom_args'     => ['recipient_id' => (string) $recipient->id],
+                        ],
                     ],
                     'from'    => ['email' => $fromEmail, 'name' => $fromName],
                     'subject' => $subject,
                     'content' => [
                         ['type' => 'text/html', 'value' => $body],
                     ],
+                    'tracking_settings' => [
+                        'open_tracking'  => ['enable' => true],
+                        'click_tracking' => ['enable' => true],
+                    ],
                 ]);
 
                 if ($response->status() >= 200 && $response->status() < 300) {
-                    $recipient->update(['status' => 'sent', 'sent_at' => now()]);
+                    $sgMsgId = $response->header('X-Message-Id');
+                    $recipient->update([
+                        'status'     => 'sent',
+                        'sent_at'    => now(),
+                        'message_id' => $sgMsgId,
+                    ]);
                     $sent++;
                 } else {
                     $error = $response->body();

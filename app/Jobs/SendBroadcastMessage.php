@@ -97,7 +97,12 @@ class SendBroadcastMessage implements ShouldQueue
                 }
 
                 if ($result['success'] ?? false) {
-                    $recipient->update(['status' => 'sent', 'sent_at' => now()]);
+                    $msgId = $result['key']['id'] ?? $result['id'] ?? null;
+                    $recipient->update([
+                        'status'     => 'sent',
+                        'sent_at'    => now(),
+                        'message_id' => $msgId,
+                    ]);
                     $sent++;
                 } else {
                     $error = $result['error'] ?? json_encode($result);

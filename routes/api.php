@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Webhook\EvolutionWebhookController;
 use App\Http\Controllers\Webhook\MetaWebhookController;
+use App\Http\Controllers\Webhook\SendGridWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/webhook/evolution', [EvolutionWebhookController::class, 'handle'])
@@ -14,6 +15,10 @@ Route::get('/webhook/meta', [MetaWebhookController::class, 'verify'])
 Route::post('/webhook/meta', [MetaWebhookController::class, 'handle'])
     ->middleware('throttle:500,1')
     ->name('webhook.meta');
+
+Route::post('/webhook/sendgrid', [SendGridWebhookController::class, 'handle'])
+    ->middleware('throttle:500,1')
+    ->name('webhook.sendgrid');
 
 // ── API de Integração CRM ─────────────────────────────────────────────
 Route::middleware(['api.token', 'throttle:100,1'])->group(function () {

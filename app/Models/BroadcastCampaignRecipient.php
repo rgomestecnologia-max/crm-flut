@@ -8,12 +8,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BroadcastCampaignRecipient extends Model
 {
     protected $fillable = [
-        'campaign_id', 'run_id', 'broadcast_contact_id', 'phone', 'status', 'sent_at', 'error',
+        'campaign_id', 'run_id', 'broadcast_contact_id', 'phone', 'message_id',
+        'status', 'sent_at', 'delivered_at', 'read_at', 'error',
     ];
 
     protected function casts(): array
     {
-        return ['sent_at' => 'datetime'];
+        return [
+            'sent_at'      => 'datetime',
+            'delivered_at' => 'datetime',
+            'read_at'      => 'datetime',
+        ];
     }
 
     public function run(): BelongsTo

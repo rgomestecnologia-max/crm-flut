@@ -428,6 +428,13 @@ class CampaignManager extends Component
             $totalFailed = $reportCampaigns->sum('failed_count');
             $totalRecipients = $reportCampaigns->sum('total_recipients');
 
+            // Métricas de entrega e leitura
+            $recipientQuery = BroadcastCampaignRecipient::query()
+                ->when($this->reportCampaignId, fn($q) => $q->where('campaign_id', $this->reportCampaignId))
+                ->when(!$this->reportCampaignId, fn($q) => $q->whereIn('campaign_id', $reportCampaigns->pluck('id')));
+            $totalDelivered = (clone $recipientQuery)->whereNotNull('delivered_at')->count();
+            $totalRead      = (clone $recipientQuery)->whereNotNull('read_at')->count();
+
             // Erros mais comuns
             $topErrors = BroadcastCampaignRecipient::where('status', 'failed')
                 ->whereNotNull('error')
@@ -444,15 +451,21 @@ class CampaignManager extends Component
                 if ($c->started_at && $c->completed_at) {
                     $duration = $c->started_at->diffForHumans($c->completed_at, true);
                 }
+                $delivered = BroadcastCampaignRecipient::where('campaign_id', $c->id)->whereNotNull('delivered_at')->count();
+                $read      = BroadcastCampaignRecipient::where('campaign_id', $c->id)->whereNotNull('read_at')->count();
+                $sent      = $c->sent_count ?? 0;
                 return [
                     'id'              => $c->id,
                     'name'            => $c->name,
                     'channel'         => $c->channel,
                     'status'          => $c->status,
                     'total'           => $c->total_recipients,
-                    'sent'            => $c->sent_count ?? 0,
+                    'sent'            => $sent,
                     'failed'          => $c->failed_count ?? 0,
-                    'delivery_rate'   => $c->total_recipients > 0 ? round(($c->sent_count ?? 0) / $c->total_recipients * 100, 1) : 0,
+                    'delivered'       => $delivered,
+                    'read'            => $read,
+                    'delivery_rate'   => $sent > 0 ? round($delivered / $sent * 100, 1) : 0,
+                    'read_rate'       => $sent > 0 ? round($read / $sent * 100, 1) : 0,
                     'duration'        => $duration,
                     'recipient_mode'  => $c->recipient_mode ?? 'all',
                     'filter_tag'      => $c->filter_tag,
@@ -471,7 +484,7 @@ class CampaignManager extends Component
                     ->get();
             }
 
-            $reportData = compact('totalSent', 'totalFailed', 'totalRecipients', 'topErrors', 'campaignDetails', 'failedRecipients');
+            $reportData = compact('totalSent', 'totalFailed', 'totalRecipients', 'totalDelivered', 'totalRead', 'topErrors', 'campaignDetails', 'failedRecipients');
         }
 
         $company = app(\App\Services\CurrentCompany::class)->model();

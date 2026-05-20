@@ -428,9 +428,9 @@
             </div>
 
             {{-- Cards de métricas --}}
-            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:20px;">
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:12px;">
                 <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:16px; text-align:center;">
-                    <p style="font-size:10px; color:rgba(255,255,255,0.3); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Total Destinatários</p>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.3); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Destinatários</p>
                     <p style="font-size:24px; font-weight:800; color:white; margin-top:4px;">{{ number_format($reportData['totalRecipients'], 0, ',', '.') }}</p>
                 </div>
                 <div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.15); border-radius:12px; padding:16px; text-align:center;">
@@ -441,9 +441,23 @@
                     <p style="font-size:10px; color:rgba(239,68,68,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Falhas</p>
                     <p style="font-size:24px; font-weight:800; color:#f87171; margin-top:4px;">{{ number_format($reportData['totalFailed'], 0, ',', '.') }}</p>
                 </div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:20px;">
                 <div style="background:rgba(96,165,250,0.06); border:1px solid rgba(96,165,250,0.15); border-radius:12px; padding:16px; text-align:center;">
-                    <p style="font-size:10px; color:rgba(96,165,250,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Taxa de Entrega</p>
-                    <p style="font-size:24px; font-weight:800; color:#60a5fa; margin-top:4px;">{{ $reportData['totalRecipients'] > 0 ? round($reportData['totalSent'] / $reportData['totalRecipients'] * 100, 1) : 0 }}%</p>
+                    <p style="font-size:10px; color:rgba(96,165,250,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Entregues</p>
+                    <p style="font-size:24px; font-weight:800; color:#60a5fa; margin-top:4px;">{{ number_format($reportData['totalDelivered'], 0, ',', '.') }}</p>
+                    <p style="font-size:10px; color:rgba(96,165,250,0.5); margin-top:2px;">{{ $reportData['totalSent'] > 0 ? round($reportData['totalDelivered'] / $reportData['totalSent'] * 100, 1) : 0 }}% dos enviados</p>
+                </div>
+                <div style="background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.15); border-radius:12px; padding:16px; text-align:center;">
+                    <p style="font-size:10px; color:rgba(168,85,247,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Lidos / Abertos</p>
+                    <p style="font-size:24px; font-weight:800; color:#a78bfa; margin-top:4px;">{{ number_format($reportData['totalRead'], 0, ',', '.') }}</p>
+                    <p style="font-size:10px; color:rgba(168,85,247,0.5); margin-top:2px;">{{ $reportData['totalSent'] > 0 ? round($reportData['totalRead'] / $reportData['totalSent'] * 100, 1) : 0 }}% dos enviados</p>
+                </div>
+                <div style="background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.15); border-radius:12px; padding:16px; text-align:center;">
+                    <p style="font-size:10px; color:rgba(251,191,36,0.7); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Sem leitura</p>
+                    @php $unread = $reportData['totalDelivered'] - $reportData['totalRead']; @endphp
+                    <p style="font-size:24px; font-weight:800; color:#fbbf24; margin-top:4px;">{{ number_format(max(0, $unread), 0, ',', '.') }}</p>
+                    <p style="font-size:10px; color:rgba(251,191,36,0.5); margin-top:2px;">entregue mas não lido</p>
                 </div>
             </div>
 
@@ -465,13 +479,14 @@
                             <button wire:click="openReport({{ $cd['id'] }})" style="font-size:10px; color:#60a5fa; background:none; border:none; cursor:pointer; text-decoration:underline;">Detalhar</button>
                             @endif
                         </div>
-                        <div style="display:flex; gap:16px; font-size:11px;">
-                            <span style="color:rgba(255,255,255,0.5);">{{ $cd['total'] }} destinatários</span>
-                            <span style="color:#4ade80;">{{ $cd['sent'] }} enviados</span>
+                        <div style="display:flex; gap:12px; font-size:11px; flex-wrap:wrap;">
+                            <span style="color:rgba(255,255,255,0.5);">{{ $cd['total'] }} dest.</span>
+                            <span style="color:#4ade80;">{{ $cd['sent'] }} env.</span>
+                            <span style="color:#60a5fa;">{{ $cd['delivered'] }} entreg. ({{ $cd['delivery_rate'] }}%)</span>
+                            <span style="color:#a78bfa;">{{ $cd['read'] }} lidos ({{ $cd['read_rate'] }}%)</span>
                             <span style="color:#f87171;">{{ $cd['failed'] }} falhas</span>
-                            <span style="color:#60a5fa; font-weight:700;">{{ $cd['delivery_rate'] }}% entrega</span>
                             @if($cd['duration'])
-                            <span style="color:rgba(255,255,255,0.3);">Duração: {{ $cd['duration'] }}</span>
+                            <span style="color:rgba(255,255,255,0.3);">{{ $cd['duration'] }}</span>
                             @endif
                         </div>
                         <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">

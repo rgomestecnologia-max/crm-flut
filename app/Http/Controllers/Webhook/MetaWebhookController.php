@@ -121,5 +121,23 @@ class MetaWebhookController extends Controller
         Message::where('zapi_message_id', $messageId)
             ->whereIn('delivery_status', ['pending', 'sent', 'delivered'])
             ->update(['delivery_status' => $deliveryStatus]);
+
+        // Rastrear broadcast recipients
+        if (in_array($deliveryStatus, ['delivered', 'read'])) {
+            $recipient = \App\Models\BroadcastCampaignRecipient::where('message_id', $messageId)->first();
+            if ($recipient) {
+                $updates = [];
+                if ($deliveryStatus === 'delivered' && !$recipient->delivered_at) {
+                    $updates['delivered_at'] = now();
+                    $updates['status'] = 'delivered';
+                }
+                if ($deliveryStatus === 'read' && !$recipient->read_at) {
+                    $updates['read_at'] = now();
+                    $updates['status'] = 'read';
+                    if (!$recipient->delivered_at) $updates['delivered_at'] = now();
+                }
+                if (!empty($updates)) $recipient->update($updates);
+            }
+        }
     }
 }
