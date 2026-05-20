@@ -234,6 +234,13 @@
                     <p class="value green">R$ <span x-text="fmt(total.monthly)"></span></p>
                 </div>
             </div>
+            <template x-if="discountPercent > 0">
+                <div style="text-align:center; margin-top:8px;">
+                    <span style="display:inline-block; padding:4px 14px; background:rgba(234,179,8,0.12); border:1px solid rgba(234,179,8,0.3); border-radius:20px; font-size:12px; font-weight:700; color:#eab308;">
+                        Desconto de <span x-text="discountPercent"></span>% aplicado
+                    </span>
+                </div>
+            </template>
 
             <div class="breakdown">
                 <template x-if="modules.multi">
@@ -370,6 +377,7 @@ function pricingSimulator() {
         savedId: existing?.id ?? null,
         proposalId: existing?.id ?? null,
         proposalToken: existing?.token ?? null,
+        discountPercent: existing?.discount_percent ?? 0,
         saving: false,
         nameError: false,
 
@@ -424,6 +432,16 @@ function pricingSimulator() {
                 this.detail.int_monthly = m;
                 this.detail.int_setup = s;
                 monthly += m; setup += s;
+            }
+
+            // Aplica desconto se existir
+            if (this.discountPercent > 0) {
+                const factor = 1 - (this.discountPercent / 100);
+                monthly *= factor;
+                setup *= factor;
+                for (const key in this.detail) {
+                    this.detail[key] = this.detail[key] * factor;
+                }
             }
 
             this.total.monthly = monthly;
@@ -769,6 +787,19 @@ function pricingSimulator() {
             });
 
             let fy = doc.lastAutoTable.finalY + 14;
+
+            // Badge de desconto no PDF
+            if (this.discountPercent > 0) {
+                doc.setFillColor(255, 251, 235);
+                doc.setDrawColor(234, 179, 8);
+                doc.roundedRect(mx, fy, pw - mx * 2, 18, 3, 3, 'FD');
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(146, 64, 14);
+                doc.text('Desconto especial de ' + this.discountPercent + '% aplicado nesta proposta.', mx + 6, fy + 10);
+                doc.setFont('helvetica', 'normal');
+                fy += 22;
+            }
 
             // Prazo
             doc.setFillColor(255, 251, 235);
