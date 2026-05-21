@@ -706,6 +706,16 @@ class ChatArea extends Component
         $this->conversation->refresh();
     }
 
+    public function archiveConversation(): void
+    {
+        if (!$this->conversationId) return;
+        $this->conversation->update(['status' => 'archived']);
+        $this->conversationId = null;
+        $this->conversation   = null;
+        $this->dispatch('conversation-deleted');
+        $this->dispatch('toast', type: 'success', message: 'Conversa arquivada.');
+    }
+
     public function resolveConversation(): void
     {
         if (!$this->conversationId) return;

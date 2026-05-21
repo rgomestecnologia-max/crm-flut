@@ -220,6 +220,26 @@ class ConversationList extends Component
         $this->dispatch('toast', type: 'success', message: "{$count} conversa(s) transferida(s) para {$dept->name}.");
     }
 
+    public function archiveConversation(int $id): void
+    {
+        $conv = Conversation::find($id);
+        if (!$conv) return;
+        $conv->update(['status' => 'archived']);
+        if ($this->activeId === $id) {
+            $this->activeId = null;
+            $this->dispatch('conversation-deleted');
+        }
+        $this->dispatch('toast', type: 'success', message: 'Conversa arquivada.');
+    }
+
+    public function unarchiveConversation(int $id): void
+    {
+        $conv = Conversation::find($id);
+        if (!$conv) return;
+        $conv->update(['status' => 'resolved']);
+        $this->dispatch('toast', type: 'success', message: 'Conversa desarquivada.');
+    }
+
     /**
      * Atribui a conversa ao agente logado (tirar da fila).
      */
@@ -266,8 +286,11 @@ class ConversationList extends Component
             // Aguardando: conversas onde a IA pediu handoff (aguardando humano)
             'waiting'  => $query->whereNotNull('waiting_human_reason'),
 
-            // Todos: todas as conversas dos departamentos do usuário
-            'all'      => $query,
+            // Todos: todas as conversas dos departamentos do usuário (exclui arquivadas)
+            'all'      => $query->where('status', '!=', 'archived'),
+
+            // Arquivadas
+            'archived' => $query->where('status', 'archived'),
 
             default    => null,
         };
@@ -302,7 +325,8 @@ class ConversationList extends Component
                 });
             })->count(),
             'waiting'  => (clone $baseQuery)->whereNotNull('waiting_human_reason')->count(),
-            'all'      => (clone $baseQuery)->count(),
+            'all'      => (clone $baseQuery)->where('status', '!=', 'archived')->count(),
+            'archived' => (clone $baseQuery)->where('status', 'archived')->count(),
         ];
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();

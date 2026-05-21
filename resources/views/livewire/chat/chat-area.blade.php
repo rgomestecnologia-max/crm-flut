@@ -142,6 +142,17 @@ function senderColor(?string $identifier): string {
                     </svg>
                     <span class="action-text">Encerrar</span>
                 </button>
+                {{-- Archive button --}}
+                <button wire:click="archiveConversation"
+                        wire:confirm="Arquivar esta conversa?"
+                        style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; background:rgba(107,114,128,0.08); color:rgba(107,114,128,0.6); border:1px solid rgba(107,114,128,0.15); cursor:pointer; transition:all 0.2s;"
+                        onmouseover="this.style.background='rgba(107,114,128,0.18)'; this.style.color='#9ca3af'"
+                        onmouseout="this.style.background='rgba(107,114,128,0.08)'; this.style.color='rgba(107,114,128,0.6)'"
+                        title="Arquivar conversa">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                    </svg>
+                </button>
 
                 {{-- CRM button --}}
                 <button wire:click="openCrmPanel"

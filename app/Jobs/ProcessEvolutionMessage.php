@@ -308,7 +308,7 @@ class ProcessEvolutionMessage implements ShouldQueue
             } else {
                 $conversation = Conversation::where('contact_id', $contact->id)
                     ->where('is_group', false)
-                    ->whereIn('status', ['open', 'pending', 'resolved'])
+                    ->whereIn('status', ['open', 'pending', 'resolved', 'archived'])
                     ->latest()
                     ->first();
 
@@ -339,7 +339,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                     if ($companyId === 11 && $department->name === 'Comercial') {
                         $this->createCardForDepartment($contact, $department);
                     }
-                } elseif (!$fromMe && $conversation->status === 'resolved') {
+                } elseif (!$fromMe && in_array($conversation->status, ['resolved', 'archived'])) {
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
                     $conversation->update([
                         'status'        => 'open',

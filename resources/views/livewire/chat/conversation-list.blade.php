@@ -125,6 +125,9 @@
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
+        if (($counts['archived'] ?? 0) > 0) {
+            $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
+        }
         // Tags como filtros
         foreach ($tags as $tag) {
             $tagColor = $tag->color ?: '#8b5cf6';
@@ -282,6 +285,16 @@
                                 onmouseover="this.style.background='rgba(245,158,11,0.2)'"
                                 onmouseout="this.style.background='rgba(245,158,11,0.1)'">
                             Assumir
+                        </button>
+                    </div>
+                @endif
+                @if($filter === 'archived')
+                    <div style="padding:0 14px 8px;">
+                        <button wire:click="unarchiveConversation({{ $conv->id }})"
+                                style="font-size:10px; font-weight:700; color:#60a5fa; background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.3); border-radius:6px; padding:3px 10px; cursor:pointer; transition:all 0.15s;"
+                                onmouseover="this.style.background='rgba(96,165,250,0.2)'"
+                                onmouseout="this.style.background='rgba(96,165,250,0.1)'">
+                            Desarquivar
                         </button>
                     </div>
                 @endif
