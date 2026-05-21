@@ -706,6 +706,26 @@ class ChatArea extends Component
         $this->conversation->refresh();
     }
 
+    public function editContactName(string $name): void
+    {
+        $name = trim($name);
+        if (!$this->conversationId || !$name) return;
+
+        $contact = $this->conversation->contact;
+        if (!$contact) return;
+
+        $contact->update(['name' => $name]);
+
+        // Sincronizar com leads
+        \App\Models\BroadcastContact::where('phone', $contact->phone)->update(['name' => $name]);
+
+        // Sincronizar título dos cards do CRM
+        \App\Models\CrmCard::where('contact_id', $contact->id)->update(['title' => $name]);
+
+        $this->conversation->refresh();
+        $this->dispatch('toast', type: 'success', message: 'Nome atualizado.');
+    }
+
     public function archiveConversation(): void
     {
         if (!$this->conversationId) return;

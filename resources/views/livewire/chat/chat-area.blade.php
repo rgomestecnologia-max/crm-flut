@@ -39,7 +39,9 @@ function senderColor(?string $identifier): string {
             .chat-header { padding: 8px 10px !important; gap: 6px !important; }
             #messages-container { padding: 12px 10px !important; }
         }
+        .chat-header-info:hover .edit-pencil { opacity: 1 !important; }
         @media (hover: none) and (pointer: coarse) {
+            .edit-pencil { opacity: 1 !important; }
             .msg-action-menu { display: flex !important; opacity: 0.6; }
             .msg-action-menu:active { opacity: 1; }
         }
@@ -76,9 +78,30 @@ function senderColor(?string $identifier): string {
         </div>
         <div class="chat-header-info" style="flex:1; min-width:0;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                @if(!$conversation->is_group)
+                <div x-data="{ editing: false, name: '{{ addslashes($conversation->contact->display_name) }}' }" style="display:flex; align-items:center; gap:4px; min-width:0;">
+                    <template x-if="!editing">
+                        <div style="display:flex; align-items:center; gap:4px; cursor:pointer;" @click="editing = true; $nextTick(() => $refs.nameInput?.focus())">
+                            <p style="font-size:13px; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.01em;" x-text="name"></p>
+                            <svg width="12" height="12" fill="none" stroke="rgba(255,255,255,0.2)" viewBox="0 0 24 24" style="flex-shrink:0; opacity:0; transition:opacity 0.15s;" class="edit-pencil"
+                                 onmouseover="this.style.stroke='#b2ff00'" onmouseout="this.style.stroke='rgba(255,255,255,0.2)'">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </div>
+                    </template>
+                    <template x-if="editing">
+                        <input x-ref="nameInput" type="text" x-model="name"
+                               @keydown.enter="if(name.trim()) { $wire.editContactName(name); editing = false; }"
+                               @keydown.escape="name = '{{ addslashes($conversation->contact->display_name) }}'; editing = false;"
+                               @blur="if(name.trim() && name !== '{{ addslashes($conversation->contact->display_name) }}') { $wire.editContactName(name); } editing = false;"
+                               style="font-size:13px; font-weight:700; color:#b2ff00; background:rgba(178,255,0,0.06); border:1px solid rgba(178,255,0,0.3); border-radius:6px; padding:2px 8px; outline:none; width:200px;">
+                    </template>
+                </div>
+                @else
                 <p style="font-size:13px; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.01em;">
-                    {{ $conversation->is_group ? ($conversation->group_name ?: $conversation->contact->display_name) : $conversation->contact->display_name }}
+                    {{ $conversation->group_name ?: $conversation->contact->display_name }}
                 </p>
+                @endif
                 @if($conversation->is_group)
                 <span style="flex-shrink:0; display:inline-flex; align-items:center; gap:3px; font-size:9px; font-weight:700; padding:2px 7px; border-radius:20px; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">
                     <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
