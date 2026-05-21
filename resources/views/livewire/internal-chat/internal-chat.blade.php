@@ -83,7 +83,9 @@
                     <input type="file" wire:model="attachment" style="display:none;" x-on:change="$wire.sendFile()">
                 </label>
                 <input wire:model="messageText" type="text" placeholder="Digite uma mensagem..."
-                       x-on:keydown.enter="$wire.sendMessage()"
+                       x-ref="internalInput"
+                       x-on:keydown.enter="$wire.sendMessage().then(() => { $refs.internalInput.value = ''; })"
+                       x-on:internal-scroll-bottom.window="$nextTick(() => { $refs.internalInput.value = ''; $refs.internalInput.focus(); })"
                        style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:13px; color:white; outline:none;"
                        onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
                 <button wire:click="sendMessage" style="padding:8px; color:#b2ff00; background:none; border:none; cursor:pointer;">
