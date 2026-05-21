@@ -86,26 +86,48 @@
             </div>
 
             {{-- Input --}}
-            <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0; display:flex; align-items:center; gap:8px;">
-                {{-- Imagem --}}
-                <label title="Enviar imagem" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#4ade80'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    <input type="file" wire:model="attachment" accept="image/*" style="display:none;" x-on:change="$wire.sendFile()">
-                </label>
-                {{-- Documento --}}
-                <label title="Enviar documento" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                    <input type="file" wire:model="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" style="display:none;" x-on:change="$wire.sendFile()">
-                </label>
-                <input wire:model="messageText" type="text" placeholder="Digite uma mensagem..."
-                       x-ref="internalInput"
-                       x-on:keydown.enter="$wire.sendMessage().then(() => { $refs.internalInput.value = ''; })"
-                       x-on:internal-scroll-bottom.window="$nextTick(() => { $refs.internalInput.value = ''; $refs.internalInput.focus(); })"
-                       style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:13px; color:white; outline:none;"
-                       onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
-                <button wire:click="sendMessage" style="padding:8px; color:#b2ff00; background:none; border:none; cursor:pointer;">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                </button>
+            <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0; position:relative;"
+                 x-data="{ showEmoji: false }">
+                {{-- Emoji picker --}}
+                <div x-show="showEmoji" x-transition @click.outside="showEmoji = false"
+                     style="position:absolute; bottom:52px; left:10px; background:#1a1f2e; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; width:320px; z-index:50; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+                    <div style="display:grid; grid-template-columns:repeat(9, 1fr); gap:2px; max-height:200px; overflow-y:auto;">
+                        @foreach(['😀','😂','🤣','😊','😍','🥰','😘','😎','🤩','🥳','😇','🤔','🤗','😅','😆','😁','😉','😋','😜','🤪','😝','🤑','🤭','🫡','🤫','🫣','😬','😌','😴','🤤','😷','🤒','🤕','🥴','😵','🤯','🥶','🥵','😱','😨','😰','😢','😭','😤','😠','🤬','💀','💩','👻','👽','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👋','🤚','✋','🖐️','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','✍️','💪','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','❣️','💕','💞','💓','💗','💖','💘','💝','⭐','🌟','✨','💫','🔥','💯','✅','❌','⚡','🎉','🎊','🏆','📌','📍','💰','📱','💻','📧','📞','🕐','📅'] as $emoji)
+                            <button type="button"
+                                    @click.stop="$wire.set('messageText', ($wire.messageText||'') + '{{ $emoji }}'); $refs.internalInput.value = ($refs.internalInput.value||'') + '{{ $emoji }}'; showEmoji=false; $refs.internalInput.focus();"
+                                    style="font-size:18px; padding:4px; border-radius:6px; border:none; background:transparent; cursor:pointer; text-align:center; line-height:1; transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">{{ $emoji }}</button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px;">
+                    {{-- Imagem --}}
+                    <label title="Enviar imagem" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#4ade80'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <input type="file" wire:model="attachment" accept="image/*" style="display:none;" x-on:change="$wire.sendFile()">
+                    </label>
+                    {{-- Documento --}}
+                    <label title="Enviar documento" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                        <input type="file" wire:model="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" style="display:none;" x-on:change="$wire.sendFile()">
+                    </label>
+                    <input wire:model="messageText" type="text" placeholder="Digite uma mensagem..." spellcheck="true" lang="pt-BR"
+                           x-ref="internalInput"
+                           x-on:keydown.enter="$wire.sendMessage().then(() => { $refs.internalInput.value = ''; })"
+                           x-on:internal-scroll-bottom.window="$nextTick(() => { $refs.internalInput.value = ''; $refs.internalInput.focus(); })"
+                           style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:13px; color:white; outline:none;"
+                           onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+                    {{-- Emoji --}}
+                    <button type="button" @click.stop="showEmoji = !showEmoji" title="Emojis"
+                            style="padding:6px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; transition:color 0.15s;"
+                            onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
+                    <button wire:click="sendMessage" style="padding:8px; color:#b2ff00; background:none; border:none; cursor:pointer;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>
             </div>
         @else
             <div style="flex:1; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.2);">
