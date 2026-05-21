@@ -104,7 +104,9 @@ class ProcessMetaMessage implements ShouldQueue
                     'status'        => 'open',
                     'is_group'      => false,
                 ]);
-            } elseif (in_array($conversation->status, ['resolved', 'archived'])) {
+            } elseif ($conversation->status === 'archived') {
+                // Arquivada: mantém arquivada
+            } elseif ($conversation->status === 'resolved') {
                 $conversation->update([
                     'status'        => 'open',
                     'assigned_to'   => null,

@@ -339,7 +339,9 @@ class ProcessEvolutionMessage implements ShouldQueue
                     if ($companyId === 11 && $department->name === 'Comercial') {
                         $this->createCardForDepartment($contact, $department);
                     }
-                } elseif (!$fromMe && in_array($conversation->status, ['resolved', 'archived'])) {
+                } elseif (!$fromMe && $conversation->status === 'archived') {
+                    // Arquivada: mantém arquivada, só atualiza last_message_at
+                } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
                     $conversation->update([
                         'status'        => 'open',
