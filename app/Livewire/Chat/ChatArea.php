@@ -427,8 +427,8 @@ class ChatArea extends Component
 
             if ($result) {
                 $baseName  = uniqid('img_', true);
-                $path      = "{$dir}/{$baseName}.webp";
-                $thumbPath = "{$dir}/{$baseName}_thumb.webp";
+                $path      = "{$dir}/{$baseName}.jpg";
+                $thumbPath = "{$dir}/{$baseName}_thumb.jpg";
 
                 MediaStorage::put($path, $result['optimized']);
                 MediaStorage::put($thumbPath, $result['thumbnail']);
@@ -501,9 +501,9 @@ class ChatArea extends Component
         $result    = $optimizer->tryOptimize($raw, 'image/png');
 
         if ($result) {
-            $path = "{$dir}/{$baseName}.webp";
+            $path = "{$dir}/{$baseName}.jpg";
             \App\Services\MediaStorage::put($path, $result['optimized']);
-            $thumbPath = "{$dir}/{$baseName}_thumb.webp";
+            $thumbPath = "{$dir}/{$baseName}_thumb.jpg";
             \App\Services\MediaStorage::put($thumbPath, $result['thumbnail']);
         } else {
             $path = "{$dir}/{$baseName}.png";

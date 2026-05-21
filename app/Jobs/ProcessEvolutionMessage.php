@@ -760,7 +760,7 @@ class ProcessEvolutionMessage implements ShouldQueue
             $mime = $vm['mimetype'] ?? 'video/mp4';
             $url  = $this->resolveMediaUrl($vm, $messageId, $mime, null, 'video');
 
-            // Salva thumbnail do vídeo (jpegThumbnail do WhatsApp) como _thumb.webp
+            // Salva thumbnail do vídeo (jpegThumbnail do WhatsApp) como _thumb.jpg
             if ($url && !empty($vm['jpegThumbnail']) && is_string($vm['jpegThumbnail'])) {
                 $this->saveVideoThumbnail($url, $vm['jpegThumbnail']);
             }
@@ -898,11 +898,11 @@ class ProcessEvolutionMessage implements ShouldQueue
 
         if ($result) {
             // Salva versão otimizada como WebP
-            $path = "{$dir}/{$baseName}.webp";
+            $path = "{$dir}/{$baseName}.jpg";
             MediaStorage::put($path, $result['optimized']);
 
             // Salva thumbnail ao lado
-            $thumbPath = "{$dir}/{$baseName}_thumb.webp";
+            $thumbPath = "{$dir}/{$baseName}_thumb.jpg";
             MediaStorage::put($thumbPath, $result['thumbnail']);
         } else {
             // Não é imagem otimizável — salva original
@@ -928,13 +928,13 @@ class ProcessEvolutionMessage implements ShouldQueue
             $thumb     = $optimizer->thumbnailOnly($decoded);
 
             // Deriva o path do thumb a partir da URL do vídeo
-            // Ex: media/2026/04/msg_xxx.mp4 → media/2026/04/msg_xxx_thumb.webp
+            // Ex: media/2026/04/msg_xxx.mp4 → media/2026/04/msg_xxx_thumb.jpg
             // A URL pode ser relativa (/storage/...) ou absoluta (https://r2.dev/...)
             $urlPath = parse_url($videoUrl, PHP_URL_PATH);
             $dotPos  = strrpos($urlPath, '.');
             if (!$dotPos) return;
 
-            $thumbRelative = substr($urlPath, 0, $dotPos) . '_thumb.webp';
+            $thumbRelative = substr($urlPath, 0, $dotPos) . '_thumb.jpg';
 
             // Remove /storage/ prefix se for URL local
             $thumbRelative = ltrim(str_replace('/storage/', '', $thumbRelative), '/');

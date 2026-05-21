@@ -55,10 +55,10 @@ class Message extends Model
         $dotPos = strrpos($url, '.');
         if ($dotPos === false) return null;
 
-        // Vídeos: thumbnail é sempre .webp (gerado pelo ImageOptimizer)
-        // Imagens: thumbnail mantém a mesma extensão (.webp se otimizado)
+        // Vídeos: thumbnail é sempre .jpg (gerado pelo ImageOptimizer)
+        // Imagens: thumbnail mantém a mesma extensão (.jpg se otimizado)
         if ($this->type === 'video') {
-            return substr($url, 0, $dotPos) . '_thumb.webp';
+            return substr($url, 0, $dotPos) . '_thumb.jpg';
         }
 
         return substr($url, 0, $dotPos) . '_thumb' . substr($url, $dotPos);

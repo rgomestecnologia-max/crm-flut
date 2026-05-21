@@ -9,8 +9,8 @@ use Intervention\Image\ImageManager;
 /**
  * Comprime e gera thumbnails de imagens usando Intervention Image v3 (driver GD).
  *
- * - Otimiza: redimensiona pra max 1920px de largura + converte pra WebP qualidade 80%
- * - Thumbnail: 300px de largura, WebP qualidade 70%
+ * - Otimiza: redimensiona pra max 1920px de largura + converte pra JPEG qualidade 85%
+ * - Thumbnail: 300px de largura, JPEG qualidade 70%
  * - Stickers e GIFs passam direto (não otimiza animações)
  */
 class ImageOptimizer
@@ -36,12 +36,12 @@ class ImageOptimizer
             $image->scaleDown(width: $maxWidth);
         }
 
-        $optimized = $image->toWebp($quality)->toString();
+        $optimized = $image->toJpeg($quality)->toString();
 
         // Thumbnail
         $thumb = $this->manager->read($contents);
         $thumb->scaleDown(width: 300);
-        $thumbnail = $thumb->toWebp(70)->toString();
+        $thumbnail = $thumb->toJpeg(70)->toString();
 
         return [
             'optimized' => $optimized,
@@ -56,7 +56,7 @@ class ImageOptimizer
     {
         $image = $this->manager->read($contents);
         $image->scaleDown(width: $width);
-        return $image->toWebp($quality)->toString();
+        return $image->toJpeg($quality)->toString();
     }
 
     /**
