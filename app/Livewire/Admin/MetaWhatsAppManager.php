@@ -15,7 +15,8 @@ class MetaWhatsAppManager extends Component
 {
     public string $phone_number_id              = '';
     public string $whatsapp_business_account_id = '';
-    public string $access_token                 = '';
+    public string $access_token                 = '';  // Só para input — não carrega do banco
+    public bool   $hasAccessToken               = false;
     public string $verify_token                 = '';
     public string $phone_display                = '';
     public bool   $is_active                    = false;
@@ -33,7 +34,8 @@ class MetaWhatsAppManager extends Component
         if ($config) {
             $this->phone_number_id              = $config->phone_number_id ?? '';
             $this->whatsapp_business_account_id = $config->whatsapp_business_account_id ?? '';
-            $this->access_token                 = $config->getRawOriginal('access_token') ?? '';
+            $this->access_token                 = '';  // Nunca carrega no Livewire (evita erro de encriptação)
+            $this->hasAccessToken               = !empty($config->getRawOriginal('access_token'));
             $this->verify_token                 = $config->verify_token ?? '';
             $this->phone_display                = $config->phone_display ?? '';
             $this->is_active                    = $config->is_active;
@@ -52,24 +54,35 @@ class MetaWhatsAppManager extends Component
 
     public function save(): void
     {
-        $this->validate([
+        $rules = [
             'phone_number_id'              => 'required|string|max:50',
             'whatsapp_business_account_id' => 'nullable|string|max:50',
-            'access_token'                 => 'required|string',
             'verify_token'                 => 'required|string|max:100',
             'phone_display'                => 'nullable|string|max:20',
-        ]);
+        ];
+        // Token obrigatório só se não tem um salvo
+        if (!$this->hasAccessToken) {
+            $rules['access_token'] = 'required|string';
+        }
+        $this->validate($rules);
+
+        $data = [
+            'phone_number_id'              => $this->phone_number_id,
+            'whatsapp_business_account_id' => $this->whatsapp_business_account_id,
+            'verify_token'                 => $this->verify_token,
+            'phone_display'                => $this->phone_display ?: null,
+            'is_active'                    => $this->is_active,
+        ];
+        // Só atualiza token se foi preenchido (novo token)
+        if ($this->access_token) {
+            $data['access_token'] = $this->access_token;
+            $this->hasAccessToken = true;
+            $this->access_token   = ''; // Limpa da property
+        }
 
         MetaWhatsAppConfig::updateOrCreate(
             ['company_id' => app(\App\Services\CurrentCompany::class)->id()],
-            [
-                'phone_number_id'              => $this->phone_number_id,
-                'whatsapp_business_account_id' => $this->whatsapp_business_account_id,
-                'access_token'                 => $this->access_token,
-                'verify_token'                 => $this->verify_token,
-                'phone_display'                => $this->phone_display ?: null,
-                'is_active'                    => $this->is_active,
-            ]
+            $data
         );
 
         $this->dispatch('toast', type: 'success', message: 'Configurações da Meta WhatsApp salvas.');
@@ -96,14 +109,15 @@ class MetaWhatsAppManager extends Component
         $this->testResult = '';
         $this->testStatus = '';
 
-        if (!$this->phone_number_id || !$this->access_token) {
+        $token = $this->access_token ?: MetaWhatsAppConfig::current()?->getRawOriginal('access_token');
+        if (!$this->phone_number_id || !$token) {
             $this->testResult = 'Preencha Phone Number ID e Access Token primeiro.';
             $this->testStatus = 'error';
             return;
         }
 
         try {
-            $response = Http::withToken($this->access_token)
+            $response = Http::withToken($token)
                 ->timeout(10)
                 ->get("https://graph.facebook.com/v21.0/{$this->phone_number_id}");
 

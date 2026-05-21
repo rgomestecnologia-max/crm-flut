@@ -148,8 +148,13 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 </div>
 
                 <div>
-                    <label style="{{ $labelStyle }}">Access Token *</label>
-                    <input wire:model="access_token" type="password" placeholder="Token permanente do System User" style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    <label style="{{ $labelStyle }}">Access Token {{ $hasAccessToken ? '' : '*' }}</label>
+                    <input wire:model="access_token" type="password"
+                           placeholder="{{ $hasAccessToken ? 'Token salvo — cole um novo para substituir' : 'Cole o token permanente do System User' }}"
+                           style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    @if($hasAccessToken)
+                    <p style="font-size:10px; color:rgba(34,197,94,0.7); margin-top:4px;">Token salvo. Deixe em branco para manter o atual.</p>
+                    @endif
                     @error('access_token') <p style="font-size:11px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
                 </div>
 
