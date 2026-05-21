@@ -53,12 +53,21 @@
                     <div style="max-width:70%; padding:8px 12px; border-radius:{{ $isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px' }};
                                 background:{{ $isMe ? '#2d4a08' : 'rgba(31,41,55,0.8)' }}; color:white; font-size:13px; line-height:1.5;">
                         @if($msg->type === 'image' && $msg->media_url)
-                            <img src="{{ $msg->media_url }}" style="max-width:200px; border-radius:8px; margin-bottom:4px; cursor:pointer;" onclick="window.open('{{ $msg->media_url }}')">
-                        @elseif($msg->type === 'document' && $msg->media_url)
-                            <a href="{{ route('media.download', $msg->id) }}" style="display:flex; align-items:center; gap:6px; color:#60a5fa; text-decoration:none; font-size:12px;">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                {{ $msg->media_filename ?? 'Arquivo' }}
-                            </a>
+                            <div style="position:relative;">
+                                <img src="{{ $msg->media_url }}" style="max-width:220px; border-radius:8px; margin-bottom:4px; cursor:pointer; display:block;" onclick="window.open('{{ $msg->media_url }}')">
+                                <a href="{{ $msg->media_url }}" download="{{ $msg->media_filename ?? 'imagem.jpg' }}"
+                                   style="position:absolute; top:6px; right:6px; width:28px; height:28px; border-radius:6px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; text-decoration:none;"
+                                   onclick="event.stopPropagation(); fetch('{{ $msg->media_url }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='{{ $msg->media_filename ?? 'imagem.jpg' }}';a.click();}); return false;">
+                                    <svg width="14" height="14" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                </a>
+                            </div>
+                        @elseif(in_array($msg->type, ['document', 'audio']) && $msg->media_url)
+                            <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(255,255,255,0.06); border-radius:8px;">
+                                <svg width="16" height="16" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span style="flex:1; font-size:12px; color:rgba(255,255,255,0.7); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $msg->media_filename ?? 'Arquivo' }}</span>
+                                <button onclick="fetch('{{ $msg->media_url }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='{{ $msg->media_filename ?? 'arquivo' }}';a.click();})"
+                                        style="padding:3px 8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); border-radius:5px; color:#60a5fa; font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0;">Baixar</button>
+                            </div>
                         @endif
                         @if($msg->content && $msg->type === 'text')
                             {!! nl2br(e($msg->content)) !!}
@@ -78,9 +87,15 @@
 
             {{-- Input --}}
             <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0; display:flex; align-items:center; gap:8px;">
-                <label style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                    <input type="file" wire:model="attachment" style="display:none;" x-on:change="$wire.sendFile()">
+                {{-- Imagem --}}
+                <label title="Enviar imagem" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#4ade80'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <input type="file" wire:model="attachment" accept="image/*" style="display:none;" x-on:change="$wire.sendFile()">
+                </label>
+                {{-- Documento --}}
+                <label title="Enviar documento" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    <input type="file" wire:model="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" style="display:none;" x-on:change="$wire.sendFile()">
                 </label>
                 <input wire:model="messageText" type="text" placeholder="Digite uma mensagem..."
                        x-ref="internalInput"
