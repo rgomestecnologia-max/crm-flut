@@ -87,7 +87,10 @@ class ProcessMetaMessage implements ShouldQueue
             // ── Conversa ─────────────────────────────────────────────────
             $conversation = Conversation::where('contact_id', $contact->id)
                 ->where('is_group', false)
-                ->whereIn('status', ['open', 'pending', 'resolved', 'archived'])
+                ->where(function ($q) {
+                    $q->whereIn('status', ['open', 'pending', 'resolved'])
+                      ->orWhere('is_archived', true);
+                })
                 ->latest()
                 ->first();
 
@@ -104,8 +107,6 @@ class ProcessMetaMessage implements ShouldQueue
                     'status'        => 'open',
                     'is_group'      => false,
                 ]);
-            } elseif ($conversation->status === 'archived') {
-                // Arquivada: mantém arquivada
             } elseif ($conversation->status === 'resolved') {
                 $conversation->update([
                     'status'        => 'open',

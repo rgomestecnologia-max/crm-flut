@@ -709,7 +709,7 @@ class ChatArea extends Component
     public function archiveConversation(): void
     {
         if (!$this->conversationId) return;
-        $this->conversation->update(['status' => 'archived']);
+        $this->conversation->update(['is_archived' => true]);
         $this->conversationId = null;
         $this->conversation   = null;
         $this->dispatch('conversation-deleted');

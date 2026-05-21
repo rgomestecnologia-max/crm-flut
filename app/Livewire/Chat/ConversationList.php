@@ -224,7 +224,7 @@ class ConversationList extends Component
     {
         $conv = Conversation::find($id);
         if (!$conv) return;
-        $conv->update(['status' => 'archived']);
+        $conv->update(['is_archived' => true]);
         if ($this->activeId === $id) {
             $this->activeId = null;
             $this->dispatch('conversation-deleted');
@@ -236,7 +236,7 @@ class ConversationList extends Component
     {
         $conv = Conversation::find($id);
         if (!$conv) return;
-        $conv->update(['status' => 'resolved']);
+        $conv->update(['is_archived' => false]);
         $this->dispatch('toast', type: 'success', message: 'Conversa desarquivada.');
     }
 
@@ -271,11 +271,11 @@ class ConversationList extends Component
             ->latest('last_message_at');
 
         match ($this->filter) {
-            // Meus atendimentos: atribuídas a mim, status open
-            'mine'     => $query->where('assigned_to', $user->id)->where('status', 'open'),
+            // Meus atendimentos: atribuídas a mim, status open (não arquivadas)
+            'mine'     => $query->where('is_archived', false)->where('assigned_to', $user->id)->where('status', 'open'),
 
-            // Fila: conversas sem agente + grupos (exclui as que estão em Aguardando)
-            'queue'    => $query->whereNull('waiting_human_reason')->where(function ($q) {
+            // Fila: conversas sem agente + grupos (exclui arquivadas e Aguardando)
+            'queue'    => $query->where('is_archived', false)->whereNull('waiting_human_reason')->where(function ($q) {
                 $q->where(function ($q2) {
                     $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
                 })->orWhere(function ($q2) {
@@ -283,14 +283,14 @@ class ConversationList extends Component
                 });
             }),
 
-            // Aguardando: conversas onde a IA pediu handoff (aguardando humano)
-            'waiting'  => $query->whereNotNull('waiting_human_reason'),
+            // Aguardando: conversas onde a IA pediu handoff (não arquivadas)
+            'waiting'  => $query->where('is_archived', false)->whereNotNull('waiting_human_reason'),
 
-            // Todos: todas as conversas dos departamentos do usuário (exclui arquivadas)
-            'all'      => $query->where('status', '!=', 'archived'),
+            // Todos: todas não arquivadas
+            'all'      => $query->where('is_archived', false),
 
             // Arquivadas
-            'archived' => $query->where('status', 'archived'),
+            'archived' => $query->where('is_archived', true),
 
             default    => null,
         };
@@ -316,17 +316,17 @@ class ConversationList extends Component
         $baseQuery = Conversation::forUser($user);
 
         $counts = [
-            'mine'     => (clone $baseQuery)->where('assigned_to', $user->id)->where('status', 'open')->count(),
-            'queue'    => (clone $baseQuery)->whereNull('waiting_human_reason')->where(function ($q) {
+            'mine'     => (clone $baseQuery)->where('is_archived', false)->where('assigned_to', $user->id)->where('status', 'open')->count(),
+            'queue'    => (clone $baseQuery)->where('is_archived', false)->whereNull('waiting_human_reason')->where(function ($q) {
                 $q->where(function ($q2) {
                     $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
                 })->orWhere(function ($q2) {
                     $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
                 });
             })->count(),
-            'waiting'  => (clone $baseQuery)->whereNotNull('waiting_human_reason')->count(),
-            'all'      => (clone $baseQuery)->where('status', '!=', 'archived')->count(),
-            'archived' => (clone $baseQuery)->where('status', 'archived')->count(),
+            'waiting'  => (clone $baseQuery)->where('is_archived', false)->whereNotNull('waiting_human_reason')->count(),
+            'all'      => (clone $baseQuery)->where('is_archived', false)->count(),
+            'archived' => (clone $baseQuery)->where('is_archived', true)->count(),
         ];
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
