@@ -106,6 +106,9 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('/chat/{conversation}', ChatController::class)->name('chat.show');
     });
 
+    // Chat Interno
+    Route::get('/internal-chat', fn() => view('internal-chat.index'))->name('internal-chat.index');
+
     // CRM
     Route::get('/crm', fn() => view('crm.index'))->middleware('module:crm')->name('crm.index');
 

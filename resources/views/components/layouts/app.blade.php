@@ -244,6 +244,19 @@
             </a>
             @endif
 
+            <a href="{{ route('internal-chat.index') }}"
+               class="nav-item {{ request()->routeIs('internal-chat*') ? 'active' : '' }}"
+               style="color:{{ request()->routeIs('internal-chat*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-1m0-3V6a2 2 0 012-2h6l4 4v4a2 2 0 01-2 2h-1"/>
+                </svg>
+                <span x-show="sidebarOpen">Chat Interno</span>
+                @php $internalUnread = \App\Models\InternalMessage::where('recipient_id', auth()->id())->where('is_read', false)->count(); @endphp
+                @if($internalUnread > 0)
+                <span style="min-width:16px; height:16px; padding:0 4px; border-radius:20px; background:#b2ff00; color:#111; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center;">{{ $internalUnread }}</span>
+                @endif
+            </a>
+
             @if($canSee('crm'))
             <a href="{{ route('crm.index') }}"
                class="nav-item {{ request()->routeIs('crm.index') ? 'active' : '' }}"

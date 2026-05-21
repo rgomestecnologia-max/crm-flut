@@ -43,6 +43,11 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
         || (int) $user->id === (int) $conversation->assigned_to;
 });
 
+// Canal do chat interno — cada usuário escuta seu próprio canal
+Broadcast::channel('internal-chat.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
 /**
  * Helper: verifica se o user pode acessar dados de uma empresa específica.
  *  - Agente/supervisor: precisa ter company_id == X.
