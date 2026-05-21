@@ -487,7 +487,7 @@ function senderColor(?string $identifier): string {
                                             <p style="font-size:13px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ $docFile }}</p>
                                             <div style="display:flex; gap:8px;">
                                                 <a href="{{ route('media.download', $msg->id) }}"
-                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.25); border-radius:8px; padding:5px 14px; text-decoration:none; font-weight:600;">Download</a>
+                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(45,74,8,0.6); border-radius:8px; padding:5px 14px; text-decoration:none; font-weight:600;">Download</a>
                                                 <button @click="pvOpen = false"
                                                         style="width:30px; height:30px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.5); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;"
                                                         onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"
@@ -583,7 +583,7 @@ function senderColor(?string $identifier): string {
                          style="width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; margin-bottom:2px; border:1px solid rgba(178,255,0,0.3);">
                     <div>
                         @if($msg->type === 'text')
-                            <div data-msg-text style="background:#49650a; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(73,101,10,0.3);">
+                            <div data-msg-text style="background:#2d4a08; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(45,74,8,0.4);">
                                 @if($msg->reply_to_id && $msg->replyTo)
                                 <div style="background:rgba(255,255,255,0.1); border-left:3px solid rgba(255,255,255,0.5); border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px;">
                                     <p style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
@@ -596,7 +596,7 @@ function senderColor(?string $identifier): string {
                                 <span style="white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</span>
                             </div>
                         @elseif($msg->type === 'image')
-                            <div style="background:rgba(178,255,0,0.12); border-radius:18px 18px 4px 18px; overflow:hidden; border:1px solid rgba(178,255,0,0.25);">
+                            <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; overflow:hidden; border:1px solid rgba(45,74,8,0.6);">
                                 <img src="{{ $msg->media_thumb_url ?? $msg->media_url }}" alt="Imagem"
                                      loading="lazy"
                                      onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='{{ $msg->media_url }}'}"
@@ -612,7 +612,7 @@ function senderColor(?string $identifier): string {
                                 $audioSeedA = strlen($msg->media_url ?? '');
                                 $audioBarsA = array_map(fn($i) => max(15, min(100, abs(sin(($i+1)*$audioSeedA*0.07+$i*1.9))*85+15)), range(0,51));
                             @endphp
-                            <div style="background:rgba(178,255,0,0.12); border-radius:18px 18px 4px 18px; padding:12px 14px 10px; width:min(280px, 80vw); border:1px solid rgba(178,255,0,0.25);"
+                            <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; padding:12px 14px 10px; width:min(280px, 80vw); border:1px solid rgba(45,74,8,0.6);"
                                  x-data="{
                                     _interval: null,
                                     playing: false, progress: 0, currentTime: 0, duration: {{ $msg->media_duration ?? 0 }},
@@ -709,7 +709,7 @@ function senderColor(?string $identifier): string {
                                 };
                             @endphp
                             <div x-data="{ pvOpen: false }" style="position:relative;">
-                                <div style="background:rgba(178,255,0,0.12); border-radius:18px 18px 4px 18px; padding:10px 14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(178,255,0,0.25);">
+                                <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; padding:10px 14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(45,74,8,0.6);">
                                     <div style="width:34px; height:34px; border-radius:8px; background:rgba(178,255,0,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                         <svg width="16" height="16" fill="none" stroke="{{ $aDocColor }}" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -741,7 +741,7 @@ function senderColor(?string $identifier): string {
                                             <p style="font-size:13px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ $aDocFile }}</p>
                                             <div style="display:flex; gap:8px;">
                                                 <a href="{{ route('media.download', $msg->id) }}"
-                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.25); border-radius:8px; padding:5px 14px; text-decoration:none; font-weight:600;">Download</a>
+                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(45,74,8,0.6); border-radius:8px; padding:5px 14px; text-decoration:none; font-weight:600;">Download</a>
                                                 <button @click="pvOpen = false"
                                                         style="width:30px; height:30px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.5); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;"
                                                         onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"
