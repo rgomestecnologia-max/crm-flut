@@ -131,6 +131,7 @@ Route::middleware(['auth', 'company'])->group(function () {
     // Admin/Supervisor — acessível por quem gerencia a empresa
     Route::middleware('manager')->prefix('admin')->name('admin.')->group(function () {
         Route::get('quick-replies', fn() => view('admin.quick-replies.index'))->name('quick-replies.index');
+        Route::get('backups', fn() => view('admin.backups.index'))->name('backups.index');
     });
 
     // Download de mídia (proxy para evitar CORS em URLs externas)

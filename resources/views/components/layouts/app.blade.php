@@ -342,6 +342,15 @@
                 </a>
                 @endif
 
+                <a href="{{ route('admin.backups.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.backups*') ? 'active' : '' }}"
+                   style="color:{{ request()->routeIs('admin.backups*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                    </svg>
+                    <span x-show="sidebarOpen">Backup</span>
+                </a>
+
                 <a href="{{ route('admin.quick-replies.index') }}"
                    class="nav-item {{ request()->routeIs('admin.quick-replies*') ? 'active' : '' }}"
                    style="color:{{ request()->routeIs('admin.quick-replies*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
