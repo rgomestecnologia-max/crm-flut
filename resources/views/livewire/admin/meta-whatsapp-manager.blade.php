@@ -36,7 +36,8 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:14px;">Escolha qual API de WhatsApp esta empresa utiliza para enviar e receber mensagens.</p>
 
         <div style="display:flex; gap:12px;">
-            <button wire:click="switchProvider('evolution')"
+            {{-- Evolution API: temporariamente oculto para gravação de vídeo --}}
+            {{-- <button wire:click="switchProvider('evolution')"
                     style="flex:1; padding:14px 16px; border-radius:12px; border:2px solid {{ $whatsapp_provider === 'evolution' ? '#b2ff00' : 'rgba(255,255,255,0.08)' }}; background:{{ $whatsapp_provider === 'evolution' ? 'rgba(178,255,0,0.06)' : 'rgba(255,255,255,0.02)' }}; cursor:pointer; transition:all 0.2s; text-align:left;">
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
                     <svg width="18" height="18" fill="none" stroke="{{ $whatsapp_provider === 'evolution' ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}" stroke-width="2" viewBox="0 0 24 24">
@@ -45,7 +46,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     <span style="font-size:13px; font-weight:700; color:{{ $whatsapp_provider === 'evolution' ? '#b2ff00' : 'rgba(255,255,255,0.5)' }};">Evolution API</span>
                 </div>
                 <p style="font-size:10px; color:rgba(255,255,255,0.25);">API não-oficial via instância própria. Requer QR Code.</p>
-            </button>
+            </button> --}}
 
             <button wire:click="switchProvider('meta')"
                     style="flex:1; padding:14px 16px; border-radius:12px; border:2px solid {{ $whatsapp_provider === 'meta' ? '#b2ff00' : 'rgba(255,255,255,0.08)' }}; background:{{ $whatsapp_provider === 'meta' ? 'rgba(178,255,0,0.06)' : 'rgba(255,255,255,0.02)' }}; cursor:pointer; transition:all 0.2s; text-align:left;">

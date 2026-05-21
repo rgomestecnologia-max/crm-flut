@@ -266,7 +266,8 @@
             </a>
             @endif
 
-            @if($canSee('broadcasts'))
+            {{-- Disparos: temporariamente oculto para gravação de vídeo --}}
+            {{-- @if($canSee('broadcasts'))
             <a href="{{ route('broadcasts.index') }}"
                class="nav-item {{ request()->routeIs('broadcasts*') ? 'active' : '' }}"
                style="color:{{ request()->routeIs('broadcasts*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
@@ -275,7 +276,7 @@
                 </svg>
                 <span x-show="sidebarOpen">Disparos</span>
             </a>
-            @endif
+            @endif --}}
 
             {{-- Gestão da empresa — admin + supervisor, filtrado por módulos contratados --}}
             @if(auth()->user()->canManageCompany())
@@ -412,14 +413,15 @@
                     <span x-show="sidebarOpen">Config. Globais</span>
                 </a>
 
-                <a href="{{ route('admin.evolution.index') }}"
+                {{-- Evolution API: temporariamente oculto para gravação de vídeo --}}
+                {{-- <a href="{{ route('admin.evolution.index') }}"
                    class="nav-item {{ request()->routeIs('admin.evolution*') ? 'active' : '' }}"
                    style="color:{{ request()->routeIs('admin.evolution*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                     <span x-show="sidebarOpen">Evolution API</span>
-                </a>
+                </a> --}}
 
                 <a href="{{ route('admin.meta-whatsapp.index') }}"
                    class="nav-item {{ request()->routeIs('admin.meta-whatsapp*') ? 'active' : '' }}"
