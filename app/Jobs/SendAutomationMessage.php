@@ -36,36 +36,39 @@ class SendAutomationMessage implements ShouldQueue
         app(\App\Services\CurrentCompany::class)->set((int) $this->automation->company_id, persist: false);
 
         try {
-            // Verifica se já houve atendimento humano recente (conversa aberta ou resolvida recentemente)
-            $recentConv = Conversation::where('contact_id', $this->contact->id)
-                ->where('is_group', false)
-                ->latest()
-                ->first();
+            // Verifica se já houve atendimento humano recente — MAS apenas para
+            // automações com IA (enable_ai_on_reply ou ai_first_response).
+            // Automações sem IA (como confirmação de agendamento) enviam sempre.
+            $hasAiResponse = $this->automation->enable_ai_on_reply || $this->automation->ai_first_response;
 
-            if ($recentConv) {
-                // Se humano já respondeu (via WhatsApp ou CRM), não envia automação
-                $humanResponded = $recentConv->waiting_human_reason
-                    || Message::where('conversation_id', $recentConv->id)
-                        ->where('sender_type', 'agent')
-                        ->where('created_at', '>=', now()->subHours(1))
-                        ->exists();
+            if ($hasAiResponse) {
+                $recentConv = Conversation::where('contact_id', $this->contact->id)
+                    ->where('is_group', false)
+                    ->latest()
+                    ->first();
 
-                if ($humanResponded) {
-                    Log::info('SendAutomationMessage: humano já atendeu, automação cancelada', [
-                        'contact' => $this->contact->name,
-                        'conv'    => $recentConv->id,
-                        'reason'  => $recentConv->waiting_human_reason ?? 'agent msg recente',
-                    ]);
-                    return;
-                }
+                if ($recentConv) {
+                    $humanResponded = $recentConv->waiting_human_reason
+                        || Message::where('conversation_id', $recentConv->id)
+                            ->where('sender_type', 'agent')
+                            ->where('created_at', '>=', now()->subHours(1))
+                            ->exists();
 
-                // Se conversa resolvida recentemente (< 1h), não reabrir
-                if ($recentConv->status === 'resolved' && $recentConv->updated_at >= now()->subHour()) {
-                    Log::info('SendAutomationMessage: conversa resolvida recentemente, automação cancelada', [
-                        'contact' => $this->contact->name,
-                        'conv'    => $recentConv->id,
-                    ]);
-                    return;
+                    if ($humanResponded) {
+                        Log::info('SendAutomationMessage: humano já atendeu, automação IA cancelada', [
+                            'contact' => $this->contact->name,
+                            'conv'    => $recentConv->id,
+                        ]);
+                        return;
+                    }
+
+                    if ($recentConv->status === 'resolved' && $recentConv->updated_at >= now()->subHour()) {
+                        Log::info('SendAutomationMessage: conversa resolvida recentemente, automação cancelada', [
+                            'contact' => $this->contact->name,
+                            'conv'    => $recentConv->id,
+                        ]);
+                        return;
+                    }
                 }
             }
 
