@@ -79,7 +79,9 @@ function senderColor(?string $identifier): string {
         <div class="chat-header-info" style="flex:1; min-width:0;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 @if(!$conversation->is_group)
-                <div x-data="{ editing: false, name: '{{ addslashes($conversation->contact->display_name) }}' }" style="display:flex; align-items:center; gap:4px; min-width:0;">
+                <div wire:key="contact-name-{{ $conversation->contact->id }}"
+                     x-data="{ editing: false, name: '{{ addslashes($conversation->contact->display_name) }}' }"
+                     style="display:flex; align-items:center; gap:4px; min-width:0;">
                     <template x-if="!editing">
                         <div style="display:flex; align-items:center; gap:4px; cursor:pointer;" @click="editing = true; $nextTick(() => $refs.nameInput?.focus())">
                             <p style="font-size:13px; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.01em;" x-text="name"></p>
