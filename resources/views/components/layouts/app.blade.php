@@ -553,8 +553,8 @@ function toastManager() {
      x-transition:leave="transition ease-in duration-150"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     @click="src = null"
-     @keydown.escape.window="src = null"
+     @click="if(isVideo){ const v=$el.querySelector('video'); if(v){v.pause();v.currentTime=0;} } src=null; isVideo=false"
+     @keydown.escape.window="if(isVideo){ const v=$el.querySelector('video'); if(v){v.pause();v.currentTime=0;} } src=null; isVideo=false"
      class="lightbox-overlay">
     <div @click.stop style="position:absolute; top:16px; right:16px; display:flex; gap:8px; z-index:10;">
         {{-- Download --}}
@@ -595,7 +595,7 @@ function toastManager() {
             </svg>
         </a>
         {{-- Fechar --}}
-        <button @click.stop="src = null; isVideo = false"
+        <button @click.stop="if(isVideo){ const v=$el.closest('.lightbox-overlay').querySelector('video'); if(v){v.pause();v.currentTime=0;} } src=null; isVideo=false"
                 style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
                 onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
                 onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'">
