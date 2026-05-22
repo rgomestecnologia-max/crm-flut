@@ -90,7 +90,7 @@
                  x-data="{ showEmoji: false }">
                 {{-- Emoji picker --}}
                 <div x-show="showEmoji" x-transition @click.outside="showEmoji = false"
-                     style="position:absolute; bottom:52px; left:10px; background:#1a1f2e; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; width:320px; z-index:50; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+                     style="position:absolute; bottom:52px; right:10px; background:#1a1f2e; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; width:320px; z-index:50; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
                     <div style="display:grid; grid-template-columns:repeat(9, 1fr); gap:2px; max-height:200px; overflow-y:auto;">
                         @foreach(['😀','😂','🤣','😊','😍','🥰','😘','😎','🤩','🥳','😇','🤔','🤗','😅','😆','😁','😉','😋','😜','🤪','😝','🤑','🤭','🫡','🤫','🫣','😬','😌','😴','🤤','😷','🤒','🤕','🥴','😵','🤯','🥶','🥵','😱','😨','😰','😢','😭','😤','😠','🤬','💀','💩','👻','👽','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👋','🤚','✋','🖐️','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','✍️','💪','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','❣️','💕','💞','💓','💗','💖','💘','💝','⭐','🌟','✨','💫','🔥','💯','✅','❌','⚡','🎉','🎊','🏆','📌','📍','💰','📱','💻','📧','📞','🕐','📅'] as $emoji)
                             <button type="button"
