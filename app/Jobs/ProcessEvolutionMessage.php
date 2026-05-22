@@ -506,10 +506,16 @@ class ProcessEvolutionMessage implements ShouldQueue
             // Recarrega conversa do banco para pegar waiting_human_reason atualizado
             $conversation->refresh();
             // Não dispara IA se conversa está aguardando atendente humano
-            // ou se agente humano já ENVIOU mensagem na conversa (via CRM ou WhatsApp direto)
+            // ou se agente humano já ENVIOU mensagem NESTA SESSÃO (após último encerramento)
+            $lastResolved = Message::where('conversation_id', $conversation->id)
+                ->where('sender_type', 'system')
+                ->where('content', 'like', 'Atendimento encerrado%')
+                ->latest()
+                ->value('created_at');
             $humanSent = Message::where('conversation_id', $conversation->id)
                 ->where('sender_type', 'agent')
                 ->whereNotNull('sender_id')
+                ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
                 ->exists();
             if (!$fromMe && !$conversation->waiting_human_reason && !$humanSent) {
                 try {
