@@ -72,11 +72,17 @@ class ProcessBotResponse implements ShouldQueue
                 return;
             }
 
-            // Limite de turnos da IA
+            // Limite de turnos da IA (conta apenas na sessão atual, após último encerramento)
+            $lastResolved = Message::where('conversation_id', $this->conversation->id)
+                ->where('sender_type', 'system')
+                ->where('content', 'like', 'Atendimento encerrado%')
+                ->latest()
+                ->value('created_at');
             $botTurns = Message::where('conversation_id', $this->conversation->id)
                 ->where('sender_type', 'agent')
                 ->whereNull('sender_id')
                 ->whereNotNull('content')
+                ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
                 ->count();
 
             Log::info('IA: checando turnos', ['conv' => $this->conversation->id, 'turns' => $botTurns, 'max' => $this->config->max_bot_turns, 'trigger' => $this->triggerMessageId]);
