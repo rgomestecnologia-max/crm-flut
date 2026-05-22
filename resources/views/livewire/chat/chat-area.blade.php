@@ -1264,7 +1264,7 @@ function senderColor(?string $identifier): string {
                 <template x-teleport="body">
                     <div x-show="open" x-transition @click.outside="open=false"
                          :style="clipPos ? `position:fixed; bottom:${clipPos.bottom}px; left:${clipPos.left}px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;` : 'position:fixed; bottom:80px; left:80px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;'">
-                        <div @click="open=false; $nextTick(() => document.getElementById('attach-media').click())"
+                        <div @click="open=false; const el=document.getElementById('attach-file'); el.setAttribute('accept','image/*,video/*,.mp4,.mov,.avi,.webm'); el.click();"
                              style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s;"
                              onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
                             <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24">
@@ -1272,7 +1272,7 @@ function senderColor(?string $identifier): string {
                             </svg>
                             <span style="font-size:12px; color:rgba(255,255,255,0.6);">Foto / Vídeo</span>
                         </div>
-                        <div @click="open=false; $nextTick(() => document.getElementById('attach-doc').click())"
+                        <div @click="open=false; const el=document.getElementById('attach-file'); el.removeAttribute('accept'); el.click();"
                              style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s; border-top:1px solid rgba(255,255,255,0.04);"
                              onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
                             <svg width="14" height="14" fill="none" stroke="#4ade80" viewBox="0 0 24 24">
@@ -1282,9 +1282,8 @@ function senderColor(?string $identifier): string {
                         </div>
                     </div>
                 </template>
-                {{-- File inputs fora do teleport para Livewire funcionar --}}
-                <input type="file" id="attach-media" wire:model="pendingFile" accept="image/*,video/*,.mp4,.mov,.avi,.webm" class="hidden" style="position:absolute; width:0; height:0; overflow:hidden;">
-                <input type="file" id="attach-doc" wire:model="pendingFile" class="hidden" style="position:absolute; width:0; height:0; overflow:hidden;">
+                {{-- Único input de arquivo --}}
+                <input type="file" id="attach-file" wire:model="pendingFile" class="hidden" style="position:absolute; width:0; height:0; overflow:hidden;">
             </div>
 
             {{-- Editing indicator --}}
