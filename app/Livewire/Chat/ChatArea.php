@@ -498,7 +498,8 @@ class ChatArea extends Component
         $dir       = 'attachments/' . date('Y/m');
         $baseName  = uniqid('paste_', true);
         $optimizer = app(\App\Services\ImageOptimizer::class);
-        $result    = $optimizer->tryOptimize($raw, 'image/png');
+        $mime      = str_contains($header, 'image/jpeg') ? 'image/jpeg' : 'image/png';
+        $result    = $optimizer->tryOptimize($raw, $mime);
 
         if ($result) {
             $path = "{$dir}/{$baseName}.jpg";

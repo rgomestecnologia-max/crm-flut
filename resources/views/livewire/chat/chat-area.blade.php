@@ -1233,7 +1233,7 @@ function senderColor(?string $identifier): string {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                             <span style="font-size:12px; color:rgba(255,255,255,0.6);">Documento</span>
-                            <input type="file" wire:model="pendingFile" @change="open=false" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" class="hidden">
+                            <input type="file" wire:model="pendingFile" @change="open=false" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip,.rar" class="hidden">
                         </label>
                     </div>
                 </template>
@@ -1304,9 +1304,20 @@ function senderColor(?string $identifier): string {
                                 if (item.type.startsWith('image/')) {
                                     $event.preventDefault();
                                     const file = item.getAsFile();
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => { pastedImage = e.target.result; };
-                                    reader.readAsDataURL(file);
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        const MAX = 1600;
+                                        let w = img.width, h = img.height;
+                                        if (w > MAX || h > MAX) {
+                                            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                                            else { w = Math.round(w * MAX / h); h = MAX; }
+                                        }
+                                        const canvas = document.createElement('canvas');
+                                        canvas.width = w; canvas.height = h;
+                                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                                        pastedImage = canvas.toDataURL('image/jpeg', 0.85);
+                                    };
+                                    img.src = URL.createObjectURL(file);
                                     return;
                                 }
                             }
