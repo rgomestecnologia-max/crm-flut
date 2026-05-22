@@ -544,7 +544,13 @@ function toastManager() {
 </script>
 
 {{-- Lightbox global (imagem + vídeo) --}}
-<div x-data="{ src: null, alt: '', isVideo: false }"
+<div x-data="{
+        src: null, alt: '', isVideo: false,
+        closeLightbox() {
+            if (this.$refs.lbVideo) { this.$refs.lbVideo.pause(); this.$refs.lbVideo.removeAttribute('src'); this.$refs.lbVideo.load(); }
+            this.src = null; this.isVideo = false;
+        }
+     }"
      @open-lightbox.window="src = $event.detail.src; alt = $event.detail.alt || ''; isVideo = $event.detail.video || false"
      x-show="src"
      x-transition:enter="transition ease-out duration-200"
@@ -553,8 +559,8 @@ function toastManager() {
      x-transition:leave="transition ease-in duration-150"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     @click="if(isVideo){ const v=$el.querySelector('video'); if(v){v.pause();v.currentTime=0;} } src=null; isVideo=false"
-     @keydown.escape.window="if(isVideo){ const v=$el.querySelector('video'); if(v){v.pause();v.currentTime=0;} } src=null; isVideo=false"
+     @click="closeLightbox()"
+     @keydown.escape.window="closeLightbox()"
      class="lightbox-overlay">
     <div @click.stop style="position:absolute; top:16px; right:16px; display:flex; gap:8px; z-index:10;">
         {{-- Download --}}
@@ -595,7 +601,7 @@ function toastManager() {
             </svg>
         </a>
         {{-- Fechar --}}
-        <button @click.stop="if(isVideo){ const v=$el.closest('.lightbox-overlay').querySelector('video'); if(v){v.pause();v.currentTime=0;} } src=null; isVideo=false"
+        <button @click.stop="closeLightbox()"
                 style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
                 onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
                 onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'">
@@ -609,7 +615,7 @@ function toastManager() {
          @click.stop
          style="max-height:90vh; max-width:90vw; object-fit:contain; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6);">
     {{-- Vídeo --}}
-    <video x-show="isVideo" :src="src" controls autoplay
+    <video x-ref="lbVideo" x-show="isVideo" :src="src" controls autoplay
            @click.stop
            style="max-height:90vh; max-width:90vw; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6);">
     </video>
