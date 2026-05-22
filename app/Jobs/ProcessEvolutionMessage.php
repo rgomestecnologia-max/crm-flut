@@ -552,6 +552,37 @@ class ProcessEvolutionMessage implements ShouldQueue
                     // Não envia chatbot/IA em grupos se reply_in_groups está desativado
                     $skipGroups = $isGroup && (!$menuConfig || !$menuConfig->reply_in_groups);
 
+                    // Detecta lead de anúncio WhatsApp (mensagem contém "vi o anúncio")
+                    // Trata como lead normal: cria card no CRM e aciona IA
+                    $isAdLead = false;
+                    if ($aiOnlyForAutomation && $content && stripos($content, 'vi o an') !== false) {
+                        $isAdLead = true;
+                        $aiOnlyForAutomation = false; // permite IA entrar
+
+                        // Cria card no pipeline Vendas → etapa Novo (se não existir)
+                        try {
+                            $vendas = \App\Models\CrmPipeline::where('name', 'Vendas')->first();
+                            $novo   = $vendas?->stages()->orderBy('sort_order')->first();
+                            if ($vendas && $novo && $contact) {
+                                $existingCard = \App\Models\CrmCard::where('contact_id', $contact->id)
+                                    ->where('pipeline_id', $vendas->id)->first();
+                                if (!$existingCard) {
+                                    \App\Models\CrmCard::create([
+                                        'pipeline_id' => $vendas->id,
+                                        'stage_id'    => $novo->id,
+                                        'contact_id'  => $contact->id,
+                                        'title'       => $contact->display_name ?? $contact->name,
+                                    ]);
+                                    Log::info('ProcessEvolutionMessage: card criado via anúncio', [
+                                        'contact' => $contact->name, 'pipeline' => $vendas->name,
+                                    ]);
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            Log::warning('Card anúncio falhou', ['error' => $e->getMessage()]);
+                        }
+                    }
+
                     if ($skipGroups) {
                         // Grupo sem permissão de bot — ignora
                     } elseif ($aiOnlyForAutomation) {
