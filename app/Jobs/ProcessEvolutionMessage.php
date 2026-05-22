@@ -160,7 +160,14 @@ class ProcessEvolutionMessage implements ShouldQueue
                         }
                     }
 
-                    if (!$contact) return;
+                    if (!$contact) {
+                        Log::info('ProcessEvolutionMessage: fromMe sem contato encontrado', [
+                            'remoteJid' => $remoteJid,
+                            'chatPhone' => $chatPhone,
+                            'instance'  => $instanceName,
+                        ]);
+                        return;
+                    }
                 } else {
                     $contact = Contact::where('chat_lid', $remoteJid)->first()
                         ?? Contact::where('phone', $chatPhone)->first();
