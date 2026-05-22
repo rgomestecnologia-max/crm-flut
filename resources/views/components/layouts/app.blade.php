@@ -543,9 +543,9 @@ function toastManager() {
 }
 </script>
 
-{{-- Lightbox global --}}
-<div x-data="{ src: null, alt: '' }"
-     @open-lightbox.window="src = $event.detail.src; alt = $event.detail.alt || ''"
+{{-- Lightbox global (imagem + vídeo) --}}
+<div x-data="{ src: null, alt: '', isVideo: false }"
+     @open-lightbox.window="src = $event.detail.src; alt = $event.detail.alt || ''; isVideo = $event.detail.video || false"
      x-show="src"
      x-transition:enter="transition ease-out duration-200"
      x-transition:enter-start="opacity-0"
@@ -556,9 +556,9 @@ function toastManager() {
      @click="src = null"
      @keydown.escape.window="src = null"
      class="lightbox-overlay">
-    <div @click.stop style="position:absolute; top:16px; right:16px; display:flex; gap:8px;">
-        {{-- Download JPEG --}}
-        <button @click.stop="
+    <div @click.stop style="position:absolute; top:16px; right:16px; display:flex; gap:8px; z-index:10;">
+        {{-- Download --}}
+        <button x-show="!isVideo" @click.stop="
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => {
@@ -584,8 +584,18 @@ function toastManager() {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
         </button>
+        {{-- Download vídeo --}}
+        <a x-show="isVideo" :href="src" download @click.stop
+           style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; text-decoration:none;"
+           onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
+           onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'"
+           title="Download vídeo">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+        </a>
         {{-- Fechar --}}
-        <button @click.stop="src = null"
+        <button @click.stop="src = null; isVideo = false"
                 style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
                 onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
                 onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'">
@@ -594,9 +604,15 @@ function toastManager() {
             </svg>
         </button>
     </div>
-    <img :src="src" :alt="alt"
+    {{-- Imagem --}}
+    <img x-show="!isVideo" :src="src" :alt="alt"
          @click.stop
-         style="max-height:90vh; max-width:90vw; object-fit:contain; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6); ring:1px solid rgba(255,255,255,0.08);">
+         style="max-height:90vh; max-width:90vw; object-fit:contain; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+    {{-- Vídeo --}}
+    <video x-show="isVideo" :src="src" controls autoplay
+           @click.stop
+           style="max-height:90vh; max-width:90vw; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+    </video>
 </div>
 
 @livewireScripts
