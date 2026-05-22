@@ -38,15 +38,35 @@ class ProcessBotResponse implements ShouldQueue
             $triggerMessage = Message::find($this->triggerMessageId);
             if (!$triggerMessage || $triggerMessage->sender_type !== 'contact') return;
 
-            // Se a mensagem trigger não tem texto (áudio/imagem), usa o ID dela como âncora
-            // mas busca a última mensagem de texto do contato para responder
+            // Mídia sem texto: processa áudio via Gemini multimodal, ignora o resto
+            $audioBase64 = null;
+            $audioMime   = null;
             if (!$triggerMessage->content && $triggerMessage->type !== 'text') {
-                // Reconhece o recebimento mas não processa sem texto
-                Log::info('IA: mensagem de mídia recebida, sem resposta de texto', [
-                    'conv' => $this->conversation->id,
-                    'type' => $triggerMessage->type,
-                ]);
-                return;
+                if ($triggerMessage->type === 'audio' && $triggerMessage->media_url) {
+                    try {
+                        $audioBytes = @file_get_contents($triggerMessage->media_url);
+                        if ($audioBytes && strlen($audioBytes) <= 10 * 1024 * 1024) { // max 10MB
+                            $audioBase64 = base64_encode($audioBytes);
+                            $audioMime   = 'audio/ogg';
+                            Log::info('IA: áudio recebido para transcrição', [
+                                'conv' => $this->conversation->id,
+                                'size' => strlen($audioBytes),
+                            ]);
+                        } else {
+                            Log::info('IA: áudio muito grande ou inacessível', ['conv' => $this->conversation->id]);
+                            return;
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning('IA: falha ao baixar áudio', ['conv' => $this->conversation->id, 'error' => $e->getMessage()]);
+                        return;
+                    }
+                } else {
+                    Log::info('IA: mensagem de mídia recebida, sem resposta', [
+                        'conv' => $this->conversation->id,
+                        'type' => $triggerMessage->type,
+                    ]);
+                    return;
+                }
             }
 
             // Não responde se um agente humano já respondeu APÓS esta mensagem do contato
@@ -152,6 +172,18 @@ class ProcessBotResponse implements ShouldQueue
                         'parts' => [['text' => $msg->content]],
                     ];
                 }
+            }
+
+            // Se tem áudio, adiciona como mensagem multimodal do usuário
+            if ($audioBase64) {
+                $audioParts = [
+                    ['inlineData' => ['mimeType' => $audioMime, 'data' => $audioBase64]],
+                    ['text' => 'O cliente enviou um áudio. Ouça, entenda o que ele disse e responda normalmente seguindo suas instruções.'],
+                ];
+                $geminiContents[] = [
+                    'role'  => 'user',
+                    'parts' => $audioParts,
+                ];
             }
 
             if (empty($geminiContents) || end($geminiContents)['role'] !== 'user') {
