@@ -56,6 +56,7 @@ class KanbanBoard extends Component
 
         $old = $card->stage?->name ?? '—';
         $oldStageId = $card->stage_id;
+        $oldPipelineId = $card->pipeline_id;
         $card->update(['stage_id' => $stageId, 'pipeline_id' => $stage->pipeline_id]);
 
         CrmCardActivity::create([
@@ -70,8 +71,8 @@ class KanbanBoard extends Component
             $this->triggerStageAutomations($card, $stageId);
         }
 
-        // Auto-tag conversa com base no pipeline
-        $this->syncConversationTag($card);
+        // Auto-tag conversa com base no pipeline (remove tag antiga se mudou de pipeline)
+        $this->syncConversationTag($card, $oldPipelineId);
     }
 
     private function triggerStageAutomations(CrmCard $card, int $stageId): void
@@ -219,6 +220,7 @@ class KanbanBoard extends Component
             $card = CrmCard::findOrFail($this->editingCardId);
 
             $oldStageId = $card->stage_id;
+            $oldPipelineId = $card->pipeline_id;
             if ($oldStageId !== (int) $this->card_stage_id) {
                 $old = $card->stage?->name ?? '—';
                 CrmCardActivity::create([
@@ -266,35 +268,60 @@ class KanbanBoard extends Component
         }
 
         // Auto-tag: se pipeline tem tag com mesmo nome, taguear conversa do contato
-        $this->syncConversationTag($card);
+        $this->syncConversationTag($card, $oldPipelineId ?? null);
 
         $this->showCardPanel = false;
         $this->resetCardForm();
     }
 
-    private function syncConversationTag(CrmCard $card): void
+    private function syncConversationTag(CrmCard $card, ?int $oldPipelineId = null): void
     {
         if (!$card->contact_id) return;
 
+        $conversation = \App\Models\Conversation::where('contact_id', $card->contact_id)
+            ->where('is_group', false)
+            ->latest()
+            ->first();
+        if (!$conversation) return;
+
+        // Remove tag do pipeline anterior (quando card mudou de pipeline)
+        if ($oldPipelineId && $oldPipelineId !== $card->pipeline_id) {
+            $oldPipeline = CrmPipeline::find($oldPipelineId);
+            if ($oldPipeline) {
+                $oldTag = \App\Models\Tag::where('name', $oldPipeline->name)->first();
+                if ($oldTag) {
+                    $conversation->tags()->detach($oldTag->id);
+                }
+            }
+        }
+
+        // Adiciona tag do pipeline atual
         $pipelineName = $card->pipeline?->name;
         if (!$pipelineName) return;
 
         $tag = \App\Models\Tag::where('name', $pipelineName)->first();
         if (!$tag) return;
 
-        $conversation = \App\Models\Conversation::where('contact_id', $card->contact_id)
-            ->where('is_group', false)
-            ->latest()
-            ->first();
-
-        if ($conversation && !$conversation->tags()->where('tags.id', $tag->id)->exists()) {
+        if (!$conversation->tags()->where('tags.id', $tag->id)->exists()) {
             $conversation->tags()->attach($tag->id);
         }
     }
 
     public function deleteCard(int $cardId): void
     {
-        CrmCard::findOrFail($cardId)->delete();
+        $card = CrmCard::findOrFail($cardId);
+
+        // Remove tag do pipeline da conversa ao excluir card
+        if ($card->contact_id && $card->pipeline) {
+            $tag = \App\Models\Tag::where('name', $card->pipeline->name)->first();
+            if ($tag) {
+                $conv = \App\Models\Conversation::where('contact_id', $card->contact_id)
+                    ->where('is_group', false)->latest()->first();
+                if ($conv) $conv->tags()->detach($tag->id);
+            }
+        }
+
+        $card->delete();
         $this->showCardPanel = false;
         $this->resetCardForm();
         $this->dispatch('toast', type: 'success', message: 'Card removido.');
