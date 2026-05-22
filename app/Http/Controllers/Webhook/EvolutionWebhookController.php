@@ -183,6 +183,35 @@ class EvolutionWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
+        // ── Mensagem editada ───────────────────────────────────────────────
+        if ($event === 'messages.edit') {
+            $data     = $payload['data'] ?? [];
+            $msgId    = $data['key']['id'] ?? $data['oldKey']['id'] ?? null;
+            $newText  = $data['editedMessage']['conversation']
+                     ?? $data['editedMessage']['extendedTextMessage']['text']
+                     ?? $data['message']['conversation']
+                     ?? $data['message']['extendedTextMessage']['text']
+                     ?? $data['newMessage']['conversation']
+                     ?? $data['newMessage']['extendedTextMessage']['text']
+                     ?? null;
+
+            Log::info('Evolution: mensagem editada', ['msgId' => $msgId, 'newText' => substr($newText ?? '', 0, 100)]);
+
+            if ($msgId && $newText) {
+                $msg = \App\Models\Message::withoutGlobalScope(\App\Models\Scopes\CompanyScope::class)
+                    ->where('zapi_message_id', $msgId)
+                    ->first();
+
+                if ($msg) {
+                    $msg->update(['content' => $newText]);
+                    try { broadcast(new \App\Events\MessageReceived($msg)); } catch (\Throwable) {}
+                    Log::info('Mensagem editada pelo WhatsApp', ['msg_id' => $msg->id]);
+                }
+            }
+
+            return response()->json(['ok' => true]);
+        }
+
         // ── Mensagens recebidas / enviadas ─────────────────────────────────
         if ($event === 'messages.upsert') {
             $data    = $payload['data'] ?? [];
