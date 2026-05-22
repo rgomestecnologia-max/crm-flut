@@ -491,48 +491,71 @@ class ChatArea extends Component
     {
         if (!$this->conversationId) return;
 
-        [$header, $base64] = explode(',', $dataUrl, 2);
-        $raw = base64_decode($base64);
-        if (!$raw || strlen($raw) < 100) return;
+        try {
+            \Log::info('sendPastedImage: início', ['dataUrl_len' => strlen($dataUrl), 'conv' => $this->conversationId]);
 
-        $dir       = 'attachments/' . date('Y/m');
-        $baseName  = uniqid('paste_', true);
-        $optimizer = app(\App\Services\ImageOptimizer::class);
-        $mime      = str_contains($header, 'image/jpeg') ? 'image/jpeg' : 'image/png';
-        $result    = $optimizer->tryOptimize($raw, $mime);
+            $parts = explode(',', $dataUrl, 2);
+            if (count($parts) < 2) {
+                \Log::error('sendPastedImage: dataUrl sem vírgula');
+                return;
+            }
+            [$header, $base64] = $parts;
+            $raw = base64_decode($base64);
+            if (!$raw || strlen($raw) < 100) {
+                \Log::error('sendPastedImage: decode falhou ou muito pequeno', ['raw_len' => strlen($raw ?? '')]);
+                return;
+            }
 
-        if ($result) {
-            $path = "{$dir}/{$baseName}.jpg";
-            \App\Services\MediaStorage::put($path, $result['optimized']);
-            $thumbPath = "{$dir}/{$baseName}_thumb.jpg";
-            \App\Services\MediaStorage::put($thumbPath, $result['thumbnail']);
-        } else {
-            $path = "{$dir}/{$baseName}.png";
-            \App\Services\MediaStorage::put($path, $raw);
+            \Log::info('sendPastedImage: imagem decodificada', ['raw_bytes' => strlen($raw), 'header' => $header]);
+
+            $dir       = 'attachments/' . date('Y/m');
+            $baseName  = uniqid('paste_', true);
+            $optimizer = app(\App\Services\ImageOptimizer::class);
+            $mime      = str_contains($header, 'image/jpeg') ? 'image/jpeg' : 'image/png';
+            $result    = $optimizer->tryOptimize($raw, $mime);
+
+            if ($result) {
+                $path = "{$dir}/{$baseName}.jpg";
+                \App\Services\MediaStorage::put($path, $result['optimized']);
+                $thumbPath = "{$dir}/{$baseName}_thumb.jpg";
+                \App\Services\MediaStorage::put($thumbPath, $result['thumbnail']);
+            } else {
+                $path = "{$dir}/{$baseName}.jpg";
+                \App\Services\MediaStorage::put($path, $raw);
+            }
+
+            $url = \App\Services\MediaStorage::url($path);
+
+            $message = Message::create([
+                'conversation_id' => $this->conversationId,
+                'sender_type'     => 'agent',
+                'sender_id'       => Auth::id(),
+                'type'            => 'image',
+                'media_url'       => $url,
+                'delivery_status' => 'pending',
+            ]);
+
+            $updates = ['last_message_at' => now()];
+            if (!$this->conversation->assigned_to) {
+                $updates['assigned_to'] = Auth::id();
+                $updates['status']      = 'open';
+            }
+            $this->conversation->update($updates);
+
+            try { SendWhatsAppMessage::dispatch($message); } catch (\Throwable) {}
+            try { broadcast(new MessageReceived($message)); } catch (\Throwable) {}
+
+            $this->dispatch('scroll-to-bottom');
+
+            \Log::info('sendPastedImage: sucesso', ['message_id' => $message->id, 'url' => $url]);
+        } catch (\Throwable $e) {
+            \Log::error('sendPastedImage: ERRO', [
+                'error'   => $e->getMessage(),
+                'file'    => $e->getFile() . ':' . $e->getLine(),
+                'trace'   => substr($e->getTraceAsString(), 0, 500),
+            ]);
+            throw $e;
         }
-
-        $url = \App\Services\MediaStorage::url($path);
-
-        $message = Message::create([
-            'conversation_id' => $this->conversationId,
-            'sender_type'     => 'agent',
-            'sender_id'       => Auth::id(),
-            'type'            => 'image',
-            'media_url'       => $url,
-            'delivery_status' => 'pending',
-        ]);
-
-        $updates = ['last_message_at' => now()];
-        if (!$this->conversation->assigned_to) {
-            $updates['assigned_to'] = Auth::id();
-            $updates['status']      = 'open';
-        }
-        $this->conversation->update($updates);
-
-        try { SendWhatsAppMessage::dispatch($message, $dataUrl); } catch (\Throwable) {}
-        try { broadcast(new MessageReceived($message)); } catch (\Throwable) {}
-
-        $this->dispatch('scroll-to-bottom');
     }
 
     public function cancelFile(): void
