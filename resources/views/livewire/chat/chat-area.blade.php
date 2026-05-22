@@ -322,10 +322,51 @@ function senderColor(?string $identifier): string {
 
     {{-- Messages area --}}
     <div class="flex-1 overflow-y-auto" x-ref="msgContainer" id="messages-container"
+         x-data="{ dragging: false, dragCount: 0 }"
+         x-on:dragenter.prevent="dragCount++; dragging=true"
+         x-on:dragleave.prevent="dragCount--; if(dragCount<=0){ dragging=false; dragCount=0; }"
+         x-on:dragover.prevent
+         x-on:drop.prevent="
+            dragging=false; dragCount=0;
+            const files = $event.dataTransfer?.files;
+            if (files) {
+                for (const file of files) {
+                    if (file.type.startsWith('image/')) {
+                        const img = new Image();
+                        img.onload = () => {
+                            const MAX = 1600;
+                            let w = img.width, h = img.height;
+                            if (w > MAX || h > MAX) {
+                                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                                else { w = Math.round(w * MAX / h); h = MAX; }
+                            }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w; canvas.height = h;
+                            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                            window.dispatchEvent(new CustomEvent('dropped-image', { detail: dataUrl }));
+                        };
+                        img.src = URL.createObjectURL(file);
+                        break;
+                    }
+                }
+            }
+         "
          style="padding:20px 16px; display:flex; flex-direction:column; gap:6px; overflow-x:hidden;
                 background: radial-gradient(ellipse at 20% 0%, rgba(178,255,0,0.02) 0%, transparent 60%),
                             radial-gradient(ellipse at 80% 100%, rgba(178,255,0,0.015) 0%, transparent 60%);
-                background-attachment:local;">
+                background-attachment:local; position:relative;">
+
+        {{-- Drop overlay --}}
+        <div x-show="dragging" x-transition.opacity
+             style="position:absolute; inset:0; background:rgba(178,255,0,0.08); border:2px dashed rgba(178,255,0,0.5); border-radius:12px; z-index:50; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+            <div style="background:rgba(0,0,0,0.7); padding:16px 32px; border-radius:12px; display:flex; align-items:center; gap:12px;">
+                <svg width="24" height="24" fill="none" stroke="#b2ff00" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span style="color:#b2ff00; font-size:14px; font-weight:700;">Solte a imagem aqui</span>
+            </div>
+        </div>
         @php $lastDate = null; @endphp
         @foreach($messages as $msg)
             @php
@@ -1035,6 +1076,8 @@ function senderColor(?string $identifier): string {
     {{-- Message input --}}
     @if($conversation->isOpen() || $conversation->isPending())
     <div style="border-top:1px solid rgba(255,255,255,0.05); padding:10px 12px; flex-shrink:0; background:rgba(8,12,22,0.7); backdrop-filter:blur(8px); position:relative;"
+         x-ref="inputArea"
+         x-on:dropped-image.window="pastedImage = $event.detail"
          x-data="{
             showEmoji: false,
             emojiPos: null,
