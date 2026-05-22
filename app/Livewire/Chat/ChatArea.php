@@ -446,10 +446,13 @@ class ChatArea extends Component
             // Não-imagem ou não-otimizável: salva original
             $path    = MediaStorage::store($file, $dir);
             $url     = MediaStorage::url($path);
-            $content = MediaStorage::get($path);
         }
 
-        $base64  = 'data:' . $mime . ';base64,' . base64_encode($content);
+        // Base64 apenas para imagens (pequenas). Vídeos e documentos usam URL diretamente.
+        $base64 = null;
+        if ($type === 'image' && isset($content)) {
+            $base64 = 'data:' . $mime . ';base64,' . base64_encode($content);
+        }
 
         $message = Message::create([
             'conversation_id' => $this->conversationId,
