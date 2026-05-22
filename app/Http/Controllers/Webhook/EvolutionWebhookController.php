@@ -184,7 +184,7 @@ class EvolutionWebhookController extends Controller
         }
 
         // ── Mensagem editada ───────────────────────────────────────────────
-        if ($event === 'messages.edit') {
+        if ($event === 'messages.edit' || $event === 'messages.edited') {
             $data     = $payload['data'] ?? [];
             $msgId    = $data['key']['id'] ?? $data['oldKey']['id'] ?? null;
             $newText  = $data['editedMessage']['conversation']
