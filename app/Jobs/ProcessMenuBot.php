@@ -176,10 +176,10 @@ class ProcessMenuBot implements ShouldQueue
             $this->createCardForDepartment($triggerMessage);
         }
 
-        // Ativa IA após seleção do menu
-        if ($hasAi) {
+        // Ativa IA após seleção do menu (apenas na primeira opção / departamento principal)
+        if ($hasAi && $choice === 1) {
             ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $triggerMessage->id);
-            Log::info('MenuBot: IA ativada após seleção do menu', ['conv' => $this->conversation->id]);
+            Log::info('MenuBot: IA ativada após seleção do menu', ['conv' => $this->conversation->id, 'dept' => $department->name]);
         }
 
         Log::info('MenuBot: cliente selecionou departamento', [
