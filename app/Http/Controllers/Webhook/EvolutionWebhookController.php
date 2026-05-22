@@ -16,12 +16,24 @@ class EvolutionWebhookController extends Controller
         $payload = $request->all();
         $event   = $payload['event'] ?? 'unknown';
 
+        $rawContent = $request->getContent();
+
         Log::info('Evolution Webhook recebido', [
             'event'    => $event,
             'instance' => $payload['instance'] ?? null,
             'keys'     => array_keys($payload),
-            'raw'      => substr($request->getContent(), 0, 1200),
+            'raw'      => substr($rawContent, 0, 1200),
         ]);
+
+        // Log temporário: captura qualquer evento que contenha "edit"
+        if (stripos($rawContent, 'edit') !== false) {
+            Log::info('EDIT DETECTADO no webhook', [
+                'event' => $event,
+                'instance' => $payload['instance'] ?? null,
+                'messageType' => $payload['data']['messageType'] ?? null,
+                'raw' => substr($rawContent, 0, 2000),
+            ]);
+        }
 
         // Localiza a config DA EMPRESA dona da instância pelo nome — bypass do
         // global scope porque o webhook chega sem nenhuma sessão/empresa setada.
