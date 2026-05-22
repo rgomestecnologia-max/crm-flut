@@ -105,12 +105,12 @@
                     {{-- Imagem --}}
                     <label title="Enviar imagem" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#4ade80'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <input type="file" wire:model="attachment" accept="image/*" style="display:none;" x-on:change="$wire.sendFile()">
+                        <input type="file" wire:model="attachment" accept="image/*" style="display:none;" x-on:livewire-upload-finish="$wire.sendFile()">
                     </label>
                     {{-- Documento --}}
                     <label title="Enviar documento" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                        <input type="file" wire:model="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" style="display:none;" x-on:change="$wire.sendFile()">
+                        <input type="file" wire:model="attachment" style="display:none;" x-on:livewire-upload-finish="$wire.sendFile()">
                     </label>
                     <input wire:model="messageText" type="text" placeholder="Digite uma mensagem..." spellcheck="true" lang="pt-BR"
                            x-ref="internalInput"
