@@ -556,14 +556,44 @@ function toastManager() {
      @click="src = null"
      @keydown.escape.window="src = null"
      class="lightbox-overlay">
-    <button @click.stop="src = null"
-            style="position:absolute; top:16px; right:16px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
-            onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
-            onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'">
-        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-    </button>
+    <div @click.stop style="position:absolute; top:16px; right:16px; display:flex; gap:8px;">
+        {{-- Download JPEG --}}
+        <button @click.stop="
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                c.getContext('2d').drawImage(img, 0, 0);
+                c.toBlob(b => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(b);
+                    a.download = 'imagem_' + Date.now() + '.jpg';
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                }, 'image/jpeg', 0.92);
+            };
+            img.onerror = () => { window.open(src, '_blank'); };
+            img.src = src;
+        "
+                style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
+                onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
+                onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'"
+                title="Download JPEG">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+        </button>
+        {{-- Fechar --}}
+        <button @click.stop="src = null"
+                style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
+                onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
+                onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
     <img :src="src" :alt="alt"
          @click.stop
          style="max-height:90vh; max-width:90vw; object-fit:contain; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6); ring:1px solid rgba(255,255,255,0.08);">
