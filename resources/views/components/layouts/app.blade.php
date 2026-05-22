@@ -244,6 +244,7 @@
             </a>
             @endif
 
+            @if($canSee('internal-chat'))
             <a href="{{ route('internal-chat.index') }}"
                class="nav-item {{ request()->routeIs('internal-chat*') ? 'active' : '' }}"
                style="color:{{ request()->routeIs('internal-chat*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
@@ -256,6 +257,7 @@
                 <span style="min-width:16px; height:16px; padding:0 4px; border-radius:20px; background:#b2ff00; color:#111; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center;">{{ $internalUnread }}</span>
                 @endif
             </a>
+            @endif
 
             @if($canSee('crm'))
             <a href="{{ route('crm.index') }}"
