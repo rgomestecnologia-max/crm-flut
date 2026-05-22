@@ -88,6 +88,11 @@ class InternalChat extends Component
         $this->dispatch('internal-scroll-bottom');
     }
 
+    public function cancelFile(): void
+    {
+        $this->attachment = null;
+    }
+
     public function render()
     {
         $me    = Auth::user();

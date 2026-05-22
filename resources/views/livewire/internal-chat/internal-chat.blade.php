@@ -101,16 +101,43 @@
                     </div>
                 </div>
 
+                {{-- Preview de arquivo pendente --}}
+                @if($attachment)
+                <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:8px 12px; margin-bottom:8px;">
+                    @php $aMime = $attachment->getMimeType() ?? ''; @endphp
+                    @if(str_starts_with($aMime, 'image/'))
+                        <img src="{{ $attachment->temporaryUrl() }}" style="width:44px; height:44px; border-radius:8px; object-fit:cover; flex-shrink:0;">
+                    @else
+                        <div style="width:36px; height:36px; border-radius:8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="16" height="16" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                    @endif
+                    <div style="flex:1; min-width:0;">
+                        <p style="font-size:12px; color:rgba(255,255,255,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $attachment->getClientOriginalName() }}</p>
+                        <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:1px;">{{ number_format($attachment->getSize() / 1024, 1) }} KB</p>
+                    </div>
+                    <button wire:click="sendFile" wire:loading.attr="disabled"
+                            style="padding:6px 12px; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); color:#b2ff00; font-size:11px; font-weight:600; border-radius:8px; cursor:pointer;">
+                        <span wire:loading.remove wire:target="sendFile">Enviar</span>
+                        <span wire:loading wire:target="sendFile">Enviando...</span>
+                    </button>
+                    <button wire:click="cancelFile" style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px;"
+                            onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                @endif
+
                 <div style="display:flex; align-items:center; gap:8px;">
                     {{-- Imagem --}}
                     <label title="Enviar imagem" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#4ade80'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <input type="file" wire:model="attachment" accept="image/*" style="display:none;" x-on:livewire-upload-finish="$wire.sendFile()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <input type="file" wire:model="attachment" accept="image/*" style="display:none;">
                     </label>
                     {{-- Documento --}}
                     <label title="Enviar documento" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                        <input type="file" wire:model="attachment" style="display:none;" x-on:livewire-upload-finish="$wire.sendFile()">
+                        <input type="file" wire:model="attachment" style="display:none;">
                     </label>
                     <input wire:model="messageText" type="text" placeholder="Digite uma mensagem..." spellcheck="true" lang="pt-BR"
                            x-ref="internalInput"
