@@ -20,7 +20,8 @@ class ProcessBotResponse implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 2;
+    public int $tries = 3;
+    public array $backoff = [5, 15, 30];
 
     public function __construct(
         public Conversation $conversation,
@@ -182,13 +183,15 @@ class ProcessBotResponse implements ShouldQueue
                 ],
             ];
 
-            $response = retry(3, function () use ($url, $body) {
+            $response = retry(4, function () use ($url, $body) {
                 $r = Http::timeout(30)->post($url, $body);
                 if ($r->status() >= 500 || $r->status() === 429) {
                     throw new \RuntimeException('Gemini transient error: ' . $r->status());
                 }
                 return $r;
-            }, 2000);
+            }, function (int $attempt) {
+                return $attempt * 3000; // 3s, 6s, 9s, 12s backoff crescente
+            });
 
             if (!$response->successful()) {
                 Log::error('IA: erro na API Gemini', [
