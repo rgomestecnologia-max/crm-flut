@@ -401,9 +401,11 @@ class ChatArea extends Component
     {
         if (!$this->conversationId || !$this->pendingFile) return;
 
-        // Validação de tamanho
+        // Validação de tamanho (100MB para vídeos, 25MB para o resto)
+        $mime = $this->pendingFile->getMimeType() ?? '';
+        $maxSize = str_starts_with($mime, 'video/') ? 102400 : 25600;
         $this->validate([
-            'pendingFile' => 'required|file|max:25600', // 25MB geral
+            'pendingFile' => 'required|file|max:' . $maxSize,
         ]);
 
         $file = $this->pendingFile;
