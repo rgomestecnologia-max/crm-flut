@@ -365,6 +365,30 @@ class ProcessEvolutionMessage implements ShouldQueue
                 }
             }
 
+            // ── Mensagem editada pelo contato/agente ─────────────────────────
+            if ($messageType === 'editedMessage') {
+                $editedMsg = $data['message']['editedMessage']['message'] ?? $data['message'] ?? [];
+                $editedText = $editedMsg['conversation']
+                    ?? $editedMsg['extendedTextMessage']['text']
+                    ?? $editedMsg['editedMessage']['message']['conversation']
+                    ?? $editedMsg['editedMessage']['message']['extendedTextMessage']['text']
+                    ?? null;
+                // O messageId da mensagem editada referencia a original via protocolMessage
+                $originalId = $data['message']['protocolMessage']['key']['id']
+                    ?? $data['message']['editedMessage']['message']['protocolMessage']['key']['id']
+                    ?? $messageId;
+
+                if ($editedText && $originalId) {
+                    $existingMsg = Message::where('zapi_message_id', $originalId)->first();
+                    if ($existingMsg) {
+                        $existingMsg->update(['content' => $editedText]);
+                        Log::info('Mensagem editada pelo WhatsApp', ['msg_id' => $existingMsg->id, 'zapi_id' => $originalId]);
+                        try { broadcast(new \App\Events\MessageReceived($existingMsg)); } catch (\Throwable) {}
+                    }
+                }
+                return;
+            }
+
             // ── Deduplicação ─────────────────────────────────────────────────
             if ($messageId && Message::where('zapi_message_id', $messageId)->exists()) {
                 return;

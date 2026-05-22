@@ -177,10 +177,19 @@ class EvolutionWebhookController extends Controller
             $fromMe  = $data['key']['fromMe'] ?? false;
             $msgType = $data['messageType'] ?? null;
 
-            // Ignora: status do WhatsApp, protocolMessages
-            $ignored = ['protocolMessage', 'senderKeyDistributionMessage'];
-            if (in_array($msgType, $ignored)) {
+            // Ignora: distribuição de chave de grupo
+            // protocolMessage pode conter edições — só ignora se NÃO for edição
+            if ($msgType === 'senderKeyDistributionMessage') {
                 return response()->json(['ok' => true]);
+            }
+            if ($msgType === 'protocolMessage') {
+                $hasEdit = !empty($data['message']['protocolMessage']['editedMessage'])
+                        || !empty($data['message']['editedMessage']);
+                if (!$hasEdit) {
+                    return response()->json(['ok' => true]);
+                }
+                // É uma edição — tratar como editedMessage
+                $payload['data']['messageType'] = 'editedMessage';
             }
 
             ProcessEvolutionMessage::dispatch($payload);

@@ -290,12 +290,15 @@ class ChatArea extends Component
 
         if (!$msg) return;
 
-        // Edita no WhatsApp (se tiver zapi_message_id) — apenas Evolution suporta
-        if ($msg->zapi_message_id && \App\Services\WhatsAppProvider::isEvolution()) {
+        // Edita no WhatsApp (se tiver zapi_message_id)
+        if ($msg->zapi_message_id) {
             $contact = $this->conversation->contact;
-            $remoteJid = $contact->chat_lid ?? $contact->phone;
-            $svc = \App\Services\WhatsAppProvider::service();
-            if ($svc) {
+            $remoteJid = $contact->chat_lid ?? ($contact->phone . '@s.whatsapp.net');
+            $specificConfig = $this->conversation->evolution_api_config_id
+                ? \App\Models\EvolutionApiConfig::find($this->conversation->evolution_api_config_id)
+                : null;
+            $svc = \App\Services\WhatsAppProvider::service($specificConfig);
+            if ($svc instanceof \App\Services\EvolutionApiService) {
                 try {
                     $svc->updateMessage($msg->zapi_message_id, $remoteJid, $newText);
                 } catch (\Throwable $e) {
@@ -316,12 +319,15 @@ class ChatArea extends Component
 
         if (!$msg) return;
 
-        // Deleta no WhatsApp (se tiver zapi_message_id) — apenas Evolution suporta
-        if ($msg->zapi_message_id && \App\Services\WhatsAppProvider::isEvolution()) {
+        // Deleta no WhatsApp (se tiver zapi_message_id)
+        if ($msg->zapi_message_id) {
             $contact = $this->conversation->contact;
-            $remoteJid = $contact->chat_lid ?? $contact->phone;
-            $svc = \App\Services\WhatsAppProvider::service();
-            if ($svc) {
+            $remoteJid = $contact->chat_lid ?? ($contact->phone . '@s.whatsapp.net');
+            $specificConfig = $this->conversation->evolution_api_config_id
+                ? \App\Models\EvolutionApiConfig::find($this->conversation->evolution_api_config_id)
+                : null;
+            $svc = \App\Services\WhatsAppProvider::service($specificConfig);
+            if ($svc instanceof \App\Services\EvolutionApiService) {
                 try {
                     $svc->deleteMessage($msg->zapi_message_id, $remoteJid);
                 } catch (\Throwable $e) {
