@@ -1484,24 +1484,35 @@ function chatArea() {
         searchMatches: [],
         searchIndex: -1,
 
+        _shouldAutoScroll: true,
+        _observer: null,
+
         init() {
             this.$watch('$wire.conversationId', (val) => {
                 if (val) {
                     this.clearSearch();
+                    this._shouldAutoScroll = true;
                     this.scrollToBottom(false);
-                    // Retry scroll após DOM renderizar (conversas longas demoram)
-                    setTimeout(() => this.scrollToBottom(false), 300);
-                    setTimeout(() => this.scrollToBottom(false), 800);
                 }
             });
 
             // Scroll ao carregar a página inicial
+            this._shouldAutoScroll = true;
             this.$nextTick(() => this.scrollToBottom(false));
 
-            // Scroll após cada atualização do Livewire
-            Livewire.hook('morph.updated', ({ component }) => {
-                if (component.id === this.$wire.__instance.id) {
-                    this.scrollToBottom(false);
+            // MutationObserver: detecta quando mensagens são renderizadas no DOM
+            this.$nextTick(() => {
+                const container = this.$refs.msgContainer;
+                if (container) {
+                    this._observer = new MutationObserver(() => {
+                        if (this._shouldAutoScroll) {
+                            this.scrollToBottom(false);
+                            // Para de auto-scroll após 2s (usuário pode querer ler mensagens antigas)
+                            clearTimeout(this._scrollTimer);
+                            this._scrollTimer = setTimeout(() => { this._shouldAutoScroll = false; }, 2000);
+                        }
+                    });
+                    this._observer.observe(container, { childList: true, subtree: true });
                 }
             });
         },
