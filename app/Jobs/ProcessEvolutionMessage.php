@@ -576,10 +576,12 @@ class ProcessEvolutionMessage implements ShouldQueue
                     // Não envia chatbot/IA em grupos se reply_in_groups está desativado
                     $skipGroups = $isGroup && (!$menuConfig || !$menuConfig->reply_in_groups);
 
-                    // Detecta lead de anúncio WhatsApp (mensagem contém "vi o anúncio")
+                    // Detecta lead de anúncio WhatsApp (frases padrão de ads)
                     // Trata como lead normal: cria card no CRM e aciona IA
                     $isAdLead = false;
-                    if ($aiOnlyForAutomation && $content && stripos($content, 'vi o an') !== false) {
+                    $adPhrases = ['vi o an', 'tenho interesse', 'quero mais informa'];
+                    $isAdMessage = $aiOnlyForAutomation && $content && collect($adPhrases)->contains(fn($p) => stripos($content, $p) !== false);
+                    if ($isAdMessage) {
                         $isAdLead = true;
                         $aiOnlyForAutomation = false; // permite IA entrar
 
