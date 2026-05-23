@@ -1489,6 +1489,19 @@ function chatArea() {
                 if (val) {
                     this.clearSearch();
                     this.scrollToBottom(false);
+                    // Retry scroll após DOM renderizar (conversas longas demoram)
+                    setTimeout(() => this.scrollToBottom(false), 300);
+                    setTimeout(() => this.scrollToBottom(false), 800);
+                }
+            });
+
+            // Scroll ao carregar a página inicial
+            this.$nextTick(() => this.scrollToBottom(false));
+
+            // Scroll após cada atualização do Livewire
+            Livewire.hook('morph.updated', ({ component }) => {
+                if (component.id === this.$wire.__instance.id) {
+                    this.scrollToBottom(false);
                 }
             });
         },
