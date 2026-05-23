@@ -176,6 +176,10 @@ class ProcessMenuBot implements ShouldQueue
             $this->createCardForDepartment($triggerMessage);
         }
 
+        // Auto-criar card no pipeline correspondente ao departamento e taguear conversa
+        // Busca pipeline pelo nome do departamento (match parcial)
+        $this->autoCreateCardAndTag($department);
+
         // Ativa IA após seleção do menu (apenas na primeira opção / departamento principal)
         if ($hasAi && $choice === 1) {
             // Envia saudação da IA imediatamente após direcionamento
@@ -251,6 +255,54 @@ class ProcessMenuBot implements ShouldQueue
      * Verifica se o menu já foi concluído nesta sessão da conversa,
      * procurando pela mensagem de sistema "Menu: cliente selecionou".
      */
+    /**
+     * Auto-cria card no pipeline e tagueia conversa quando o departamento tem
+     * um pipeline CRM com nome correspondente (ex: "Xerox e impressão" → pipeline "Impressão").
+     */
+    private function autoCreateCardAndTag(Department $department): void
+    {
+        try {
+            $contact = $this->conversation->contact;
+            if (!$contact) return;
+
+            // Busca pipeline cujo nome esteja contido no nome do departamento ou vice-versa
+            $pipeline = \App\Models\CrmPipeline::get()->first(function ($p) use ($department) {
+                return stripos($department->name, $p->name) !== false
+                    || stripos($p->name, $department->name) !== false;
+            });
+            if (!$pipeline) return;
+
+            $firstStage = $pipeline->stages()->orderBy('sort_order')->first();
+            if (!$firstStage) return;
+
+            // Cria card se não existir
+            $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                ->where('pipeline_id', $pipeline->id)->first();
+            if (!$card) {
+                $card = \App\Models\CrmCard::create([
+                    'pipeline_id' => $pipeline->id,
+                    'stage_id'    => $firstStage->id,
+                    'contact_id'  => $contact->id,
+                    'title'       => $contact->display_name ?? $contact->name,
+                ]);
+                Log::info('MenuBot: card criado automaticamente', [
+                    'contact' => $contact->name, 'pipeline' => $pipeline->name,
+                ]);
+            }
+
+            // Tagueia conversa com tag do pipeline (se existir tag com mesmo nome)
+            $tag = \App\Models\Tag::where('name', $pipeline->name)->first();
+            if ($tag && !$this->conversation->tags()->where('tags.id', $tag->id)->exists()) {
+                $this->conversation->tags()->attach($tag->id);
+                Log::info('MenuBot: tag adicionada à conversa', [
+                    'conv' => $this->conversation->id, 'tag' => $tag->name,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('MenuBot: autoCreateCardAndTag falhou', ['error' => $e->getMessage()]);
+        }
+    }
+
     private function menuAlreadyCompleted(): bool
     {
         return Message::where('conversation_id', $this->conversation->id)
