@@ -265,9 +265,10 @@ class EvolutionApiService
 
     public function deleteMessage(string $messageId, string $remoteJid, bool $fromMe = true): array
     {
-        return $this->delete("/message/delete/{$this->instanceName}", useGlobalKey: false, body: [
-            'number' => $remoteJid,
-            'key'    => ['id' => $messageId, 'fromMe' => $fromMe, 'remoteJid' => $remoteJid],
+        return $this->delete("/chat/deleteMessageForEveryone/{$this->instanceName}", useGlobalKey: false, body: [
+            'id'        => $messageId,
+            'fromMe'    => $fromMe,
+            'remoteJid' => $remoteJid,
         ]);
     }
 
