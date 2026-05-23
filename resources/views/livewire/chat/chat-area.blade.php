@@ -958,6 +958,7 @@ function senderColor(?string $identifier): string {
                 </div>
             @endif
         @endforeach
+        <div id="chat-bottom-anchor" style="height:1px; flex-shrink:0;"></div>
     </div>
 
     {{-- Quick replies dropdown --}}
@@ -1519,11 +1520,15 @@ function chatArea() {
 
         scrollToBottom(smooth) {
             const go = () => {
+                const anchor = document.getElementById('chat-bottom-anchor');
+                if (anchor) {
+                    anchor.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant', block: 'end' });
+                    return;
+                }
                 const el = this.$refs.msgContainer;
-                if (!el) return;
-                el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
+                if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
             };
-            this.$nextTick(() => requestAnimationFrame(() => requestAnimationFrame(go)));
+            this.$nextTick(() => requestAnimationFrame(go));
         },
 
         doSearch() {
