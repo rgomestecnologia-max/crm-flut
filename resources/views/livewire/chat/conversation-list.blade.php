@@ -114,7 +114,7 @@
     </div>
 
     {{-- Filter tabs --}}
-    <div style="display:flex; padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0; overflow-x:auto;">
+    <div style="display:flex; flex-wrap:wrap; padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
         @php
         $aiActive = \App\Models\AiBotConfig::current()?->is_active ?? false;
         $tabs = [
@@ -143,7 +143,7 @@
         @endphp
         @foreach($tabs as $tab)
         <button wire:click="setFilter('{{ $tab['key'] }}')"
-                style="flex-shrink:0; display:flex; align-items:center; gap:5px; padding:5px 9px; border-radius:7px; font-size:11px; font-weight:{{ $filter === $tab['key'] ? '600' : '400' }}; border:none; cursor:pointer; transition:all 0.15s; white-space:nowrap;
+                style="display:flex; align-items:center; gap:5px; padding:5px 9px; border-radius:7px; font-size:11px; font-weight:{{ $filter === $tab['key'] ? '600' : '400' }}; border:none; cursor:pointer; transition:all 0.15s; white-space:nowrap;
                        background:{{ $filter === $tab['key'] ? $tab['activeBg'] : 'transparent' }};
                        color:{{ $filter === $tab['key'] ? $tab['activeColor'] : 'rgba(255,255,255,0.3)' }};">
             {{ $tab['label'] }}
