@@ -395,6 +395,15 @@ class ProcessBotResponse implements ShouldQueue
         $prompt = $this->config->system_prompt
             ?? 'Você é um assistente virtual de atendimento. Seja cordial, objetivo e prestativo. Responda sempre em português.';
 
+        // Data/hora atual e departamento da conversa (para regras de horário)
+        $now = now()->timezone('America/Sao_Paulo');
+        $dayNames = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+        $prompt .= "\n\n---\nDATA E HORA ATUAL: " . $dayNames[$now->dayOfWeek] . ', ' . $now->format('d/m/Y H:i') . ' (horário de Brasília)';
+        $deptName = $this->conversation->department?->name;
+        if ($deptName) {
+            $prompt .= "\nDEPARTAMENTO DA CONVERSA: " . $deptName;
+        }
+
         // Tom de voz
         if ($this->config->voice_tones) {
             $tones = $this->config->voice_tones;
