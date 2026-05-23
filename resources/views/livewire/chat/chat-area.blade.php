@@ -1188,10 +1188,10 @@ function senderColor(?string $identifier): string {
 
         {{-- Loading durante upload com barra de progresso --}}
         <div x-data="{ uploading: false, progress: 0 }"
-             x-on:livewire-upload-start="uploading = true; progress = 0"
-             x-on:livewire-upload-finish="uploading = false; progress = 100"
-             x-on:livewire-upload-error="uploading = false; progress = 0"
-             x-on:livewire-upload-progress="progress = $event.detail.progress"
+             x-on:livewire-upload-start.window="uploading = true; progress = 0"
+             x-on:livewire-upload-finish.window="uploading = false; progress = 100"
+             x-on:livewire-upload-error.window="uploading = false; progress = 0"
+             x-on:livewire-upload-progress.window="progress = $event.detail.progress"
              x-show="uploading"
              x-transition
              style="background:rgba(178,255,0,0.04); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:10px 14px; margin-bottom:8px;">
