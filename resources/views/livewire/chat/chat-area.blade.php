@@ -1493,7 +1493,8 @@ function chatArea() {
                     this.clearSearch();
                     this._shouldAutoScroll = true;
                     this.scrollToBottom(false);
-                    setTimeout(() => this.$dispatch('focus-message-input'), 300);
+                    setTimeout(() => { const ta = document.querySelector('textarea[wire\\:model="messageText"]'); if(ta) ta.focus(); }, 500);
+                    setTimeout(() => { const ta = document.querySelector('textarea[wire\\:model="messageText"]'); if(ta) ta.focus(); }, 1000);
                 }
             });
 
