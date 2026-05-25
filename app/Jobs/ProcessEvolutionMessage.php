@@ -885,8 +885,8 @@ class ProcessEvolutionMessage implements ShouldQueue
         // Remove chaves auxiliares que não são conteúdo (distribuição de chave de grupo)
         unset($msg['senderKeyDistributionMessage'], $msg['messageContextInfo']);
 
-        // Desembrulha wrappers: ephemeral, viewOnce, viewOnceV2, forwarded
-        foreach (['ephemeralMessage', 'viewOnceMessage', 'viewOnceMessageV2'] as $wrapper) {
+        // Desembrulha wrappers: ephemeral, viewOnce, viewOnceV2, viewOnceV2Extension
+        foreach (['ephemeralMessage', 'viewOnceMessage', 'viewOnceMessageV2', 'viewOnceMessageV2Extension'] as $wrapper) {
             if (!empty($msg[$wrapper]['message'])) {
                 $msg  = $msg[$wrapper]['message'];
                 $type = array_key_first(array_filter($msg, fn($v) => is_array($v))) ?? $type;
@@ -961,6 +961,33 @@ class ProcessEvolutionMessage implements ShouldQueue
             $sm  = $msg['stickerMessage'];
             $url = $this->resolveMediaUrl($sm, $messageId, $sm['mimetype'] ?? 'image/webp', null, 'sticker');
             return [null, 'sticker', $url, null];
+        }
+
+        // Contato (vCard)
+        if (!empty($msg['contactMessage'])) {
+            $name = $msg['contactMessage']['displayName'] ?? 'Contato';
+            $vcard = $msg['contactMessage']['vcard'] ?? '';
+            $phone = '';
+            if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
+                $phone = trim($tm[1]);
+            }
+            return ["📇 *{$name}*" . ($phone ? "\n📱 {$phone}" : ''), 'text', null, null];
+        }
+
+        // Array de contatos
+        if (!empty($msg['contactsArrayMessage'])) {
+            $contacts = $msg['contactsArrayMessage']['contacts'] ?? [];
+            $lines = [];
+            foreach ($contacts as $c) {
+                $name = $c['displayName'] ?? 'Contato';
+                $vcard = $c['vcard'] ?? '';
+                $phone = '';
+                if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
+                    $phone = trim($tm[1]);
+                }
+                $lines[] = "📇 *{$name}*" . ($phone ? " — {$phone}" : '');
+            }
+            return [implode("\n", $lines), 'text', null, null];
         }
 
         return [null, 'text', null, null];
