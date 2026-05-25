@@ -347,9 +347,11 @@ class ConversationList extends Component
 
         // Filas por departamento para supervisores/admins com múltiplos departamentos
         $deptQueueCounts = [];
+        $currentCompanyId = app(\App\Services\CurrentCompany::class)->id();
+        $isAdminViewingOtherCompany = $user->isAdmin() && $user->company_id !== $currentCompanyId;
         $userDeptIds = $user->departmentIds();
-        // Admin sem dept específico → usa todos os departamentos ativos
-        if ($user->isAdmin() && empty($userDeptIds)) {
+        // Admin visualizando outra empresa ou sem dept → usa todos os departamentos da empresa atual
+        if ($user->isAdmin() && ($isAdminViewingOtherCompany || empty($userDeptIds))) {
             $userDeptIds = Department::active()->pluck('id')->all();
         }
         $showDeptQueues = ($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1;
