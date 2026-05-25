@@ -523,6 +523,8 @@ class LeadController extends Controller
             'horario_saida'   => 'data_de_saida',
             'valor_coberta'   => 'valor_sombreada',
             'tipo_vaga'       => 'tipo_de_vaga',
+            'placa_veiculo'   => 'placa',
+            'plate'           => 'placa',
         ];
 
         foreach ($fieldAliases as $alias => $canonical) {
