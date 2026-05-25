@@ -585,6 +585,35 @@ class ProcessEvolutionMessage implements ShouldQueue
                         $isAdLead = true;
                         $aiOnlyForAutomation = false; // permite IA entrar
 
+                        // Roteamento por DDD (mesmo do SendAutomationMessage)
+                        try {
+                            $adPhone = $contact->phone ?? '';
+                            if (strlen($adPhone) >= 12 && str_starts_with($adPhone, '55')) {
+                                $adDdd = substr($adPhone, 2, 2);
+                                $dddRule = \App\Models\DddRoutingRule::where('ddd', $adDdd)->where('is_active', true)->first();
+                                if ($dddRule) {
+                                    $updateData = [];
+                                    if ($dddRule->department_id) $updateData['department_id'] = $dddRule->department_id;
+                                    if ($dddRule->agent_id) $updateData['assigned_to'] = $dddRule->agent_id;
+                                    if (!empty($updateData)) {
+                                        $conversation->update($updateData);
+                                        $agentName = $dddRule->agent_id ? (\App\Models\User::find($dddRule->agent_id)?->name ?? '') : '';
+                                        $deptName = $dddRule->department_id ? (Department::find($dddRule->department_id)?->name ?? '') : '';
+                                        Message::create([
+                                            'conversation_id' => $conversation->id,
+                                            'sender_type'     => 'system',
+                                            'content'         => "Roteamento DDD: atribuído a {$agentName} ({$deptName})",
+                                            'type'            => 'text',
+                                            'delivery_status' => 'sent',
+                                        ]);
+                                        Log::info('Ad lead DDD routing: ' . $adDdd . ' → ' . $agentName, ['conv' => $conversation->id]);
+                                    }
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            Log::warning('Ad lead DDD routing falhou', ['error' => $e->getMessage()]);
+                        }
+
                         // Cria card no pipeline Vendas → etapa Novo (se não existir)
                         try {
                             $vendas = \App\Models\CrmPipeline::where('name', 'Vendas')->first();
