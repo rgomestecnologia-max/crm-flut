@@ -93,6 +93,39 @@ class InternalChat extends Component
         $this->attachment = null;
     }
 
+    public function receiveAudioBlob(string $dataUrl): void
+    {
+        if (!$this->selectedUserId) return;
+
+        $parts = explode(',', $dataUrl, 2);
+        if (count($parts) < 2) return;
+        [$header, $base64] = $parts;
+        $raw = base64_decode($base64);
+        if (!$raw || strlen($raw) < 100) return;
+
+        $mime = str_contains($header, 'audio/ogg') ? 'ogg'
+             : (str_contains($header, 'audio/mp4') ? 'mp4' : 'webm');
+
+        $dir  = 'internal-chat/' . date('Y/m');
+        $name = uniqid('audio_', true) . '.' . $mime;
+        $path = "{$dir}/{$name}";
+
+        \App\Services\MediaStorage::put($path, $raw);
+        $url = \App\Services\MediaStorage::url($path);
+
+        $msg = InternalMessage::create([
+            'sender_id'      => Auth::id(),
+            'recipient_id'   => $this->selectedUserId,
+            'content'        => null,
+            'type'           => 'audio',
+            'media_url'      => $url,
+            'media_filename' => $name,
+        ]);
+
+        try { broadcast(new InternalMessageSent($msg)); } catch (\Throwable) {}
+        $this->dispatch('internal-scroll-bottom');
+    }
+
     public function render()
     {
         $me    = Auth::user();

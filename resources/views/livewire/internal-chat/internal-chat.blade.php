@@ -150,7 +150,32 @@
 
             {{-- Input --}}
             <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0; position:relative;"
-                 x-data="{ showEmoji: false }">
+                 x-data="{
+                    showEmoji: false,
+                    recording: false, recSeconds: 0, recTimer: null, mediaRecorder: null, audioChunks: [],
+                    async startRec() {
+                        try {
+                            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                            this.audioChunks = [];
+                            this.mediaRecorder = new MediaRecorder(stream);
+                            this.mediaRecorder.ondataavailable = e => { if(e.data.size>0) this.audioChunks.push(e.data); };
+                            this.mediaRecorder.onstop = () => {
+                                const mimeType = this.mediaRecorder.mimeType || 'audio/webm';
+                                const blob = new Blob(this.audioChunks, { type: mimeType });
+                                const reader = new FileReader();
+                                reader.onload = () => $wire.receiveAudioBlob(reader.result);
+                                reader.readAsDataURL(blob);
+                                stream.getTracks().forEach(t => t.stop());
+                            };
+                            this.mediaRecorder.start();
+                            this.recording = true; this.recSeconds = 0;
+                            this.recTimer = setInterval(() => this.recSeconds++, 1000);
+                        } catch(e) { alert('Permissão de microfone negada.'); }
+                    },
+                    stopRec() { if(this.mediaRecorder && this.recording) { this.mediaRecorder.stop(); this.recording = false; clearInterval(this.recTimer); } },
+                    cancelRec() { if(this.mediaRecorder) { this.mediaRecorder.ondataavailable=null; this.mediaRecorder.onstop=null; this.mediaRecorder.stop(); this.mediaRecorder.stream?.getTracks().forEach(t=>t.stop()); } this.recording=false; clearInterval(this.recTimer); this.audioChunks=[]; },
+                    fmtRec(s) { return Math.floor(s/60)+':'+(''+(s%60)).padStart(2,'0'); }
+                 }">
                 {{-- Emoji picker --}}
                 <div x-show="showEmoji" x-transition @click.outside="showEmoji = false"
                      style="position:absolute; bottom:52px; right:10px; background:#1a1f2e; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; width:320px; z-index:50; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
@@ -191,10 +216,23 @@
                 </div>
                 @endif
 
+                {{-- Indicador de gravação --}}
+                <div x-show="recording" style="display:flex; align-items:center; gap:10px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:8px 12px; margin-bottom:8px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#ef4444; flex-shrink:0; animation:pulse 1.5s ease-in-out infinite;"></span>
+                    <span style="font-size:12px; color:#f87171; font-family:monospace; flex:1;" x-text="'Gravando... ' + fmtRec(recSeconds)"></span>
+                    <button @click="cancelRec()" style="font-size:11px; color:rgba(255,255,255,0.3); background:transparent; border:none; cursor:pointer; padding:2px 8px;"
+                            onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Cancelar</button>
+                    <button @click="stopRec()" style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#ef4444; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer;">
+                        <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
+                        Enviar
+                    </button>
+                </div>
+                <style>@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }</style>
+
                 <div style="display:flex; align-items:center; gap:8px;">
                     {{-- Imagem --}}
                     <label title="Enviar imagem" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px; transition:color 0.15s;" onmouseover="this.style.color='#4ade80'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <input type="file" wire:model="attachment" accept="image/*" style="display:none;">
                     </label>
                     {{-- Documento --}}
@@ -214,6 +252,14 @@
                             onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </button>
+                    {{-- Mic --}}
+                    <button type="button" @click="recording ? stopRec() : startRec()" title="Gravar áudio"
+                            :style="recording ? 'background:#ef4444; animation:pulse 1.5s ease-in-out infinite;' : ''"
+                            style="padding:6px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; transition:color 0.15s;"
+                            onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                    </button>
+                    {{-- Send --}}
                     <button wire:click="sendMessage" style="padding:8px; color:#b2ff00; background:none; border:none; cursor:pointer;">
                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                     </button>
