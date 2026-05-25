@@ -555,6 +555,10 @@ class ProcessEvolutionMessage implements ShouldQueue
             if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content) {
                 $sourceAuto = $conversation->sourceAutomation;
                 if ($sourceAuto && ($sourceAuto->reply_yes_message || $sourceAuto->reply_no_message)) {
+                    // Ignora se humano já está atendendo (respondeu pelo CRM ou WhatsApp)
+                    $humanAttending = $conversation->assigned_to
+                        || $conversation->waiting_human_reason === 'Atendente respondeu pelo WhatsApp';
+
                     // Ignora auto-reply se a última msg de automação tem mais de 48h (agendamento já passou)
                     $lastAutoMsg = Message::where('conversation_id', $conversation->id)
                         ->where('sender_type', 'agent')
@@ -564,7 +568,12 @@ class ProcessEvolutionMessage implements ShouldQueue
 
                     $autoExpired = !$lastAutoMsg || $lastAutoMsg->created_at->diffInHours(now()) > 48;
 
-                    if ($autoExpired) {
+                    if ($humanAttending) {
+                        Log::info('Auto-reply SIM/NÃO ignorado: humano já atendendo', [
+                            'conv' => $conversation->id,
+                            'assigned_to' => $conversation->assigned_to,
+                        ]);
+                    } elseif ($autoExpired) {
                         Log::info('Auto-reply SIM/NÃO ignorado: automação expirada (>48h)', [
                             'conv' => $conversation->id,
                             'last_auto_msg' => $lastAutoMsg?->created_at,
