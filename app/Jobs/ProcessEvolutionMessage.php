@@ -580,12 +580,21 @@ class ProcessEvolutionMessage implements ShouldQueue
                     // Verifica se a empresa tem automação com enable_ai_on_reply
                     // Se sim, IA só atende conversas que vieram da automação
                     // Conversas diretas (sem automação) vão para Aguardando
+                    // EXCETO: se a IA já respondeu nesta conversa (ex: lead de anúncio)
                     if (!$isGroup && !$conversation->source_automation_id && $botConfig && $botConfig->is_active) {
                         $hasAiAutomation = \App\Models\Automation::where('is_active', true)
                             ->where('enable_ai_on_reply', true)
                             ->exists();
                         if ($hasAiAutomation) {
-                            $aiOnlyForAutomation = true;
+                            // Verifica se IA já respondeu nesta sessão
+                            $aiAlreadyActive = Message::where('conversation_id', $conversation->id)
+                                ->where('sender_type', 'agent')
+                                ->whereNull('sender_id')
+                                ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
+                                ->exists();
+                            if (!$aiAlreadyActive) {
+                                $aiOnlyForAutomation = true;
+                            }
                         }
                     }
 
