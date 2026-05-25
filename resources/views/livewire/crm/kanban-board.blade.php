@@ -77,7 +77,7 @@
                 Limpar
             </button>
             @endif
-            <div x-data="{ showExport: false, exportPos: null, cols: { id:true, pipeline:true, etapa:true, titulo:true, contato:true, telefone:true, email:true, responsavel:true, prioridade:true, criado:true, custom:true } }" style="position:relative;">
+            <div x-data="{ showExport: false, exportPos: null, stageIds: { @foreach($stages as $s) '{{ $s->id }}': true, @endforeach } }" style="position:relative;">
                 <button @click="const r=$el.getBoundingClientRect(); exportPos={top: r.bottom+4, right: window.innerWidth-r.right}; showExport=!showExport"
                         style="padding:4px 10px; font-size:10px; font-weight:600; color:#10b981; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:6px; cursor:pointer;"
                         onmouseover="this.style.background='rgba(16,185,129,0.16)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
@@ -86,24 +86,28 @@
                 <template x-teleport="body">
                 <div x-show="showExport" x-transition @click.outside="showExport=false" x-cloak
                      :style="exportPos ? `position:fixed; top:${exportPos.top}px; right:${exportPos.right}px; z-index:99999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.7); width:220px;` : ''">
-                    <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px;">Colunas para exportar:</p>
-                    @php $exportCols = [
-                        'id' => 'ID', 'pipeline' => 'Pipeline', 'etapa' => 'Etapa', 'titulo' => 'Título',
-                        'contato' => 'Contato', 'telefone' => 'Telefone', 'email' => 'E-mail',
-                        'responsavel' => 'Responsável', 'prioridade' => 'Prioridade', 'criado' => 'Criado em',
-                        'custom' => 'Campos Personalizados',
-                    ]; @endphp
+                    <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px;">Etapas para exportar:</p>
                     <div style="display:flex; flex-direction:column; gap:6px; max-height:250px; overflow-y:auto;">
-                        @foreach($exportCols as $key => $label)
+                        @foreach($stages as $s)
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:rgba(255,255,255,0.7);">
-                            <input type="checkbox" x-model="cols.{{ $key }}" style="accent-color:#10b981; cursor:pointer;">
-                            {{ $label }}
+                            <input type="checkbox" x-model="stageIds['{{ $s->id }}']" style="accent-color:#10b981; cursor:pointer;">
+                            {{ $s->name }}
                         </label>
                         @endforeach
                     </div>
-                    <a :href="'{{ route('crm.export', ['pipeline_id' => $selectedPipelineId, 'date_from' => $dateFrom, 'date_to' => $dateTo]) }}&columns=' + Object.keys(cols).filter(k => cols[k]).join(',')"
+                    <div style="display:flex; gap:6px; margin-top:10px;">
+                        <button @click="Object.keys(stageIds).forEach(k => stageIds[k] = true)"
+                                style="flex:1; padding:4px; font-size:10px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:5px; cursor:pointer;">
+                            Todas
+                        </button>
+                        <button @click="Object.keys(stageIds).forEach(k => stageIds[k] = false)"
+                                style="flex:1; padding:4px; font-size:10px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:5px; cursor:pointer;">
+                            Nenhuma
+                        </button>
+                    </div>
+                    <a :href="'{{ route('crm.export', ['pipeline_id' => $selectedPipelineId, 'date_from' => $dateFrom, 'date_to' => $dateTo]) }}&stages=' + Object.keys(stageIds).filter(k => stageIds[k]).join(',')"
                        @click="showExport=false"
-                       style="display:block; margin-top:12px; text-align:center; padding:6px 12px; font-size:11px; font-weight:700; color:#111; background:#10b981; border-radius:8px; text-decoration:none;">
+                       style="display:block; margin-top:10px; text-align:center; padding:6px 12px; font-size:11px; font-weight:700; color:#111; background:#10b981; border-radius:8px; text-decoration:none;">
                         Exportar
                     </a>
                 </div>
