@@ -14,13 +14,35 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class CrmCardsExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
     protected $customFields;
+    protected ?array $columns;
+
+    // Mapa de colunas disponíveis
+    protected array $columnMap = [
+        'id'          => 'ID',
+        'pipeline'    => 'Pipeline',
+        'etapa'       => 'Etapa',
+        'titulo'      => 'Título',
+        'contato'     => 'Contato',
+        'telefone'    => 'Telefone',
+        'email'       => 'E-mail',
+        'responsavel' => 'Responsável',
+        'prioridade'  => 'Prioridade',
+        'criado'      => 'Criado em',
+    ];
 
     public function __construct(
         protected ?int $pipelineId = null,
         protected ?string $dateFrom = null,
         protected ?string $dateTo = null,
+        ?array $columns = null,
     ) {
+        $this->columns = $columns;
         $this->customFields = CrmCustomField::orderBy('sort_order')->get();
+    }
+
+    protected function hasColumn(string $key): bool
+    {
+        return $this->columns === null || in_array($key, $this->columns, true);
     }
 
     public function collection()
@@ -45,22 +67,16 @@ class CrmCardsExport implements FromCollection, WithHeadings, WithMapping, Shoul
 
     public function headings(): array
     {
-        $base = [
-            'ID',
-            'Pipeline',
-            'Etapa',
-            'Título',
-            'Contato',
-            'Telefone',
-            'E-mail',
-            'Responsável',
-            'Prioridade',
-            'Criado em',
-        ];
+        $base = [];
+        foreach ($this->columnMap as $key => $label) {
+            if ($this->hasColumn($key)) $base[] = $label;
+        }
 
         // Adiciona colunas dos campos personalizados
-        foreach ($this->customFields as $field) {
-            $base[] = $field->name;
+        if ($this->hasColumn('custom')) {
+            foreach ($this->customFields as $field) {
+                $base[] = $field->name;
+            }
         }
 
         return $base;
@@ -68,31 +84,37 @@ class CrmCardsExport implements FromCollection, WithHeadings, WithMapping, Shoul
 
     public function map($card): array
     {
-        $row = [
-            $card->id,
-            $card->pipeline?->name ?? '',
-            $card->stage?->name ?? '',
-            $card->title ?? '',
-            $card->contact?->name ?? '',
-            $card->contact?->phone ?? '',
-            $card->contact?->email ?? '',
-            $card->assignedTo?->name ?? '',
-            $card->priority_label ?? '',
-            $card->created_at?->format('d/m/Y H:i') ?? '',
+        $allValues = [
+            'id'          => $card->id,
+            'pipeline'    => $card->pipeline?->name ?? '',
+            'etapa'       => $card->stage?->name ?? '',
+            'titulo'      => $card->title ?? '',
+            'contato'     => $card->contact?->name ?? '',
+            'telefone'    => $card->contact?->phone ?? '',
+            'email'       => $card->contact?->email ?? '',
+            'responsavel' => $card->assignedTo?->name ?? '',
+            'prioridade'  => $card->priority_label ?? '',
+            'criado'      => $card->created_at?->format('d/m/Y H:i') ?? '',
         ];
 
+        $row = [];
+        foreach ($allValues as $key => $value) {
+            if ($this->hasColumn($key)) $row[] = $value;
+        }
+
         // Adiciona valores dos campos personalizados
-        foreach ($this->customFields as $field) {
-            $value = $card->fieldValues
-                ->first(fn($v) => $v->field_id === $field->id)
-                ?->value ?? '';
+        if ($this->hasColumn('custom')) {
+            foreach ($this->customFields as $field) {
+                $value = $card->fieldValues
+                    ->first(fn($v) => $v->field_id === $field->id)
+                    ?->value ?? '';
 
-            // Formata valores de moeda
-            if ($field->type === 'currency' && $value !== '') {
-                $value = 'R$ ' . number_format((float) $value, 2, ',', '.');
+                if ($field->type === 'currency' && $value !== '') {
+                    $value = 'R$ ' . number_format((float) $value, 2, ',', '.');
+                }
+
+                $row[] = $value;
             }
-
-            $row[] = $value;
         }
 
         return $row;

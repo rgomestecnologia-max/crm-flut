@@ -175,9 +175,10 @@ Route::middleware(['auth', 'company'])->group(function () {
         $pipelineId = $request->query('pipeline_id');
         $dateFrom   = $request->query('date_from');
         $dateTo     = $request->query('date_to');
+        $columns    = $request->query('columns') ? explode(',', $request->query('columns')) : null;
         $filename   = 'crm-cards-' . now()->format('Y-m-d-His') . '.xlsx';
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\CrmCardsExport($pipelineId, $dateFrom, $dateTo),
+            new \App\Exports\CrmCardsExport($pipelineId, $dateFrom, $dateTo, $columns),
             $filename
         );
     })->middleware('module:crm')->name('crm.export');

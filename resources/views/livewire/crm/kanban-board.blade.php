@@ -77,11 +77,36 @@
                 Limpar
             </button>
             @endif
-            <a href="{{ route('crm.export', ['pipeline_id' => $selectedPipelineId, 'date_from' => $dateFrom, 'date_to' => $dateTo]) }}"
-               style="padding:4px 10px; font-size:10px; font-weight:600; color:#10b981; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:6px; text-decoration:none;"
-               onmouseover="this.style.background='rgba(16,185,129,0.16)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
-                Excel
-            </a>
+            <div x-data="{ showExport: false, cols: { id:true, pipeline:true, etapa:true, titulo:true, contato:true, telefone:true, email:true, responsavel:true, prioridade:true, criado:true, custom:true } }" style="position:relative;">
+                <button @click="showExport = !showExport"
+                        style="padding:4px 10px; font-size:10px; font-weight:600; color:#10b981; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:6px; cursor:pointer;"
+                        onmouseover="this.style.background='rgba(16,185,129,0.16)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
+                    Excel ▾
+                </button>
+                <div x-show="showExport" x-transition @click.outside="showExport=false" x-cloak
+                     style="position:absolute; top:32px; right:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.6); width:220px;">
+                    <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px;">Colunas para exportar:</p>
+                    @php $exportCols = [
+                        'id' => 'ID', 'pipeline' => 'Pipeline', 'etapa' => 'Etapa', 'titulo' => 'Título',
+                        'contato' => 'Contato', 'telefone' => 'Telefone', 'email' => 'E-mail',
+                        'responsavel' => 'Responsável', 'prioridade' => 'Prioridade', 'criado' => 'Criado em',
+                        'custom' => 'Campos Personalizados',
+                    ]; @endphp
+                    <div style="display:flex; flex-direction:column; gap:6px; max-height:250px; overflow-y:auto;">
+                        @foreach($exportCols as $key => $label)
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:11px; color:rgba(255,255,255,0.7);">
+                            <input type="checkbox" x-model="cols.{{ $key }}" style="accent-color:#10b981; cursor:pointer;">
+                            {{ $label }}
+                        </label>
+                        @endforeach
+                    </div>
+                    <a :href="'{{ route('crm.export', ['pipeline_id' => $selectedPipelineId, 'date_from' => $dateFrom, 'date_to' => $dateTo]) }}&columns=' + Object.keys(cols).filter(k => cols[k]).join(',')"
+                       @click="showExport=false"
+                       style="display:block; margin-top:12px; text-align:center; padding:6px 12px; font-size:11px; font-weight:700; color:#111; background:#10b981; border-radius:8px; text-decoration:none;">
+                        Exportar
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
