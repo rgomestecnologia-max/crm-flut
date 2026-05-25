@@ -77,14 +77,15 @@
                 Limpar
             </button>
             @endif
-            <div x-data="{ showExport: false, cols: { id:true, pipeline:true, etapa:true, titulo:true, contato:true, telefone:true, email:true, responsavel:true, prioridade:true, criado:true, custom:true } }" style="position:relative;">
-                <button @click="showExport = !showExport"
+            <div x-data="{ showExport: false, exportPos: null, cols: { id:true, pipeline:true, etapa:true, titulo:true, contato:true, telefone:true, email:true, responsavel:true, prioridade:true, criado:true, custom:true } }" style="position:relative;">
+                <button @click="const r=$el.getBoundingClientRect(); exportPos={top: r.bottom+4, right: window.innerWidth-r.right}; showExport=!showExport"
                         style="padding:4px 10px; font-size:10px; font-weight:600; color:#10b981; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:6px; cursor:pointer;"
                         onmouseover="this.style.background='rgba(16,185,129,0.16)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
                     Excel ▾
                 </button>
+                <template x-teleport="body">
                 <div x-show="showExport" x-transition @click.outside="showExport=false" x-cloak
-                     style="position:absolute; top:32px; right:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.6); width:220px;">
+                     :style="exportPos ? `position:fixed; top:${exportPos.top}px; right:${exportPos.right}px; z-index:99999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.7); width:220px;` : ''">
                     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px;">Colunas para exportar:</p>
                     @php $exportCols = [
                         'id' => 'ID', 'pipeline' => 'Pipeline', 'etapa' => 'Etapa', 'titulo' => 'Título',
@@ -106,6 +107,7 @@
                         Exportar
                     </a>
                 </div>
+                </template>
             </div>
         </div>
     </div>
