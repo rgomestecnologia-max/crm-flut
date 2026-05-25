@@ -362,6 +362,27 @@ class ProcessEvolutionMessage implements ShouldQueue
                     if ($companyId === 11 && $department->name === 'Comercial') {
                         $this->createCardForDepartment($contact, $department);
                     }
+
+                    // Orangexpress: criar card no pipeline Vendas para toda conversa nova
+                    if ($companyId === 3) {
+                        try {
+                            $vendas = \App\Models\CrmPipeline::where('name', 'Vendas')->first();
+                            $novo = $vendas?->stages()->orderBy('sort_order')->first();
+                            if ($vendas && $novo && $contact) {
+                                $exists = \App\Models\CrmCard::where('contact_id', $contact->id)
+                                    ->where('pipeline_id', $vendas->id)->exists();
+                                if (!$exists) {
+                                    \App\Models\CrmCard::create([
+                                        'pipeline_id' => $vendas->id,
+                                        'stage_id'    => $novo->id,
+                                        'contact_id'  => $contact->id,
+                                        'title'       => $contact->display_name ?? $contact->name,
+                                    ]);
+                                    Log::info('Card criado automaticamente (nova conversa)', ['contact' => $contact->name]);
+                                }
+                            }
+                        } catch (\Throwable) {}
+                    }
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
                     // Se humano estava atendendo via WhatsApp, mantém waiting_human_reason
@@ -467,6 +488,34 @@ class ProcessEvolutionMessage implements ShouldQueue
             }
 
             $conversation->update(['last_message_at' => now(), 'status' => 'open']);
+
+            // ── Orangexpress: mover card de Novo → Em negociação quando contato responde à IA ──
+            if (!$fromMe && !$isGroup && $companyId === 3) {
+                try {
+                    $aiRespondeu = Message::where('conversation_id', $conversation->id)
+                        ->where('sender_type', 'agent')->whereNull('sender_id')->exists();
+                    if ($aiRespondeu && $contact) {
+                        $vendas = \App\Models\CrmPipeline::where('name', 'Vendas')->first();
+                        if ($vendas) {
+                            $novoStage = $vendas->stages()->where('name', 'Novo')->first();
+                            $negStage  = $vendas->stages()->where('name', 'Em negociação')->first();
+                            if ($novoStage && $negStage) {
+                                $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                                    ->where('pipeline_id', $vendas->id)
+                                    ->where('stage_id', $novoStage->id)->first();
+                                if ($card) {
+                                    $card->update(['stage_id' => $negStage->id]);
+                                    \App\Models\CrmCardActivity::create([
+                                        'card_id' => $card->id,
+                                        'type'    => 'stage_change',
+                                        'content' => 'Cliente respondeu à IA: Novo → Em negociação',
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                } catch (\Throwable) {}
+            }
 
             // ── Humano respondeu pelo WhatsApp direto → para a IA ──
             if ($fromMe && !$isGroup) {
