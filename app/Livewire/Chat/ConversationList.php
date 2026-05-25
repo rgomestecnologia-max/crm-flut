@@ -295,6 +295,20 @@ class ConversationList extends Component
             default    => null,
         };
 
+        // Filtro por fila de departamento (ex: 'queue_9' filtra fila do dept 9)
+        if (str_starts_with($this->filter, 'queue_')) {
+            $deptId = (int) substr($this->filter, 6);
+            $query->where('is_archived', false)->whereNull('waiting_human_reason')
+                ->where('department_id', $deptId)
+                ->where(function ($q) {
+                    $q->where(function ($q2) {
+                        $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
+                    })->orWhere(function ($q2) {
+                        $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
+                    });
+                });
+        }
+
         // Filtro por tag (ex: 'tag_5' filtra pela tag ID 5)
         if (str_starts_with($this->filter, 'tag_')) {
             $tagId = (int) substr($this->filter, 4);
@@ -331,6 +345,26 @@ class ConversationList extends Component
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
 
+        // Filas por departamento para supervisores com múltiplos departamentos
+        $deptQueueCounts = [];
+        $userDeptIds = $user->departmentIds();
+        $showDeptQueues = ($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1;
+        if ($showDeptQueues) {
+            foreach ($userDeptIds as $deptId) {
+                $deptQueueCounts[$deptId] = (clone $baseQuery)
+                    ->where('is_archived', false)
+                    ->whereNull('waiting_human_reason')
+                    ->where('department_id', $deptId)
+                    ->where(function ($q) {
+                        $q->where(function ($q2) {
+                            $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
+                        })->orWhere(function ($q2) {
+                            $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
+                        });
+                    })->count();
+            }
+        }
+
         // Tags da empresa para filtros na sidebar
         $tags = \App\Models\Tag::orderBy('name')->get();
         $tagCounts = [];
@@ -340,6 +374,6 @@ class ConversationList extends Component
                 ->count();
         }
 
-        return view('livewire.chat.conversation-list', compact('conversations', 'counts', 'departments', 'tags', 'tagCounts'));
+        return view('livewire.chat.conversation-list', compact('conversations', 'counts', 'departments', 'tags', 'tagCounts', 'showDeptQueues', 'deptQueueCounts'));
     }
 }
