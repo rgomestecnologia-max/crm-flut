@@ -930,7 +930,7 @@ function senderColor(?string $identifier): string {
                         {{-- Dropdown seta --}}
                         <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
                              style="position:absolute; top:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
-                            <button wire:click="setReply({{ $msg->id }})" @click="showMenu = false"
+                            <button wire:click="setReply({{ $msg->id }})" @click="showMenu = false; $nextTick(() => $dispatch('focus-message-input'))"
                                     style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
                                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
                                     onmouseout="this.style.background='transparent'">
