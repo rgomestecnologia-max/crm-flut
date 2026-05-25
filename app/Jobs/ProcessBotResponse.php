@@ -111,6 +111,9 @@ class ProcessBotResponse implements ShouldQueue
             if ($botTurns >= $this->config->max_bot_turns) {
                 Log::info('IA: limite de turnos atingido', ['conv' => $this->conversation->id, 'turns' => $botTurns]);
 
+                // Envia mensagem de fora do horário se aplicável
+                $this->sendOutsideHoursIfNeeded();
+
                 // Envia mensagem de handoff configurada
                 $handoffText = $this->config->handoff_message
                     ?: 'Vou transferir você para um de nossos atendentes. Em breve alguém irá te responder!';
@@ -257,6 +260,9 @@ class ProcessBotResponse implements ShouldQueue
             if ($isHandoff) {
                 // Remove a tag [HANDOFF] do conteúdo
                 $cleanContent = trim(str_replace('[HANDOFF]', '', $cleanContent));
+
+                // Envia mensagem de fora do horário se aplicável
+                $this->sendOutsideHoursIfNeeded();
 
                 // Envia a mensagem da IA (sem a tag) + handoff
                 $handoffText = $cleanContent ?: ($this->config->handoff_message
@@ -500,6 +506,66 @@ class ProcessBotResponse implements ShouldQueue
             return (int) $m[1];
         }
         return null;
+    }
+
+    /**
+     * Verifica se está fora do horário comercial e envia mensagem configurada no FAQ.
+     * Parseia "Horario de atendimento.*: DIAS, das HH:MM as HH:MM" do FAQ.
+     */
+    private function sendOutsideHoursIfNeeded(): void
+    {
+        $faq = $this->config->faq ?? '';
+        if (stripos($faq, 'FORA DO HORARIO') === false) return;
+
+        $now = now()->timezone('America/Sao_Paulo');
+        $dayOfWeek = $now->dayOfWeek; // 0=dom, 6=sab
+
+        // Verifica se é final de semana
+        $isWeekend = in_array($dayOfWeek, [0, 6]);
+
+        // Parseia horário do FAQ: "das HH:MM as HH:MM"
+        $isOutside = $isWeekend;
+        if (!$isWeekend && preg_match('/das\s*(\d{1,2})[h:]?(\d{2})?\s*[aà]s\s*(\d{1,2})[h:]?(\d{2})?/i', $faq, $m)) {
+            $startHour = (int)$m[1];
+            $startMin  = (int)($m[2] ?? 0);
+            $endHour   = (int)$m[3];
+            $endMin    = (int)($m[4] ?? 0);
+            $startMinutes = $startHour * 60 + $startMin;
+            $endMinutes   = $endHour * 60 + $endMin;
+            $nowMinutes   = $now->hour * 60 + $now->minute;
+            $isOutside = $nowMinutes < $startMinutes || $nowMinutes >= $endMinutes;
+        }
+
+        if (!$isOutside) return;
+
+        // Extrai a mensagem de fora do horário do FAQ
+        if (preg_match('/Mensagem:\s*(.+?)(?:\n\n|\n\s*[A-Z]|\z)/s', substr($faq, stripos($faq, 'FORA DO HORARIO')), $msgMatch)) {
+            $outsideMsg = trim($msgMatch[1]);
+        } else {
+            $outsideMsg = 'Olá! Nosso expediente de hoje já foi encerrado. Deixe sua mensagem que responderemos com prioridade assim que retornarmos.';
+        }
+
+        // Evita enviar duplicada
+        $alreadySent = Message::where('conversation_id', $this->conversation->id)
+            ->where('sender_type', 'agent')
+            ->whereNull('sender_id')
+            ->where('content', 'like', '%expediente%encerrado%')
+            ->where('created_at', '>=', $now->startOfDay())
+            ->exists();
+        if ($alreadySent) return;
+
+        $msg = Message::create([
+            'conversation_id' => $this->conversation->id,
+            'sender_type'     => 'agent',
+            'sender_id'       => null,
+            'content'         => $outsideMsg,
+            'type'            => 'text',
+            'delivery_status' => 'pending',
+        ]);
+        $this->conversation->update(['last_message_at' => now()]);
+        SendWhatsAppMessage::dispatch($msg);
+        $this->broadcastMessage($msg);
+        Log::info('IA: mensagem fora do horário enviada', ['conv' => $this->conversation->id]);
     }
 
     private function extractPhotoUrl(string $content): ?string
