@@ -345,6 +345,24 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'is_group'                 => false,
                     ]);
 
+                    // Roteamento por DDD: redireciona para agente/departamento correto
+                    try {
+                        $contactPhone = $contact->phone ?? '';
+                        if (strlen($contactPhone) >= 12 && str_starts_with($contactPhone, '55')) {
+                            $ddd = substr($contactPhone, 2, 2);
+                            $dddRule = \App\Models\DddRoutingRule::where('ddd', $ddd)->where('is_active', true)->first();
+                            if ($dddRule) {
+                                $dddUpdate = [];
+                                if ($dddRule->department_id) $dddUpdate['department_id'] = $dddRule->department_id;
+                                if ($dddRule->agent_id) $dddUpdate['assigned_to'] = $dddRule->agent_id;
+                                if (!empty($dddUpdate)) {
+                                    $conversation->update($dddUpdate);
+                                    Log::info('DDD routing na criação', ['conv' => $conversation->id, 'ddd' => $ddd]);
+                                }
+                            }
+                        }
+                    } catch (\Throwable) {}
+
                     // Machinery Prime: criar card no pipeline Comercial quando conversa nova no dept Comercial
                     if ($companyId === 11 && $department->name === 'Comercial') {
                         $this->createCardForDepartment($contact, $department);
