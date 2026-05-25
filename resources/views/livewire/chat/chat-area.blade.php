@@ -1493,6 +1493,7 @@ function chatArea() {
                     this.clearSearch();
                     this._shouldAutoScroll = true;
                     this.scrollToBottom(false);
+                    setTimeout(() => this.$dispatch('focus-message-input'), 300);
                 }
             });
 
