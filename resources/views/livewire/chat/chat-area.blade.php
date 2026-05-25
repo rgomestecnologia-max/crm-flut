@@ -6,7 +6,7 @@ function senderColor(?string $identifier): string {
 }
 @endphp
 <div class="flex flex-col h-full" style="overflow-x:hidden; max-width:100vw;"
-     wire:poll.15s
+     wire:poll.30s
      x-data="chatArea()"
      x-init="init()"
      @scroll-to-bottom.window="scrollToBottom(true)"

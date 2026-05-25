@@ -84,9 +84,9 @@ class AgentManager extends Component
         ];
 
         if (!$this->editingId) {
-            $rules['password'] = 'required|string|min:6';
+            $rules['password'] = 'required|string|min:8';
         } else {
-            $rules['password'] = 'nullable|string|min:6';
+            $rules['password'] = 'nullable|string|min:8';
         }
 
         $validated = $this->validate($rules);

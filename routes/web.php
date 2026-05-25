@@ -68,7 +68,7 @@ Route::post('/unsubscribe/{token}', [UnsubscribeController::class, 'process']);
 // Auth
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -142,8 +142,18 @@ Route::middleware(['auth', 'company'])->group(function () {
         $msg = \App\Models\Message::findOrFail($messageId);
         if (!$msg->media_url) abort(404);
 
+        // Autorização: verifica se o usuário pertence à empresa da conversa
+        $conversation = $msg->conversation;
+        if ($conversation) {
+            $companyId = app(\App\Services\CurrentCompany::class)->id();
+            if ($conversation->company_id !== $companyId && !auth()->user()->isAdmin()) {
+                abort(403);
+            }
+        }
+
         $filename = $msg->media_filename ?? basename(parse_url($msg->media_url, PHP_URL_PATH));
-        $content  = file_get_contents($msg->media_url);
+        $ctx = stream_context_create(['http' => ['timeout' => 15]]);
+        $content = @file_get_contents($msg->media_url, false, $ctx, 0, 100 * 1024 * 1024);
         if (!$content) abort(404);
 
         $mime = match(true) {

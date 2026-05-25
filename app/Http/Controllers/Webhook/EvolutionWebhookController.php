@@ -18,9 +18,22 @@ class EvolutionWebhookController extends Controller
 
         $rawContent = $request->getContent();
 
+        // Validação: verifica se a apikey do payload corresponde à instância
+        $instanceName = $payload['instance'] ?? null;
+        $payloadKey   = $payload['apikey'] ?? $request->header('apikey') ?? null;
+        if ($instanceName && $payloadKey) {
+            $config = EvolutionApiConfig::withoutCompanyScope()
+                ->where('instance_name', $instanceName)
+                ->first();
+            if ($config && $config->instance_api_key && $config->instance_api_key !== $payloadKey) {
+                Log::warning('Webhook rejeitado: apikey inválida', ['instance' => $instanceName]);
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+        }
+
         Log::info('Evolution Webhook recebido', [
             'event'    => $event,
-            'instance' => $payload['instance'] ?? null,
+            'instance' => $instanceName,
             'keys'     => array_keys($payload),
             'raw'      => substr($rawContent, 0, 1200),
         ]);
