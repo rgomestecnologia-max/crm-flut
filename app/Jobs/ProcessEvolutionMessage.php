@@ -351,14 +351,9 @@ class ProcessEvolutionMessage implements ShouldQueue
                         if (strlen($contactPhone) >= 12 && str_starts_with($contactPhone, '55')) {
                             $ddd = substr($contactPhone, 2, 2);
                             $dddRule = \App\Models\DddRoutingRule::where('ddd', $ddd)->where('is_active', true)->first();
-                            if ($dddRule) {
-                                $dddUpdate = [];
-                                if ($dddRule->department_id) $dddUpdate['department_id'] = $dddRule->department_id;
-                                if ($dddRule->agent_id) $dddUpdate['assigned_to'] = $dddRule->agent_id;
-                                if (!empty($dddUpdate)) {
-                                    $conversation->update($dddUpdate);
-                                    Log::info('DDD routing na criação', ['conv' => $conversation->id, 'ddd' => $ddd]);
-                                }
+                            if ($dddRule && $dddRule->department_id) {
+                                $conversation->update(['department_id' => $dddRule->department_id]);
+                                Log::info('DDD routing na criação', ['conv' => $conversation->id, 'ddd' => $ddd, 'dept' => $dddRule->department_id]);
                             }
                         }
                     } catch (\Throwable) {}
@@ -625,21 +620,17 @@ class ProcessEvolutionMessage implements ShouldQueue
                                 $adDdd = substr($adPhone, 2, 2);
                                 $dddRule = \App\Models\DddRoutingRule::where('ddd', $adDdd)->where('is_active', true)->first();
                                 if ($dddRule) {
-                                    $updateData = [];
-                                    if ($dddRule->department_id) $updateData['department_id'] = $dddRule->department_id;
-                                    if ($dddRule->agent_id) $updateData['assigned_to'] = $dddRule->agent_id;
-                                    if (!empty($updateData)) {
-                                        $conversation->update($updateData);
-                                        $agentName = $dddRule->agent_id ? (\App\Models\User::find($dddRule->agent_id)?->name ?? '') : '';
-                                        $deptName = $dddRule->department_id ? (Department::find($dddRule->department_id)?->name ?? '') : '';
+                                    if ($dddRule->department_id) {
+                                        $conversation->update(['department_id' => $dddRule->department_id]);
+                                        $deptName = Department::find($dddRule->department_id)?->name ?? '';
                                         Message::create([
                                             'conversation_id' => $conversation->id,
                                             'sender_type'     => 'system',
-                                            'content'         => "Roteamento DDD: atribuído a {$agentName} ({$deptName})",
+                                            'content'         => "Roteamento DDD: departamento {$deptName}",
                                             'type'            => 'text',
                                             'delivery_status' => 'sent',
                                         ]);
-                                        Log::info('Ad lead DDD routing: ' . $adDdd . ' → ' . $agentName, ['conv' => $conversation->id]);
+                                        Log::info('Ad lead DDD routing: ' . $adDdd . ' → dept ' . $deptName, ['conv' => $conversation->id]);
                                     }
                                 }
                             }
