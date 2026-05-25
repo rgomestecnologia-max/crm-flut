@@ -53,20 +53,27 @@
                     <div style="max-width:70%; padding:8px 12px; border-radius:{{ $isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px' }};
                                 background:{{ $isMe ? '#2d4a08' : 'rgba(31,41,55,0.8)' }}; color:white; font-size:13px; line-height:1.5;">
                         @if($msg->type === 'image' && $msg->media_url)
-                            <div style="position:relative;">
-                                <img src="{{ $msg->media_url }}" style="max-width:220px; border-radius:8px; margin-bottom:4px; cursor:pointer; display:block;" onclick="window.open('{{ $msg->media_url }}')">
-                                <a href="{{ $msg->media_url }}" download="{{ $msg->media_filename ?? 'imagem.jpg' }}"
-                                   style="position:absolute; top:6px; right:6px; width:28px; height:28px; border-radius:6px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; text-decoration:none;"
-                                   onclick="event.stopPropagation(); fetch('{{ $msg->media_url }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='{{ $msg->media_filename ?? 'imagem.jpg' }}';a.click();}); return false;">
-                                    <svg width="14" height="14" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                </a>
+                            <img src="{{ $msg->media_url }}" alt="Imagem"
+                                 @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })"
+                                 style="max-width:220px; border-radius:8px; margin-bottom:4px; cursor:zoom-in; display:block; transition:opacity 0.2s;"
+                                 onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                        @elseif($msg->type === 'video' && $msg->media_url)
+                            <div @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}', video: true })" style="cursor:pointer; position:relative; max-width:220px;">
+                                <div style="width:100%; height:130px; background:rgba(0,0,0,0.4); border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:4px;">
+                                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.15); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;">
+                                        <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </div>
+                                </div>
+                                @if($msg->media_filename)
+                                    <p style="font-size:10px; color:rgba(255,255,255,0.4);">{{ $msg->media_filename }}</p>
+                                @endif
                             </div>
                         @elseif(in_array($msg->type, ['document', 'audio']) && $msg->media_url)
                             <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(255,255,255,0.06); border-radius:8px;">
                                 <svg width="16" height="16" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 <span style="flex:1; font-size:12px; color:rgba(255,255,255,0.7); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $msg->media_filename ?? 'Arquivo' }}</span>
-                                <button onclick="fetch('{{ $msg->media_url }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='{{ $msg->media_filename ?? 'arquivo' }}';a.click();})"
-                                        style="padding:3px 8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); border-radius:5px; color:#60a5fa; font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0;">Baixar</button>
+                                <a href="{{ $msg->media_url }}" target="_blank" download
+                                   style="padding:3px 8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); border-radius:5px; color:#60a5fa; font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0; text-decoration:none;">Baixar</a>
                             </div>
                         @endif
                         @if($msg->content && $msg->type === 'text')
