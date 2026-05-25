@@ -1411,6 +1411,7 @@ function senderColor(?string $identifier): string {
                     rows="1"
                     style="flex:1; background:transparent; padding:10px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:200px; font-family:inherit; line-height:1.5; overflow-y:auto;"
                     x-data
+                    x-init="$nextTick(() => $el.focus())"
                     x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'"
                     x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $wire.set('messageText', ''); $el.focus()"
                     x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'; $el.focus(); })"
