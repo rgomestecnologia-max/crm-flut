@@ -345,9 +345,13 @@ class ConversationList extends Component
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
 
-        // Filas por departamento para supervisores com múltiplos departamentos
+        // Filas por departamento para supervisores/admins com múltiplos departamentos
         $deptQueueCounts = [];
         $userDeptIds = $user->departmentIds();
+        // Admin sem dept específico → usa todos os departamentos ativos
+        if ($user->isAdmin() && empty($userDeptIds)) {
+            $userDeptIds = Department::active()->pluck('id')->all();
+        }
         $showDeptQueues = ($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1;
         if ($showDeptQueues) {
             foreach ($userDeptIds as $deptId) {
