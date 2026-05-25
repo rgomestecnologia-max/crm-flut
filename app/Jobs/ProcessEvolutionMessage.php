@@ -369,17 +369,23 @@ class ProcessEvolutionMessage implements ShouldQueue
                     }
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
+                    // Se humano estava atendendo via WhatsApp, mantém waiting_human_reason
+                    // para evitar que a IA entre na conversa do humano
+                    $keepWaiting = $conversation->waiting_human_reason === 'Atendente respondeu pelo WhatsApp';
+
                     $conversation->update([
                         'status'        => 'open',
                         'assigned_to'   => null,
                         'menu_awaiting' => false,
-                        'waiting_human_reason' => null,
+                        'waiting_human_reason' => $keepWaiting ? $conversation->waiting_human_reason : null,
                     ]);
-                    // Remove mensagens de sistema do menu anterior para permitir novo menu
-                    Message::where('conversation_id', $conversation->id)
-                        ->where('sender_type', 'system')
-                        ->where('content', 'like', 'Menu: cliente selecionou%')
-                        ->delete();
+                    if (!$keepWaiting) {
+                        // Remove mensagens de sistema do menu anterior para permitir novo menu
+                        Message::where('conversation_id', $conversation->id)
+                            ->where('sender_type', 'system')
+                            ->where('content', 'like', 'Menu: cliente selecionou%')
+                            ->delete();
+                    }
                 }
             }
 
