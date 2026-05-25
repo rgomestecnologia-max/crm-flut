@@ -17,6 +17,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <style>
+        [x-cloak] { display: none !important; }
         html { font-size: 115%; }
         body { font-family: 'DM Sans', sans-serif; }
         .font-display { font-family: 'Syne', sans-serif; }
@@ -552,7 +553,7 @@ function toastManager() {
         }
      }"
      @open-lightbox.window="src = $event.detail.src; alt = $event.detail.alt || ''; isVideo = $event.detail.video || false"
-     x-show="src"
+     x-show="src" x-cloak
      x-transition:enter="transition ease-out duration-200"
      x-transition:enter-start="opacity-0"
      x-transition:enter-end="opacity-100"
@@ -615,7 +616,7 @@ function toastManager() {
          @click.stop
          style="max-height:90vh; max-width:90vw; object-fit:contain; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6);">
     {{-- Vídeo --}}
-    <video x-ref="lbVideo" x-show="isVideo" :src="src" controls autoplay
+    <video x-ref="lbVideo" x-show="isVideo" x-cloak :src="src" controls autoplay
            @click.stop
            style="max-height:90vh; max-width:90vw; border-radius:12px; box-shadow:0 24px 64px rgba(0,0,0,0.6);">
     </video>
