@@ -68,12 +68,68 @@
                                     <p style="font-size:10px; color:rgba(255,255,255,0.4);">{{ $msg->media_filename }}</p>
                                 @endif
                             </div>
-                        @elseif(in_array($msg->type, ['document', 'audio']) && $msg->media_url)
+                        @elseif($msg->type === 'document' && $msg->media_url)
+                            @php
+                                $icDocFile  = $msg->media_filename ?? 'Documento';
+                                $icDocExt   = strtolower(pathinfo($icDocFile, PATHINFO_EXTENSION));
+                                $icDocCanPv = $msg->media_url && ($icDocExt === 'pdf' || in_array($icDocExt, ['doc','docx','xls','xlsx','ppt','pptx']));
+                                $icDocPvUrl = in_array($icDocExt, ['doc','docx','xls','xlsx','ppt','pptx'])
+                                    ? 'https://docs.google.com/viewer?url='.urlencode($msg->media_url).'&embedded=true'
+                                    : $msg->media_url;
+                                $icDocColor = match(true) {
+                                    $icDocExt === 'pdf'                          => '#ef4444',
+                                    in_array($icDocExt, ['doc','docx'])          => '#3b82f6',
+                                    in_array($icDocExt, ['xls','xlsx','csv'])    => '#22c55e',
+                                    in_array($icDocExt, ['ppt','pptx'])          => '#f97316',
+                                    default                                      => '#b2ff00',
+                                };
+                            @endphp
+                            <div x-data="{ pvOpen: false }" style="position:relative;">
+                                <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:10px;">
+                                    <div style="width:30px; height:30px; border-radius:7px; background:{{ $icDocColor }}1a; border:1px solid {{ $icDocColor }}33; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <svg width="14" height="14" fill="none" stroke="{{ $icDocColor }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <p style="font-size:11px; color:rgba(255,255,255,0.7); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $icDocFile }}</p>
+                                        @if($icDocExt)<p style="font-size:9px; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.06em; margin-top:1px;">{{ $icDocExt }}</p>@endif
+                                    </div>
+                                    <div style="display:flex; gap:5px; flex-shrink:0;">
+                                        @if($icDocCanPv)
+                                        <button @click.stop="pvOpen = true"
+                                                style="font-size:10px; color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:5px; padding:3px 8px; cursor:pointer;"
+                                                onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'"
+                                                onmouseout="this.style.color='rgba(255,255,255,0.55)'; this.style.background='rgba(255,255,255,0.05)'">Ver</button>
+                                        @endif
+                                        <a href="{{ $msg->media_url }}" download style="font-size:10px; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:5px; padding:3px 8px; text-decoration:none; font-weight:600;">↓</a>
+                                    </div>
+                                </div>
+                                @if($icDocCanPv)
+                                <template x-teleport="body">
+                                <div x-show="pvOpen" x-cloak @click.self="pvOpen = false"
+                                     style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; background:rgba(0,0,0,0.88); display:flex; align-items:center; justify-content:center; padding:20px;">
+                                    <div style="width:100%; max-width:min(900px, 95vw); height:86vh; background:#0f172a; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; border:1px solid rgba(255,255,255,0.08); box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0;">
+                                            <p style="font-size:13px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ $icDocFile }}</p>
+                                            <div style="display:flex; gap:8px;">
+                                                <a href="{{ $msg->media_url }}" download
+                                                   style="font-size:12px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(45,74,8,0.6); border-radius:8px; padding:5px 14px; text-decoration:none; font-weight:600;">Download</a>
+                                                <button @click="pvOpen = false"
+                                                        style="width:30px; height:30px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.5); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;"
+                                                        onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"
+                                                        onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='rgba(255,255,255,0.5)'">✕</button>
+                                            </div>
+                                        </div>
+                                        <iframe x-bind:src="pvOpen ? '{{ $icDocPvUrl }}' : ''"
+                                                style="flex:1; width:100%; border:none; background:white;" allow="fullscreen"></iframe>
+                                    </div>
+                                </div>
+                                </template>
+                                @endif
+                            </div>
+                        @elseif($msg->type === 'audio' && $msg->media_url)
                             <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(255,255,255,0.06); border-radius:8px;">
-                                <svg width="16" height="16" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                <span style="flex:1; font-size:12px; color:rgba(255,255,255,0.7); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $msg->media_filename ?? 'Arquivo' }}</span>
-                                <a href="{{ $msg->media_url }}" target="_blank" download
-                                   style="padding:3px 8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); border-radius:5px; color:#60a5fa; font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0; text-decoration:none;">Baixar</a>
+                                <svg width="16" height="16" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                                <audio src="{{ $msg->media_url }}" controls preload="none" style="flex:1; height:32px;"></audio>
                             </div>
                         @endif
                         @if($msg->content && $msg->type === 'text')
