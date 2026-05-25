@@ -464,6 +464,21 @@ class ProcessEvolutionMessage implements ShouldQueue
             $senderType     = $fromMe ? 'agent' : 'contact';
             $deliveryStatus = $fromMe ? 'sent'  : 'delivered';
 
+            // Extrai referência de mensagem citada (reply/quote do WhatsApp)
+            $replyToId = null;
+            $contextInfo = $data['contextInfo'] ?? $data['message']['extendedTextMessage']['contextInfo'] ?? $data['message']['imageMessage']['contextInfo'] ?? null;
+            if (!$contextInfo) {
+                // Tenta em qualquer sub-mensagem
+                foreach ($data['message'] ?? [] as $v) {
+                    if (is_array($v) && isset($v['contextInfo'])) { $contextInfo = $v['contextInfo']; break; }
+                }
+            }
+            $stanzaId = $contextInfo['stanzaId'] ?? $contextInfo['quotedMessage']['stanzaId'] ?? null;
+            if ($stanzaId) {
+                $quotedMsg = Message::where('zapi_message_id', $stanzaId)->first();
+                if ($quotedMsg) $replyToId = $quotedMsg->id;
+            }
+
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_type'     => $senderType,
@@ -476,6 +491,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                 'media_filename'  => $mediaFilename,
                 'zapi_message_id' => $messageId,
                 'delivery_status' => $deliveryStatus,
+                'reply_to_id'     => $replyToId,
             ]);
 
             // Calcula duração do áudio via ffprobe
