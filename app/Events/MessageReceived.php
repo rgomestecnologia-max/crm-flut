@@ -17,8 +17,12 @@ class MessageReceived implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
+        $conversation = $this->message->conversation;
+        if (!$conversation) {
+            return [new PrivateChannel('conversation.' . $this->message->conversation_id)];
+        }
         return [
-            new PrivateChannel('department.' . $this->message->conversation->department_id),
+            new PrivateChannel('department.' . $conversation->department_id),
             new PrivateChannel('conversation.' . $this->message->conversation_id),
         ];
     }
@@ -30,7 +34,9 @@ class MessageReceived implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        $conversation = $this->message->conversation->load('contact', 'department', 'assignedAgent');
+        $conversation = $this->message->conversation;
+        if (!$conversation) return [];
+        $conversation->load('contact', 'department', 'assignedAgent');
 
         return [
             'message' => [
