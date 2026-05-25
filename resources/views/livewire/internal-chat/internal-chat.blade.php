@@ -49,9 +49,11 @@
             <div style="flex:1; overflow-y:auto; padding:16px;" x-data x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)" x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
                 @foreach($messages as $msg)
                 @php $isMe = $msg->sender_id === auth()->id(); @endphp
-                <div style="display:flex; justify-content:{{ $isMe ? 'flex-end' : 'flex-start' }}; margin-bottom:8px;">
+                <div style="display:flex; justify-content:{{ $isMe ? 'flex-end' : 'flex-start' }}; margin-bottom:8px;"
+                     x-data="{ showActions: false, editing: false, editText: '{{ addslashes($msg->content ?? '') }}' }">
                     <div style="max-width:70%; padding:8px 12px; border-radius:{{ $isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px' }};
-                                background:{{ $isMe ? '#2d4a08' : 'rgba(31,41,55,0.8)' }}; color:white; font-size:13px; line-height:1.5;">
+                                background:{{ $isMe ? '#2d4a08' : 'rgba(31,41,55,0.8)' }}; color:white; font-size:13px; line-height:1.5; position:relative;"
+                         @mouseenter="showActions = true" @mouseleave="showActions = false">
                         @if($msg->type === 'image' && $msg->media_url)
                             <img src="{{ $msg->media_url }}" alt="Imagem"
                                  @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })"
@@ -133,8 +135,36 @@
                             </div>
                         @endif
                         @if($msg->content && $msg->type === 'text')
-                            {!! nl2br(e($msg->content)) !!}
+                            <template x-if="!editing">{!! nl2br(e($msg->content)) !!}</template>
+                            <template x-if="editing">
+                                <div style="display:flex; gap:6px; align-items:center;">
+                                    <input type="text" x-model="editText" @keydown.enter="$wire.editInternalMessage({{ $msg->id }}, editText); editing=false" @keydown.escape="editing=false"
+                                           style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(178,255,0,0.3); border-radius:6px; padding:4px 8px; font-size:12px; color:white; outline:none;" x-init="$nextTick(() => $el.focus())">
+                                    <button @click="$wire.editInternalMessage({{ $msg->id }}, editText); editing=false" style="font-size:10px; color:#b2ff00; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); border-radius:5px; padding:3px 8px; cursor:pointer;">✓</button>
+                                    <button @click="editing=false" style="font-size:10px; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer;">✕</button>
+                                </div>
+                            </template>
                         @endif
+
+                        {{-- Ações (hover) --}}
+                        <div x-show="showActions && !editing" x-transition
+                             style="position:absolute; top:4px; {{ $isMe ? 'left:-28px' : 'right:-28px' }}; display:flex; gap:2px;">
+                            @if($isMe)
+                                @if($msg->type === 'text')
+                                <button @click.stop="editing=true; showActions=false" title="Editar"
+                                        style="width:24px; height:24px; border-radius:6px; background:rgba(0,0,0,0.5); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5);"
+                                        onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                @endif
+                                <button @click.stop="if(confirm('Excluir esta mensagem?')) $wire.deleteInternalMessage({{ $msg->id }})" title="Excluir"
+                                        style="width:24px; height:24px; border-radius:6px; background:rgba(0,0,0,0.5); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5);"
+                                        onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            @endif
+                        </div>
+
                         <p style="font-size:9px; color:rgba(255,255,255,0.3); margin-top:4px; text-align:right;">{{ $msg->created_at->format('H:i') }}</p>
                     </div>
                 </div>

@@ -93,6 +93,23 @@ class InternalChat extends Component
         $this->attachment = null;
     }
 
+    public function editInternalMessage(int $messageId, string $newText): void
+    {
+        if (!trim($newText)) return;
+        $msg = InternalMessage::where('sender_id', Auth::id())->find($messageId);
+        if ($msg) {
+            $msg->update(['content' => trim($newText)]);
+        }
+    }
+
+    public function deleteInternalMessage(int $messageId): void
+    {
+        $msg = InternalMessage::where('sender_id', Auth::id())->find($messageId);
+        if ($msg) {
+            $msg->delete();
+        }
+    }
+
     public function receiveAudioBlob(string $dataUrl): void
     {
         if (!$this->selectedUserId) return;
