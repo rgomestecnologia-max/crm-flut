@@ -114,9 +114,12 @@
     </div>
 
     {{-- Filter tabs --}}
-    <div style="display:flex; flex-wrap:wrap; padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
+    @php $aiActive = \App\Models\AiBotConfig::current()?->is_active ?? false; @endphp
+    @php
+        $tabCount = 2 + ($aiActive ? 1 : 0) + 1 + (($counts['archived'] ?? 0) > 0 ? 1 : 0) + count($tags) + ($showDeptQueues ? max(0, count($deptQueueCounts) - 1) : 0);
+    @endphp
+    <div style="display:flex; {{ $tabCount > 4 ? 'flex-wrap:wrap;' : '' }} padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
         @php
-        $aiActive = \App\Models\AiBotConfig::current()?->is_active ?? false;
         $tabs = [
             ['key' => 'mine',     'label' => 'Minhas Conversas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
         ];
