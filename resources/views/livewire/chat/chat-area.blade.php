@@ -1376,6 +1376,7 @@ function senderColor(?string $identifier): string {
                  onfocusin="this.style.borderColor='rgba(178,255,0,0.4)'; this.style.background='rgba(178,255,0,0.03)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.06)'"
                  onfocusout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'">
                 <textarea
+                    id="main-message-input"
                     wire:model="messageText"
                     wire:ignore
                     spellcheck="true" lang="pt-BR"
@@ -1493,8 +1494,8 @@ function chatArea() {
                     this.clearSearch();
                     this._shouldAutoScroll = true;
                     this.scrollToBottom(false);
-                    setTimeout(() => { const ta = document.querySelector('textarea[wire\\:model="messageText"]'); if(ta) ta.focus(); }, 500);
-                    setTimeout(() => { const ta = document.querySelector('textarea[wire\\:model="messageText"]'); if(ta) ta.focus(); }, 1000);
+                    setTimeout(() => { const ta = document.getElementById('main-message-input'); if(ta) ta.focus(); }, 500);
+                    setTimeout(() => { const ta = document.getElementById('main-message-input'); if(ta) ta.focus(); }, 1000);
                 }
             });
 
