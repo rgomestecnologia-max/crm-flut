@@ -135,15 +135,14 @@
                             </div>
                         @endif
                         @if($msg->content && $msg->type === 'text')
-                            <template x-if="!editing">{!! nl2br(e($msg->content)) !!}</template>
-                            <template x-if="editing">
-                                <div style="display:flex; gap:6px; align-items:center;">
-                                    <input type="text" x-model="editText" @keydown.enter="$wire.editInternalMessage({{ $msg->id }}, editText); editing=false" @keydown.escape="editing=false"
-                                           style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(178,255,0,0.3); border-radius:6px; padding:4px 8px; font-size:12px; color:white; outline:none;" x-init="$nextTick(() => $el.focus())">
-                                    <button @click="$wire.editInternalMessage({{ $msg->id }}, editText); editing=false" style="font-size:10px; color:#b2ff00; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); border-radius:5px; padding:3px 8px; cursor:pointer;">✓</button>
-                                    <button @click="editing=false" style="font-size:10px; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer;">✕</button>
-                                </div>
-                            </template>
+                            <div x-show="!editing">{!! nl2br(e($msg->content)) !!}</div>
+                            <div x-show="editing" x-cloak style="display:flex; gap:6px; align-items:center;">
+                                <input type="text" x-model="editText" @keydown.enter="$wire.editInternalMessage({{ $msg->id }}, editText); editing=false" @keydown.escape="editing=false"
+                                       x-ref="editInput{{ $msg->id }}"
+                                       style="flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(178,255,0,0.3); border-radius:6px; padding:4px 8px; font-size:12px; color:white; outline:none;">
+                                <button @click="$wire.editInternalMessage({{ $msg->id }}, editText); editing=false" style="font-size:10px; color:#b2ff00; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); border-radius:5px; padding:3px 8px; cursor:pointer;">✓</button>
+                                <button @click="editing=false" style="font-size:10px; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer;">✕</button>
+                            </div>
                         @endif
 
                         {{-- Ações (hover) --}}
