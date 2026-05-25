@@ -1435,10 +1435,9 @@ function senderColor(?string $identifier): string {
             {{-- Mic button --}}
             <button type="button" @click="recording ? stopRec() : startRec()" title="Gravar áudio"
                     :style="recording ? 'background:#ef4444; animation:pulse 1.5s ease-in-out infinite;' : ''"
-                    style="width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:none; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.4);"
-                    onmouseover="this.style.background='rgba(255,255,255,0.09)'; this.style.color='rgba(255,255,255,0.7)'"
-                    onmouseout="if(!this.classList.contains('recording')) { this.style.background='rgba(255,255,255,0.05)'; this.style.color='rgba(255,255,255,0.4)'; }">
-                <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    style="padding:6px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; transition:color 0.15s;"
+                    onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                 </svg>
             </button>
