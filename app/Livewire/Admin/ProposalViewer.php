@@ -13,23 +13,9 @@ class ProposalViewer extends Component
     public $discountPercent = 0;
     public $statusFilter = '';
 
-    // Proposta personalizada
-    public bool $showCustomForm = false;
-    public string $customClientName = '';
-    public array $customItems = [['modulo' => '', 'mensal' => '', 'setup' => '']];
-
-    public array $availableModules = [
-        'multi'        => 'Multi-atendimento WhatsApp',
-        'crm'          => 'CRM — Pipeline de Vendas',
-        'email'        => 'E-mail Marketing',
-        'ia'           => 'Inteligência Artificial',
-        'integrations' => 'Integrações Externas',
-        'chatbot'      => 'Chatbot / URA',
-        'broadcasts'   => 'Disparos em Massa',
-        'chat_interno' => 'Chat Interno',
-        'dashboard'    => 'Dashboard & Relatórios',
-    ];
-    public string $customObs = '';
+    // Edição inline de valores
+    public ?int $editValuesId = null;
+    public array $editDetails = [];
 
     public function mount()
     {
@@ -150,67 +136,38 @@ class ProposalViewer extends Component
         $this->loadProposals();
     }
 
-    public function addCustomItem()
+    public function openEditValues(int $id): void
     {
-        $this->customItems[] = ['modulo' => '', 'mensal' => '', 'setup' => ''];
-    }
-
-    public function removeCustomItem(int $index)
-    {
-        unset($this->customItems[$index]);
-        $this->customItems = array_values($this->customItems);
-        if (empty($this->customItems)) {
-            $this->customItems = [['modulo' => '', 'mensal' => '', 'setup' => '']];
+        if ($this->editValuesId === $id) {
+            $this->editValuesId = null;
+            return;
         }
+        $proposal = Proposal::find($id);
+        $this->editDetails = $proposal->details ?? [];
+        $this->editValuesId = $id;
     }
 
-    public function saveCustomProposal()
+    public function saveEditValues(int $id): void
     {
-        $this->validate([
-            'customClientName'     => 'required|string|max:255',
-            'customItems'          => 'required|array|min:1',
-            'customItems.*.modulo' => 'required|string',
-        ]);
+        $proposal = Proposal::findOrFail($id);
 
-        $details = [];
         $totalMonthly = 0;
         $totalSetup = 0;
-        $modules = [];
-
-        foreach ($this->customItems as $item) {
-            $key    = $item['modulo'];
-            $label  = $this->availableModules[$key] ?? $key;
-            $mensal = (float) str_replace(['.', ','], ['', '.'], $item['mensal'] ?? '0');
-            $setup  = (float) str_replace(['.', ','], ['', '.'], $item['setup'] ?? '0');
-
-            $details[$key . '_monthly'] = $mensal;
-            $details[$key . '_setup']   = $setup;
-            $totalMonthly += $mensal;
-            $totalSetup += $setup;
-            $modules[] = $key;
+        foreach ($this->editDetails as $key => $value) {
+            $this->editDetails[$key] = (float) str_replace(['.', ','], ['', '.'], (string) $value);
+            if (str_ends_with($key, '_monthly')) $totalMonthly += $this->editDetails[$key];
+            if (str_ends_with($key, '_setup'))   $totalSetup += $this->editDetails[$key];
         }
 
-        if ($this->customObs) {
-            $details['observacao'] = $this->customObs;
-        }
-
-        Proposal::create([
-            'client_name'   => $this->customClientName,
-            'modules'       => $modules,
-            'config'        => ['tipo' => 'personalizada'],
-            'details'       => $details,
-            'total_monthly' => $totalMonthly,
-            'total_setup'   => $totalSetup,
-            'status'        => 'analise',
-            'user_id'       => auth()->id(),
+        $proposal->update([
+            'details'       => $this->editDetails,
+            'total_monthly' => round($totalMonthly, 2),
+            'total_setup'   => round($totalSetup, 2),
         ]);
 
-        $this->showCustomForm = false;
-        $this->customClientName = '';
-        $this->customItems = [['modulo' => '', 'mensal' => '', 'setup' => '']];
-        $this->customObs = '';
+        $this->editValuesId = null;
         $this->loadProposals();
-        $this->dispatch('toast', type: 'success', message: 'Proposta personalizada criada!');
+        $this->dispatch('toast', type: 'success', message: 'Valores personalizados salvos!');
     }
 
     public function getCounts()

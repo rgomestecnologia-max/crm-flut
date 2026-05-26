@@ -4,82 +4,11 @@
             <h2 style="font-size:18px; font-weight:800; color:white; font-family:'Syne',sans-serif;">Propostas Geradas</h2>
             <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:2px;">Propostas comerciais salvas pelo simulador de preços</p>
         </div>
-        <div style="display:flex; gap:8px;">
-            <button wire:click="$set('showCustomForm', true)"
-                    style="font-size:11px; font-weight:600; color:#f59e0b; padding:6px 14px; border:1px solid rgba(245,158,11,0.3); border-radius:8px; background:rgba(245,158,11,0.08); cursor:pointer;"
-                    onmouseover="this.style.background='rgba(245,158,11,0.15)'" onmouseout="this.style.background='rgba(245,158,11,0.08)'">
-                + Proposta Personalizada
-            </button>
-            <a href="/pricing" target="_blank" style="font-size:11px; color:#b2ff00; text-decoration:none; padding:6px 14px; border:1px solid rgba(178,255,0,0.2); border-radius:8px;">
-                Abrir simulador →
-            </a>
-        </div>
+        <a href="/pricing" target="_blank" style="font-size:11px; color:#b2ff00; text-decoration:none; padding:6px 14px; border:1px solid rgba(178,255,0,0.2); border-radius:8px;">
+            Abrir simulador →
+        </a>
     </div>
 
-    {{-- Modal Proposta Personalizada --}}
-    @if($showCustomForm)
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(245,158,11,0.2); border-radius:16px; padding:20px; margin-bottom:20px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-            <h3 style="font-size:14px; font-weight:700; color:#f59e0b;">Nova Proposta Personalizada</h3>
-            <button wire:click="$set('showCustomForm', false)" style="color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; font-size:18px;">&times;</button>
-        </div>
-
-        <div style="margin-bottom:14px;">
-            <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:4px;">Nome do Cliente</label>
-            <input wire:model="customClientName" type="text" placeholder="Nome da empresa ou cliente"
-                   style="width:100%; padding:8px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none; box-sizing:border-box;">
-        </div>
-
-        <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:4px;">Módulos</label>
-        <div style="display:flex; gap:8px; margin-bottom:6px;">
-            <span style="flex:2; font-size:9px; color:rgba(255,255,255,0.3); padding-left:4px;">MÓDULO</span>
-            <span style="flex:1; font-size:9px; color:rgba(255,255,255,0.3); padding-left:4px;">MENSAL (R$)</span>
-            <span style="flex:1; font-size:9px; color:rgba(255,255,255,0.3); padding-left:4px;">SETUP (R$)</span>
-            <span style="width:24px;"></span>
-        </div>
-        @foreach($customItems as $i => $item)
-        <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;" wire:key="custom-item-{{ $i }}">
-            <select wire:model="customItems.{{ $i }}.modulo"
-                    style="flex:2; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; appearance:auto;">
-                <option value="" style="background:#1a1f2e;">Selecione o módulo</option>
-                @foreach($availableModules as $key => $label)
-                <option value="{{ $key }}" style="background:#1a1f2e;">{{ $label }}</option>
-                @endforeach
-            </select>
-            <input wire:model="customItems.{{ $i }}.mensal" type="text" placeholder="0,00"
-                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; text-align:right;">
-            <input wire:model="customItems.{{ $i }}.setup" type="text" placeholder="0,00"
-                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; text-align:right;">
-            @if(count($customItems) > 1)
-            <button wire:click="removeCustomItem({{ $i }})" style="color:#f87171; background:none; border:none; cursor:pointer; font-size:16px; flex-shrink:0; width:24px;">✕</button>
-            @else
-            <span style="width:24px;"></span>
-            @endif
-        </div>
-        @endforeach
-
-        <button wire:click="addCustomItem" style="font-size:11px; color:rgba(255,255,255,0.4); background:none; border:1px dashed rgba(255,255,255,0.1); border-radius:7px; padding:6px 12px; cursor:pointer; margin-bottom:14px;">
-            + Adicionar item
-        </button>
-
-        <div style="margin-bottom:14px;">
-            <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:4px;">Observações (opcional)</label>
-            <textarea wire:model="customObs" rows="2" placeholder="Condições especiais, prazos, etc."
-                      style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none; resize:none; box-sizing:border-box;"></textarea>
-        </div>
-
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button wire:click="$set('showCustomForm', false)"
-                    style="padding:8px 16px; font-size:11px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; cursor:pointer;">
-                Cancelar
-            </button>
-            <button wire:click="saveCustomProposal"
-                    style="padding:8px 20px; font-size:11px; font-weight:700; color:#111; background:#f59e0b; border:none; border-radius:8px; cursor:pointer;">
-                Salvar Proposta
-            </button>
-        </div>
-    </div>
-    @endif
 
     {{-- Filtro por status --}}
     <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
@@ -194,34 +123,47 @@
 
                         @php $details = $p['details'] ?? []; $modules = $p['modules'] ?? []; $cfg = $p['config'] ?? []; @endphp
 
-                        @if(!empty($modules['multi']))
-                        <div style="color:rgba(255,255,255,0.7);">Multi-atendimento ({{ $cfg['multi_users'] ?? 1 }} usr, {{ $cfg['multi_instances'] ?? 1 }} nº)</div>
-                        <div style="color:#b2ff00; text-align:right;">R$ {{ number_format($details['multi_monthly'] ?? 0, 2, ',', '.') }}</div>
-                        <div style="color:#3b82f6; text-align:right;">R$ {{ number_format($details['multi_setup'] ?? 0, 2, ',', '.') }}</div>
-                        @endif
+                        @php
+                            $isEditing = $editValuesId === $p['id'];
+                            $moduleRows = [];
+                            if (!empty($modules['multi'])) $moduleRows[] = ['key' => 'multi', 'label' => 'Multi-atendimento (' . ($cfg['multi_users'] ?? 1) . ' usr, ' . ($cfg['multi_instances'] ?? 1) . ' nº)'];
+                            if (!empty($modules['crm'])) $moduleRows[] = ['key' => 'crm', 'label' => 'CRM — Pipeline de Vendas'];
+                            if (!empty($modules['email'])) $moduleRows[] = ['key' => 'email', 'label' => 'Disparos em Massa'];
+                            if (!empty($modules['ia'])) $moduleRows[] = ['key' => 'ia', 'label' => 'IA de Atendimento (' . ($cfg['ia_flows'] ?? 1) . ' fluxo' . (($cfg['ia_flows'] ?? 1) > 1 ? 's' : '') . ')'];
+                            if (!empty($modules['integrations'])) $moduleRows[] = ['key' => 'int', 'label' => 'Integrações (' . ($cfg['integrations_count'] ?? 1) . ')'];
+                            // Módulos personalizados (custom_N)
+                            foreach ($details as $dk => $dv) {
+                                if (str_starts_with($dk, 'custom_') && str_ends_with($dk, '_label')) {
+                                    $cKey = str_replace('_label', '', $dk);
+                                    $moduleRows[] = ['key' => $cKey, 'label' => $dv];
+                                }
+                            }
+                        @endphp
 
-                        @if(!empty($modules['crm']))
-                        <div style="color:rgba(255,255,255,0.7);">CRM — Pipeline de Vendas</div>
-                        <div style="color:#b2ff00; text-align:right;">R$ {{ number_format($details['crm_monthly'] ?? 0, 2, ',', '.') }}</div>
-                        <div style="color:#3b82f6; text-align:right;">R$ {{ number_format($details['crm_setup'] ?? 0, 2, ',', '.') }}</div>
+                        @foreach($moduleRows as $mr)
+                        <div style="color:rgba(255,255,255,0.7);">{{ $mr['label'] }}</div>
+                        @if($isEditing)
+                            <div style="text-align:right;">
+                                <input wire:model="editDetails.{{ $mr['key'] }}_monthly" type="text"
+                                       style="width:90px; padding:3px 6px; font-size:12px; background:rgba(178,255,0,0.06); border:1px solid rgba(178,255,0,0.3); border-radius:5px; color:#b2ff00; outline:none; text-align:right;">
+                            </div>
+                            <div style="text-align:right;">
+                                <input wire:model="editDetails.{{ $mr['key'] }}_setup" type="text"
+                                       style="width:90px; padding:3px 6px; font-size:12px; background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.3); border-radius:5px; color:#60a5fa; outline:none; text-align:right;">
+                            </div>
+                        @else
+                            <div style="color:#b2ff00; text-align:right;">R$ {{ number_format($details[$mr['key'] . '_monthly'] ?? 0, 2, ',', '.') }}</div>
+                            <div style="color:#3b82f6; text-align:right;">R$ {{ number_format($details[$mr['key'] . '_setup'] ?? 0, 2, ',', '.') }}</div>
                         @endif
+                        @endforeach
 
-                        @if(!empty($modules['email']))
-                        <div style="color:rgba(255,255,255,0.7);">Disparos em Massa</div>
-                        <div style="color:#b2ff00; text-align:right;">R$ {{ number_format($details['email_monthly'] ?? 0, 2, ',', '.') }}</div>
-                        <div style="color:#3b82f6; text-align:right;">R$ {{ number_format($details['email_setup'] ?? 0, 2, ',', '.') }}</div>
-                        @endif
-
-                        @if(!empty($modules['ia']))
-                        <div style="color:rgba(255,255,255,0.7);">IA de Atendimento ({{ $cfg['ia_flows'] ?? 1 }} fluxo{{ ($cfg['ia_flows'] ?? 1) > 1 ? 's' : '' }})</div>
-                        <div style="color:#b2ff00; text-align:right;">R$ {{ number_format($details['ia_monthly'] ?? 0, 2, ',', '.') }}</div>
-                        <div style="color:#3b82f6; text-align:right;">R$ {{ number_format($details['ia_setup'] ?? 0, 2, ',', '.') }}</div>
-                        @endif
-
-                        @if(!empty($modules['integrations']))
-                        <div style="color:rgba(255,255,255,0.7);">Integrações ({{ $cfg['integrations_count'] ?? 1 }})</div>
-                        <div style="color:#b2ff00; text-align:right;">R$ {{ number_format($details['int_monthly'] ?? 0, 2, ',', '.') }}</div>
-                        <div style="color:#3b82f6; text-align:right;">R$ {{ number_format($details['int_setup'] ?? 0, 2, ',', '.') }}</div>
+                        @if($isEditing)
+                        <div style="grid-column:1/-1; display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                            <button wire:click="openEditValues({{ $p['id'] }})"
+                                    style="padding:4px 12px; font-size:10px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:6px; cursor:pointer;">Cancelar</button>
+                            <button wire:click="saveEditValues({{ $p['id'] }})"
+                                    style="padding:4px 12px; font-size:10px; font-weight:700; color:#111; background:#f59e0b; border:none; border-radius:6px; cursor:pointer;">Salvar Valores</button>
+                        </div>
                         @endif
                     </div>
                 </div>
@@ -260,6 +202,13 @@
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         Editar
                     </a>
+
+                    {{-- Personalizar valores --}}
+                    <button wire:click="openEditValues({{ $p['id'] }})"
+                            style="padding:6px 14px; font-size:11px; background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); color:#a78bfa; border-radius:8px; cursor:pointer;">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                        Personalizar Valores
+                    </button>
 
                     {{-- Desconto --}}
                     <button wire:click="openDiscount({{ $p['id'] }})"
