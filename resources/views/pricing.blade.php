@@ -887,16 +887,17 @@ function pricingSimulator() {
             // Prazo
             doc.setFillColor(255, 251, 235);
             doc.setDrawColor(253, 230, 138);
-            doc.roundedRect(mx, fy, pw - mx * 2, 24, 3, 3, 'FD');
+            doc.roundedRect(mx, fy, pw - mx * 2, 32, 3, 3, 'FD');
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(146, 64, 14);
             doc.text('Prazo de implantação: até 10 dias úteis após aprovação.', mx + 6, fy + 10);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text('Validade da proposta: ' + dataStr + ' até ' + validade + ' (30 dias corridos).', mx + 6, fy + 18);
+            doc.text('Implantação pode ser dividida em até 3x sem juros.', mx + 6, fy + 18);
+            doc.text('Validade da proposta: ' + dataStr + ' até ' + validade + ' (30 dias corridos).', mx + 6, fy + 26);
 
-            fy += 30;
+            fy += 34;
 
             // Custos variáveis e adicionais
             if (fy + 50 > ph - 28) { addFooter(); doc.addPage(); fy = 25; }
