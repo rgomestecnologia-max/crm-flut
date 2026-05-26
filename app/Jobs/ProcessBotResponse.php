@@ -238,6 +238,10 @@ class ProcessBotResponse implements ShouldQueue
 
             $aiContent = $response->json('candidates.0.content.parts.0.text');
 
+            // Captura tokens para cálculo de custo
+            $inputTokens  = $response->json('usageMetadata.promptTokenCount');
+            $outputTokens = $response->json('usageMetadata.candidatesTokenCount');
+
             if (!$aiContent) {
                 Log::warning('IA: resposta vazia da Gemini', ['body' => $response->body()]);
                 return;
@@ -275,6 +279,8 @@ class ProcessBotResponse implements ShouldQueue
                     'content'         => $handoffText,
                     'type'            => 'text',
                     'delivery_status' => 'pending',
+                    'input_tokens'    => $inputTokens,
+                    'output_tokens'   => $outputTokens,
                 ]);
 
                 $this->conversation->update([
@@ -306,6 +312,8 @@ class ProcessBotResponse implements ShouldQueue
                     'content'         => $cleanContent,
                     'type'            => 'text',
                     'delivery_status' => 'pending',
+                    'input_tokens'    => $inputTokens,
+                    'output_tokens'   => $outputTokens,
                 ]);
                 $this->conversation->update(['last_message_at' => now()]);
                 SendWhatsAppMessage::dispatch($botMessage);

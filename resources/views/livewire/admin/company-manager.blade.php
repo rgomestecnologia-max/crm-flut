@@ -193,6 +193,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     <th style="text-align:left; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Slug</th>
                     <th style="text-align:left; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Usuários</th>
                     <th style="text-align:center; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Msgs IA</th>
+                    <th style="text-align:center; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Custo IA</th>
                     <th style="text-align:center; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Mídia (R2)</th>
                     <th style="text-align:left; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Status</th>
                     <th style="text-align:right; padding:12px 20px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.08em;">Ações</th>
@@ -228,6 +229,16 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                         <span style="font-size:12px; font-weight:600; color:{{ $aiCount > 0 ? '#a78bfa' : 'rgba(255,255,255,0.2)' }};">
                             {{ number_format($aiCount, 0, ',', '.') }}
                         </span>
+                    </td>
+                    <td style="padding:14px 20px; text-align:center;">
+                        @php $cost = $aiCosts[$company->id] ?? null; @endphp
+                        @if($cost && $cost['brl'] > 0)
+                            <span style="font-size:12px; font-weight:600; color:#4ade80;" title="Input: {{ number_format($cost['input']) }} tokens | Output: {{ number_format($cost['output']) }} tokens | US$ {{ number_format($cost['usd'], 2) }}">
+                                R$ {{ number_format($cost['brl'], 2, ',', '.') }}
+                            </span>
+                        @else
+                            <span style="font-size:12px; color:rgba(255,255,255,0.2);">—</span>
+                        @endif
                     </td>
                     <td style="padding:14px 20px; text-align:center;">
                         @php

@@ -14,6 +14,7 @@ class Message extends Model
         'company_id', 'conversation_id', 'sender_type', 'sender_id', 'sender_name', 'sender_phone', 'reply_to_id',
         'content', 'type', 'media_url', 'media_filename', 'media_duration',
         'zapi_message_id', 'delivery_status', 'is_read', 'reactions',
+        'input_tokens', 'output_tokens',
     ];
 
     protected $casts = [

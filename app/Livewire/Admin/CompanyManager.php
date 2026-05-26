@@ -240,6 +240,29 @@ class CompanyManager extends Component
             $mediaSizes[$company->id] = $bytes;
         }
 
-        return view('livewire.admin.company-manager', compact('companies', 'aiMessages', 'mediaStats', 'mediaSizes'));
+        // Custo estimado de IA por empresa (Gemini Flash: $0.15/1M input, $0.60/1M output)
+        $aiCosts = Message::withoutGlobalScopes()
+            ->where('sender_type', 'agent')
+            ->whereNull('sender_id')
+            ->whereNotNull('input_tokens')
+            ->select('company_id',
+                DB::raw('SUM(input_tokens) as total_input'),
+                DB::raw('SUM(output_tokens) as total_output'))
+            ->groupBy('company_id')
+            ->get()
+            ->mapWithKeys(function ($row) {
+                $inputCostUsd  = ($row->total_input / 1_000_000) * 0.15;
+                $outputCostUsd = ($row->total_output / 1_000_000) * 0.60;
+                $totalUsd = $inputCostUsd + $outputCostUsd;
+                $totalBrl = $totalUsd * 5.50; // câmbio estimado
+                return [$row->company_id => [
+                    'input'  => $row->total_input,
+                    'output' => $row->total_output,
+                    'usd'    => $totalUsd,
+                    'brl'    => $totalBrl,
+                ]];
+            });
+
+        return view('livewire.admin.company-manager', compact('companies', 'aiMessages', 'mediaStats', 'mediaSizes', 'aiCosts'));
     }
 }
