@@ -16,7 +16,19 @@ class ProposalViewer extends Component
     // Proposta personalizada
     public bool $showCustomForm = false;
     public string $customClientName = '';
-    public array $customItems = [['descricao' => '', 'mensal' => '', 'setup' => '']];
+    public array $customItems = [['modulo' => '', 'mensal' => '', 'setup' => '']];
+
+    public array $availableModules = [
+        'multi'        => 'Multi-atendimento WhatsApp',
+        'crm'          => 'CRM — Pipeline de Vendas',
+        'email'        => 'E-mail Marketing',
+        'ia'           => 'Inteligência Artificial',
+        'integrations' => 'Integrações Externas',
+        'chatbot'      => 'Chatbot / URA',
+        'broadcasts'   => 'Disparos em Massa',
+        'chat_interno' => 'Chat Interno',
+        'dashboard'    => 'Dashboard & Relatórios',
+    ];
     public string $customObs = '';
 
     public function mount()
@@ -140,7 +152,7 @@ class ProposalViewer extends Component
 
     public function addCustomItem()
     {
-        $this->customItems[] = ['descricao' => '', 'mensal' => '', 'setup' => ''];
+        $this->customItems[] = ['modulo' => '', 'mensal' => '', 'setup' => ''];
     }
 
     public function removeCustomItem(int $index)
@@ -148,16 +160,16 @@ class ProposalViewer extends Component
         unset($this->customItems[$index]);
         $this->customItems = array_values($this->customItems);
         if (empty($this->customItems)) {
-            $this->customItems = [['descricao' => '', 'mensal' => '', 'setup' => '']];
+            $this->customItems = [['modulo' => '', 'mensal' => '', 'setup' => '']];
         }
     }
 
     public function saveCustomProposal()
     {
         $this->validate([
-            'customClientName' => 'required|string|max:255',
-            'customItems'      => 'required|array|min:1',
-            'customItems.*.descricao' => 'required|string|max:255',
+            'customClientName'     => 'required|string|max:255',
+            'customItems'          => 'required|array|min:1',
+            'customItems.*.modulo' => 'required|string',
         ]);
 
         $details = [];
@@ -165,16 +177,17 @@ class ProposalViewer extends Component
         $totalSetup = 0;
         $modules = [];
 
-        foreach ($this->customItems as $i => $item) {
+        foreach ($this->customItems as $item) {
+            $key    = $item['modulo'];
+            $label  = $this->availableModules[$key] ?? $key;
             $mensal = (float) str_replace(['.', ','], ['', '.'], $item['mensal'] ?? '0');
             $setup  = (float) str_replace(['.', ','], ['', '.'], $item['setup'] ?? '0');
-            $key = 'custom_' . ($i + 1);
-            $details[$key . '_label']   = $item['descricao'];
+
             $details[$key . '_monthly'] = $mensal;
             $details[$key . '_setup']   = $setup;
             $totalMonthly += $mensal;
             $totalSetup += $setup;
-            $modules[] = $item['descricao'];
+            $modules[] = $key;
         }
 
         if ($this->customObs) {
@@ -194,7 +207,7 @@ class ProposalViewer extends Component
 
         $this->showCustomForm = false;
         $this->customClientName = '';
-        $this->customItems = [['descricao' => '', 'mensal' => '', 'setup' => '']];
+        $this->customItems = [['modulo' => '', 'mensal' => '', 'setup' => '']];
         $this->customObs = '';
         $this->loadProposals();
         $this->dispatch('toast', type: 'success', message: 'Proposta personalizada criada!');

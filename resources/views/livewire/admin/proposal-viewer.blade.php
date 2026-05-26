@@ -30,17 +30,30 @@
                    style="width:100%; padding:8px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none; box-sizing:border-box;">
         </div>
 
-        <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:8px;">Itens da Proposta</label>
+        <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:4px;">Módulos</label>
+        <div style="display:flex; gap:8px; margin-bottom:6px;">
+            <span style="flex:2; font-size:9px; color:rgba(255,255,255,0.3); padding-left:4px;">MÓDULO</span>
+            <span style="flex:1; font-size:9px; color:rgba(255,255,255,0.3); padding-left:4px;">MENSAL (R$)</span>
+            <span style="flex:1; font-size:9px; color:rgba(255,255,255,0.3); padding-left:4px;">SETUP (R$)</span>
+            <span style="width:24px;"></span>
+        </div>
         @foreach($customItems as $i => $item)
         <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;" wire:key="custom-item-{{ $i }}">
-            <input wire:model="customItems.{{ $i }}.descricao" type="text" placeholder="Descrição do item"
-                   style="flex:2; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none;">
-            <input wire:model="customItems.{{ $i }}.mensal" type="text" placeholder="Mensal (R$)"
-                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none;">
-            <input wire:model="customItems.{{ $i }}.setup" type="text" placeholder="Setup (R$)"
-                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none;">
+            <select wire:model="customItems.{{ $i }}.modulo"
+                    style="flex:2; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; appearance:auto;">
+                <option value="" style="background:#1a1f2e;">Selecione o módulo</option>
+                @foreach($availableModules as $key => $label)
+                <option value="{{ $key }}" style="background:#1a1f2e;">{{ $label }}</option>
+                @endforeach
+            </select>
+            <input wire:model="customItems.{{ $i }}.mensal" type="text" placeholder="0,00"
+                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; text-align:right;">
+            <input wire:model="customItems.{{ $i }}.setup" type="text" placeholder="0,00"
+                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; text-align:right;">
             @if(count($customItems) > 1)
-            <button wire:click="removeCustomItem({{ $i }})" style="color:#f87171; background:none; border:none; cursor:pointer; font-size:16px; flex-shrink:0;">✕</button>
+            <button wire:click="removeCustomItem({{ $i }})" style="color:#f87171; background:none; border:none; cursor:pointer; font-size:16px; flex-shrink:0; width:24px;">✕</button>
+            @else
+            <span style="width:24px;"></span>
             @endif
         </div>
         @endforeach
