@@ -13,6 +13,12 @@ class ProposalViewer extends Component
     public $discountPercent = 0;
     public $statusFilter = '';
 
+    // Proposta personalizada
+    public bool $showCustomForm = false;
+    public string $customClientName = '';
+    public array $customItems = [['descricao' => '', 'mensal' => '', 'setup' => '']];
+    public string $customObs = '';
+
     public function mount()
     {
         $this->loadProposals();
@@ -130,6 +136,68 @@ class ProposalViewer extends Component
     {
         Proposal::findOrFail($id)->delete();
         $this->loadProposals();
+    }
+
+    public function addCustomItem()
+    {
+        $this->customItems[] = ['descricao' => '', 'mensal' => '', 'setup' => ''];
+    }
+
+    public function removeCustomItem(int $index)
+    {
+        unset($this->customItems[$index]);
+        $this->customItems = array_values($this->customItems);
+        if (empty($this->customItems)) {
+            $this->customItems = [['descricao' => '', 'mensal' => '', 'setup' => '']];
+        }
+    }
+
+    public function saveCustomProposal()
+    {
+        $this->validate([
+            'customClientName' => 'required|string|max:255',
+            'customItems'      => 'required|array|min:1',
+            'customItems.*.descricao' => 'required|string|max:255',
+        ]);
+
+        $details = [];
+        $totalMonthly = 0;
+        $totalSetup = 0;
+        $modules = [];
+
+        foreach ($this->customItems as $i => $item) {
+            $mensal = (float) str_replace(['.', ','], ['', '.'], $item['mensal'] ?? '0');
+            $setup  = (float) str_replace(['.', ','], ['', '.'], $item['setup'] ?? '0');
+            $key = 'custom_' . ($i + 1);
+            $details[$key . '_label']   = $item['descricao'];
+            $details[$key . '_monthly'] = $mensal;
+            $details[$key . '_setup']   = $setup;
+            $totalMonthly += $mensal;
+            $totalSetup += $setup;
+            $modules[] = $item['descricao'];
+        }
+
+        if ($this->customObs) {
+            $details['observacao'] = $this->customObs;
+        }
+
+        Proposal::create([
+            'client_name'   => $this->customClientName,
+            'modules'       => $modules,
+            'config'        => ['tipo' => 'personalizada'],
+            'details'       => $details,
+            'total_monthly' => $totalMonthly,
+            'total_setup'   => $totalSetup,
+            'status'        => 'analise',
+            'user_id'       => auth()->id(),
+        ]);
+
+        $this->showCustomForm = false;
+        $this->customClientName = '';
+        $this->customItems = [['descricao' => '', 'mensal' => '', 'setup' => '']];
+        $this->customObs = '';
+        $this->loadProposals();
+        $this->dispatch('toast', type: 'success', message: 'Proposta personalizada criada!');
     }
 
     public function getCounts()

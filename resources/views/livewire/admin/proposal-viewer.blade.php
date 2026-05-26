@@ -4,10 +4,69 @@
             <h2 style="font-size:18px; font-weight:800; color:white; font-family:'Syne',sans-serif;">Propostas Geradas</h2>
             <p style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:2px;">Propostas comerciais salvas pelo simulador de preços</p>
         </div>
-        <a href="/pricing" target="_blank" style="font-size:11px; color:#b2ff00; text-decoration:none; padding:6px 14px; border:1px solid rgba(178,255,0,0.2); border-radius:8px;">
-            Abrir simulador →
-        </a>
+        <div style="display:flex; gap:8px;">
+            <button wire:click="$set('showCustomForm', true)"
+                    style="font-size:11px; font-weight:600; color:#f59e0b; padding:6px 14px; border:1px solid rgba(245,158,11,0.3); border-radius:8px; background:rgba(245,158,11,0.08); cursor:pointer;"
+                    onmouseover="this.style.background='rgba(245,158,11,0.15)'" onmouseout="this.style.background='rgba(245,158,11,0.08)'">
+                + Proposta Personalizada
+            </button>
+            <a href="/pricing" target="_blank" style="font-size:11px; color:#b2ff00; text-decoration:none; padding:6px 14px; border:1px solid rgba(178,255,0,0.2); border-radius:8px;">
+                Abrir simulador →
+            </a>
+        </div>
     </div>
+
+    {{-- Modal Proposta Personalizada --}}
+    @if($showCustomForm)
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(245,158,11,0.2); border-radius:16px; padding:20px; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <h3 style="font-size:14px; font-weight:700; color:#f59e0b;">Nova Proposta Personalizada</h3>
+            <button wire:click="$set('showCustomForm', false)" style="color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; font-size:18px;">&times;</button>
+        </div>
+
+        <div style="margin-bottom:14px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:4px;">Nome do Cliente</label>
+            <input wire:model="customClientName" type="text" placeholder="Nome da empresa ou cliente"
+                   style="width:100%; padding:8px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none; box-sizing:border-box;">
+        </div>
+
+        <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:8px;">Itens da Proposta</label>
+        @foreach($customItems as $i => $item)
+        <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;" wire:key="custom-item-{{ $i }}">
+            <input wire:model="customItems.{{ $i }}.descricao" type="text" placeholder="Descrição do item"
+                   style="flex:2; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none;">
+            <input wire:model="customItems.{{ $i }}.mensal" type="text" placeholder="Mensal (R$)"
+                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none;">
+            <input wire:model="customItems.{{ $i }}.setup" type="text" placeholder="Setup (R$)"
+                   style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none;">
+            @if(count($customItems) > 1)
+            <button wire:click="removeCustomItem({{ $i }})" style="color:#f87171; background:none; border:none; cursor:pointer; font-size:16px; flex-shrink:0;">✕</button>
+            @endif
+        </div>
+        @endforeach
+
+        <button wire:click="addCustomItem" style="font-size:11px; color:rgba(255,255,255,0.4); background:none; border:1px dashed rgba(255,255,255,0.1); border-radius:7px; padding:6px 12px; cursor:pointer; margin-bottom:14px;">
+            + Adicionar item
+        </button>
+
+        <div style="margin-bottom:14px;">
+            <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); display:block; margin-bottom:4px;">Observações (opcional)</label>
+            <textarea wire:model="customObs" rows="2" placeholder="Condições especiais, prazos, etc."
+                      style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none; resize:none; box-sizing:border-box;"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button wire:click="$set('showCustomForm', false)"
+                    style="padding:8px 16px; font-size:11px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; cursor:pointer;">
+                Cancelar
+            </button>
+            <button wire:click="saveCustomProposal"
+                    style="padding:8px 20px; font-size:11px; font-weight:700; color:#111; background:#f59e0b; border:none; border-radius:8px; cursor:pointer;">
+                Salvar Proposta
+            </button>
+        </div>
+    </div>
+    @endif
 
     {{-- Filtro por status --}}
     <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
