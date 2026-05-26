@@ -540,10 +540,27 @@ function pricingSimulator() {
                 });
             };
 
+            // Carrega logos como PNG (mantém transparência)
+            const loadPng = (url, maxW = 500) => new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const scale = Math.min(1, maxW / img.width);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = () => resolve(null);
+                img.src = url;
+            });
+
             let logoWhite = null, logoColor = null;
             try {
-                logoWhite = await loadAndCompress('/images/logo-flut-white.png', 600, 0.9);
-                logoColor = await loadAndCompress('/images/logo-flut-large.png', 500, 0.9);
+                logoWhite = await loadPng('/images/logo-flut-white.png', 600);
+                logoColor = await loadPng('/images/logo-flut-large.png', 500);
             } catch(e) {}
 
             // Carregar screenshots dos módulos (boa qualidade)
@@ -598,7 +615,7 @@ function pricingSimulator() {
 
             // Logo no topo da capa
             if (logoWhite) {
-                try { doc.addImage(logoWhite, 'JPEG', pw / 2 - 20, ph * 0.12, 40, 10); } catch(e) {}
+                try { doc.addImage(logoWhite, 'PNG', pw / 2 - 20, ph * 0.12, 40, 10); } catch(e) {}
             }
 
             // Linha decorativa
@@ -682,7 +699,7 @@ function pricingSimulator() {
 
                 // Logo pequeno no canto superior direito
                 if (logoColor) {
-                    try { doc.addImage(logoColor, 'JPEG', pw - mx - 30, 10, 30, 8); } catch(e) {}
+                    try { doc.addImage(logoColor, 'PNG', pw - mx - 30, 10, 30, 8); } catch(e) {}
                 }
 
                 // Título do módulo
@@ -798,7 +815,7 @@ function pricingSimulator() {
 
             // Logo no canto
             if (logoColor) {
-                try { doc.addImage(logoColor, 'JPEG', pw - mx - 30, 10, 30, 8); } catch(e) {}
+                try { doc.addImage(logoColor, 'PNG', pw - mx - 30, 10, 30, 8); } catch(e) {}
             }
 
             doc.setFillColor(15, 23, 42);
