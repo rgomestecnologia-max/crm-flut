@@ -930,6 +930,62 @@ function pricingSimulator() {
                 vy += 8;
             }
 
+            // Jornada de implantação
+            fy = vy + 10;
+            if (fy + 65 > ph - 28) { addFooter(); doc.addPage(); fy = 25; }
+
+            doc.setFillColor(15, 23, 42);
+            doc.roundedRect(mx, fy, pw - mx * 2, 60, 4, 4, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Jornada de Implantação', pw / 2, fy + 12, { align: 'center' });
+
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(180, 180, 200);
+            doc.text('Metodologia estruturada para colocar sua operação no ar em até 10 dias úteis', pw / 2, fy + 19, { align: 'center' });
+
+            const steps = [
+                { n: '1', title: 'Kickoff', desc: 'Alinhamento de objetivos\ne escopo do projeto' },
+                { n: '2', title: 'Configuração', desc: 'Setup da plataforma\npersonalizado' },
+                { n: '3', title: 'Treinamento', desc: 'Capacitação da equipe\nnas funcionalidades' },
+                { n: '4', title: 'Acompanhamento', desc: 'Suporte dedicado\nna primeira semana' },
+                { n: '5', title: 'Resultados', desc: 'Análise de métricas\ne ajustes estratégicos' },
+            ];
+
+            const stepW = (pw - mx * 2 - 20) / 5;
+            let sx = mx + 10;
+            const sy = fy + 28;
+
+            for (const step of steps) {
+                // Círculo com número
+                doc.setFillColor(178, 255, 0);
+                doc.circle(sx + stepW / 2, sy, 5, 'F');
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(15, 23, 42);
+                doc.text(step.n, sx + stepW / 2, sy + 2.5, { align: 'center' });
+
+                // Título
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(178, 255, 0);
+                doc.text(step.title, sx + stepW / 2, sy + 11, { align: 'center' });
+
+                // Descrição
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(160, 160, 180);
+                const descLines = step.desc.split('\n');
+                for (let di = 0; di < descLines.length; di++) {
+                    doc.text(descLines[di], sx + stepW / 2, sy + 16 + di * 4, { align: 'center' });
+                }
+
+                sx += stepW;
+            }
+
             addFooter();
 
             // === SALVAR ===
