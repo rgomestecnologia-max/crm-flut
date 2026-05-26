@@ -860,6 +860,39 @@ function pricingSimulator() {
             doc.setFontSize(9);
             doc.text('Validade da proposta: ' + dataStr + ' até ' + validade + ' (30 dias corridos).', mx + 6, fy + 18);
 
+            fy += 30;
+
+            // Custos variáveis e adicionais
+            if (fy + 50 > ph - 28) { addFooter(); doc.addPage(); fy = 25; }
+
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(mx, fy, pw - mx * 2, 52, 3, 3, 'FD');
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(51, 65, 85);
+            doc.text('Custos Variáveis e Adicionais (sob demanda)', mx + 6, fy + 9);
+
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 116, 139);
+
+            const varItems = [
+                'Tokens de IA — consumo conforme uso (modelo Gemini Flash)',
+                'SMS — custo por mensagem enviada (consultar tabela vigente)',
+                'Disparos de Templates via API Oficial Meta — custo por mensagem (conforme categoria)',
+                'Usuários Adicionais — valor por usuário extra além do plano contratado'
+            ];
+
+            let vy = fy + 17;
+            for (const vi of varItems) {
+                doc.setFillColor(100, 116, 139);
+                doc.circle(mx + 9, vy - 1, 1.2, 'F');
+                doc.text(vi, mx + 14, vy);
+                vy += 8;
+            }
+
             addFooter();
 
             // === SALVAR ===
