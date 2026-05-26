@@ -60,7 +60,7 @@
                     <div class="bar" style="background:#b2ff00;"></div>
                     <h2>Multi-atendimento WhatsApp</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.multi ? '#b2ff00' : 'rgba(255,255,255,0.1)' }" @click="modules.multi = !modules.multi; calc()">
+                <button class="toggle" :style="{ background: modules.multi ? '#b2ff00' : 'rgba(255,255,255,0.1)' }" @click="modules.multi = !modules.multi; useCustom=false; calc()">
                     <span :style="{ left: modules.multi ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -95,7 +95,7 @@
                     <div class="bar" style="background:#8b5cf6;"></div>
                     <h2>CRM — Pipeline de Vendas</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.crm ? '#8b5cf6' : 'rgba(255,255,255,0.1)' }" @click="modules.crm = !modules.crm; calc()">
+                <button class="toggle" :style="{ background: modules.crm ? '#8b5cf6' : 'rgba(255,255,255,0.1)' }" @click="modules.crm = !modules.crm; useCustom=false; calc()">
                     <span :style="{ left: modules.crm ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -123,7 +123,7 @@
                     <div class="bar" style="background:#3b82f6;"></div>
                     <h2>Disparos em Massa</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.email ? '#3b82f6' : 'rgba(255,255,255,0.1)' }" @click="modules.email = !modules.email; calc()">
+                <button class="toggle" :style="{ background: modules.email ? '#3b82f6' : 'rgba(255,255,255,0.1)' }" @click="modules.email = !modules.email; useCustom=false; calc()">
                     <span :style="{ left: modules.email ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -167,7 +167,7 @@
                     <div class="bar" style="background:#ec4899;"></div>
                     <h2>IA de Atendimento</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.ia ? '#ec4899' : 'rgba(255,255,255,0.1)' }" @click="modules.ia = !modules.ia; calc()">
+                <button class="toggle" :style="{ background: modules.ia ? '#ec4899' : 'rgba(255,255,255,0.1)' }" @click="modules.ia = !modules.ia; useCustom=false; calc()">
                     <span :style="{ left: modules.ia ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -199,7 +199,7 @@
                     <div class="bar" style="background:#06b6d4;"></div>
                     <h2>Integrações Externas</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.integrations ? '#06b6d4' : 'rgba(255,255,255,0.1)' }" @click="modules.integrations = !modules.integrations; calc()">
+                <button class="toggle" :style="{ background: modules.integrations ? '#06b6d4' : 'rgba(255,255,255,0.1)' }" @click="modules.integrations = !modules.integrations; useCustom=false; calc()">
                     <span :style="{ left: modules.integrations ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -385,12 +385,31 @@ function pricingSimulator() {
         proposalId: existing?.id ?? null,
         proposalToken: existing?.token ?? null,
         discountPercent: existing?.discount_percent ?? 0,
+        customDetails: existing?.details ?? null,
+        useCustom: !!existing?.details,
         saving: false,
         nameError: false,
 
         fmt(v) { return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
 
         calc() {
+            // Se tem valores personalizados salvos, usar diretamente
+            if (this.useCustom && this.customDetails) {
+                let monthly = 0, setup = 0;
+                this.detail = {};
+                for (const key in this.customDetails) {
+                    this.detail[key] = parseFloat(this.customDetails[key]) || 0;
+                    if (key.endsWith('_monthly')) monthly += this.detail[key];
+                    if (key.endsWith('_setup')) setup += this.detail[key];
+                }
+                this.originalTotal.monthly = monthly;
+                this.originalTotal.setup = setup;
+                this.total.monthly = monthly;
+                this.total.setup = setup;
+                // Após primeiro cálculo, desativa para permitir recálculo se módulos mudarem
+                return;
+            }
+
             let monthly = 0, setup = 0;
             this.detail = {};
 
