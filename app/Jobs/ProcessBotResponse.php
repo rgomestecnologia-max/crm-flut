@@ -114,6 +114,9 @@ class ProcessBotResponse implements ShouldQueue
                 // Envia mensagem de fora do horário se aplicável
                 $this->sendOutsideHoursIfNeeded();
 
+                // Envia mensagem contextual do departamento (ex: FISPAL)
+                $this->sendDeptHandoffMessage();
+
                 // Envia mensagem de handoff configurada
                 $handoffText = $this->config->handoff_message
                     ?: 'Vou transferir você para um de nossos atendentes. Em breve alguém irá te responder!';
@@ -267,6 +270,9 @@ class ProcessBotResponse implements ShouldQueue
 
                 // Envia mensagem de fora do horário se aplicável
                 $this->sendOutsideHoursIfNeeded();
+
+                // Envia mensagem contextual do departamento (ex: FISPAL)
+                $this->sendDeptHandoffMessage();
 
                 // Envia a mensagem da IA (sem a tag) + handoff
                 $handoffText = $cleanContent ?: ($this->config->handoff_message
@@ -574,6 +580,44 @@ class ProcessBotResponse implements ShouldQueue
         SendWhatsAppMessage::dispatch($msg);
         $this->broadcastMessage($msg);
         Log::info('IA: mensagem fora do horário enviada', ['conv' => $this->conversation->id]);
+    }
+
+    /**
+     * Envia mensagem contextual do departamento no handoff (ex: evento FISPAL).
+     * Extraída do FAQ com tag "DEPARTAMENTO XXX - MENSAGEM ESPECIAL".
+     */
+    private function sendDeptHandoffMessage(): void
+    {
+        $faq = $this->config->faq ?? '';
+        $deptName = $this->conversation->department?->name;
+        if (!$deptName) return;
+
+        // Busca regra específica para o departamento no FAQ
+        $pattern = '/DEPARTAMENTO\s+' . preg_quote($deptName, '/') . '.*?Mensagem:\s*(.+?)(?:\n\n|\n\s*[A-Z]|\n\s*Esta|\z)/si';
+        if (!preg_match($pattern, $faq, $match)) return;
+
+        $msg = trim($match[1]);
+        if (!$msg) return;
+
+        // Evita duplicada
+        $alreadySent = Message::where('conversation_id', $this->conversation->id)
+            ->where('sender_type', 'agent')
+            ->whereNull('sender_id')
+            ->where('content', $msg)
+            ->exists();
+        if ($alreadySent) return;
+
+        $message = Message::create([
+            'conversation_id' => $this->conversation->id,
+            'sender_type'     => 'agent',
+            'sender_id'       => null,
+            'content'         => $msg,
+            'type'            => 'text',
+            'delivery_status' => 'pending',
+        ]);
+        $this->conversation->update(['last_message_at' => now()]);
+        SendWhatsAppMessage::dispatch($message);
+        $this->broadcastMessage($message);
     }
 
     private function extractPhotoUrl(string $content): ?string
