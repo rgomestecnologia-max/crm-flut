@@ -75,6 +75,7 @@ class AiBotManager extends Component
         '😊 Amigável', '💼 Profissional', '🎯 Objetivo', '😄 Descontraído',
         '🤝 Empático', '📋 Formal', '⚡ Dinâmico', '🌟 Entusiasmado',
         '🧘 Calmo', '💡 Consultivo', '🛡️ Confiável', '🎨 Criativo',
+        '✨ Elegante', '🎩 Sofisticado', '🤗 Acolhedor', '🔧 Técnico',
     ];
 
     public function toggleTone(string $tone): void
