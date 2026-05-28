@@ -1440,7 +1440,7 @@ function senderColor(?string $identifier): string {
                 <textarea
                     id="main-message-input"
                     spellcheck="true" lang="pt-BR"
-                    x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); $wire.set('messageText', $el.value); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage(); } }"
+                    x-on:keydown.enter="if(!$event.shiftKey && !window._fcSending){ $event.preventDefault(); window._fcSending=true; setTimeout(()=>window._fcSending=false, 2000); $wire.set('messageText', $el.value); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage(); } }"
                     x-on:paste="
                         const items = $event.clipboardData?.items;
                         if (items) {
@@ -1505,7 +1505,7 @@ function senderColor(?string $identifier): string {
             </button>
 
             {{-- Send button --}}
-            <button wire:click="sendMessage"
+            <button @click="if(window._fcSending) return; window._fcSending=true; setTimeout(()=>window._fcSending=false, 2000); $wire.set('messageText', document.getElementById('main-message-input')?.value || ''); $wire.sendMessage()" wire:loading.attr="disabled"
                     style="width:38px; height:38px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:none; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 10px rgba(178,255,0,0.3);"
                     onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 16px rgba(178,255,0,0.4)'"
                     onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 10px rgba(178,255,0,0.3)'">
