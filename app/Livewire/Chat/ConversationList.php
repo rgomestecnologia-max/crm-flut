@@ -358,8 +358,7 @@ class ConversationList extends Component
         if ($user->isAdmin() && ($isAdminViewingOtherCompany || empty($userDeptIds))) {
             $userDeptIds = Department::active()->pluck('id')->all();
         }
-        $hasHiddenDepts = Department::active()->where('hide_from_main_queue', true)->exists();
-        $showDeptQueues = (($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1) || $hasHiddenDepts;
+        $showDeptQueues = $currentCompanyId === 3 && ($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1;
         if ($showDeptQueues) {
             foreach ($userDeptIds as $deptId) {
                 $deptQueueCounts[$deptId] = (clone $baseQuery)
