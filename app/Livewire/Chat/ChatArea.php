@@ -53,8 +53,6 @@ class ChatArea extends Component
     // Upload de mídia
     public $pendingFile = null;
 
-    // Rascunhos por conversa
-    public array $drafts = [];
 
     // Enviar contato (vCard)
     public bool   $showContactPicker = false;
@@ -90,18 +88,8 @@ class ChatArea extends Component
         if (!$conv) return;
         if (!$user->isAdmin() && !$user->belongsToDepartment((int) $conv->department_id)) return;
 
-        // Salva rascunho da conversa anterior
-        if ($this->conversationId && trim($this->messageText) !== '') {
-            $this->drafts[$this->conversationId] = $this->messageText;
-        } elseif ($this->conversationId) {
-            unset($this->drafts[$this->conversationId]);
-        }
-
         $this->conversationId = $id;
         $this->conversation   = $conv;
-
-        // Restaura rascunho da nova conversa
-        $this->messageText = $this->drafts[$id] ?? '';
 
         // Marca mensagens como lidas
         Message::where('conversation_id', $id)

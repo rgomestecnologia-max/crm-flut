@@ -1548,15 +1548,28 @@ function chatArea() {
 
         _shouldAutoScroll: true,
         _observer: null,
+        _drafts: {},
+        _prevConvId: null,
 
         init() {
-            this.$watch('$wire.conversationId', (val) => {
+            this.$watch('$wire.conversationId', (val, oldVal) => {
+                const ta = document.getElementById('main-message-input');
+                // Salva rascunho da conversa anterior
+                if (oldVal && ta) {
+                    const text = ta.value || '';
+                    if (text.trim()) { this._drafts[oldVal] = text; } else { delete this._drafts[oldVal]; }
+                }
                 if (val) {
                     this.clearSearch();
                     this._shouldAutoScroll = true;
                     this.scrollToBottom(false);
-                    setTimeout(() => { const ta = document.getElementById('main-message-input'); if(ta) ta.focus(); }, 500);
-                    setTimeout(() => { const ta = document.getElementById('main-message-input'); if(ta) ta.focus(); }, 1000);
+                    // Restaura rascunho da nova conversa
+                    const draft = this._drafts[val] || '';
+                    setTimeout(() => {
+                        const ta = document.getElementById('main-message-input');
+                        if (ta) { ta.value = draft; ta.focus(); }
+                        this.$wire.set('messageText', draft, false);
+                    }, 300);
                 }
             });
 
