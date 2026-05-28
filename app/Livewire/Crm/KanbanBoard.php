@@ -346,14 +346,19 @@ class KanbanBoard extends Component
 
     public function addTask(): void
     {
-        if (!$this->editingCardId || !trim($this->newTaskTitle) || !$this->newTaskDate) return;
+        if (!$this->editingCardId || !trim($this->newTaskTitle) || !$this->newTaskDate) {
+            if (!trim($this->newTaskTitle)) $this->dispatch('toast', type: 'error', message: 'Informe o título da tarefa.');
+            elseif (!$this->newTaskDate) $this->dispatch('toast', type: 'error', message: 'Informe a data da tarefa.');
+            return;
+        }
 
         \App\Models\CrmCardTask::create([
-            'card_id'  => $this->editingCardId,
-            'user_id'  => auth()->id(),
-            'title'    => trim($this->newTaskTitle),
-            'due_date' => $this->newTaskDate,
-            'due_time' => $this->newTaskTime ?: null,
+            'card_id'    => $this->editingCardId,
+            'company_id' => app(\App\Services\CurrentCompany::class)->id(),
+            'user_id'    => auth()->id(),
+            'title'      => trim($this->newTaskTitle),
+            'due_date'   => $this->newTaskDate,
+            'due_time'   => $this->newTaskTime ?: null,
         ]);
 
         $this->newTaskTitle = '';
