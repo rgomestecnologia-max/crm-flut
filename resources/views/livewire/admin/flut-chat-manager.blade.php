@@ -54,7 +54,7 @@
 
                     {{-- Avatares pré-configurados --}}
                     @foreach(['woman-1','woman-2','woman-3','man-1','man-2','man-3'] as $av)
-                    @php $avUrl = url('/img/avatars/' . $av . '.svg'); @endphp
+                    @php $avUrl = url('/img/avatars/' . $av . '.jpg'); @endphp
                     <button wire:click="$set('widgetAvatarUrl', '{{ $avUrl }}')" type="button"
                             style="width:56px; height:56px; border-radius:50%; border:3px solid {{ $widgetAvatarUrl === $avUrl ? '#3B82F6' : 'transparent' }}; padding:0; cursor:pointer; background:transparent; flex-shrink:0; transition:all .2s;">
                         <img src="{{ $avUrl }}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
