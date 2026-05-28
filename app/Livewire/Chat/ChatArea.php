@@ -810,6 +810,10 @@ class ChatArea extends Component
         $this->showForwardPicker = false;
         $this->forwardMessageId  = null;
         $this->forwardSearch     = '';
+
+        // Abre a conversa destino
+        $this->loadConversation($targetConversationId);
+        $this->dispatch('conversation-selected', id: $targetConversationId);
         $this->dispatch('toast', type: 'success', message: "Encaminhado para {$contactName}.");
     }
 

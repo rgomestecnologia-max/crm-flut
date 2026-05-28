@@ -661,15 +661,13 @@ function senderColor(?string $identifier): string {
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                                 Responder
                             </button>
-                            @if(in_array($msg->type, ['image', 'document', 'video', 'audio']))
-                            <button wire:click="openForward({{ $msg->id }})" @click="showMenu = false"
+                                                        <button wire:click="openForward({{ $msg->id }})" @click="showMenu = false"
                                     style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s; border-top:1px solid rgba(255,255,255,0.05);"
                                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
                                     onmouseout="this.style.background='transparent'">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
                                 Encaminhar
                             </button>
-                            @endif
                             @if($conversation->is_group && $msg->sender_phone)
                             <button wire:click="openPrivateChat({{ $msg->id }})" @click="showMenu = false"
                                     style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s; border-top:1px solid rgba(255,255,255,0.05);"
@@ -976,15 +974,13 @@ function senderColor(?string $identifier): string {
                                 Editar
                             </button>
                             @endif
-                            @if(in_array($msg->type, ['image', 'document', 'video', 'audio']))
-                            <button wire:click="openForward({{ $msg->id }})" @click="showMenu = false"
+                                                        <button wire:click="openForward({{ $msg->id }})" @click="showMenu = false"
                                     style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
                                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
                                     onmouseout="this.style.background='transparent'">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
                                 Encaminhar
                             </button>
-                            @endif
                             <button wire:click="deleteMessage({{ $msg->id }})" wire:confirm="Excluir esta mensagem?"
                                     style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:#f87171; transition:background 0.1s;"
                                     onmouseover="this.style.background='rgba(239,68,68,0.05)'"
