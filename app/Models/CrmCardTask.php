@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Traits\BelongsToCompany;
+use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 
 class CrmCardTask extends Model
