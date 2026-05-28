@@ -1437,10 +1437,8 @@ function senderColor(?string $identifier): string {
                  onfocusout="this.style.borderColor='rgba(255,255,255,0.08)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'">
                 <textarea
                     id="main-message-input"
-                    wire:model="messageText"
-                    wire:ignore
                     spellcheck="true" lang="pt-BR"
-                    x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage(); } }"
+                    x-on:keydown.enter="if(!$event.shiftKey){ $event.preventDefault(); $wire.set('messageText', $el.value); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage(); } }"
                     x-on:paste="
                         const items = $event.clipboardData?.items;
                         if (items) {
@@ -1473,7 +1471,7 @@ function senderColor(?string $identifier): string {
                     x-data
                     x-init="$nextTick(() => $el.focus())"
                     x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'"
-                    x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $wire.set('messageText', ''); $el.focus()"
+                    x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $el.focus()"
                     x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'; $el.focus(); })"
                 ></textarea>
                 {{-- Quick Reply button --}}
@@ -1549,7 +1547,6 @@ function chatArea() {
         _shouldAutoScroll: true,
         _observer: null,
         _drafts: {},
-        _prevConvId: null,
 
         init() {
             this.$watch('$wire.conversationId', (val, oldVal) => {
@@ -1565,11 +1562,16 @@ function chatArea() {
                     this.scrollToBottom(false);
                     // Restaura rascunho da nova conversa
                     const draft = this._drafts[val] || '';
-                    setTimeout(() => {
+                    this.$wire.set('messageText', draft);
+                    this.$nextTick(() => {
                         const ta = document.getElementById('main-message-input');
-                        if (ta) { ta.value = draft; ta.focus(); }
-                        this.$wire.set('messageText', draft, false);
-                    }, 300);
+                        if (ta) {
+                            ta.value = draft;
+                            ta.style.height = 'auto';
+                            ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+                            ta.focus();
+                        }
+                    });
                 }
             });
 
