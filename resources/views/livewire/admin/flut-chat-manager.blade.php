@@ -39,6 +39,10 @@
                 </div>
             </div>
             <div>
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px;">Avatar do atendente (URL da imagem)</label>
+                <input wire:model="widgetAvatarUrl" type="text" placeholder="https://... (deixe vazio para ícone WhatsApp)" style="width:100%; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; box-sizing:border-box;">
+            </div>
+            <div>
                 <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px;">WhatsApp</label>
                 <input wire:model="widgetWhatsapp" type="text" placeholder="5511999999999" style="width:100%; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; box-sizing:border-box;">
             </div>

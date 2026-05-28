@@ -12,7 +12,7 @@ class FlutChatWidget extends Model
 
     protected $fillable = [
         'company_id', 'name', 'public_id', 'title', 'subtitle',
-        'color', 'logo_url', 'position', 'whatsapp_number',
+        'color', 'logo_url', 'avatar_url', 'position', 'whatsapp_number',
         'whatsapp_message', 'is_active',
     ];
 

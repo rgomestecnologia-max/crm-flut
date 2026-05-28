@@ -33,6 +33,7 @@ class FlutChatController extends Controller
                 'subtitle'         => $widget->subtitle,
                 'color'            => $widget->color,
                 'logo_url'         => $widget->logo_url,
+                'avatar_url'       => $widget->avatar_url,
                 'position'         => $widget->position,
                 'whatsapp_number'  => $widget->whatsapp_number,
                 'whatsapp_message' => $widget->whatsapp_message,

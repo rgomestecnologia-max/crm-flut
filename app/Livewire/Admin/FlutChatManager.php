@@ -17,6 +17,7 @@ class FlutChatManager extends Component
     public string $widgetTitle = 'Olá! Como posso ajudar?';
     public string $widgetSubtitle = '';
     public string $widgetColor = '#b2ff00';
+    public string $widgetAvatarUrl = '';
     public string $widgetPosition = 'bottom-right';
     public string $widgetWhatsapp = '';
     public string $widgetWhatsappMsg = '';
@@ -56,6 +57,7 @@ class FlutChatManager extends Component
             'title'            => $this->widgetTitle,
             'subtitle'         => $this->widgetSubtitle ?: null,
             'color'            => $this->widgetColor,
+            'avatar_url'       => $this->widgetAvatarUrl ?: null,
             'position'         => $this->widgetPosition,
             'whatsapp_number'  => $this->widgetWhatsapp ?: null,
             'whatsapp_message' => $this->widgetWhatsappMsg ?: null,
@@ -90,6 +92,7 @@ class FlutChatManager extends Component
         $this->widgetTitle      = $w->title;
         $this->widgetSubtitle   = $w->subtitle ?? '';
         $this->widgetColor      = $w->color;
+        $this->widgetAvatarUrl  = $w->avatar_url ?? '';
         $this->widgetPosition   = $w->position;
         $this->widgetWhatsapp   = $w->whatsapp_number ?? '';
         $this->widgetWhatsappMsg = $w->whatsapp_message ?? '';
@@ -115,6 +118,7 @@ class FlutChatManager extends Component
         $this->widgetTitle = 'Olá! Como posso ajudar?';
         $this->widgetSubtitle = '';
         $this->widgetColor = '#b2ff00';
+        $this->widgetAvatarUrl = '';
         $this->widgetPosition = 'bottom-right';
         $this->widgetWhatsapp = '';
         $this->widgetWhatsappMsg = '';
