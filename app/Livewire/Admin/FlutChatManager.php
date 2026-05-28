@@ -119,14 +119,35 @@ class FlutChatManager extends Component
         $this->validate(['avatarUpload' => 'image|max:5120']);
 
         $file = $this->avatarUpload;
-        $raw = file_get_contents($file->getRealPath());
+        $filePath = $file->getRealPath();
 
-        // Comprime para 100x100 JPEG
-        $optimizer = app(\App\Services\ImageOptimizer::class);
-        $img = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-        $image = $img->read($raw);
-        $image->cover(100, 100);
-        $compressed = $image->toJpeg(80)->toString();
+        // Usa GD nativo para evitar estouro de memória em imagens grandes
+        $info = @getimagesize($filePath);
+        if (!$info) { $this->dispatch('toast', type: 'error', message: 'Imagem inválida.'); return; }
+
+        $srcImg = match ($info[2]) {
+            IMAGETYPE_JPEG => @imagecreatefromjpeg($filePath),
+            IMAGETYPE_PNG  => @imagecreatefrompng($filePath),
+            IMAGETYPE_WEBP => @imagecreatefromwebp($filePath),
+            default        => null,
+        };
+        if (!$srcImg) { $this->dispatch('toast', type: 'error', message: 'Formato não suportado.'); return; }
+
+        // Cria thumbnail 100x100 com crop central
+        $srcW = imagesx($srcImg);
+        $srcH = imagesy($srcImg);
+        $cropSize = min($srcW, $srcH);
+        $cropX = (int)(($srcW - $cropSize) / 2);
+        $cropY = (int)(($srcH - $cropSize) / 2);
+
+        $dst = imagecreatetruecolor(100, 100);
+        imagecopyresampled($dst, $srcImg, 0, 0, $cropX, $cropY, 100, 100, $cropSize, $cropSize);
+        imagedestroy($srcImg);
+
+        ob_start();
+        imagejpeg($dst, null, 80);
+        $compressed = ob_get_clean();
+        imagedestroy($dst);
 
         $path = 'flut-chat/avatars/' . uniqid('avatar_', true) . '.jpg';
         \App\Services\MediaStorage::put($path, $compressed);
