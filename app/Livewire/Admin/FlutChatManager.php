@@ -121,10 +121,18 @@ class FlutChatManager extends Component
         $file = $this->avatarUpload;
         $filePath = $file->getRealPath();
 
-        // Usa GD nativo para evitar estouro de memória em imagens grandes
         $info = @getimagesize($filePath);
         if (!$info) { $this->dispatch('toast', type: 'error', message: 'Imagem inválida.'); return; }
 
+        // Rejeita imagens com dimensões absurdas (> 4000px)
+        $w = $info[0]; $h = $info[1];
+        if ($w > 4000 || $h > 4000) {
+            $this->dispatch('toast', type: 'error', message: 'Imagem muito grande. Use uma imagem menor que 4000x4000px.');
+            $this->avatarUpload = null;
+            return;
+        }
+
+        // Para JPEG, usa imagecreatefromjpeg direto do arquivo (menor uso de RAM)
         $srcImg = match ($info[2]) {
             IMAGETYPE_JPEG => @imagecreatefromjpeg($filePath),
             IMAGETYPE_PNG  => @imagecreatefrompng($filePath),
@@ -134,11 +142,9 @@ class FlutChatManager extends Component
         if (!$srcImg) { $this->dispatch('toast', type: 'error', message: 'Formato não suportado.'); return; }
 
         // Cria thumbnail 100x100 com crop central
-        $srcW = imagesx($srcImg);
-        $srcH = imagesy($srcImg);
-        $cropSize = min($srcW, $srcH);
-        $cropX = (int)(($srcW - $cropSize) / 2);
-        $cropY = (int)(($srcH - $cropSize) / 2);
+        $cropSize = min($w, $h);
+        $cropX = (int)(($w - $cropSize) / 2);
+        $cropY = (int)(($h - $cropSize) / 2);
 
         $dst = imagecreatetruecolor(100, 100);
         imagecopyresampled($dst, $srcImg, 0, 0, $cropX, $cropY, 100, 100, $cropSize, $cropSize);
