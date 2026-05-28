@@ -202,6 +202,22 @@ class EvolutionApiService
         ]);
     }
 
+    public function sendContact(string $phone, string $contactName, string $contactPhone): array
+    {
+        $contactPhone = preg_replace('/\D/', '', $contactPhone);
+
+        return $this->post("/message/sendContact/{$this->instanceName}", [
+            'number'  => $this->normalizePhone($phone),
+            'contact' => [
+                [
+                    'fullName'    => $contactName,
+                    'wuid'        => $contactPhone . '@s.whatsapp.net',
+                    'phoneNumber' => '+' . $contactPhone,
+                ],
+            ],
+        ]);
+    }
+
     /**
      * Extrai base64 puro e MIME de um Data URL ou URL pública.
      * Retorna [$media, $mime] onde $media é base64 puro ou URL.

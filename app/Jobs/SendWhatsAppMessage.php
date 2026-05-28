@@ -79,6 +79,7 @@ class SendWhatsAppMessage implements ShouldQueue
             'audio'    => $api->sendAudio($phone, $mediaRef),
             'video'    => $api->sendVideo($phone, $mediaRef, $caption),
             'document' => $api->sendDocument($phone, $mediaRef, $this->message->media_filename ?? 'documento'),
+            'contact'  => $api->sendContact($phone, $this->message->media_filename ?? 'Contato', $this->message->media_url ?? ''),
             default    => $api->sendText($phone, $text, $quotedId),
         };
 

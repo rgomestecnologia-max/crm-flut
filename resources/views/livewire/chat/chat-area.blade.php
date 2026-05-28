@@ -596,6 +596,16 @@ function senderColor(?string $identifier): string {
                                 </template>
                                 @endif
                             </div>
+                        @elseif($msg->type === 'contact')
+                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; padding:10px 14px; display:flex; align-items:center; gap:10px; border:1px solid rgba(255,255,255,0.06); min-width:180px;">
+                                <div style="width:36px; height:36px; border-radius:50%; background:rgba(167,139,250,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <svg width="18" height="18" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <div style="flex:1; min-width:0;">
+                                    <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.8); margin:0;">{{ $msg->media_filename ?: 'Contato' }}</p>
+                                    <p style="font-size:11px; color:rgba(255,255,255,0.35); margin:1px 0 0;">📱 +{{ $msg->media_url }}</p>
+                                </div>
+                            </div>
                         @endif
                         {{-- Reactions --}}
                         @if(!empty($msg->reactions))
@@ -861,6 +871,16 @@ function senderColor(?string $identifier): string {
                                     </div>
                                 </div>
                                 @endif
+                            </div>
+                        @elseif($msg->type === 'contact')
+                            <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; padding:10px 14px; display:flex; align-items:center; gap:10px; border:1px solid rgba(45,74,8,0.6); min-width:180px;">
+                                <div style="width:36px; height:36px; border-radius:50%; background:rgba(167,139,250,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <svg width="18" height="18" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <div style="flex:1; min-width:0;">
+                                    <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.9); margin:0;">{{ $msg->media_filename ?: 'Contato' }}</p>
+                                    <p style="font-size:11px; color:rgba(255,255,255,0.4); margin:1px 0 0;">📱 +{{ $msg->media_url }}</p>
+                                </div>
                             </div>
                         @endif
                         {{-- Inline edit form --}}
@@ -1318,6 +1338,14 @@ function senderColor(?string $identifier): string {
                             <span style="font-size:12px; color:rgba(255,255,255,0.6);">Documento</span>
                             <input type="file" wire:model="pendingFile" @change="open=false" class="hidden">
                         </label>
+                        <button @click="open=false; $wire.set('showContactPicker', true)"
+                                style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s; border-top:1px solid rgba(255,255,255,0.04); width:100%; background:transparent; border-left:none; border-right:none; border-bottom:none;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+                            <svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span style="font-size:12px; color:rgba(255,255,255,0.6);">Contato</span>
+                        </button>
                     </div>
                 </template>
             </div>
@@ -1351,6 +1379,38 @@ function senderColor(?string $identifier): string {
                     @empty
                     <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">
                         {{ $quickReplySearch ? 'Nenhuma resposta encontrada.' : 'Nenhuma resposta rápida cadastrada. Crie em Respostas Rápidas no admin.' }}
+                    </p>
+                    @endforelse
+                </div>
+            </div>
+            @endif
+
+            {{-- Painel de seleção de contato --}}
+            @if($showContactPicker)
+            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(167,139,250,0.2); border-radius:12px; margin-bottom:6px; max-height:280px; overflow:hidden; display:flex; flex-direction:column;">
+                <div style="padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
+                    <svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <input wire:model.live.debounce.300ms="contactSearch" type="text" placeholder="Buscar lead por nome ou telefone..."
+                           style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
+                    <button wire:click="$set('showContactPicker', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:14px;">✕</button>
+                </div>
+                <div style="overflow-y:auto; max-height:230px;">
+                    @forelse($contactList as $ct)
+                    <button wire:click="sendContact({{ $ct->id }})"
+                            style="width:100%; text-align:left; padding:10px 12px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.1s; color:white; display:flex; align-items:center; gap:10px;"
+                            onmouseover="this.style.background='rgba(167,139,250,0.08)'" onmouseout="this.style.background='transparent'">
+                        <div style="width:32px; height:32px; border-radius:50%; background:rgba(167,139,250,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.85); margin:0;">{{ $ct->name ?: 'Sem nome' }}</p>
+                            <p style="font-size:11px; color:rgba(255,255,255,0.35); margin:0;">{{ $ct->phone }}</p>
+                        </div>
+                        <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.2)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                    @empty
+                    <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">
+                        {{ $contactSearch ? 'Nenhum lead encontrado.' : 'Nenhum lead cadastrado.' }}
                     </p>
                     @endforelse
                 </div>

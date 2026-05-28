@@ -53,6 +53,10 @@ class ChatArea extends Component
     // Upload de mídia
     public $pendingFile = null;
 
+    // Enviar contato (vCard)
+    public bool   $showContactPicker = false;
+    public string $contactSearch     = '';
+
     public ?Conversation $conversation = null;
 
     public function mount(?int $conversationId = null): void
@@ -732,6 +736,36 @@ class ChatArea extends Component
         $this->dispatch('focus-message-input');
     }
 
+    public function sendContact(int $contactId): void
+    {
+        if (!$this->conversationId) return;
+
+        $contact = \App\Models\BroadcastContact::find($contactId);
+        if (!$contact || !$contact->phone) return;
+
+        $name  = $contact->name ?: 'Contato';
+        $phone = preg_replace('/\D/', '', $contact->phone);
+
+        $message = Message::create([
+            'conversation_id' => $this->conversationId,
+            'sender_type'     => 'agent',
+            'sender_id'       => \Illuminate\Support\Facades\Auth::id(),
+            'type'            => 'contact',
+            'content'         => "📇 *{$name}*\n📱 +{$phone}",
+            'media_filename'  => $name,
+            'media_url'       => $phone,
+            'delivery_status' => 'pending',
+        ]);
+
+        \App\Jobs\SendWhatsAppMessage::dispatch($message);
+
+        $this->showContactPicker = false;
+        $this->contactSearch = '';
+
+        $this->conversation->update(['last_message_at' => now()]);
+        $this->dispatch('toast', type: 'success', message: 'Contato enviado.');
+    }
+
     public function toggleTag(int $tagId): void
     {
         if (!$this->conversationId) return;
@@ -1103,9 +1137,19 @@ class ChatArea extends Component
         $myReactionPhone = $this->resolveMyPhone();
         $replyToMessage  = $this->replyToId ? Message::find($this->replyToId) : null;
 
+        $contactList = collect();
+        if ($this->showContactPicker) {
+            $contactList = \App\Models\BroadcastContact::where('is_active', true)
+                ->when($this->contactSearch, fn($q) =>
+                    $q->where('name', 'like', "%{$this->contactSearch}%")
+                      ->orWhere('phone', 'like', "%{$this->contactSearch}%")
+                )->orderBy('name')->take(50)->get(['id', 'name', 'phone']);
+        }
+
         return view('livewire.chat.chat-area', compact(
             'messages', 'quickReplies', 'departments', 'transferAgents',
-            'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone', 'replyToMessage'
+            'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone', 'replyToMessage',
+            'contactList'
         ));
     }
 }
