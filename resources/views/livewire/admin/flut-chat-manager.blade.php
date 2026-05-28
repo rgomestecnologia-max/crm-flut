@@ -38,22 +38,34 @@
                     <input wire:model="widgetColor" type="text" style="flex:1; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none;">
                 </div>
             </div>
-            <div>
-                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px;">Avatar do atendente</label>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    @if($widgetAvatarUrl)
-                    <img src="{{ $widgetAvatarUrl }}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid rgba(178,255,0,0.3);">
-                    <button wire:click="$set('widgetAvatarUrl', '')" style="font-size:10px; color:#f87171; background:none; border:none; cursor:pointer;">Remover</button>
-                    @else
-                    <div style="width:40px; height:40px; border-radius:50%; background:#25D366; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-                    </div>
-                    @endif
-                    <label style="padding:6px 12px; font-size:10px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:7px; cursor:pointer;">
-                        📷 Enviar foto
+            <div style="grid-column: 1 / -1;">
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:8px;">Avatar do Bot</label>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    {{-- Botão upload personalizado --}}
+                    <label style="width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.06); border:2px solid {{ !$widgetAvatarUrl ? 'rgba(178,255,0,0.5)' : 'rgba(255,255,255,0.1)' }}; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; flex-shrink:0;" title="Enviar foto personalizada">
+                        @if($widgetAvatarUrl && !str_contains($widgetAvatarUrl, '/img/avatars/'))
+                        <img src="{{ $widgetAvatarUrl }}" style="width:52px; height:52px; border-radius:50%; object-fit:cover;">
+                        @else
+                        <svg width="22" height="22" fill="rgba(255,255,255,0.3)" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        @endif
                         <input type="file" wire:model="avatarUpload" accept="image/*" style="display:none;">
                     </label>
-                    <span wire:loading wire:target="avatarUpload" style="font-size:10px; color:rgba(255,255,255,0.4);">Enviando...</span>
+                    <span wire:loading wire:target="avatarUpload" style="font-size:10px; color:rgba(255,255,255,0.4); position:absolute; margin-top:70px;">Enviando...</span>
+
+                    {{-- Avatares pré-configurados --}}
+                    @foreach(['woman-1','woman-2','woman-3','man-1','man-2','man-3'] as $av)
+                    @php $avUrl = url('/img/avatars/' . $av . '.svg'); @endphp
+                    <button wire:click="$set('widgetAvatarUrl', '{{ $avUrl }}')" type="button"
+                            style="width:56px; height:56px; border-radius:50%; border:3px solid {{ $widgetAvatarUrl === $avUrl ? '#3B82F6' : 'transparent' }}; padding:0; cursor:pointer; background:transparent; flex-shrink:0; transition:all .2s;">
+                        <img src="{{ $avUrl }}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
+                    </button>
+                    @endforeach
+
+                    {{-- Opção WhatsApp (sem avatar) --}}
+                    <button wire:click="$set('widgetAvatarUrl', '')" type="button"
+                            style="width:56px; height:56px; border-radius:50%; border:3px solid {{ $widgetAvatarUrl === '' ? '#3B82F6' : 'transparent' }}; padding:0; cursor:pointer; background:#25D366; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .2s;">
+                        <svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                    </button>
                 </div>
             </div>
             <div>
