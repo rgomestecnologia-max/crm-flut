@@ -12,9 +12,9 @@ class Department extends Model
 {
     use Auditable, BelongsToCompany;
 
-    protected $fillable = ['company_id', 'name', 'description', 'color', 'icon', 'is_active', 'sort_order', 'evolution_api_config_id'];
+    protected $fillable = ['company_id', 'name', 'description', 'color', 'icon', 'is_active', 'hide_from_main_queue', 'sort_order', 'evolution_api_config_id'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'hide_from_main_queue' => 'boolean'];
 
     public function users(): HasMany
     {

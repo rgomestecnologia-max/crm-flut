@@ -274,14 +274,16 @@ class ConversationList extends Component
             // Meus atendimentos: atribuídas a mim, status open (não arquivadas)
             'mine'     => $query->where('is_archived', false)->where('assigned_to', $user->id)->where('status', 'open'),
 
-            // Fila: conversas sem agente + grupos (exclui arquivadas e Aguardando)
-            'queue'    => $query->where('is_archived', false)->whereNull('waiting_human_reason')->where(function ($q) {
-                $q->where(function ($q2) {
-                    $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
-                })->orWhere(function ($q2) {
-                    $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
-                });
-            }),
+            // Fila: conversas sem agente + grupos (exclui arquivadas, Aguardando e depts ocultos)
+            'queue'    => $query->where('is_archived', false)->whereNull('waiting_human_reason')
+                ->whereDoesntHave('department', fn($q) => $q->where('hide_from_main_queue', true))
+                ->where(function ($q) {
+                    $q->where(function ($q2) {
+                        $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
+                    })->orWhere(function ($q2) {
+                        $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
+                    });
+                }),
 
             // Aguardando: conversas onde a IA pediu handoff (não arquivadas)
             'waiting'  => $query->where('is_archived', false)->whereNotNull('waiting_human_reason'),
@@ -331,13 +333,15 @@ class ConversationList extends Component
 
         $counts = [
             'mine'     => (clone $baseQuery)->where('is_archived', false)->where('assigned_to', $user->id)->where('status', 'open')->count(),
-            'queue'    => (clone $baseQuery)->where('is_archived', false)->whereNull('waiting_human_reason')->where(function ($q) {
-                $q->where(function ($q2) {
-                    $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
-                })->orWhere(function ($q2) {
-                    $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
-                });
-            })->count(),
+            'queue'    => (clone $baseQuery)->where('is_archived', false)->whereNull('waiting_human_reason')
+                ->whereDoesntHave('department', fn($q) => $q->where('hide_from_main_queue', true))
+                ->where(function ($q) {
+                    $q->where(function ($q2) {
+                        $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
+                    })->orWhere(function ($q2) {
+                        $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
+                    });
+                })->count(),
             'waiting'  => (clone $baseQuery)->where('is_archived', false)->whereNotNull('waiting_human_reason')->count(),
             'all'      => (clone $baseQuery)->where('is_archived', false)->count(),
             'archived' => (clone $baseQuery)->where('is_archived', true)->count(),
@@ -354,7 +358,8 @@ class ConversationList extends Component
         if ($user->isAdmin() && ($isAdminViewingOtherCompany || empty($userDeptIds))) {
             $userDeptIds = Department::active()->pluck('id')->all();
         }
-        $showDeptQueues = $currentCompanyId === 3 && ($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1;
+        $hasHiddenDepts = Department::active()->where('hide_from_main_queue', true)->exists();
+        $showDeptQueues = (($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1) || $hasHiddenDepts;
         if ($showDeptQueues) {
             foreach ($userDeptIds as $deptId) {
                 $deptQueueCounts[$deptId] = (clone $baseQuery)
