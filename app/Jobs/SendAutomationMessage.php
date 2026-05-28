@@ -36,6 +36,25 @@ class SendAutomationMessage implements ShouldQueue
         app(\App\Services\CurrentCompany::class)->set((int) $this->automation->company_id, persist: false);
 
         try {
+            // Deduplicação: se já foi enviada automação para este contato+card nas últimas 2h, cancela
+            $alreadySent = Conversation::withoutGlobalScopes()
+                ->where('company_id', $this->automation->company_id)
+                ->where('contact_id', $this->contact->id)
+                ->where('source_automation_id', $this->automation->id)
+                ->whereHas('messages', fn($q) => $q->where('sender_type', 'agent')
+                    ->whereNull('sender_id')
+                    ->where('created_at', '>=', now()->subHours(2))
+                )->exists();
+
+            if ($alreadySent) {
+                Log::info('SendAutomationMessage: deduplicação — já enviado nas últimas 2h', [
+                    'contact'    => $this->contact->name,
+                    'automation' => $this->automation->name,
+                    'card'       => $this->card->id,
+                ]);
+                return;
+            }
+
             // Verifica se já houve atendimento humano recente — MAS apenas para
             // automações com IA (enable_ai_on_reply ou ai_first_response).
             // Automações sem IA (como confirmação de agendamento) enviam sempre.
