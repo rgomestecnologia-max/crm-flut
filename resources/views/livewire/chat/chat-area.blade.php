@@ -1342,7 +1342,7 @@ function senderColor(?string $identifier): string {
                 </div>
                 <div style="overflow-y:auto; max-height:200px;">
                     @forelse($quickReplies as $qr)
-                    <button wire:click="useQuickReply('{{ addslashes($qr->content) }}')"
+                    <button wire:click="useQuickReply({{ $qr->id }})"
                             style="width:100%; text-align:left; padding:10px 12px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.1s; color:white;"
                             onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
                         <p style="font-size:12px; font-weight:600; color:#b2ff00; margin:0 0 2px;">⚡ {{ $qr->title }}</p>

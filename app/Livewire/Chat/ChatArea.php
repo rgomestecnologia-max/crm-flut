@@ -722,9 +722,12 @@ class ChatArea extends Component
         }
     }
 
-    public function useQuickReply(string $content): void
+    public function useQuickReply(int $id): void
     {
-        $this->messageText      = $content;
+        $qr = \App\Models\QuickReply::find($id);
+        if ($qr) {
+            $this->messageText = $qr->content;
+        }
         $this->showQuickReplies = false;
         $this->dispatch('focus-message-input');
     }
