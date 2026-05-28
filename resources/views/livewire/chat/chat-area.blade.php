@@ -1552,10 +1552,9 @@ function chatArea() {
         _currentConvId: null,
 
         init() {
-            // Salva/restaura rascunhos ao trocar de conversa
             this._currentConvId = this.$wire.conversationId;
 
-            // Intercepta ANTES do Livewire processar a troca — salva o draft atual
+            // Salva draft ANTES do Livewire processar a troca
             Livewire.hook('commit', ({ component, commit }) => {
                 if (component.id !== this.$wire.__instance.id) return;
                 const calls = commit.calls || [];
@@ -1569,27 +1568,21 @@ function chatArea() {
                 }
             });
 
-            // Detecta quando o conversationId mudou APÓS o render
-            Livewire.hook('morph.updated', ({ el, component }) => {
-                if (component.id !== this.$wire.__instance.id) return;
+            // Restaura draft APÓS o Livewire re-render
+            // Usa setInterval para checar mudança de conversationId (mais confiável que hooks)
+            setInterval(() => {
                 const newId = this.$wire.conversationId;
                 if (newId && newId !== this._currentConvId) {
                     this._currentConvId = newId;
-                    this.clearSearch();
-                    this._shouldAutoScroll = true;
-                    this.scrollToBottom(false);
                     const draft = this._drafts[newId] || '';
-                    setTimeout(() => {
-                        const ta = document.getElementById('main-message-input');
-                        if (ta) {
-                            ta.value = draft;
-                            ta.style.height = 'auto';
-                            ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
-                            ta.focus();
-                        }
-                    }, 100);
+                    const ta = document.getElementById('main-message-input');
+                    if (ta) {
+                        ta.value = draft;
+                        ta.style.height = 'auto';
+                        ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+                    }
                 }
-            });
+            }, 300);
 
             // Scroll ao carregar a página inicial
             this._shouldAutoScroll = true;
