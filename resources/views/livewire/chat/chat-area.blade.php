@@ -378,7 +378,7 @@ function senderColor(?string $identifier): string {
                 $lastDate = $msgDate;
             @endphp
             @if($showDateSep)
-                <div style="display:flex; justify-content:center; margin:12px 0 8px;">
+                <div wire:key="date-{{ $msg->id }}" style="display:flex; justify-content:center; margin:12px 0 8px;">
                     <span style="background:rgba(88,101,124,0.7); color:rgba(255,255,255,0.85); font-size:11px; font-weight:600; padding:4px 14px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
                         {{ $msg->created_at->format('d/m/Y') }}
                     </span>
@@ -386,14 +386,14 @@ function senderColor(?string $identifier): string {
             @endif
             @if($msg->isSystem())
                 {{-- System message --}}
-                <div style="display:flex; justify-content:center; margin:4px 0;">
+                <div wire:key="msg-{{ $msg->id }}" style="display:flex; justify-content:center; margin:4px 0;">
                     <span style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.25); font-size:10px; padding:4px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.06);">
                         {{ $msg->content }}
                     </span>
                 </div>
             @elseif($msg->isFromContact())
                 {{-- Contact message (left) --}}
-                <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
+                <div wire:key="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     <img x-data="{ err: false }"
                          :src="err ? '{{ $conversation->contact->avatar_fallback }}' : '{{ $conversation->contact->avatar }}'"
                          x-on:error="err = true" alt=""
@@ -675,7 +675,7 @@ function senderColor(?string $identifier): string {
                 </div>
             @else
                 {{-- Agent message (right) --}}
-                <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
+                <div wire:key="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
                      x-data="{ showMenu: false, editing: false, editText: '' }"
                      @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     @php
