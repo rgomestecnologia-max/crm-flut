@@ -47,6 +47,11 @@ class CrmCard extends Model
         return $this->hasMany(CrmCardFieldValue::class, 'card_id');
     }
 
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(CrmCardTask::class, 'card_id')->orderBy('due_date')->orderBy('due_time');
+    }
+
     /** Retorna o valor de um campo personalizado pelo key do campo */
     public function getFieldValue(string $key): ?string
     {

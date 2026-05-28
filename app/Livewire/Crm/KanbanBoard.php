@@ -33,6 +33,11 @@ class KanbanBoard extends Component
     public string $newNote          = '';
     public string $contact_phone    = '';
 
+    // Tarefas
+    public string $newTaskTitle = '';
+    public string $newTaskDate  = '';
+    public string $newTaskTime  = '';
+
     public function mount(): void
     {
         $first = CrmPipeline::active()->orderBy('sort_order')->first();
@@ -339,6 +344,39 @@ class KanbanBoard extends Component
         $this->newNote = '';
     }
 
+    public function addTask(): void
+    {
+        if (!$this->editingCardId || !trim($this->newTaskTitle) || !$this->newTaskDate) return;
+
+        \App\Models\CrmCardTask::create([
+            'card_id'  => $this->editingCardId,
+            'user_id'  => auth()->id(),
+            'title'    => trim($this->newTaskTitle),
+            'due_date' => $this->newTaskDate,
+            'due_time' => $this->newTaskTime ?: null,
+        ]);
+
+        $this->newTaskTitle = '';
+        $this->newTaskDate  = '';
+        $this->newTaskTime  = '';
+        $this->dispatch('toast', type: 'success', message: 'Tarefa adicionada.');
+    }
+
+    public function toggleTask(int $taskId): void
+    {
+        $task = \App\Models\CrmCardTask::find($taskId);
+        if (!$task) return;
+        $task->update([
+            'is_completed' => !$task->is_completed,
+            'completed_at' => !$task->is_completed ? now() : null,
+        ]);
+    }
+
+    public function deleteTask(int $taskId): void
+    {
+        \App\Models\CrmCardTask::findOrFail($taskId)->delete();
+    }
+
     public function closePanel(): void
     {
         $this->showCardPanel = false;
@@ -392,11 +430,16 @@ class KanbanBoard extends Component
                 ->with('user')->orderBy('created_at', 'desc')->get()
             : collect();
 
+        $cardTasks = $this->editingCardId
+            ? \App\Models\CrmCardTask::where('card_id', $this->editingCardId)
+                ->orderBy('is_completed')->orderBy('due_date')->orderBy('due_time')->get()
+            : collect();
+
         $customFields = CrmCustomField::orderBy('sort_order')->get();
 
         return view('livewire.crm.kanban-board', compact(
             'pipelines', 'currentPipeline', 'stages', 'cards',
-            'contacts', 'agents', 'activities', 'customFields'
+            'contacts', 'agents', 'activities', 'customFields', 'cardTasks'
         ));
     }
 }

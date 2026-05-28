@@ -513,6 +513,45 @@
                           class="{{ $inputClass }} resize-none" style="{{ $inputStyle }}" {!! $inputFocus !!}></textarea>
             </div>
 
+            {{-- ── SEÇÃO: Tarefas ── --}}
+            @if($editingCardId)
+            <div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <span style="font-size:10px; font-weight:700; letter-spacing:0.08em; color:#f59e0b; text-transform:uppercase;">Tarefas</span>
+                    <span style="font-size:10px; color:rgba(255,255,255,0.2);">{{ $cardTasks->where('is_completed', false)->count() }} pendente(s)</span>
+                </div>
+
+                {{-- Lista de tarefas --}}
+                @foreach($cardTasks as $task)
+                <div style="display:flex; align-items:flex-start; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                    <input type="checkbox" wire:click="toggleTask({{ $task->id }})" {{ $task->is_completed ? 'checked' : '' }}
+                           style="margin-top:2px; accent-color:#f59e0b; cursor:pointer;">
+                    <div style="flex:1; min-width:0;">
+                        <p style="font-size:12px; color:{{ $task->is_completed ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.8)' }}; {{ $task->is_completed ? 'text-decoration:line-through;' : '' }}">{{ $task->title }}</p>
+                        <p style="font-size:10px; color:{{ $task->due_date->isPast() && !$task->is_completed ? '#f87171' : 'rgba(255,255,255,0.25)' }};">
+                            📅 {{ $task->due_date->format('d/m/Y') }}{{ $task->due_time ? ' às ' . \Carbon\Carbon::parse($task->due_time)->format('H:i') : '' }}
+                        </p>
+                    </div>
+                    <button wire:click="deleteTask({{ $task->id }})" wire:confirm="Excluir tarefa?" style="color:rgba(255,255,255,0.15); background:none; border:none; cursor:pointer; font-size:14px; flex-shrink:0;"
+                            onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.15)'">✕</button>
+                </div>
+                @endforeach
+
+                {{-- Adicionar tarefa --}}
+                <div style="display:flex; gap:6px; margin-top:8px; align-items:center;">
+                    <input wire:model="newTaskTitle" type="text" placeholder="Nova tarefa..."
+                           wire:keydown.enter="addTask"
+                           style="flex:2; padding:6px 10px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none;">
+                    <input wire:model="newTaskDate" type="date"
+                           style="flex:1; padding:6px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
+                    <input wire:model="newTaskTime" type="time"
+                           style="width:70px; padding:6px 6px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
+                    <button wire:click="addTask"
+                            style="padding:6px 10px; font-size:10px; font-weight:700; color:#111; background:#f59e0b; border:none; border-radius:6px; cursor:pointer; flex-shrink:0;">+</button>
+                </div>
+            </div>
+            @endif
+
             {{-- ── SEÇÃO: Notas & Histórico ── --}}
             @if($editingCardId)
             <div>

@@ -111,6 +111,7 @@ Route::middleware(['auth', 'company'])->group(function () {
 
     // CRM
     Route::get('/crm', fn() => view('crm.index'))->middleware('module:crm')->name('crm.index');
+    Route::get('/crm/tasks', fn() => view('crm.tasks'))->middleware('module:crm')->name('crm.tasks');
 
     // Leads
     Route::get('/leads', fn() => view('leads.index'))->middleware('module:leads')->name('leads.index');
