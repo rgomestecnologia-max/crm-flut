@@ -354,10 +354,14 @@
                 <div class="grid grid-cols-2 gap-y-3" style="column-gap: 2rem">
 
                     <div class="col-span-2">
-                        <label class="{{ $labelClass }}" style="{{ $labelStyle }}">Título *</label>
-                        <input wire:model="card_title" type="text" placeholder="Nome do lead ou oportunidade"
-                               class="{{ $inputClass }}" style="{{ $inputStyle }}" {!! $inputFocus !!}>
-                        @error('card_title') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                        <label class="{{ $labelClass }}" style="{{ $labelStyle }}">Contato *</label>
+                        <select wire:model="card_contact_id" wire:change="$set('card_title', $event.target.selectedOptions[0]?.text || '')" class="{{ $inputClass }}" style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                            <option value="">— Selecione —</option>
+                            @foreach($contacts as $contact)
+                            <option value="{{ $contact->id }}">{{ $contact->name ?: $contact->phone }}</option>
+                            @endforeach
+                        </select>
+                        @error('card_contact_id') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
@@ -375,16 +379,6 @@
                             <option value="">— Nenhum —</option>
                             @foreach($agents as $agent)
                             <option value="{{ $agent->id }}">{{ $agent->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="{{ $labelClass }}" style="{{ $labelStyle }}">Contato</label>
-                        <select wire:model="card_contact_id" class="{{ $inputClass }}" style="{{ $inputStyle }}" {!! $inputFocus !!}>
-                            <option value="">— Nenhum —</option>
-                            @foreach($contacts as $contact)
-                            <option value="{{ $contact->id }}">{{ $contact->name ?: $contact->phone }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -552,46 +546,6 @@
             </div>
             @endif
 
-            {{-- ── SEÇÃO: Notas & Histórico ── --}}
-            @if($editingCardId)
-            <div>
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="w-0.5 h-3.5 rounded-full" style="background: #b2ff00"></div>
-                    <span class="text-[10px] font-bold tracking-widest" style="color: #b2ff00; text-transform: uppercase">Notas & Histórico</span>
-                </div>
-                <div class="flex gap-2 mb-3">
-                    <input wire:model="newNote" wire:keydown.enter="addNote" type="text"
-                           placeholder="Adicionar nota... (Enter)"
-                           class="{{ $inputClass }} flex-1" style="{{ $inputStyle }}" {!! $inputFocus !!}>
-                    <button wire:click="addNote"
-                            class="px-3 rounded-lg text-gray-400 hover:text-white transition-colors shrink-0"
-                            style="background: rgba(178,255,0,0.1); border: 1px solid rgba(178,255,0,0.25)"
-                            onmouseover="this.style.background='rgba(178,255,0,0.2)'"
-                            onmouseout="this.style.background='rgba(178,255,0,0.1)'">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#b2ff00">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                        </svg>
-                    </button>
-                </div>
-                @if($activities->isNotEmpty())
-                <div class="space-y-0 max-h-40 overflow-y-auto relative pl-3"
-                     style="border-left: 1px solid #1f2937">
-                    @foreach($activities as $act)
-                    <div class="relative flex gap-3 pb-3 text-xs">
-                        <div class="absolute -left-4 mt-1.5 w-2 h-2 rounded-full ring-2 shrink-0"
-                             style="{{ $act->type === 'stage_change'
-                                ? 'background:#b2ff00; ring-color:#0d1117'
-                                : 'background:#374151; ring-color:#0d1117' }}"></div>
-                        <div class="pt-0.5">
-                            <p class="text-gray-300 leading-relaxed">{{ $act->content }}</p>
-                            <p class="mt-0.5" style="color:#4b5563">{{ $act->user?->name ?? 'Sistema' }} · {{ $act->created_at->format('d/m H:i') }}</p>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-                @endif
-            </div>
-            @endif
 
         </div>
 

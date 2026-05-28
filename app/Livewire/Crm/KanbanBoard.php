@@ -202,19 +202,24 @@ class KanbanBoard extends Component
     public function saveCard(): void
     {
         $this->validate([
-            'card_title'       => 'required|string|max:200',
             'card_stage_id'    => 'required|exists:crm_stages,id',
             'card_priority'    => 'nullable|in:baixo,medio,alto,critico',
-            'card_contact_id'  => 'nullable|exists:contacts,id',
+            'card_contact_id'  => 'required|exists:contacts,id',
             'card_assigned_to' => 'nullable|exists:users,id',
         ]);
+
+        // Título automático a partir do contato
+        if ($this->card_contact_id) {
+            $contact = \App\Models\Contact::find($this->card_contact_id);
+            $this->card_title = $contact?->name ?: $contact?->phone ?: $this->card_title;
+        }
 
         $stage = CrmStage::find($this->card_stage_id);
 
         $data = [
             'pipeline_id' => $stage->pipeline_id,
             'stage_id'    => $this->card_stage_id,
-            'title'       => $this->card_title,
+            'title'       => $this->card_title ?: 'Sem título',
             'description' => $this->card_description ?: null,
             'priority'    => $this->card_priority ?: null,
             'contact_id'  => $this->card_contact_id,
