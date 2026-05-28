@@ -64,7 +64,7 @@
     box.setAttribute('style', `bottom:90px;${pos}`);
     box.innerHTML = `
       <div id="flut-chat-header" style="background:${config.color}">
-        ${config.logo_url ? `<img src="${config.logo_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : ''}
+        ${config.avatar_url ? `<img src="${config.avatar_url}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.3)">` : config.logo_url ? `<img src="${config.logo_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : ''}
         <div class="info"><h3>${esc(config.title)}</h3>${config.subtitle ? `<p>${esc(config.subtitle)}</p>` : ''}</div>
         <button class="close" onclick="document.getElementById('flut-chat-box').classList.remove('open');document.getElementById('flut-chat-btn').style.display='flex'">✕</button>
       </div>
