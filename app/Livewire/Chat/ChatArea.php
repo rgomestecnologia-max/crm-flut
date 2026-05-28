@@ -62,6 +62,8 @@ class ChatArea extends Component
     public bool   $showForwardPicker = false;
     public ?int   $forwardMessageId  = null;
     public string $forwardSearch     = '';
+    public array  $forwardSelected   = [];
+    public string $forwardCaption    = '';
 
     public ?Conversation $conversation = null;
 
@@ -777,44 +779,88 @@ class ChatArea extends Component
         $this->forwardMessageId  = $messageId;
         $this->showForwardPicker = true;
         $this->forwardSearch     = '';
+        $this->forwardSelected   = [];
+        $this->forwardCaption    = '';
     }
 
-    public function forwardMessage(int $targetConversationId): void
+    public function toggleForwardSelect(int $convId): void
     {
-        if (!$this->forwardMessageId) return;
+        if (in_array($convId, $this->forwardSelected)) {
+            $this->forwardSelected = array_values(array_diff($this->forwardSelected, [$convId]));
+        } else {
+            $this->forwardSelected[] = $convId;
+        }
+    }
+
+    public function sendForward(): void
+    {
+        if (!$this->forwardMessageId || empty($this->forwardSelected)) return;
 
         $source = Message::find($this->forwardMessageId);
         if (!$source) return;
 
-        $target = Conversation::find($targetConversationId);
-        if (!$target) return;
+        $userId = \Illuminate\Support\Facades\Auth::id();
+        $caption = trim($this->forwardCaption);
+        $lastTargetId = null;
+        $count = 0;
 
-        $fwd = Message::create([
-            'conversation_id' => $target->id,
-            'sender_type'     => 'agent',
-            'sender_id'       => \Illuminate\Support\Facades\Auth::id(),
-            'content'         => $source->content,
-            'type'            => $source->type,
-            'media_url'       => $source->media_url,
-            'media_filename'  => $source->media_filename,
-            'media_duration'  => $source->media_duration,
-            'delivery_status' => 'pending',
-        ]);
+        foreach ($this->forwardSelected as $targetId) {
+            $target = Conversation::find($targetId);
+            if (!$target) continue;
 
-        $target->update(['last_message_at' => now()]);
+            // Encaminha a mensagem original
+            $content = $source->content;
+            // Para mídia com legenda adicional, concatena
+            if ($caption && in_array($source->type, ['image', 'video', 'document'])) {
+                $content = $caption;
+            }
 
-        try { \App\Jobs\SendWhatsAppMessage::dispatch($fwd); } catch (\Throwable) {}
-        try { broadcast(new \App\Events\MessageReceived($fwd)); } catch (\Throwable) {}
+            $fwd = Message::create([
+                'conversation_id' => $target->id,
+                'sender_type'     => 'agent',
+                'sender_id'       => $userId,
+                'content'         => $content,
+                'type'            => $source->type,
+                'media_url'       => $source->media_url,
+                'media_filename'  => $source->media_filename,
+                'media_duration'  => $source->media_duration,
+                'delivery_status' => 'pending',
+            ]);
 
-        $contactName = $target->contact?->name ?: $target->contact?->phone ?: 'conversa';
+            $target->update(['last_message_at' => now()]);
+            try { \App\Jobs\SendWhatsAppMessage::dispatch($fwd); } catch (\Throwable) {}
+            try { broadcast(new \App\Events\MessageReceived($fwd)); } catch (\Throwable) {}
+
+            // Se é texto e tem legenda, envia a legenda como mensagem separada
+            if ($caption && $source->type === 'text') {
+                $captionMsg = Message::create([
+                    'conversation_id' => $target->id,
+                    'sender_type'     => 'agent',
+                    'sender_id'       => $userId,
+                    'content'         => $caption,
+                    'type'            => 'text',
+                    'delivery_status' => 'pending',
+                ]);
+                try { \App\Jobs\SendWhatsAppMessage::dispatch($captionMsg); } catch (\Throwable) {}
+            }
+
+            $lastTargetId = $targetId;
+            $count++;
+        }
+
         $this->showForwardPicker = false;
         $this->forwardMessageId  = null;
         $this->forwardSearch     = '';
+        $this->forwardSelected   = [];
+        $this->forwardCaption    = '';
 
-        // Abre a conversa destino
-        $this->loadConversation($targetConversationId);
-        $this->dispatch('conversation-selected', id: $targetConversationId);
-        $this->dispatch('toast', type: 'success', message: "Encaminhado para {$contactName}.");
+        // Abre a última conversa destino
+        if ($lastTargetId) {
+            $this->loadConversation($lastTargetId);
+            $this->dispatch('conversation-selected', id: $lastTargetId);
+        }
+
+        $this->dispatch('toast', type: 'success', message: "Encaminhado para {$count} conversa(s).");
     }
 
     public function toggleTag(int $tagId): void

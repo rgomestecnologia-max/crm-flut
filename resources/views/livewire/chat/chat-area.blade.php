@@ -1435,26 +1435,31 @@ function senderColor(?string $identifier): string {
 
             {{-- Painel de encaminhar mensagem --}}
             @if($showForwardPicker)
-            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(59,130,246,0.2); border-radius:12px; margin-bottom:6px; max-height:280px; overflow:hidden; display:flex; flex-direction:column;">
+            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(59,130,246,0.2); border-radius:12px; margin-bottom:6px; max-height:340px; overflow:hidden; display:flex; flex-direction:column;">
                 <div style="padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
                     <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
-                    <input wire:model.live.debounce.300ms="forwardSearch" type="text" placeholder="Encaminhar para... (buscar conversa)"
-                           style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
+                    <span style="font-size:11px; font-weight:700; color:#60a5fa;">Enviar para</span>
+                    <input wire:model.live.debounce.300ms="forwardSearch" type="text" placeholder="Pesquisar..."
+                           style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:4px 8px; outline:none; font-size:11px; color:white; font-family:inherit;">
                     <button wire:click="$set('showForwardPicker', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:14px;">✕</button>
                 </div>
-                <div style="overflow-y:auto; max-height:230px;">
+                <div style="overflow-y:auto; max-height:200px;">
                     @forelse($forwardConversations as $fwdConv)
-                    <button wire:click="forwardMessage({{ $fwdConv->id }})"
-                            style="width:100%; text-align:left; padding:10px 12px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.1s; color:white; display:flex; align-items:center; gap:10px;"
-                            onmouseover="this.style.background='rgba(59,130,246,0.08)'" onmouseout="this.style.background='transparent'">
-                        <div style="width:32px; height:32px; border-radius:50%; background:rgba(59,130,246,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            <span style="font-size:12px; font-weight:700; color:#60a5fa;">{{ mb_strtoupper(mb_substr($fwdConv->contact?->name ?? '?', 0, 1)) }}</span>
+                    @php $isSelected = in_array($fwdConv->id, $forwardSelected); @endphp
+                    <button wire:click="toggleForwardSelect({{ $fwdConv->id }})"
+                            style="width:100%; text-align:left; padding:8px 12px; background:{{ $isSelected ? 'rgba(59,130,246,0.1)' : 'transparent' }}; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.1s; color:white; display:flex; align-items:center; gap:10px;"
+                            onmouseover="this.style.background='{{ $isSelected ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.05)' }}'"
+                            onmouseout="this.style.background='{{ $isSelected ? 'rgba(59,130,246,0.1)' : 'transparent' }}'">
+                        <div style="width:30px; height:30px; border-radius:50%; background:rgba(59,130,246,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <span style="font-size:11px; font-weight:700; color:#60a5fa;">{{ mb_strtoupper(mb_substr($fwdConv->contact?->name ?? '?', 0, 1)) }}</span>
                         </div>
                         <div style="flex:1; min-width:0;">
                             <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.85); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $fwdConv->contact?->name ?: $fwdConv->contact?->phone ?: 'Sem nome' }}</p>
-                            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;">{{ $fwdConv->department?->name }} · {{ $fwdConv->last_message_at?->diffForHumans() }}</p>
+                            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;">{{ $fwdConv->department?->name }}</p>
                         </div>
-                        <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.2)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        <div style="width:20px; height:20px; border-radius:4px; border:2px solid {{ $isSelected ? '#3b82f6' : 'rgba(255,255,255,0.15)' }}; background:{{ $isSelected ? '#3b82f6' : 'transparent' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            @if($isSelected)<svg width="12" height="12" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>@endif
+                        </div>
                     </button>
                     @empty
                     <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">
@@ -1462,6 +1467,17 @@ function senderColor(?string $identifier): string {
                     </p>
                     @endforelse
                 </div>
+                @if(!empty($forwardSelected))
+                <div style="padding:8px 12px; border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
+                    <input wire:model="forwardCaption" type="text" placeholder="Adicione uma mensagem..."
+                           style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:7px 10px; outline:none; font-size:12px; color:white; font-family:inherit;"
+                           wire:keydown.enter="sendForward">
+                    <button wire:click="sendForward"
+                            style="width:34px; height:34px; border-radius:50%; background:#3b82f6; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+                @endif
             </div>
             @endif
 
