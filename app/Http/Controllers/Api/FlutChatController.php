@@ -99,7 +99,50 @@ class FlutChatController extends Controller
         $apiKey = \App\Models\GlobalSetting::get('gemini_api_key');
 
         $messages = $request->input('messages', []);
+
+        // Monta system prompt completo (igual ProcessBotResponse)
         $systemPrompt = $botConfig->system_prompt ?: 'Você é um assistente virtual. Seja cordial e objetivo.';
+
+        // Tom de voz
+        if ($botConfig->voice_tones) {
+            $tones = $botConfig->voice_tones;
+            if (is_string($tones)) { $decoded = json_decode($tones, true); $tones = is_array($decoded) ? $decoded : array_map('trim', explode(',', $tones)); }
+            if (!empty($tones)) { $systemPrompt .= "\n\n---\nTOM DE VOZ: " . implode(', ', $tones) . ".\nAdote esse tom em todas as respostas."; }
+        }
+
+        // Descrição da empresa
+        if ($botConfig->company_description) {
+            $systemPrompt .= "\n\n---\nSOBRE A EMPRESA:\n" . $botConfig->company_description;
+        }
+
+        // Conteúdo do site
+        if ($botConfig->website_content) {
+            $systemPrompt .= "\n\n---\nCONTEÚDO DO SITE DA EMPRESA:\n" . $botConfig->website_content;
+        }
+
+        // FAQ
+        if ($botConfig->faq) {
+            $systemPrompt .= "\n\n---\nPERGUNTAS FREQUENTES (FAQ):\n" . $botConfig->faq;
+        }
+
+        // Checklist
+        if ($botConfig->checklist) {
+            $systemPrompt .= "\n\n---\nCHECKLIST DE ATENDIMENTO:\n" . $botConfig->checklist;
+        }
+
+        // Catálogo de produtos
+        $products = \App\Models\AiBotProduct::where('is_active', true)->orderBy('type')->orderBy('name')->get();
+        if ($products->isNotEmpty()) {
+            $systemPrompt .= "\n\n---\nCATÁLOGO DE PRODUTOS E SERVIÇOS:\n";
+            foreach ($products as $product) { $systemPrompt .= $product->toPromptLine() . "\n"; }
+        }
+
+        // Data/hora atual
+        $now = now()->timezone('America/Sao_Paulo');
+        $days = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+        $systemPrompt .= "\n\n---\nDATA E HORA ATUAL: " . $days[$now->dayOfWeek] . ', ' . $now->format('d/m/Y H:i');
+
+        $systemPrompt .= "\n\nIMPORTANTE: Você está atendendo via chat do site (Flut Chat), não via WhatsApp.";
 
         $geminiContents = [];
         foreach ($messages as $msg) {
