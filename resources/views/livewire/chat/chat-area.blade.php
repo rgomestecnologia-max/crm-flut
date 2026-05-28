@@ -661,6 +661,15 @@ function senderColor(?string $identifier): string {
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
                                 Responder
                             </button>
+                            @if(in_array($msg->type, ['image', 'document', 'video', 'audio']))
+                            <button wire:click="openForward({{ $msg->id }})" @click="showMenu = false"
+                                    style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s; border-top:1px solid rgba(255,255,255,0.05);"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
+                                Encaminhar
+                            </button>
+                            @endif
                             @if($conversation->is_group && $msg->sender_phone)
                             <button wire:click="openPrivateChat({{ $msg->id }})" @click="showMenu = false"
                                     style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s; border-top:1px solid rgba(255,255,255,0.05);"
@@ -965,6 +974,15 @@ function senderColor(?string $identifier): string {
                                     onmouseout="this.style.background='transparent'">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 Editar
+                            </button>
+                            @endif
+                            @if(in_array($msg->type, ['image', 'document', 'video', 'audio']))
+                            <button wire:click="openForward({{ $msg->id }})" @click="showMenu = false"
+                                    style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
+                                Encaminhar
                             </button>
                             @endif
                             <button wire:click="deleteMessage({{ $msg->id }})" wire:confirm="Excluir esta mensagem?"
@@ -1413,6 +1431,38 @@ function senderColor(?string $identifier): string {
                     @empty
                     <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">
                         {{ $contactSearch ? 'Nenhum lead encontrado.' : 'Nenhum lead cadastrado.' }}
+                    </p>
+                    @endforelse
+                </div>
+            </div>
+            @endif
+
+            {{-- Painel de encaminhar mensagem --}}
+            @if($showForwardPicker)
+            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(59,130,246,0.2); border-radius:12px; margin-bottom:6px; max-height:280px; overflow:hidden; display:flex; flex-direction:column;">
+                <div style="padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
+                    <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
+                    <input wire:model.live.debounce.300ms="forwardSearch" type="text" placeholder="Encaminhar para... (buscar conversa)"
+                           style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
+                    <button wire:click="$set('showForwardPicker', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:14px;">✕</button>
+                </div>
+                <div style="overflow-y:auto; max-height:230px;">
+                    @forelse($forwardConversations as $fwdConv)
+                    <button wire:click="forwardMessage({{ $fwdConv->id }})"
+                            style="width:100%; text-align:left; padding:10px 12px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background 0.1s; color:white; display:flex; align-items:center; gap:10px;"
+                            onmouseover="this.style.background='rgba(59,130,246,0.08)'" onmouseout="this.style.background='transparent'">
+                        <div style="width:32px; height:32px; border-radius:50%; background:rgba(59,130,246,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <span style="font-size:12px; font-weight:700; color:#60a5fa;">{{ mb_strtoupper(mb_substr($fwdConv->contact?->name ?? '?', 0, 1)) }}</span>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.85); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $fwdConv->contact?->name ?: $fwdConv->contact?->phone ?: 'Sem nome' }}</p>
+                            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;">{{ $fwdConv->department?->name }} · {{ $fwdConv->last_message_at?->diffForHumans() }}</p>
+                        </div>
+                        <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.2)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                    @empty
+                    <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">
+                        {{ $forwardSearch ? 'Nenhuma conversa encontrada.' : 'Nenhuma conversa ativa.' }}
                     </p>
                     @endforelse
                 </div>

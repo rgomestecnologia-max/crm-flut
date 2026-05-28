@@ -58,6 +58,11 @@ class ChatArea extends Component
     public bool   $showContactPicker = false;
     public string $contactSearch     = '';
 
+    // Encaminhar mensagem
+    public bool   $showForwardPicker = false;
+    public ?int   $forwardMessageId  = null;
+    public string $forwardSearch     = '';
+
     public ?Conversation $conversation = null;
 
     public function mount(?int $conversationId = null): void
@@ -767,6 +772,47 @@ class ChatArea extends Component
         $this->dispatch('toast', type: 'success', message: 'Contato enviado.');
     }
 
+    public function openForward(int $messageId): void
+    {
+        $this->forwardMessageId  = $messageId;
+        $this->showForwardPicker = true;
+        $this->forwardSearch     = '';
+    }
+
+    public function forwardMessage(int $targetConversationId): void
+    {
+        if (!$this->forwardMessageId) return;
+
+        $source = Message::find($this->forwardMessageId);
+        if (!$source) return;
+
+        $target = Conversation::find($targetConversationId);
+        if (!$target) return;
+
+        $fwd = Message::create([
+            'conversation_id' => $target->id,
+            'sender_type'     => 'agent',
+            'sender_id'       => \Illuminate\Support\Facades\Auth::id(),
+            'content'         => $source->content,
+            'type'            => $source->type,
+            'media_url'       => $source->media_url,
+            'media_filename'  => $source->media_filename,
+            'media_duration'  => $source->media_duration,
+            'delivery_status' => 'pending',
+        ]);
+
+        $target->update(['last_message_at' => now()]);
+
+        try { \App\Jobs\SendWhatsAppMessage::dispatch($fwd); } catch (\Throwable) {}
+        try { broadcast(new \App\Events\MessageReceived($fwd)); } catch (\Throwable) {}
+
+        $contactName = $target->contact?->name ?: $target->contact?->phone ?: 'conversa';
+        $this->showForwardPicker = false;
+        $this->forwardMessageId  = null;
+        $this->forwardSearch     = '';
+        $this->dispatch('toast', type: 'success', message: "Encaminhado para {$contactName}.");
+    }
+
     public function toggleTag(int $tagId): void
     {
         if (!$this->conversationId) return;
@@ -1147,10 +1193,24 @@ class ChatArea extends Component
                 )->orderBy('name')->take(50)->get(['id', 'name', 'phone']);
         }
 
+        $forwardConversations = collect();
+        if ($this->showForwardPicker) {
+            $forwardConversations = Conversation::with('contact')
+                ->where('is_archived', false)
+                ->where('id', '!=', $this->conversationId)
+                ->whereIn('status', ['open', 'pending'])
+                ->when($this->forwardSearch, fn($q) =>
+                    $q->whereHas('contact', fn($cq) =>
+                        $cq->where('name', 'like', "%{$this->forwardSearch}%")
+                            ->orWhere('phone', 'like', "%{$this->forwardSearch}%")
+                    )
+                )->latest('last_message_at')->take(30)->get();
+        }
+
         return view('livewire.chat.chat-area', compact(
             'messages', 'quickReplies', 'departments', 'transferAgents',
             'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone', 'replyToMessage',
-            'contactList'
+            'contactList', 'forwardConversations'
         ));
     }
 }
