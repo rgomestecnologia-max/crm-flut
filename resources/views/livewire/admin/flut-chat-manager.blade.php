@@ -215,6 +215,8 @@
                 @endif
             </div>
             <div style="display:flex; gap:4px; flex-shrink:0;">
+                <button wire:click="moveStepUp({{ $step->id }})" title="Mover para cima" style="padding:3px 6px; font-size:10px; color:rgba(255,255,255,0.3); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:5px; cursor:pointer;">↑</button>
+                <button wire:click="moveStepDown({{ $step->id }})" title="Mover para baixo" style="padding:3px 6px; font-size:10px; color:rgba(255,255,255,0.3); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:5px; cursor:pointer;">↓</button>
                 <button wire:click="editStep({{ $step->id }})" style="padding:3px 8px; font-size:10px; color:#60a5fa; background:transparent; border:1px solid rgba(96,165,250,0.2); border-radius:5px; cursor:pointer;">✏️</button>
                 <button wire:click="deleteStep({{ $step->id }})" wire:confirm="Excluir step?" style="padding:3px 8px; font-size:10px; color:#f87171; background:transparent; border:1px solid rgba(239,68,68,0.2); border-radius:5px; cursor:pointer;">✕</button>
             </div>

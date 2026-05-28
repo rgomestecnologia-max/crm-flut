@@ -174,6 +174,32 @@ class FlutChatManager extends Component
         $this->showStepForm       = true;
     }
 
+    public function moveStepUp(int $id): void
+    {
+        $step = FlutChatStep::findOrFail($id);
+        $prev = FlutChatStep::where('flow_id', $step->flow_id)
+            ->where('sort_order', '<', $step->sort_order)
+            ->orderByDesc('sort_order')->first();
+        if ($prev) {
+            $tmpOrder = $step->sort_order;
+            $step->update(['sort_order' => $prev->sort_order]);
+            $prev->update(['sort_order' => $tmpOrder]);
+        }
+    }
+
+    public function moveStepDown(int $id): void
+    {
+        $step = FlutChatStep::findOrFail($id);
+        $next = FlutChatStep::where('flow_id', $step->flow_id)
+            ->where('sort_order', '>', $step->sort_order)
+            ->orderBy('sort_order')->first();
+        if ($next) {
+            $tmpOrder = $step->sort_order;
+            $step->update(['sort_order' => $next->sort_order]);
+            $next->update(['sort_order' => $tmpOrder]);
+        }
+    }
+
     public function deleteStep(int $id): void
     {
         FlutChatStep::findOrFail($id)->delete();
