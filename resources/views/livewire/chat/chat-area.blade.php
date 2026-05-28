@@ -323,7 +323,7 @@ function senderColor(?string $identifier): string {
     </div>
 
     {{-- Messages area --}}
-    <div class="flex-1 overflow-y-auto" x-ref="msgContainer" id="messages-container"
+    <div class="flex-1" style="position:relative; overflow:hidden;"
          x-data="{ dragging: false, dragCount: 0 }"
          x-on:dragenter.prevent="dragCount++; dragging=true"
          x-on:dragleave.prevent="dragCount--; if(dragCount<=0){ dragging=false; dragCount=0; }"
@@ -353,13 +353,8 @@ function senderColor(?string $identifier): string {
                     }
                 }
             }
-         "
-         style="padding:20px 16px; display:flex; flex-direction:column; gap:6px; overflow-x:hidden;
-                background: radial-gradient(ellipse at 20% 0%, rgba(178,255,0,0.02) 0%, transparent 60%),
-                            radial-gradient(ellipse at 80% 100%, rgba(178,255,0,0.015) 0%, transparent 60%);
-                background-attachment:local; position:relative;">
-
-        {{-- Drop overlay --}}
+         ">
+        {{-- Drop overlay (fixo sobre a área, independente do scroll) --}}
         <div x-show="dragging" x-transition.opacity
              style="position:absolute; inset:0; background:rgba(178,255,0,0.08); border:2px dashed rgba(178,255,0,0.5); border-radius:12px; z-index:50; display:flex; align-items:center; justify-content:center; pointer-events:none;">
             <div style="background:rgba(0,0,0,0.7); padding:16px 32px; border-radius:12px; display:flex; align-items:center; gap:12px;">
@@ -369,6 +364,12 @@ function senderColor(?string $identifier): string {
                 <span style="color:#b2ff00; font-size:14px; font-weight:700;">Solte a imagem aqui</span>
             </div>
         </div>
+        {{-- Messages (scrollável) --}}
+        <div class="overflow-y-auto" x-ref="msgContainer" id="messages-container"
+             style="position:absolute; inset:0; padding:20px 16px; display:flex; flex-direction:column; gap:6px; overflow-x:hidden;
+                    background: radial-gradient(ellipse at 20% 0%, rgba(178,255,0,0.02) 0%, transparent 60%),
+                                radial-gradient(ellipse at 80% 100%, rgba(178,255,0,0.015) 0%, transparent 60%);
+                    background-attachment:local;">
         @php $lastDate = null; @endphp
         @foreach($messages as $msg)
             @php
@@ -979,7 +980,8 @@ function senderColor(?string $identifier): string {
             @endif
         @endforeach
         <div id="chat-bottom-anchor" style="height:1px; flex-shrink:0;"></div>
-    </div>
+        </div>{{-- /messages-container --}}
+    </div>{{-- /drop wrapper --}}
 
     {{-- Quick replies dropdown --}}
     {{-- CRM Panel --}}
