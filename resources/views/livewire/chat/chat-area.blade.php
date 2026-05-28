@@ -1578,6 +1578,7 @@ function chatArea() {
                         ta.value = draft;
                         ta.style.height = 'auto';
                         ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+                        ta.focus();
                     }
                 }
             }, 300);
