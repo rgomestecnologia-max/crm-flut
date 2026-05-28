@@ -8,9 +8,11 @@ use App\Models\FlutChatStep;
 use App\Models\FlutChatWidget;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class FlutChatManager extends Component
 {
+    use WithFileUploads;
     // Widget
     public ?int $editingWidgetId = null;
     public string $widgetName = '';
@@ -18,6 +20,7 @@ class FlutChatManager extends Component
     public string $widgetSubtitle = '';
     public string $widgetColor = '#b2ff00';
     public string $widgetAvatarUrl = '';
+    public $avatarUpload = null;
     public string $widgetPosition = 'bottom-right';
     public string $widgetWhatsapp = '';
     public string $widgetWhatsappMsg = '';
@@ -111,6 +114,28 @@ class FlutChatManager extends Component
         $w->update(['is_active' => !$w->is_active]);
     }
 
+    public function updatedAvatarUpload(): void
+    {
+        $this->validate(['avatarUpload' => 'image|max:5120']);
+
+        $file = $this->avatarUpload;
+        $raw = file_get_contents($file->getRealPath());
+
+        // Comprime para 100x100 JPEG
+        $optimizer = app(\App\Services\ImageOptimizer::class);
+        $img = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+        $image = $img->read($raw);
+        $image->cover(100, 100);
+        $compressed = $image->toJpeg(80)->toString();
+
+        $path = 'flut-chat/avatars/' . uniqid('avatar_', true) . '.jpg';
+        \App\Services\MediaStorage::put($path, $compressed);
+        $this->widgetAvatarUrl = \App\Services\MediaStorage::url($path);
+        $this->avatarUpload = null;
+
+        $this->dispatch('toast', type: 'success', message: 'Avatar enviado.');
+    }
+
     private function resetWidgetForm(): void
     {
         $this->editingWidgetId = null;
@@ -119,6 +144,7 @@ class FlutChatManager extends Component
         $this->widgetSubtitle = '';
         $this->widgetColor = '#b2ff00';
         $this->widgetAvatarUrl = '';
+        $this->avatarUpload = null;
         $this->widgetPosition = 'bottom-right';
         $this->widgetWhatsapp = '';
         $this->widgetWhatsappMsg = '';
