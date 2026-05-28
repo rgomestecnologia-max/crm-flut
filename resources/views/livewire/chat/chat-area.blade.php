@@ -1549,23 +1549,37 @@ function chatArea() {
         _shouldAutoScroll: true,
         _observer: null,
         _drafts: {},
+        _currentConvId: null,
 
         init() {
-            this.$watch('$wire.conversationId', (val, oldVal) => {
-                const ta = document.getElementById('main-message-input');
-                // Salva rascunho da conversa anterior
-                if (oldVal && ta) {
-                    const text = ta.value || '';
-                    if (text.trim()) { this._drafts[oldVal] = text; } else { delete this._drafts[oldVal]; }
+            // Salva/restaura rascunhos ao trocar de conversa
+            this._currentConvId = this.$wire.conversationId;
+
+            // Intercepta ANTES do Livewire processar a troca — salva o draft atual
+            Livewire.hook('commit', ({ component, commit }) => {
+                if (component.id !== this.$wire.__instance.id) return;
+                const calls = commit.calls || [];
+                const isSwitch = calls.some(c => c.method === 'loadConversation');
+                if (isSwitch && this._currentConvId) {
+                    const ta = document.getElementById('main-message-input');
+                    if (ta) {
+                        const text = ta.value || '';
+                        if (text.trim()) { this._drafts[this._currentConvId] = text; } else { delete this._drafts[this._currentConvId]; }
+                    }
                 }
-                if (val) {
+            });
+
+            // Detecta quando o conversationId mudou APÓS o render
+            Livewire.hook('morph.updated', ({ el, component }) => {
+                if (component.id !== this.$wire.__instance.id) return;
+                const newId = this.$wire.conversationId;
+                if (newId && newId !== this._currentConvId) {
+                    this._currentConvId = newId;
                     this.clearSearch();
                     this._shouldAutoScroll = true;
                     this.scrollToBottom(false);
-                    // Restaura rascunho da nova conversa
-                    const draft = this._drafts[val] || '';
-                    this.$wire.set('messageText', draft);
-                    this.$nextTick(() => {
+                    const draft = this._drafts[newId] || '';
+                    setTimeout(() => {
                         const ta = document.getElementById('main-message-input');
                         if (ta) {
                             ta.value = draft;
@@ -1573,7 +1587,7 @@ function chatArea() {
                             ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
                             ta.focus();
                         }
-                    });
+                    }, 100);
                 }
             });
 
