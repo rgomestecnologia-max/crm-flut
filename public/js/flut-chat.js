@@ -92,6 +92,13 @@
     const btn = document.getElementById('flut-chat-btn');
     chatOpen = !chatOpen;
     if (chatOpen) {
+      // Sem steps: abre WhatsApp direto
+      if (!steps.length && config.whatsapp_number) {
+        const msg = config.whatsapp_message || 'Olá!';
+        window.open(`https://wa.me/${config.whatsapp_number.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
+        chatOpen = false;
+        return;
+      }
       box.classList.add('open');
       btn.style.display = 'none';
       if (!document.getElementById('flut-chat-messages').children.length && currentStep) {

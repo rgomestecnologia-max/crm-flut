@@ -21,7 +21,10 @@ class FlutChatController extends Controller
 
         if (!$widget) return response()->json(['error' => 'Widget not found'], 404);
 
-        $flow = $widget->activeFlow;
+        // Seta empresa para que os scopes funcionem
+        app(CurrentCompany::class)->set($widget->company_id, persist: false);
+
+        $flow = FlutChatWidget::find($widget->id)->activeFlow;
         $steps = $flow ? $flow->steps()->get(['id', 'type', 'content', 'input_key', 'input_placeholder', 'options', 'next_step_id', 'action_type', 'action_value', 'sort_order']) : [];
 
         return response()->json([
