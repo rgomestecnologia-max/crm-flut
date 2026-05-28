@@ -396,6 +396,17 @@
                 </a>
                 @endif
 
+                @if($canSee('admin.flut-chat'))
+                <a href="{{ route('admin.flut-chat.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.flut-chat*') ? 'active' : '' }}"
+                   style="color:{{ request()->routeIs('admin.flut-chat*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span x-show="sidebarOpen">Flut Chat</span>
+                </a>
+                @endif
+
                 @if($canSee('admin.audit'))
                 <a href="{{ route('admin.audit.index') }}"
                    class="nav-item {{ request()->routeIs('admin.audit*') ? 'active' : '' }}"

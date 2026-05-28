@@ -1,0 +1,263 @@
+(function(){
+  const script = document.currentScript;
+  const widgetId = new URL(script.src).searchParams.get('id');
+  if (!widgetId) return;
+
+  const API = script.src.split('/js/')[0] + '/api/flut-chat/' + widgetId;
+
+  let config = null, steps = [], currentStep = null, collected = {}, chatOpen = false, aiMode = false, aiMessages = [];
+
+  // ── Styles ──
+  const css = document.createElement('style');
+  css.textContent = `
+    #flut-chat-btn{position:fixed;z-index:99998;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+    #flut-chat-btn:hover{transform:scale(1.1)}
+    #flut-chat-box{position:fixed;z-index:99999;width:370px;max-width:calc(100vw - 24px);height:520px;max-height:calc(100vh - 100px);border-radius:16px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 16px 60px rgba(0,0,0,0.4);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+    #flut-chat-box.open{display:flex}
+    #flut-chat-header{padding:16px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+    #flut-chat-header .info h3{font-size:15px;font-weight:700;color:#fff;margin:0}
+    #flut-chat-header .info p{font-size:11px;color:rgba(255,255,255,.7);margin:2px 0 0}
+    #flut-chat-header .close{background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:20px;margin-left:auto}
+    #flut-chat-messages{flex:1;overflow-y:auto;padding:16px;background:#fff;display:flex;flex-direction:column;gap:10px}
+    .fc-msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;animation:fcFade .3s ease}
+    .fc-bot{background:#f0f0f0;color:#333;border-bottom-left-radius:4px;align-self:flex-start}
+    .fc-user{color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+    .fc-options{display:flex;flex-direction:column;gap:6px;align-self:flex-start;max-width:85%}
+    .fc-opt-btn{padding:8px 16px;border-radius:20px;border:2px solid;background:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+    .fc-opt-btn:hover{color:#fff!important}
+    .fc-typing{display:flex;gap:4px;align-self:flex-start;padding:10px 14px;background:#f0f0f0;border-radius:14px}
+    .fc-dot{width:6px;height:6px;border-radius:50%;background:#bbb;animation:fcBounce 1.2s infinite}
+    .fc-dot:nth-child(2){animation-delay:.2s}.fc-dot:nth-child(3){animation-delay:.4s}
+    #flut-chat-input{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff;border-top:1px solid #eee;flex-shrink:0}
+    #flut-chat-input input{flex:1;border:2px solid #e5e5e5;border-radius:24px;padding:10px 16px;font-size:13px;outline:none;transition:border-color .2s}
+    #flut-chat-input button{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    @keyframes fcFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fcBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+    @media(max-width:480px){#flut-chat-box{width:100vw;height:100vh;max-height:100vh;border-radius:0;bottom:0!important;right:0!important;left:0!important}}
+  `;
+  document.head.appendChild(css);
+
+  // ── Load config ──
+  fetch(API + '/config').then(r => r.json()).then(data => {
+    if (data.error) return;
+    config = data.widget;
+    steps = data.steps || [];
+    if (steps.length) currentStep = steps.find(s => s.sort_order === Math.min(...steps.map(x => x.sort_order)));
+    render();
+  }).catch(() => {});
+
+  function render() {
+    if (!config) return;
+    const pos = config.position === 'bottom-left' ? 'left:20px' : 'right:20px';
+
+    // Button
+    const btn = document.createElement('button');
+    btn.id = 'flut-chat-btn';
+    btn.setAttribute('style', `bottom:20px;${pos};background:${config.color}`);
+    btn.innerHTML = `<svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/><path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>`;
+    btn.onclick = () => toggle();
+    document.body.appendChild(btn);
+
+    // Chat box
+    const box = document.createElement('div');
+    box.id = 'flut-chat-box';
+    box.setAttribute('style', `bottom:90px;${pos}`);
+    box.innerHTML = `
+      <div id="flut-chat-header" style="background:${config.color}">
+        ${config.logo_url ? `<img src="${config.logo_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : ''}
+        <div class="info"><h3>${esc(config.title)}</h3>${config.subtitle ? `<p>${esc(config.subtitle)}</p>` : ''}</div>
+        <button class="close" onclick="document.getElementById('flut-chat-box').classList.remove('open');document.getElementById('flut-chat-btn').style.display='flex'">✕</button>
+      </div>
+      <div id="flut-chat-messages"></div>
+      <div id="flut-chat-input" style="display:none">
+        <input type="text" placeholder="Sua resposta..." id="flut-chat-field">
+        <button id="flut-chat-send" style="background:${config.color}">
+          <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    `;
+    document.body.appendChild(box);
+
+    document.getElementById('flut-chat-send').onclick = sendInput;
+    document.getElementById('flut-chat-field').addEventListener('keydown', e => { if (e.key === 'Enter') sendInput(); });
+
+    // trigger-flut class support
+    document.querySelectorAll('.trigger-flut').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); toggle(); });
+    });
+  }
+
+  function toggle() {
+    const box = document.getElementById('flut-chat-box');
+    const btn = document.getElementById('flut-chat-btn');
+    chatOpen = !chatOpen;
+    if (chatOpen) {
+      box.classList.add('open');
+      btn.style.display = 'none';
+      if (!document.getElementById('flut-chat-messages').children.length && currentStep) {
+        setTimeout(() => processStep(currentStep), 500);
+      }
+    } else {
+      box.classList.remove('open');
+      btn.style.display = 'flex';
+    }
+  }
+
+  function processStep(step) {
+    if (!step) return;
+
+    if (step.type === 'message') {
+      showTyping();
+      setTimeout(() => { hideTyping(); addBot(step.content); goNext(step); }, 800);
+    }
+    else if (step.type === 'input') {
+      showTyping();
+      setTimeout(() => { hideTyping(); addBot(step.content); showInput(step); }, 800);
+    }
+    else if (step.type === 'options') {
+      showTyping();
+      setTimeout(() => { hideTyping(); addBot(step.content); showOptions(step); }, 800);
+    }
+    else if (step.type === 'action') {
+      if (step.content) { showTyping(); setTimeout(() => { hideTyping(); addBot(step.content); setTimeout(() => doAction(step), 1000); }, 800); }
+      else doAction(step);
+    }
+  }
+
+  function goNext(step) {
+    if (step.next_step_id) {
+      const next = steps.find(s => s.id === step.next_step_id);
+      if (next) setTimeout(() => processStep(next), 600);
+    }
+  }
+
+  function showInput(step) {
+    const input = document.getElementById('flut-chat-input');
+    const field = document.getElementById('flut-chat-field');
+    input.style.display = 'flex';
+    field.placeholder = step.input_placeholder || 'Sua resposta...';
+    field.dataset.key = step.input_key || '';
+    field.dataset.stepId = step.id;
+    field.value = '';
+    field.focus();
+  }
+
+  function sendInput() {
+    const field = document.getElementById('flut-chat-field');
+    const val = field.value.trim();
+    if (!val) return;
+
+    if (aiMode) { sendAiMessage(val); return; }
+
+    addUser(val);
+    if (field.dataset.key) collected[field.dataset.key] = val;
+    field.value = '';
+    document.getElementById('flut-chat-input').style.display = 'none';
+
+    const step = steps.find(s => s.id === parseInt(field.dataset.stepId));
+    if (step) goNext(step);
+  }
+
+  function showOptions(step) {
+    const msgs = document.getElementById('flut-chat-messages');
+    const div = document.createElement('div');
+    div.className = 'fc-options';
+    (step.options || []).forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'fc-opt-btn';
+      btn.style.borderColor = config.color;
+      btn.style.color = config.color;
+      btn.onmouseover = () => { btn.style.background = config.color; };
+      btn.onmouseout = () => { btn.style.background = '#fff'; btn.style.color = config.color; };
+      btn.textContent = opt.label;
+      btn.onclick = () => {
+        addUser(opt.label);
+        div.remove();
+        collected['opcao'] = opt.label;
+        if (opt.next_step_id) {
+          const next = steps.find(s => s.id === parseInt(opt.next_step_id));
+          if (next) setTimeout(() => processStep(next), 400);
+        }
+      };
+      div.appendChild(btn);
+    });
+    msgs.appendChild(div);
+    scroll();
+  }
+
+  function doAction(step) {
+    const action = step.action_type;
+
+    // Save lead
+    fetch(API + '/lead', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ data: collected, action: action, page_url: window.location.href })
+    }).catch(() => {});
+
+    if (action === 'whatsapp') {
+      const num = config.whatsapp_number || step.action_value || '';
+      let msg = config.whatsapp_message || '';
+      Object.keys(collected).forEach(k => { msg = msg.replace(`{${k}}`, collected[k]); });
+      if (!msg) msg = 'Olá! ' + Object.entries(collected).map(([k,v]) => `${k}: ${v}`).join(', ');
+      window.open(`https://wa.me/${num.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+    else if (action === 'ia') {
+      aiMode = true;
+      addBot('Agora você está conversando com nossa IA. Como posso ajudar?');
+      document.getElementById('flut-chat-input').style.display = 'flex';
+      document.getElementById('flut-chat-field').placeholder = 'Digite sua mensagem...';
+      document.getElementById('flut-chat-field').focus();
+    }
+    else if (action === 'redirect') {
+      window.open(step.action_value || '/', '_blank');
+    }
+    else if (action === 'lead') {
+      addBot('Obrigado! Suas informações foram recebidas. Entraremos em contato em breve! 😊');
+    }
+  }
+
+  function sendAiMessage(text) {
+    addUser(text);
+    document.getElementById('flut-chat-field').value = '';
+    aiMessages.push({role:'user', content: text});
+    showTyping();
+
+    fetch(API + '/ai', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages: aiMessages })
+    }).then(r => r.json()).then(data => {
+      hideTyping();
+      const reply = data.reply || 'Desculpe, tente novamente.';
+      aiMessages.push({role:'assistant', content: reply});
+      addBot(reply);
+    }).catch(() => { hideTyping(); addBot('Erro ao conectar com a IA.'); });
+  }
+
+  // ── UI Helpers ──
+  function addBot(text) {
+    const msgs = document.getElementById('flut-chat-messages');
+    const div = document.createElement('div');
+    div.className = 'fc-msg fc-bot';
+    div.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    msgs.appendChild(div);
+    scroll();
+  }
+  function addUser(text) {
+    const msgs = document.getElementById('flut-chat-messages');
+    const div = document.createElement('div');
+    div.className = 'fc-msg fc-user';
+    div.style.background = config.color;
+    div.textContent = text;
+    msgs.appendChild(div);
+    scroll();
+  }
+  function showTyping() {
+    const msgs = document.getElementById('flut-chat-messages');
+    let t = document.getElementById('fc-typing');
+    if (!t) { t = document.createElement('div'); t.id = 'fc-typing'; t.className = 'fc-typing'; t.innerHTML = '<div class="fc-dot"></div><div class="fc-dot"></div><div class="fc-dot"></div>'; msgs.appendChild(t); }
+    scroll();
+  }
+  function hideTyping() { const t = document.getElementById('fc-typing'); if (t) t.remove(); }
+  function scroll() { const m = document.getElementById('flut-chat-messages'); if (m) m.scrollTop = m.scrollHeight; }
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+})();

@@ -136,6 +136,7 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::middleware('manager')->prefix('admin')->name('admin.')->group(function () {
         Route::get('quick-replies', fn() => view('admin.quick-replies.index'))->name('quick-replies.index');
         Route::get('backups', fn() => view('admin.backups.index'))->name('backups.index');
+        Route::get('flut-chat', fn() => view('admin.flut-chat.index'))->name('flut-chat.index')->middleware('module:admin.flut-chat');
     });
 
     // Download de mídia (proxy para evitar CORS em URLs externas)
