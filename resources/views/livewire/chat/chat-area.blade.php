@@ -1554,22 +1554,20 @@ function chatArea() {
         init() {
             this._currentConvId = this.$wire.conversationId;
 
-            // Salva draft ANTES do Livewire processar a troca
-            Livewire.hook('commit', ({ component, commit }) => {
-                if (component.id !== this.$wire.__instance.id) return;
-                const calls = commit.calls || [];
-                const isSwitch = calls.some(c => c.method === 'loadConversation');
-                if (isSwitch && this._currentConvId) {
-                    const ta = document.getElementById('main-message-input');
-                    if (ta) {
-                        const text = ta.value || '';
-                        if (text.trim()) { this._drafts[this._currentConvId] = text; } else { delete this._drafts[this._currentConvId]; }
-                    }
+            // Salva draft a cada keystroke no textarea
+            document.addEventListener('input', (e) => {
+                if (e.target.id === 'main-message-input' && this._currentConvId) {
+                    const text = e.target.value || '';
+                    if (text.trim()) { this._drafts[this._currentConvId] = text; } else { delete this._drafts[this._currentConvId]; }
                 }
             });
 
-            // Restaura draft APÓS o Livewire re-render
-            // Usa setInterval para checar mudança de conversationId (mais confiável que hooks)
+            // Limpa draft quando mensagem é enviada
+            window.addEventListener('message-sent', () => {
+                if (this._currentConvId) delete this._drafts[this._currentConvId];
+            });
+
+            // Restaura draft quando troca de conversa (poll 300ms)
             setInterval(() => {
                 const newId = this.$wire.conversationId;
                 if (newId && newId !== this._currentConvId) {
