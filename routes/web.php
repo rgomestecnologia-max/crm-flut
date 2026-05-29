@@ -159,6 +159,13 @@ Route::middleware(['auth', 'company'])->group(function () {
         if (!$content) abort(404);
 
         $mime = match(true) {
+            str_ends_with($filename, '.jpg'), str_ends_with($filename, '.jpeg') => 'image/jpeg',
+            str_ends_with($filename, '.png')  => 'image/png',
+            str_ends_with($filename, '.webp') => 'image/webp',
+            str_ends_with($filename, '.gif')  => 'image/gif',
+            str_ends_with($filename, '.mp4')  => 'video/mp4',
+            str_ends_with($filename, '.mp3')  => 'audio/mpeg',
+            str_ends_with($filename, '.ogg')  => 'audio/ogg',
             str_ends_with($filename, '.pdf')  => 'application/pdf',
             str_ends_with($filename, '.doc')  => 'application/msword',
             str_ends_with($filename, '.docx') => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

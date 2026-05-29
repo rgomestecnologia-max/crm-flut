@@ -420,7 +420,7 @@ function senderColor(?string $identifier): string {
                                 <img src="{{ $msg->media_thumb_url ?? $msg->media_url }}" alt="Imagem"
                                      loading="lazy"
                                      onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='{{ $msg->media_url }}'}"
-                                     @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })"
+                                     @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}', msgId: {{ $msg->id }} })"
                                      style="max-width:min(260px, 70vw); display:block; cursor:zoom-in; transition:opacity 0.2s;"
                                      onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                                 @if($msg->content)
@@ -713,7 +713,7 @@ function senderColor(?string $identifier): string {
                                 <img src="{{ $msg->media_thumb_url ?? $msg->media_url }}" alt="Imagem"
                                      loading="lazy"
                                      onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='{{ $msg->media_url }}'}"
-                                     @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })"
+                                     @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}', msgId: {{ $msg->id }} })"
                                      style="max-width:min(260px, 70vw); display:block; cursor:zoom-in; transition:opacity 0.2s;"
                                      onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                                 @if($msg->content)
@@ -853,7 +853,7 @@ function senderColor(?string $identifier): string {
                                                 onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.15)'"
                                                 onmouseout="this.style.color='rgba(255,255,255,0.6)'; this.style.background='rgba(255,255,255,0.08)'">Ver</button>
                                         @endif
-                                        <a href="{{ $msg->media_url }}" target="_blank" download
+                                        <a href="{{ route('media.download', $msg->id) }}"
                                            style="font-size:11px; color:white; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:6px; padding:3px 9px; text-decoration:none; font-weight:600;"
                                            onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">↓</a>
                                     </div>

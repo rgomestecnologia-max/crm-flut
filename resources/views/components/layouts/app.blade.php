@@ -565,13 +565,13 @@ function toastManager() {
 
 {{-- Lightbox global (imagem + vídeo) --}}
 <div x-data="{
-        src: null, alt: '', isVideo: false,
+        src: null, alt: '', isVideo: false, msgId: null,
         closeLightbox() {
             if (this.$refs.lbVideo) { this.$refs.lbVideo.pause(); this.$refs.lbVideo.removeAttribute('src'); this.$refs.lbVideo.load(); }
-            this.src = null; this.isVideo = false;
+            this.src = null; this.isVideo = false; this.msgId = null;
         }
      }"
-     @open-lightbox.window="src = $event.detail.src; alt = $event.detail.alt || ''; isVideo = $event.detail.video || false"
+     @open-lightbox.window="src = $event.detail.src; alt = $event.detail.alt || ''; isVideo = $event.detail.video || false; msgId = $event.detail.msgId || null"
      x-show="src" x-cloak
      x-transition:enter="transition ease-out duration-200"
      x-transition:enter-start="opacity-0"
@@ -584,32 +584,15 @@ function toastManager() {
      class="lightbox-overlay">
     <div @click.stop style="position:absolute; top:16px; right:16px; display:flex; gap:8px; z-index:10;">
         {{-- Download --}}
-        <button x-show="!isVideo" @click.stop="
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                const c = document.createElement('canvas');
-                c.width = img.naturalWidth; c.height = img.naturalHeight;
-                c.getContext('2d').drawImage(img, 0, 0);
-                c.toBlob(b => {
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(b);
-                    a.download = 'imagem_' + Date.now() + '.jpg';
-                    a.click();
-                    URL.revokeObjectURL(a.href);
-                }, 'image/jpeg', 0.92);
-            };
-            img.onerror = () => { window.open(src, '_blank'); };
-            img.src = src;
-        "
-                style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
+        <a x-show="!isVideo && msgId" x-bind:href="'/media/download/' + msgId" @click.stop
+                style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; text-decoration:none;"
                 onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
                 onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'"
-                title="Download JPEG">
+                title="Download">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
-        </button>
+        </a>
         {{-- Download vídeo --}}
         <a x-show="isVideo" :href="src" download @click.stop
            style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; text-decoration:none;"
