@@ -386,14 +386,14 @@ function senderColor(?string $identifier): string {
             @endif
             @if($msg->isSystem())
                 {{-- System message --}}
-                <div wire:key="msg-{{ $msg->id }}" style="display:flex; justify-content:center; margin:4px 0;">
+                <div wire:key="msg-{{ $msg->id }}" id="msg-{{ $msg->id }}" style="display:flex; justify-content:center; margin:4px 0;">
                     <span style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.25); font-size:10px; padding:4px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.06);">
                         {{ $msg->content }}
                     </span>
                 </div>
             @elseif($msg->isFromContact())
                 {{-- Contact message (left) --}}
-                <div wire:key="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
+                <div wire:key="msg-{{ $msg->id }}" id="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     <img x-data="{ err: false }"
                          :src="err ? '{{ $conversation->contact->avatar_fallback }}' : '{{ $conversation->contact->avatar }}'"
                          x-on:error="err = true" alt=""
@@ -402,7 +402,9 @@ function senderColor(?string $identifier): string {
                         @if($msg->type === 'text')
                             <div data-msg-text style="background:rgba(31,41,55,0.8); backdrop-filter:blur(4px); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word;">
                                 @if($msg->reply_to_id && $msg->replyTo)
-                                <div style="background:rgba(255,255,255,0.06); border-left:3px solid #b2ff00; border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; cursor:pointer;">
+                                <div onclick="document.getElementById('msg-{{ $msg->reply_to_id }}')?.scrollIntoView({behavior:'smooth',block:'center'}); let el=document.getElementById('msg-{{ $msg->reply_to_id }}'); if(el){el.style.background='rgba(178,255,0,0.1)'; setTimeout(()=>el.style.background='',1500);}"
+                                     style="background:rgba(255,255,255,0.06); border-left:3px solid #b2ff00; border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; cursor:pointer; transition:background 0.15s;"
+                                     onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
                                     <p style="font-size:10px; font-weight:700; color:{{ senderColor($msg->replyTo->sender_phone ?? $msg->replyTo->sender_name) }}; margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
                                     <p style="font-size:11px; color:rgba(255,255,255,0.4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($msg->replyTo->content ?? ($msg->replyTo->type === 'image' ? '📷 Foto' : '📎 Mídia'), 60) }}</p>
                                 </div>
@@ -682,7 +684,7 @@ function senderColor(?string $identifier): string {
                 </div>
             @else
                 {{-- Agent message (right) --}}
-                <div wire:key="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
+                <div wire:key="msg-{{ $msg->id }}" id="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
                      x-data="{ showMenu: false, editing: false, editText: '' }"
                      @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
                     @php
@@ -698,7 +700,9 @@ function senderColor(?string $identifier): string {
                         @if($msg->type === 'text')
                             <div data-msg-text style="background:#2d4a08; color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; box-shadow:0 2px 12px rgba(45,74,8,0.4);">
                                 @if($msg->reply_to_id && $msg->replyTo)
-                                <div style="background:rgba(255,255,255,0.1); border-left:3px solid rgba(255,255,255,0.5); border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px;">
+                                <div onclick="document.getElementById('msg-{{ $msg->reply_to_id }}')?.scrollIntoView({behavior:'smooth',block:'center'}); let el=document.getElementById('msg-{{ $msg->reply_to_id }}'); if(el){el.style.background='rgba(178,255,0,0.1)'; setTimeout(()=>el.style.background='',1500);}"
+                                     style="background:rgba(255,255,255,0.1); border-left:3px solid rgba(255,255,255,0.5); border-radius:4px 8px 8px 4px; padding:6px 10px; margin-bottom:6px; cursor:pointer; transition:background 0.15s;"
+                                     onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                                     <p style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.8); margin-bottom:2px;">{{ $msg->replyTo->isFromContact() ? ($msg->replyTo->sender_name ?? $conversation->contact->display_name) : ($msg->replyTo->sender?->name ?? 'Agente') }}</p>
                                     <p style="font-size:11px; color:rgba(255,255,255,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ \Illuminate\Support\Str::limit($msg->replyTo->content ?? ($msg->replyTo->type === 'image' ? '📷 Foto' : '📎 Mídia'), 60) }}</p>
                                 </div>
