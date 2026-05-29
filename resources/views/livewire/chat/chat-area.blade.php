@@ -1245,21 +1245,53 @@ function senderColor(?string $identifier): string {
         </div>
         <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
-        {{-- Preview de arquivo pendente --}}
-        @if($pendingFile)
+        {{-- Preview de arquivos pendentes --}}
+        @if(!empty($pendingFiles))
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:8px 12px; margin-bottom:8px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                @foreach($pendingFiles as $idx => $pf)
+                @php $pfMime = $pf->getMimeType() ?? ''; @endphp
+                <div style="position:relative;">
+                    @if(str_starts_with($pfMime, 'image/'))
+                        <img src="{{ $pf->temporaryUrl() }}" style="width:56px; height:56px; border-radius:8px; object-fit:cover;">
+                    @elseif(str_starts_with($pfMime, 'video/'))
+                        <div style="width:56px; height:56px; border-radius:8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); display:flex; align-items:center; justify-content:center;">
+                            <svg width="18" height="18" fill="#60a5fa" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    @else
+                        <div style="width:56px; height:56px; border-radius:8px; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+                            <svg width="14" height="14" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span style="font-size:7px; color:rgba(255,255,255,0.4); max-width:50px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ pathinfo($pf->getClientOriginalName(), PATHINFO_EXTENSION) }}</span>
+                        </div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:10px; color:rgba(255,255,255,0.4);">{{ count($pendingFiles) }} arquivo(s)</span>
+                <div style="display:flex; gap:6px;">
+                    <button wire:click="sendFiles" wire:loading.attr="disabled"
+                            style="padding:6px 14px; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); color:#b2ff00; font-size:11px; font-weight:600; border-radius:8px; cursor:pointer; transition:all 0.15s;"
+                            onmouseover="this.style.background='rgba(178,255,0,0.25)'" onmouseout="this.style.background='rgba(178,255,0,0.15)'">
+                        <span wire:loading.remove wire:target="sendFiles">Enviar {{ count($pendingFiles) > 1 ? 'todos' : '' }}</span>
+                        <span wire:loading wire:target="sendFiles">Enviando...</span>
+                    </button>
+                    <button wire:click="$set('pendingFiles', [])"
+                            style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; transition:color 0.15s;"
+                            onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @elseif($pendingFile)
         <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:8px 12px; margin-bottom:8px;">
             @php $mime = $pendingFile->getMimeType() ?? ''; @endphp
             @if(str_starts_with($mime, 'image/'))
                 <img src="{{ $pendingFile->temporaryUrl() }}" style="width:44px; height:44px; border-radius:8px; object-fit:cover; flex-shrink:0;">
-            @elseif(str_starts_with($mime, 'video/'))
-                <div style="width:44px; height:44px; border-radius:8px; background:rgba(96,165,250,0.15); border:1px solid rgba(96,165,250,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <svg width="18" height="18" fill="#60a5fa" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                </div>
             @else
                 <div style="width:36px; height:36px; border-radius:8px; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <svg width="16" height="16" fill="none" stroke="#b2ff00" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
+                    <svg width="16" height="16" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             @endif
             <div style="flex:1; min-width:0;">
@@ -1267,17 +1299,12 @@ function senderColor(?string $identifier): string {
                 <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:1px;">{{ number_format($pendingFile->getSize() / 1024, 1) }} KB</p>
             </div>
             <button wire:click="sendFile" wire:loading.attr="disabled"
-                    style="padding:6px 12px; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); color:#b2ff00; font-size:11px; font-weight:600; border-radius:8px; cursor:pointer; transition:all 0.15s;"
-                    onmouseover="this.style.background='rgba(178,255,0,0.25)'" onmouseout="this.style.background='rgba(178,255,0,0.15)'">
+                    style="padding:6px 12px; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); color:#b2ff00; font-size:11px; font-weight:600; border-radius:8px; cursor:pointer;">
                 <span wire:loading.remove wire:target="sendFile">Enviar</span>
                 <span wire:loading wire:target="sendFile">Enviando...</span>
             </button>
-            <button wire:click="cancelFile"
-                    style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; transition:color 0.15s;"
-                    onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
+            <button wire:click="$set('pendingFile', null)" style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
         @endif
@@ -1328,7 +1355,7 @@ function senderColor(?string $identifier): string {
             <div x-data="{ open: false, clipPos: null }" style="position:relative; flex-shrink:0;">
                 <button @click="const r=$el.getBoundingClientRect(); clipPos={bottom: window.innerHeight - r.top + 8, left: r.left}; open=!open"
                         title="Anexar"
-                        style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:none; cursor:pointer; transition:all 0.15s; background:rgba(255,255,255,0.04); color:{{ $pendingFile ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}; margin-bottom:2px;"
+                        style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:none; cursor:pointer; transition:all 0.15s; background:rgba(255,255,255,0.04); color:{{ ($pendingFile || !empty($pendingFiles)) ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}; margin-bottom:2px;"
                         onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.7)'"
                         onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='{{ $pendingFile ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}'">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1344,7 +1371,7 @@ function senderColor(?string $identifier): string {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
                             <span style="font-size:12px; color:rgba(255,255,255,0.6);">Foto / Vídeo</span>
-                            <input type="file" wire:model="pendingFile" @change="open=false" accept="image/*,video/*" class="hidden">
+                            <input type="file" wire:model="pendingFiles" @change="open=false" accept="image/*,video/*" multiple class="hidden">
                         </label>
                         <label style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s; border-top:1px solid rgba(255,255,255,0.04);"
                                onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
@@ -1352,7 +1379,7 @@ function senderColor(?string $identifier): string {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                             <span style="font-size:12px; color:rgba(255,255,255,0.6);">Documento</span>
-                            <input type="file" wire:model="pendingFile" @change="open=false" class="hidden">
+                            <input type="file" wire:model="pendingFiles" @change="open=false" multiple class="hidden">
                         </label>
                         <button @click="open=false; $wire.set('showContactPicker', true)"
                                 style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s; border-top:1px solid rgba(255,255,255,0.04); width:100%; background:transparent; border-left:none; border-right:none; border-bottom:none;"

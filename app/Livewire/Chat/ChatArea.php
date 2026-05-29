@@ -52,6 +52,7 @@ class ChatArea extends Component
 
     // Upload de mídia
     public $pendingFile = null;
+    public $pendingFiles = [];
 
 
     // Enviar contato (vCard)
@@ -506,8 +507,21 @@ class ChatArea extends Component
         }
 
         $this->pendingFile    = null;
+        $this->pendingFiles   = [];
         $this->showAttachMenu = false;
         $this->dispatch('scroll-to-bottom');
+    }
+
+    public function sendFiles(): void
+    {
+        if (!$this->conversationId || empty($this->pendingFiles)) return;
+
+        foreach ($this->pendingFiles as $file) {
+            $this->pendingFile = $file;
+            $this->sendFile();
+        }
+
+        $this->pendingFiles = [];
     }
 
     public function sendPastedImage(string $dataUrl): void
@@ -584,6 +598,7 @@ class ChatArea extends Component
     public function cancelFile(): void
     {
         $this->pendingFile    = null;
+        $this->pendingFiles   = [];
         $this->showAttachMenu = false;
     }
 
