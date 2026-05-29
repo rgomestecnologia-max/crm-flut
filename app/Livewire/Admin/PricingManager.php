@@ -16,8 +16,8 @@ class PricingManager extends Component
 
     public function mount(): void
     {
-        // Só Rogerio Gomes (user_id 2) pode acessar
-        if (auth()->id() !== 2) {
+        // Admin e vendedor podem acessar
+        if (!auth()->user()->isAdmin() && !auth()->user()->isVendedor()) {
             abort(403);
         }
 

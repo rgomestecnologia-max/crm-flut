@@ -26,6 +26,11 @@ class ProposalViewer extends Component
     {
         $query = Proposal::with('user')->orderByDesc('created_at');
 
+        // Vendedor só vê as próprias propostas
+        if (auth()->user()->isVendedor()) {
+            $query->where('user_id', auth()->id());
+        }
+
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);
         }

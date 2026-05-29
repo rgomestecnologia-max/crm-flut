@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin'          => EnsureIsAdmin::class,
             'manager'        => EnsureIsManager::class,
+            'vendedor'       => \App\Http\Middleware\EnsureIsVendedor::class,
             'company'        => EnsureCurrentCompany::class,
             'module'         => EnsureModuleEnabled::class,
             'zapi.webhook'   => ValidateZapiWebhook::class,

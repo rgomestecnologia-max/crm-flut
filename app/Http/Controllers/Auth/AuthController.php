@@ -76,6 +76,9 @@ class AuthController extends Controller
         if ($user->isAdmin()) {
             return redirect()->route('companies.select');
         }
+        if ($user->isVendedor()) {
+            return redirect()->route('admin.proposals.index');
+        }
         return redirect()->intended(route('dashboard'));
     }
 }

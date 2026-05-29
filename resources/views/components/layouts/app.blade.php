@@ -474,6 +474,16 @@
                     <span x-show="sidebarOpen">Templates</span>
                 </a>
 
+            </div>
+            @endif
+
+            {{-- Comercial — admin e vendedor --}}
+            @if(auth()->user()->isAdmin() || auth()->user()->isVendedor())
+            <div style="margin-top:8px; display:flex; flex-direction:column; gap:2px;">
+                <p x-show="sidebarOpen" style="padding:8px 6px 4px; font-size:9px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:0.1em;">
+                    Comercial
+                </p>
+
                 <a href="{{ route('admin.onboardings.index') }}"
                    class="nav-item {{ request()->routeIs('admin.onboardings*') ? 'active' : '' }}"
                    style="color:{{ request()->routeIs('admin.onboardings*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
@@ -483,7 +493,6 @@
                     <span x-show="sidebarOpen">Onboardings</span>
                 </a>
 
-                @if(auth()->id() === 2)
                 <a href="{{ route('admin.pricing.index') }}"
                    class="nav-item {{ request()->routeIs('admin.pricing*') ? 'active' : '' }}"
                    style="color:{{ request()->routeIs('admin.pricing*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
@@ -501,7 +510,6 @@
                     </svg>
                     <span x-show="sidebarOpen">Propostas</span>
                 </a>
-                @endif
             </div>
             @endif
         </nav>

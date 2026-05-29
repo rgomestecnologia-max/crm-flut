@@ -126,11 +126,15 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('evolution', fn() => view('admin.evolution.index'))->name('evolution.index');
         Route::get('meta-whatsapp', fn() => view('admin.meta-whatsapp.index'))->name('meta-whatsapp.index');
         Route::get('meta-whatsapp/callback', [\App\Http\Controllers\Admin\MetaSignupCallbackController::class, 'handle'])->name('meta-whatsapp.callback');
+        Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
+    });
+
+    // Comercial — admin e vendedor (onboardings, precificação, propostas)
+    Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('onboardings', fn() => view('admin.onboardings.index'))->name('onboardings.index');
         Route::get('pricing', fn() => view('admin.pricing.index'))->name('pricing.index');
         Route::get('proposals', fn() => view('admin.proposals.index'))->name('proposals.index');
-        Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
-    });
+    })->middleware(['auth', 'vendedor']);
 
     // Admin/Supervisor — acessível por quem gerencia a empresa
     Route::middleware('manager')->prefix('admin')->name('admin.')->group(function () {
