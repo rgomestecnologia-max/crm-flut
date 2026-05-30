@@ -48,6 +48,19 @@ class PricingConfig extends Model
             'ia_flow_price'           => '499.00',
             'ia_flow_setup'           => '500.00',
 
+            // Chat Interno
+            'chat_interno_price'      => '149.00',
+            'chat_interno_setup'      => '300.00',
+
+            // FlutChat
+            'flutchat_price'          => '199.00',
+            'flutchat_ia_price'       => '349.00',
+            'flutchat_setup'          => '400.00',
+
+            // FlutZap
+            'flutzap_price'           => '249.00',
+            'flutzap_setup'           => '400.00',
+
             // Integrações
             'integration_setup'       => '800.00',
             'integration_monthly'     => '200.00',
@@ -63,12 +76,21 @@ class PricingConfig extends Model
 
             'integration_benefits' => "Conexão inteligente com seus sistemas externos para automatizar processos e eliminar trabalho manual.\n\n✅ Integração com sites e landing pages\n✅ Integração com lojas virtuais e e-commerces\n✅ Integração com sistemas financeiros e ERPs\n✅ Webhooks para receber e enviar dados automaticamente\n✅ API RESTful para integrações customizadas\n✅ Sincronização automática de leads e contatos\n✅ Automação de fluxos entre sistemas\n✅ Suporte técnico dedicado para implementação\n\nConecte o CRM Flut ao ecossistema da sua empresa e automatize tudo.",
 
+            'chat_interno_benefits' => "Comunicação interna integrada para sua equipe, sem depender de WhatsApp pessoal.\n\n✅ Chat em tempo real entre agentes e supervisores\n✅ Mensagens privadas e em grupo\n✅ Notificações de novas mensagens\n✅ Histórico completo de conversas internas\n✅ Integrado ao painel do CRM\n\nMantenha a comunicação da equipe organizada e profissional.",
+
+            'flutchat_benefits' => "Widget de chat incorporável para o site da sua empresa, com fluxo de perguntas e captura de leads.\n\n✅ Widget flutuante personalizável (cor, avatar, posição)\n✅ Fluxo de conversa com perguntas ramificadas\n✅ Captura automática de leads (nome, WhatsApp, e-mail)\n✅ Redirecionamento para WhatsApp com mensagem pré-preenchida\n✅ Opção de atendimento por IA em tempo real\n✅ Múltiplos widgets por empresa\n✅ Responsivo para mobile e desktop\n\nCapture leads direto do site e direcione para o canal certo.",
+
+            'flutzap_benefits' => "Automação avançada de WhatsApp com disparos programados, follow-ups e integração com CRM.\n\n✅ Disparos de WhatsApp em massa com agendamento\n✅ Follow-up automático para leads sem resposta\n✅ Confirmação de agendamentos com respostas SIM/NÃO\n✅ Integração com pipeline CRM (move cards automaticamente)\n✅ Variações de mensagem com IA para evitar bloqueios\n✅ Relatórios de entrega e leitura\n\nAutomatize sua comunicação e nunca perca um follow-up.",
+
             // Screenshots dos módulos (PDF)
             'multi_screenshot' => '',
             'crm_screenshot' => '',
             'email_screenshot' => '',
             'ia_screenshot' => '',
             'integration_screenshot' => '',
+            'chat_interno_screenshot' => '',
+            'flutchat_screenshot' => '',
+            'flutzap_screenshot' => '',
         ];
     }
 

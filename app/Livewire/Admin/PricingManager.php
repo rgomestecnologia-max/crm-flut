@@ -12,7 +12,7 @@ class PricingManager extends Component
     use WithFileUploads;
 
     public array $prices = [];
-    public $multi_image, $crm_image, $email_image, $ia_image, $integration_image;
+    public $multi_image, $crm_image, $email_image, $ia_image, $integration_image, $chat_interno_image, $flutchat_image, $flutzap_image;
 
     public function mount(): void
     {
@@ -33,6 +33,9 @@ class PricingManager extends Component
             'email_image' => 'email_screenshot',
             'ia_image' => 'ia_screenshot',
             'integration_image' => 'integration_screenshot',
+            'chat_interno_image' => 'chat_interno_screenshot',
+            'flutchat_image' => 'flutchat_screenshot',
+            'flutzap_image' => 'flutzap_screenshot',
         ];
 
         foreach ($imageKeys as $prop => $configKey) {
@@ -80,6 +83,13 @@ class PricingManager extends Component
             'ia_flow_setup'        => ['IA — Implantação por fluxo', 'R$'],
             'integration_setup'    => ['Integração externa — Implantação (cada)', 'R$'],
             'integration_monthly'  => ['Integração externa — Mensalidade (cada)', 'R$/mês'],
+            'chat_interno_price'   => ['Chat Interno — Mensalidade', 'R$/mês'],
+            'chat_interno_setup'   => ['Chat Interno — Implantação', 'R$'],
+            'flutchat_price'       => ['FlutChat — Mensalidade (sem IA)', 'R$/mês'],
+            'flutchat_ia_price'    => ['FlutChat — Mensalidade (com IA)', 'R$/mês'],
+            'flutchat_setup'       => ['FlutChat — Implantação', 'R$'],
+            'flutzap_price'        => ['FlutZap — Mensalidade', 'R$/mês'],
+            'flutzap_setup'        => ['FlutZap — Implantação', 'R$'],
         ];
 
         return view('livewire.admin.pricing-manager', compact('labels'));

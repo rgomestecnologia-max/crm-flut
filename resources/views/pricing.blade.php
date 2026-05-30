@@ -221,6 +221,62 @@
             </template>
         </div>
 
+        {{-- Chat Interno --}}
+        <div class="module" style="border-color: rgba(16,185,129,0.1);">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#10b98180,transparent);"></div>
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="bar" style="background:#10b981;"></div>
+                    <h2>Chat Interno</h2>
+                </div>
+                <button class="toggle" :style="{ background: modules.chatInterno ? '#10b981' : 'rgba(255,255,255,0.1)' }" @click="modules.chatInterno = !modules.chatInterno; useCustom=false; calc()">
+                    <span :style="{ left: modules.chatInterno ? '25px' : '3px' }"></span>
+                </button>
+            </div>
+            <p class="module-desc">Comunicação interna entre agentes e supervisores integrada ao CRM.</p>
+        </div>
+
+        {{-- FlutChat --}}
+        <div class="module" style="border-color: rgba(99,102,241,0.1);">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#6366f180,transparent);"></div>
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="bar" style="background:#6366f1;"></div>
+                    <h2>FlutChat</h2>
+                </div>
+                <button class="toggle" :style="{ background: modules.flutchat ? '#6366f1' : 'rgba(255,255,255,0.1)' }" @click="modules.flutchat = !modules.flutchat; useCustom=false; calc()">
+                    <span :style="{ left: modules.flutchat ? '25px' : '3px' }"></span>
+                </button>
+            </div>
+            <p class="module-desc">Widget de chat incorporável para o site da empresa com fluxo de perguntas e captura de leads.</p>
+            <template x-if="modules.flutchat">
+                <div>
+                    <div class="field">
+                        <label>Incluir IA no chat?</label>
+                        <select x-model="flutchat.withAi" @change="calc()">
+                            <option value="0">Sem IA</option>
+                            <option value="1">Com IA</option>
+                        </select>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        {{-- FlutZap --}}
+        <div class="module" style="border-color: rgba(245,158,11,0.1);">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f59e0b80,transparent);"></div>
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="bar" style="background:#f59e0b;"></div>
+                    <h2>FlutZap</h2>
+                </div>
+                <button class="toggle" :style="{ background: modules.flutzap ? '#f59e0b' : 'rgba(255,255,255,0.1)' }" @click="modules.flutzap = !modules.flutzap; useCustom=false; calc()">
+                    <span :style="{ left: modules.flutzap ? '25px' : '3px' }"></span>
+                </button>
+            </div>
+            <p class="module-desc">Automação de WhatsApp com disparos, follow-ups e confirmação de agendamentos.</p>
+        </div>
+
         {{-- Resultado --}}
         <div class="result">
             <h3>Seu investimento</h3>
@@ -309,6 +365,24 @@
                         </div>
                     </div>
                 </template>
+                <template x-if="modules.chatInterno">
+                    <div>
+                        <div class="breakdown-item"><span>Chat Interno</span><span class="val">R$ <span x-text="fmt(detail.chatInterno_monthly)"></span>/mês</span></div>
+                        <div class="breakdown-item"><span>↳ Implantação</span><span class="val">R$ <span x-text="fmt(detail.chatInterno_setup)"></span></span></div>
+                    </div>
+                </template>
+                <template x-if="modules.flutchat">
+                    <div>
+                        <div class="breakdown-item"><span>FlutChat <span x-show="flutchat.withAi==='1'">(com IA)</span></span><span class="val">R$ <span x-text="fmt(detail.flutchat_monthly)"></span>/mês</span></div>
+                        <div class="breakdown-item"><span>↳ Implantação</span><span class="val">R$ <span x-text="fmt(detail.flutchat_setup)"></span></span></div>
+                    </div>
+                </template>
+                <template x-if="modules.flutzap">
+                    <div>
+                        <div class="breakdown-item"><span>FlutZap</span><span class="val">R$ <span x-text="fmt(detail.flutzap_monthly)"></span>/mês</span></div>
+                        <div class="breakdown-item"><span>↳ Implantação</span><span class="val">R$ <span x-text="fmt(detail.flutzap_setup)"></span></span></div>
+                    </div>
+                </template>
             </div>
         </div>
 
@@ -372,11 +446,12 @@ function pricingSimulator() {
     const C = @json($config);
     const existing = @json($proposal ?? null);
     return {
-        modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false },
+        modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false, chatInterno: false, flutchat: false, flutzap: false },
         multi: { users: existing?.config?.multi_users ?? 1, instances: existing?.config?.multi_instances ?? 1 },
         email: { plan: existing?.config?.email_plan ?? '5k', whatsapp: existing?.config?.email_whatsapp ?? false },
         ia: { flows: existing?.config?.ia_flows ?? 1 },
         integrations: { count: existing?.config?.integrations_count ?? 1 },
+        flutchat: { withAi: existing?.config?.flutchat_with_ai ?? '0' },
         total: { monthly: 0, setup: 0 },
         originalTotal: { monthly: 0, setup: 0 },
         detail: {},
@@ -460,6 +535,31 @@ function pricingSimulator() {
                 monthly += m; setup += s;
             }
 
+            if (this.modules.chatInterno) {
+                const m = parseFloat(C.chat_interno_price);
+                const s = parseFloat(C.chat_interno_setup);
+                this.detail.chatInterno_monthly = m;
+                this.detail.chatInterno_setup = s;
+                monthly += m; setup += s;
+            }
+
+            if (this.modules.flutchat) {
+                const withAi = this.flutchat.withAi === '1' || this.flutchat.withAi === 1;
+                const m = parseFloat(withAi ? C.flutchat_ia_price : C.flutchat_price);
+                const s = parseFloat(C.flutchat_setup);
+                this.detail.flutchat_monthly = m;
+                this.detail.flutchat_setup = s;
+                monthly += m; setup += s;
+            }
+
+            if (this.modules.flutzap) {
+                const m = parseFloat(C.flutzap_price);
+                const s = parseFloat(C.flutzap_setup);
+                this.detail.flutzap_monthly = m;
+                this.detail.flutzap_setup = s;
+                monthly += m; setup += s;
+            }
+
             // Salva originais antes do desconto
             this.originalTotal.monthly = monthly;
             this.originalTotal.setup = setup;
@@ -501,6 +601,7 @@ function pricingSimulator() {
                             email_whatsapp: this.email.whatsapp,
                             ia_flows: this.ia.flows,
                             integrations_count: this.integrations.count,
+                            flutchat_with_ai: this.flutchat.withAi,
                         },
                         details: this.detail,
                         total_monthly: this.total.monthly,
@@ -565,8 +666,8 @@ function pricingSimulator() {
 
             // Carregar screenshots dos módulos (boa qualidade)
             const moduleScreenshots = {};
-            for (const key of ['multi','crm','email','ia','integrations']) {
-                const configKey = key === 'integrations' ? 'integration' : key;
+            for (const key of ['multi','crm','email','ia','integrations','chatInterno','flutchat','flutzap']) {
+                const configKey = {integrations:'integration', chatInterno:'chat_interno'}[key] || key;
                 const url = C[configKey + '_screenshot'];
                 if (url) {
                     try { moduleScreenshots[key] = await loadAndCompress(url, 1200, 0.75); } catch(e) {}
@@ -652,7 +753,8 @@ function pricingSimulator() {
             // ╚══════════════════════════════════════╝
             const moduleColors = {
                 multi: [178, 255, 0], crm: [139, 92, 246], email: [59, 130, 246],
-                ia: [236, 72, 153], integrations: [6, 182, 212]
+                ia: [236, 72, 153], integrations: [6, 182, 212],
+                chatInterno: [16, 185, 129], flutchat: [99, 102, 241], flutzap: [245, 158, 11]
             };
             const moduleData = [];
             if (this.modules.multi) moduleData.push({
@@ -687,6 +789,24 @@ function pricingSimulator() {
                 subtitle: `${this.integrations.count} ${this.integrations.count>1?'integrações':'integração'}`,
                 monthly: this.detail.int_monthly, setup: this.detail.int_setup,
                 benefits: C.integration_benefits || ''
+            });
+            if (this.modules.chatInterno) moduleData.push({
+                key: 'chatInterno', title: 'Chat Interno',
+                subtitle: 'Comunicação interna da equipe',
+                monthly: this.detail.chatInterno_monthly, setup: this.detail.chatInterno_setup,
+                benefits: C.chat_interno_benefits || ''
+            });
+            if (this.modules.flutchat) moduleData.push({
+                key: 'flutchat', title: 'FlutChat',
+                subtitle: (this.flutchat.withAi === '1' || this.flutchat.withAi === 1) ? 'Widget com IA' : 'Widget sem IA',
+                monthly: this.detail.flutchat_monthly, setup: this.detail.flutchat_setup,
+                benefits: C.flutchat_benefits || ''
+            });
+            if (this.modules.flutzap) moduleData.push({
+                key: 'flutzap', title: 'FlutZap',
+                subtitle: 'Automação WhatsApp',
+                monthly: this.detail.flutzap_monthly, setup: this.detail.flutzap_setup,
+                benefits: C.flutzap_benefits || ''
             });
 
             for (const mod of moduleData) {

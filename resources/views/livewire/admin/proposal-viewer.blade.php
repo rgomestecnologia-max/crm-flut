@@ -131,6 +131,9 @@
                             if (!empty($modules['email'])) $moduleRows[] = ['key' => 'email', 'label' => 'Disparos em Massa'];
                             if (!empty($modules['ia'])) $moduleRows[] = ['key' => 'ia', 'label' => 'IA de Atendimento (' . ($cfg['ia_flows'] ?? 1) . ' fluxo' . (($cfg['ia_flows'] ?? 1) > 1 ? 's' : '') . ')'];
                             if (!empty($modules['integrations'])) $moduleRows[] = ['key' => 'int', 'label' => 'Integrações (' . ($cfg['integrations_count'] ?? 1) . ')'];
+                            if (!empty($modules['chatInterno'])) $moduleRows[] = ['key' => 'chatInterno', 'label' => 'Chat Interno'];
+                            if (!empty($modules['flutchat'])) $moduleRows[] = ['key' => 'flutchat', 'label' => 'FlutChat' . (($cfg['flutchat_with_ai'] ?? '0') === '1' ? ' (com IA)' : '')];
+                            if (!empty($modules['flutzap'])) $moduleRows[] = ['key' => 'flutzap', 'label' => 'FlutZap'];
                             // Módulos personalizados (custom_N)
                             foreach ($details as $dk => $dv) {
                                 if (str_starts_with($dk, 'custom_') && str_ends_with($dk, '_label')) {

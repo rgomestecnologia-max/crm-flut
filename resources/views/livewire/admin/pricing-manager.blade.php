@@ -18,6 +18,9 @@
                 'Disparos Email' => ['email_5k_price','email_20k_price','email_50k_price','email_setup'],
                 'IA de Atendimento' => ['ia_flow_price','ia_flow_setup'],
                 'Integrações' => ['integration_setup','integration_monthly'],
+                'Chat Interno' => ['chat_interno_price','chat_interno_setup'],
+                'FlutChat' => ['flutchat_price','flutchat_ia_price','flutchat_setup'],
+                'FlutZap' => ['flutzap_price','flutzap_setup'],
             ];
             $benefitsKeys = [
                 'Multi-atendimento' => 'multi_benefits',
@@ -25,10 +28,13 @@
                 'Disparos Email' => 'email_benefits',
                 'IA de Atendimento' => 'ia_benefits',
                 'Integrações' => 'integration_benefits',
+                'Chat Interno' => 'chat_interno_benefits',
+                'FlutChat' => 'flutchat_benefits',
+                'FlutZap' => 'flutzap_benefits',
             ];
-            $imgModels = ['multi_image','crm_image','email_image','ia_image','integration_image'];
-            $imgConfigs = ['multi_screenshot','crm_screenshot','email_screenshot','ia_screenshot','integration_screenshot'];
-            $colors = ['#b2ff00','#8b5cf6','#3b82f6','#ec4899','#06b6d4'];
+            $imgModels = ['multi_image','crm_image','email_image','ia_image','integration_image','chat_interno_image','flutchat_image','flutzap_image'];
+            $imgConfigs = ['multi_screenshot','crm_screenshot','email_screenshot','ia_screenshot','integration_screenshot','chat_interno_screenshot','flutchat_screenshot','flutzap_screenshot'];
+            $colors = ['#b2ff00','#8b5cf6','#3b82f6','#ec4899','#06b6d4','#10b981','#6366f1','#f59e0b'];
         @endphp
 
         @foreach($sections as $section => $keys)
