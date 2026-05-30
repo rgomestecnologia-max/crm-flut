@@ -233,7 +233,7 @@
                     <span :style="{ left: modules.chatInterno ? '25px' : '3px' }"></span>
                 </button>
             </div>
-            <p class="module-desc">Comunicação interna entre agentes e supervisores integrada ao CRM.</p>
+            <p class="module-desc">Canal de comunicação exclusivo da equipe integrado ao CRM — sem misturar com WhatsApp pessoal.</p>
         </div>
 
         {{-- FlutChat --}}
@@ -248,7 +248,7 @@
                     <span :style="{ left: modules.flutchat ? '25px' : '3px' }"></span>
                 </button>
             </div>
-            <p class="module-desc">Widget de chat incorporável para o site da empresa com fluxo de perguntas e captura de leads.</p>
+            <p class="module-desc">Widget de chat inteligente para o site com fluxo de perguntas, captura de leads e atendimento por IA.</p>
             <template x-if="modules.flutchat">
                 <div>
                     <div class="field">
@@ -274,7 +274,7 @@
                     <span :style="{ left: modules.flutzap ? '25px' : '3px' }"></span>
                 </button>
             </div>
-            <p class="module-desc">Automação de WhatsApp com disparos, follow-ups e confirmação de agendamentos.</p>
+            <p class="module-desc">Botão flutuante de WhatsApp com formulário inteligente — coleta dados do visitante e salva na nuvem antes de abrir a conversa.</p>
         </div>
 
         {{-- Resultado --}}
