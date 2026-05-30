@@ -219,6 +219,7 @@
         @endphp
         <nav @click="if(window.innerWidth <= 768 && $event.target.closest('a')) mobileMenu = false"
              style="padding:10px 8px; display:flex; flex-direction:column; gap:2px;">
+            @if(!auth()->user()->isVendedor())
             <p x-show="sidebarOpen" style="padding:8px 6px 4px; font-size:9px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:0.1em;">
                 Principal
             </p>
@@ -300,6 +301,7 @@
                 <span x-show="sidebarOpen">Disparos</span>
             </a>
             @endif
+            @endif{{-- /!isVendedor --}}
 
             {{-- Gestão da empresa — admin + supervisor, filtrado por módulos contratados --}}
             @if(auth()->user()->canManageCompany())

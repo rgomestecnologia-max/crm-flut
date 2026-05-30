@@ -177,11 +177,16 @@ class ProposalViewer extends Component
 
     public function getCounts()
     {
+        $query = Proposal::query();
+        if (auth()->user()->isVendedor()) {
+            $query->where('user_id', auth()->id());
+        }
+
         return [
-            'all'       => Proposal::count(),
-            'analise'   => Proposal::where('status', 'analise')->count(),
-            'aprovada'  => Proposal::where('status', 'aprovada')->count(),
-            'reprovada' => Proposal::where('status', 'reprovada')->count(),
+            'all'       => (clone $query)->count(),
+            'analise'   => (clone $query)->where('status', 'analise')->count(),
+            'aprovada'  => (clone $query)->where('status', 'aprovada')->count(),
+            'reprovada' => (clone $query)->where('status', 'reprovada')->count(),
         ];
     }
 
