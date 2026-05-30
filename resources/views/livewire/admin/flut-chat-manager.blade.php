@@ -145,6 +145,7 @@
                         <option value="message" style="background:#1a1f2e;">💬 Mensagem</option>
                         <option value="input" style="background:#1a1f2e;">✏️ Input (texto livre)</option>
                         <option value="options" style="background:#1a1f2e;">🔘 Opções (botões)</option>
+                        <option value="select" style="background:#1a1f2e;">📋 Select (dropdown)</option>
                         <option value="action" style="background:#1a1f2e;">⚡ Ação final</option>
                     </select>
                 </div>
@@ -167,7 +168,7 @@
             </div>
             @endif
 
-            @if($stepType === 'options')
+            @if($stepType === 'options' || $stepType === 'select')
             <div style="margin-top:10px;">
                 <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:6px;">Opções (cada uma pode levar a um step diferente)</label>
                 @foreach($stepOptions as $i => $opt)

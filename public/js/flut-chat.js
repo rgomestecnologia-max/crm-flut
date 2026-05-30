@@ -29,7 +29,8 @@
     .fc-dot{width:6px;height:6px;border-radius:50%;background:#bbb;animation:fcBounce 1.2s infinite}
     .fc-dot:nth-child(2){animation-delay:.2s}.fc-dot:nth-child(3){animation-delay:.4s}
     #flut-chat-input{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff;border-top:1px solid #eee;flex-shrink:0}
-    #flut-chat-input input{flex:1;border:2px solid #e5e5e5;border-radius:24px;padding:10px 16px;font-size:13px;outline:none;transition:border-color .2s}
+    #flut-chat-input input,#flut-chat-input select{flex:1;border:2px solid #e5e5e5;border-radius:24px;padding:10px 16px;font-size:13px;outline:none;transition:border-color .2s;background:#fff;color:#333;font-family:inherit}
+    #flut-chat-input select{cursor:pointer;appearance:auto}
     #flut-chat-input button{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     @keyframes fcFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fcBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
@@ -125,6 +126,10 @@
       showTyping();
       setTimeout(() => { hideTyping(); addBot(step.content); showOptions(step); }, 800);
     }
+    else if (step.type === 'select') {
+      showTyping();
+      setTimeout(() => { hideTyping(); addBot(step.content); showSelect(step); }, 800);
+    }
     else if (step.type === 'action') {
       if (step.content) { showTyping(); setTimeout(() => { hideTyping(); addBot(step.content); setTimeout(() => doAction(step), 1000); }, 800); }
       else doAction(step);
@@ -189,6 +194,49 @@
       div.appendChild(btn);
     });
     msgs.appendChild(div);
+    scroll();
+  }
+
+  function showSelect(step) {
+    const inputArea = document.getElementById('flut-chat-input');
+    const field = document.getElementById('flut-chat-field');
+    // Esconde o input de texto e cria select
+    field.style.display = 'none';
+    // Remove select anterior se existir
+    const old = document.getElementById('flut-chat-select');
+    if (old) old.remove();
+
+    const sel = document.createElement('select');
+    sel.id = 'flut-chat-select';
+    sel.innerHTML = '<option value="" disabled selected>-- Selecione uma opção --</option>';
+    (step.options || []).forEach((opt, i) => {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = opt.label;
+      sel.appendChild(o);
+    });
+    sel.dataset.stepId = step.id;
+    inputArea.insertBefore(sel, inputArea.querySelector('button'));
+    inputArea.style.display = 'flex';
+
+    // Override do botão enviar para o select
+    const sendBtn = document.getElementById('flut-chat-send');
+    const origClick = sendBtn.onclick;
+    const handleSelectSend = () => {
+      if (!sel.value) return;
+      const opt = step.options[parseInt(sel.value)];
+      addUser(opt.label);
+      collected['opcao'] = opt.label;
+      sel.remove();
+      field.style.display = '';
+      inputArea.style.display = 'none';
+      sendBtn.onclick = origClick;
+      if (opt.next_step_id) {
+        const next = steps.find(s => s.id === parseInt(opt.next_step_id));
+        if (next) setTimeout(() => processStep(next), 400);
+      }
+    };
+    sendBtn.onclick = handleSelectSend;
     scroll();
   }
 

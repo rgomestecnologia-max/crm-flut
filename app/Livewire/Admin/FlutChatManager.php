@@ -197,7 +197,7 @@ class FlutChatManager extends Component
             'content'           => $this->stepContent ?: null,
             'input_key'         => $this->stepType === 'input' ? $this->stepInputKey : null,
             'input_placeholder' => $this->stepType === 'input' ? $this->stepInputPlaceholder : null,
-            'options'           => $this->stepType === 'options' ? array_filter($this->stepOptions, fn($o) => !empty($o['label'])) : null,
+            'options'           => in_array($this->stepType, ['options', 'select']) ? array_filter($this->stepOptions, fn($o) => !empty($o['label'])) : null,
             'next_step_id'      => in_array($this->stepType, ['message', 'input']) ? ($this->stepNextId ?: null) : null,
             'action_type'       => $this->stepType === 'action' ? $this->stepActionType : null,
             'action_value'      => $this->stepType === 'action' ? $this->stepActionValue : null,
