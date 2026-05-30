@@ -74,8 +74,8 @@ class AgentManager extends Component
         $rules = [
             'name'                   => 'required|string|max:100',
             'email'                  => ['required', 'email', Rule::unique('users', 'email')->ignore($this->editingId)],
-            'role'                   => ['required', Rule::in(['admin', 'supervisor', 'agent'])],
-            'department_id'          => 'required|exists:departments,id',
+            'role'                   => ['required', Rule::in(['admin', 'supervisor', 'agent', 'vendedor'])],
+            'department_id'          => $this->role === 'vendedor' ? 'nullable' : 'required|exists:departments,id',
             'extra_department_ids'   => 'nullable|array',
             'extra_department_ids.*' => 'numeric|exists:departments,id',
             'is_active'              => 'boolean',
