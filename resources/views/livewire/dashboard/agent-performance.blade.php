@@ -26,7 +26,7 @@
                             <img src="{{ $agent->avatar_url }}" alt="" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.08);">
                             <div>
                                 <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.8);">{{ $agent->name }}</p>
-                                <p style="font-size:10px; color:rgba(255,255,255,0.25);">{{ match($agent->role) { 'admin' => 'Admin', 'supervisor' => 'Supervisor', default => 'Agente' } }}</p>
+                                <p style="font-size:10px; color:rgba(255,255,255,0.25);">{{ match($agent->role) { 'admin' => 'Admin', 'supervisor' => 'Supervisor', 'vendedor' => 'Vendedor', default => 'Agente' } }}</p>
                             </div>
                         </div>
                     </td>

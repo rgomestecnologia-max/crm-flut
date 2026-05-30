@@ -53,6 +53,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 <select wire:model="role" style="{{ $inputStyle }}" {!! $inputFocus !!}>
                     <option value="agent">Agente</option>
                     <option value="supervisor">Supervisor</option>
+                    <option value="vendedor">Vendedor</option>
                     @if(auth()->user()->isAdmin())
                     <option value="admin">Administrador</option>
                     @endif
