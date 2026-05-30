@@ -8,11 +8,12 @@ use Illuminate\Http\Request;
 
 class PricingController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
         PricingConfig::seed();
         $config = PricingConfig::getAll();
-        return view('pricing', compact('config'));
+        $refUserId = $request->query('ref') ? (int) $request->query('ref') : null;
+        return view('pricing', compact('config', 'refUserId'));
     }
 
     public function save(Request $request)
@@ -24,9 +25,12 @@ class PricingController extends Controller
             'details'       => 'required|array',
             'total_monthly' => 'required|numeric|min:0',
             'total_setup'   => 'required|numeric|min:0',
+            'ref_user_id'   => 'nullable|integer',
         ]);
 
-        $validated['user_id'] = auth()->id();
+        // Prioridade: usuário logado > ref da URL
+        $validated['user_id'] = auth()->id() ?? $validated['ref_user_id'] ?? null;
+        unset($validated['ref_user_id']);
 
         $proposal = Proposal::create($validated);
 

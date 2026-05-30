@@ -445,6 +445,7 @@
 function pricingSimulator() {
     const C = @json($config);
     const existing = @json($proposal ?? null);
+    const refUserId = @json($refUserId ?? null);
     return {
         modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false, chatInterno: false, flutchat: false, flutzap: false },
         multi: { users: existing?.config?.multi_users ?? 1, instances: existing?.config?.multi_instances ?? 1 },
@@ -606,6 +607,7 @@ function pricingSimulator() {
                         details: this.detail,
                         total_monthly: this.total.monthly,
                         total_setup: this.total.setup,
+                        ref_user_id: refUserId,
                     })
                 });
                 const data = await res.json();
