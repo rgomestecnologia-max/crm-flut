@@ -1768,29 +1768,30 @@ function senderColor(?string $identifier): string {
             fcFmtRec(s) { return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
          }">
 
-        {{-- Respostas rápidas --}}
-        @if($showQuickReplies)
-        <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:200px; overflow:hidden; display:flex; flex-direction:column;">
+        {{-- Respostas rápidas (carregadas via Alpine) --}}
+        <div x-data="{ fcQrOpen: false, fcQrs: [] }" x-show="fcQrOpen" x-transition
+             style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:200px; overflow:hidden; display:flex; flex-direction:column;"
+             x-ref="fcQrPanel">
             <div style="padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:6px;">
                 <svg width="12" height="12" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <input wire:model.live.debounce.200ms="quickReplySearch" type="text" placeholder="Buscar..."
-                       style="flex:1; background:transparent; border:none; outline:none; font-size:11px; color:white; font-family:inherit;">
-                <button wire:click="$set('showQuickReplies', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:12px;">✕</button>
+                <span style="font-size:11px; color:#b2ff00; font-weight:600;">Respostas Rápidas</span>
+                <span style="flex:1;"></span>
+                <button @click="fcQrOpen=false" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:12px;">✕</button>
             </div>
             <div style="overflow-y:auto; max-height:160px;">
-                @forelse($quickReplies as $qr)
-                <button wire:click="useQuickReply({{ $qr->id }})"
-                        style="width:100%; text-align:left; padding:8px 10px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; color:white; font-size:11px;"
-                        onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
-                    <span style="color:#b2ff00; font-weight:600;">⚡ {{ $qr->title }}</span>
-                    <span style="color:rgba(255,255,255,0.3); margin-left:6px;">{{ \Illuminate\Support\Str::limit($qr->content, 50) }}</span>
-                </button>
-                @empty
-                <p style="padding:12px; text-align:center; font-size:10px; color:rgba(255,255,255,0.3);">Nenhuma resposta rápida.</p>
-                @endforelse
+                <template x-for="qr in fcQrs" :key="qr.id">
+                    <button @click="$wire.set('messageText', qr.content); $wire.sendFlutChatReply(); fcQrOpen=false;"
+                            style="width:100%; text-align:left; padding:8px 10px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; color:white; font-size:11px;"
+                            onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
+                        <span style="color:#b2ff00; font-weight:600;" x-text="'⚡ ' + qr.title"></span>
+                        <span style="color:rgba(255,255,255,0.3); margin-left:6px;" x-text="qr.content.substring(0,50)"></span>
+                    </button>
+                </template>
+                <template x-if="fcQrs.length === 0">
+                    <p style="padding:12px; text-align:center; font-size:10px; color:rgba(255,255,255,0.3);">Nenhuma resposta rápida.</p>
+                </template>
             </div>
         </div>
-        @endif
 
         {{-- Preview de arquivos pendentes (FlutChat) --}}
         @if(!empty($pendingFiles))
@@ -1838,7 +1839,8 @@ function senderColor(?string $identifier): string {
             </div>
 
             {{-- Respostas rápidas --}}
-            <button wire:click="$set('showQuickReplies', !$showQuickReplies)" title="Respostas rápidas"
+            @php $fcAllQrs = \App\Models\QuickReply::orderBy('title')->get(['id','title','content'])->toArray(); @endphp
+            <button @click="const p = $root.querySelector('[x-ref=fcQrPanel]')?.closest('[x-data]'); if(p){ const d = Alpine.$data(p); d.fcQrs = {{ json_encode($fcAllQrs) }}; d.fcQrOpen = !d.fcQrOpen; }" title="Respostas rápidas"
                     style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; flex-shrink:0;"
                     onmouseover="this.style.color='#b2ff00'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
