@@ -318,13 +318,13 @@
           if (msg.id > liveLastMsgId) liveLastMsgId = msg.id;
           if (msg.sender_type === 'agent') {
             if (msg.media_url && msg.media_type === 'image') {
-              addBotMedia('<img src="' + msg.media_url + '" style="max-width:200px;border-radius:8px;display:block;">' + (msg.content ? '<p style="margin:4px 0 0;font-size:12px;">' + msg.content + '</p>' : ''));
+              addBotMedia('<img src="' + msg.media_url + '" style="max-width:200px;border-radius:8px;display:block;">' + (msg.content ? '<p style="margin:4px 0 0;font-size:12px;">' + msg.content + '</p>' : '') + '<a href="' + msg.media_url + '" download target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;">⬇ Baixar imagem</a>');
             } else if (msg.media_url && msg.media_type === 'video') {
-              addBotMedia('<video src="' + msg.media_url + '" controls style="max-width:200px;border-radius:8px;display:block;"></video>');
+              addBotMedia('<video src="' + msg.media_url + '" controls style="max-width:200px;border-radius:8px;display:block;"></video><a href="' + msg.media_url + '" download target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;">⬇ Baixar vídeo</a>');
             } else if (msg.media_url && msg.media_type === 'audio') {
-              addBotMedia('<audio src="' + msg.media_url + '" controls style="width:100%;"></audio>');
+              addBotMedia('<audio src="' + msg.media_url + '" controls style="width:100%;"></audio><a href="' + msg.media_url + '" download target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;">⬇ Baixar áudio</a>');
             } else if (msg.media_url && msg.media_type === 'document') {
-              addBotMedia('<a href="' + msg.media_url + '" target="_blank" style="color:' + config.color + ';font-size:12px;text-decoration:underline;">📎 ' + (msg.media_filename || 'Documento') + '</a>');
+              addBotMedia('<a href="' + msg.media_url + '" download target="_blank" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(0,0,0,0.04);border-radius:8px;color:' + config.color + ';font-size:12px;text-decoration:none;"><span style="font-size:18px;">📄</span><span style="flex:1;">' + (msg.media_filename || 'Documento') + '</span><span style="font-size:14px;">⬇</span></a>');
             } else if (msg.content) {
               addBot(msg.content);
             }
