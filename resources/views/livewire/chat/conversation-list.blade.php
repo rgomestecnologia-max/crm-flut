@@ -140,6 +140,8 @@
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
+        $flutChatCount = \App\Models\FlutChatConversation::where('status', 'active')->count();
+        $tabs[] = ['key' => 'flutchat', 'label' => 'FlutChat', 'count' => $flutChatCount, 'color' => '#6366f1', 'activeBg' => 'rgba(99,102,241,0.12)', 'activeColor' => '#818cf8'];
         if (($counts['archived'] ?? 0) > 0) {
             $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
         }
@@ -173,6 +175,36 @@
 
     {{-- List --}}
     <div style="flex:1; overflow-y:auto; max-height:calc(100vh - 180px);">
+        @if($filter === 'flutchat')
+        {{-- FlutChat conversations --}}
+        @php $flutConvs = \App\Models\FlutChatConversation::with(['widget', 'latestMessage'])->where('status', 'active')->latest('last_message_at')->get(); @endphp
+        @forelse($flutConvs as $fc)
+        <div wire:key="fc-{{ $fc->id }}"
+             style="padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.03); cursor:pointer; transition:background 0.15s;"
+             onmouseover="this.style.background='rgba(99,102,241,0.05)'" onmouseout="this.style.background='transparent'"
+             onclick="window.location='{{ route('flut-chat-live.index') }}?conv={{ $fc->id }}'">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:38px; height:38px; border-radius:50%; background:rgba(99,102,241,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span style="font-size:14px; font-weight:700; color:#818cf8;">{{ mb_strtoupper(mb_substr($fc->visitor_name ?? '?', 0, 1)) }}</span>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <p style="font-size:12px; font-weight:600; color:white; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $fc->visitor_name ?: 'Visitante' }}</p>
+                        <span style="font-size:9px; color:rgba(255,255,255,0.25); flex-shrink:0;">{{ $fc->last_message_at?->format('H:i') }}</span>
+                    </div>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin:2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        {{ $fc->widget?->name }} · {{ \Illuminate\Support\Str::limit($fc->latestMessage?->content ?? '', 40) }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        @empty
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; gap:8px;">
+            <svg width="32" height="32" fill="none" stroke="rgba(255,255,255,0.1)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            <p style="font-size:12px; color:rgba(255,255,255,0.25);">Nenhuma conversa FlutChat ativa</p>
+        </div>
+        @endforelse
+        @else
         @forelse($conversations as $conv)
             @php $isSelected = in_array($conv->id, $selected); @endphp
             <div wire:key="conv-{{ $conv->id }}"
@@ -324,6 +356,7 @@
                 <p style="font-size:12px; font-weight:500; color:rgba(255,255,255,0.25);">Nenhuma conversa encontrada</p>
             </div>
         @endforelse
+        @endif{{-- /flutchat filter --}}
 
         {{-- Scroll infinito: carrega mais quando visível --}}
         @if($hasMore)
