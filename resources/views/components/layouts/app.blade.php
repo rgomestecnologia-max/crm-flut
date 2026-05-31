@@ -530,14 +530,6 @@
                     <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ auth()->user()->name }}</p>
                     <p style="font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ auth()->user()->department?->name ?? 'Admin' }}</p>
                 </div>
-                {{-- Theme toggle --}}
-                <button x-show="sidebarOpen"
-                        onclick="var m = document.documentElement.className === 'dark' ? 'light' : 'dark'; document.documentElement.className = m; localStorage.setItem('crm_theme', m);"
-                        title="Alternar tema claro/escuro"
-                        style="flex-shrink:0; width:28px; height:28px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; color:#fbbf24; transition:all 0.15s;"
-                        onmouseover="this.style.background='rgba(251,191,36,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                </button>
                 <form x-show="sidebarOpen" method="POST" action="{{ route('logout') }}" style="flex-shrink:0;">
                     @csrf
                     <button type="submit"
