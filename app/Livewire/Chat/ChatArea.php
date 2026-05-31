@@ -125,6 +125,44 @@ class ChatArea extends Component
         $this->dispatch('scroll-to-bottom');
     }
 
+    public function sendFlutChatFile(): void
+    {
+        if (!$this->flutChatConvId || empty($this->pendingFiles)) return;
+
+        $conv = \App\Models\FlutChatConversation::find($this->flutChatConvId);
+        if (!$conv) return;
+
+        foreach ($this->pendingFiles as $file) {
+            $mime = $file->getMimeType() ?? 'application/octet-stream';
+            $name = $file->getClientOriginalName();
+            $type = match(true) {
+                str_starts_with($mime, 'image/') => 'image',
+                str_starts_with($mime, 'audio/') => 'audio',
+                str_starts_with($mime, 'video/') => 'video',
+                default                          => 'document',
+            };
+
+            $dir  = 'attachments/' . date('Y/m');
+            $path = \App\Services\MediaStorage::store($file, $dir);
+            $url  = \App\Services\MediaStorage::url($path);
+
+            \App\Models\FlutChatMessage::create([
+                'conversation_id' => $conv->id,
+                'sender_type'     => 'agent',
+                'sender_id'       => Auth::id(),
+                'content'         => $type === 'document' ? $name : null,
+                'media_url'       => $url,
+                'media_type'      => $type,
+                'media_filename'  => $name,
+            ]);
+        }
+
+        $conv->update(['last_message_at' => now(), 'assigned_to' => $conv->assigned_to ?? Auth::id()]);
+        $this->pendingFiles = [];
+        $this->dispatch('scroll-to-bottom');
+        $this->dispatch('toast', type: 'success', message: 'Arquivo(s) enviado(s).');
+    }
+
     public function closeFlutChat(): void
     {
         if ($this->flutChatConvId) {

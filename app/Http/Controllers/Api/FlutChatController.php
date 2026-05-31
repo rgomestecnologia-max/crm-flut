@@ -247,7 +247,7 @@ class FlutChatController extends Controller
             ->where('conversation_id', $conv->id)
             ->when($afterId, fn($q) => $q->where('id', '>', $afterId))
             ->orderBy('id')
-            ->get(['id', 'sender_type', 'sender_id', 'content', 'created_at']);
+            ->get(['id', 'sender_type', 'sender_id', 'content', 'media_url', 'media_type', 'media_filename', 'created_at']);
 
         return response()->json(['messages' => $messages]);
     }

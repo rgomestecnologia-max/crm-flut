@@ -1673,9 +1673,22 @@ function senderColor(?string $identifier): string {
                     <span style="font-size:10px; font-weight:700; color:#b2ff00;">{{ $fcAgentInit }}</span>
                 </div>
                 <div>
-                    <div style="background:rgba(45,74,8,0.5); color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word;">
+                    <div style="background:rgba(45,74,8,0.5); color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word; overflow:hidden;">
                         <p style="font-size:10px; font-weight:600; color:#b2ff00; margin-bottom:3px;">{{ $fcAgentName }}</p>
-                        <span style="white-space:pre-wrap;">{{ $fcMsg->content }}</span>
+                        @if($fcMsg->media_url && $fcMsg->media_type === 'image')
+                        <img src="{{ $fcMsg->media_url }}" style="max-width:240px; border-radius:8px; display:block; margin-bottom:4px; cursor:zoom-in;"
+                             @click="$dispatch('open-lightbox', { src: '{{ $fcMsg->media_url }}', msgId: 0 })">
+                        @elseif($fcMsg->media_url && $fcMsg->media_type === 'video')
+                        <video src="{{ $fcMsg->media_url }}" controls style="max-width:240px; border-radius:8px; display:block; margin-bottom:4px;"></video>
+                        @elseif($fcMsg->media_url && $fcMsg->media_type === 'audio')
+                        <audio src="{{ $fcMsg->media_url }}" controls style="width:100%; margin-bottom:4px;"></audio>
+                        @elseif($fcMsg->media_url && $fcMsg->media_type === 'document')
+                        <a href="{{ $fcMsg->media_url }}" target="_blank" style="display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(255,255,255,0.08); border-radius:8px; text-decoration:none; margin-bottom:4px;">
+                            <svg width="14" height="14" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span style="font-size:11px; color:rgba(255,255,255,0.7);">{{ $fcMsg->media_filename ?? 'Documento' }}</span>
+                        </a>
+                        @endif
+                        @if($fcMsg->content)<span style="white-space:pre-wrap;">{{ $fcMsg->content }}</span>@endif
                     </div>
                     <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:3px; text-align:right;">{{ $fcMsg->created_at->format('H:i') }}</p>
                 </div>
@@ -1732,7 +1745,51 @@ function senderColor(?string $identifier): string {
         </div>
         @endif
 
+        {{-- Preview de arquivos pendentes (FlutChat) --}}
+        @if(!empty($pendingFiles))
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:8px 10px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; flex:1;">
+                @foreach($pendingFiles as $pf)
+                @php $pfMime = $pf->getMimeType() ?? ''; @endphp
+                @if(str_starts_with($pfMime, 'image/'))
+                <img src="{{ $pf->temporaryUrl() }}" style="width:44px; height:44px; border-radius:6px; object-fit:cover;">
+                @else
+                <div style="width:44px; height:44px; border-radius:6px; background:rgba(178,255,0,0.1); display:flex; align-items:center; justify-content:center;">
+                    <span style="font-size:8px; color:#b2ff00;">{{ strtoupper(pathinfo($pf->getClientOriginalName(), PATHINFO_EXTENSION)) }}</span>
+                </div>
+                @endif
+                @endforeach
+            </div>
+            <button wire:click="sendFlutChatFile" style="padding:5px 12px; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); color:#b2ff00; font-size:10px; font-weight:600; border-radius:6px; cursor:pointer;">Enviar</button>
+            <button wire:click="$set('pendingFiles', [])" style="color:rgba(255,255,255,0.2); background:none; border:none; cursor:pointer;">✕</button>
+        </div>
+        @endif
+
         <div style="display:flex; align-items:flex-end; gap:6px;">
+            {{-- Anexar --}}
+            <div x-data="{ fcClip: false }" style="position:relative; flex-shrink:0;">
+                <button @click="fcClip=!fcClip" title="Anexar"
+                        style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer;"
+                        onmouseover="this.style.color='rgba(255,255,255,0.5)'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                </button>
+                <div x-show="fcClip" x-transition @click.outside="fcClip=false"
+                     style="position:absolute; bottom:40px; left:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:4px 0; box-shadow:0 8px 30px rgba(0,0,0,0.5); width:150px;">
+                    <label style="display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.6);"
+                           onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+                        <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Foto / Vídeo
+                        <input type="file" wire:model="pendingFiles" @change="fcClip=false" accept="image/*,video/*" multiple class="hidden">
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.6); border-top:1px solid rgba(255,255,255,0.04);"
+                           onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+                        <svg width="14" height="14" fill="none" stroke="#4ade80" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Documento
+                        <input type="file" wire:model="pendingFiles" @change="fcClip=false" multiple class="hidden">
+                    </label>
+                </div>
+            </div>
+
             {{-- Respostas rápidas --}}
             <button wire:click="$set('showQuickReplies', !$showQuickReplies)" title="Respostas rápidas"
                     style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; flex-shrink:0;"

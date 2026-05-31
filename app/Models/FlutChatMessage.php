@@ -11,6 +11,7 @@ class FlutChatMessage extends Model
 
     protected $fillable = [
         'company_id', 'conversation_id', 'sender_type', 'sender_id', 'content',
+        'media_url', 'media_type', 'media_filename',
     ];
 
     public function conversation()
