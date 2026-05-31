@@ -86,6 +86,34 @@ class FlutChatController extends Controller
                     $tags[] = 'flut-chat';
                     $bc->update(['tags' => $tags]);
                 }
+                // Cria card no CRM (primeiro pipeline, primeira etapa)
+                try {
+                    $pipeline = \App\Models\CrmPipeline::first();
+                    $stage = $pipeline?->stages()->orderBy('sort_order')->first();
+                    if ($pipeline && $stage) {
+                        // Busca ou cria Contact
+                        $contact = \App\Models\Contact::where('company_id', $widget->company_id)
+                            ->where('phone', $phone)->first();
+                        if (!$contact) {
+                            $contact = \App\Models\Contact::create([
+                                'company_id' => $widget->company_id,
+                                'phone'      => $phone,
+                                'name'       => $name,
+                            ]);
+                        }
+                        // Cria card se não existe nesse pipeline
+                        $exists = \App\Models\CrmCard::where('contact_id', $contact->id)
+                            ->where('pipeline_id', $pipeline->id)->exists();
+                        if (!$exists) {
+                            \App\Models\CrmCard::create([
+                                'pipeline_id' => $pipeline->id,
+                                'stage_id'    => $stage->id,
+                                'contact_id'  => $contact->id,
+                                'title'       => $name ?: $phone,
+                            ]);
+                        }
+                    }
+                } catch (\Throwable) {}
             } catch (\Throwable) {}
         }
 

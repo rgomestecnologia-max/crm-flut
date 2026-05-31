@@ -1780,7 +1780,6 @@ function senderColor(?string $identifier): string {
             <div style="overflow-y:auto; max-height:160px;">
                 @forelse($quickReplies as $qr)
                 <button wire:click="useQuickReply({{ $qr->id }})"
-                        x-on:click="setTimeout(() => { const ta = document.getElementById('fc-reply-input'); if(ta) { ta.value = $wire.messageText; ta.focus(); } }, 200)"
                         style="width:100%; text-align:left; padding:8px 10px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; color:white; font-size:11px;"
                         onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
                     <span style="color:#b2ff00; font-weight:600;">⚡ {{ $qr->title }}</span>

@@ -79,6 +79,9 @@
           <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
       </div>
+      <div style="text-align:center;padding:4px 0 6px;background:#fff;border-top:1px solid #f0f0f0;">
+        <a href="https://flut.com.br" target="_blank" style="font-size:9px;color:#bbb;text-decoration:none;">Feito com ⚡ <strong style="color:#888;">Flut</strong></a>
+      </div>
     `;
     document.body.appendChild(box);
 
@@ -336,7 +339,8 @@
               addBotMedia('<video src="' + msg.media_url + '" controls style="max-width:200px;border-radius:8px;display:block;"></video><a href="#" onclick="event.preventDefault();_fcDownload(' + msg.id + ',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar vídeo</a>');
             } else if (msg.media_url && msg.media_type === 'audio') {
               const fn = msg.media_filename || 'audio.ogg';
-              addBotMedia('<audio src="' + msg.media_url + '" controls style="width:100%;"></audio><a href="#" onclick="event.preventDefault();_fcDownload(' + msg.id + ',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar áudio</a>');
+              const audioId = 'fc-audio-' + msg.id;
+              addBotMedia('<div style="display:flex;align-items:center;gap:8px;min-width:200px;"><audio id="' + audioId + '" src="' + msg.media_url + '" preload="metadata" style="display:none;"></audio><button onclick="const a=document.getElementById(\'' + audioId + '\');if(a.paused){document.querySelectorAll(\'audio\').forEach(x=>x.pause());a.play();this.innerHTML=\'⏸\'}else{a.pause();this.innerHTML=\'▶\'}" style="width:32px;height:32px;border-radius:50%;background:' + config.color + ';border:none;cursor:pointer;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">▶</button><div style="flex:1;height:4px;background:rgba(0,0,0,0.1);border-radius:2px;position:relative;cursor:pointer;" onclick="const a=document.getElementById(\'' + audioId + '\');if(a.duration){const r=(event.clientX-this.getBoundingClientRect().left)/this.offsetWidth;a.currentTime=r*a.duration;}"><div id="' + audioId + '-bar" style="height:100%;background:' + config.color + ';border-radius:2px;width:0%;transition:width 0.1s;"></div></div><span id="' + audioId + '-time" style="font-size:10px;color:#888;min-width:32px;text-align:right;">0:00</span></div><script>(function(){const a=document.getElementById("' + audioId + '"),bar=document.getElementById("' + audioId + '-bar"),tm=document.getElementById("' + audioId + '-time");a.ontimeupdate=()=>{if(a.duration){bar.style.width=(a.currentTime/a.duration*100)+"%";const s=Math.floor(a.currentTime);tm.textContent=Math.floor(s/60)+":"+(""+(s%60)).padStart(2,"0")}};a.onended=()=>{a.previousElementSibling||a.parentElement.querySelector("button").innerHTML="▶";bar.style.width="0%"};a.onloadedmetadata=()=>{const s=Math.floor(a.duration);tm.textContent=Math.floor(s/60)+":"+(""+(s%60)).padStart(2,"0")}})()</script>');
             } else if (msg.media_url && msg.media_type === 'document') {
               const fn = msg.media_filename || 'documento';
               addBotMedia('<a href="#" onclick="event.preventDefault();_fcDownload(' + msg.id + ',\'' + fn + '\')" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(0,0,0,0.04);border-radius:8px;color:' + config.color + ';font-size:12px;text-decoration:none;cursor:pointer;"><span style="font-size:18px;">📄</span><span style="flex:1;">' + fn + '</span><span style="font-size:14px;">⬇</span></a>');

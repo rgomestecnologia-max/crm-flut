@@ -890,6 +890,13 @@ class ChatArea extends Component
             $this->messageText = $qr->content;
         }
         $this->showQuickReplies = false;
+
+        // Se FlutChat ativo, envia direto
+        if ($this->flutChatConvId && $qr) {
+            $this->sendFlutChatReply();
+            return;
+        }
+
         $this->dispatch('focus-message-input');
     }
 
