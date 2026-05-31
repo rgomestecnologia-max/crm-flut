@@ -78,6 +78,10 @@ class FlutChatManager extends Component
                 'widget_id' => $widget->id,
                 'name'      => 'Fluxo principal',
                 'is_active' => true,
+                'inactivity_warning_seconds' => 120,
+                'inactivity_warning_message' => 'Ainda por aqui? 👀 Se quiser continuar, é só responder. A sessão expira em 2 minutos.',
+                'inactivity_close_seconds'   => 120,
+                'inactivity_close_message'   => 'Opa! A conversa foi encerrada por inatividade. Reinicie o chat para tentar de novo 😉',
             ]);
             // Steps iniciais
             $step2 = FlutChatStep::create(['flow_id' => $flow->id, 'type' => 'action', 'content' => 'Obrigado! Redirecionando para o WhatsApp...', 'action_type' => 'whatsapp', 'sort_order' => 2]);
@@ -271,6 +275,14 @@ class FlutChatManager extends Component
     {
         FlutChatLead::findOrFail($id)->delete();
         $this->dispatch('toast', type: 'success', message: 'Lead excluído.');
+    }
+
+    public function updateFlowInactivity(int $flowId, string $field, $value): void
+    {
+        $allowed = ['inactivity_warning_seconds', 'inactivity_warning_message', 'inactivity_close_seconds', 'inactivity_close_message'];
+        if (!in_array($field, $allowed)) return;
+        FlutChatFlow::findOrFail($flowId)->update([$field => $value]);
+        $this->dispatch('toast', type: 'success', message: 'Configuração atualizada.');
     }
 
     public function addOption(): void

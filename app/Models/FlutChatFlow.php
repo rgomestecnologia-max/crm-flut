@@ -9,7 +9,11 @@ class FlutChatFlow extends Model
 {
     use BelongsToCompany;
 
-    protected $fillable = ['company_id', 'widget_id', 'name', 'is_active'];
+    protected $fillable = [
+        'company_id', 'widget_id', 'name', 'is_active',
+        'inactivity_warning_seconds', 'inactivity_warning_message',
+        'inactivity_close_seconds', 'inactivity_close_message',
+    ];
     protected $casts = ['is_active' => 'boolean'];
 
     public function widget()

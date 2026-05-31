@@ -39,6 +39,12 @@ class FlutChatController extends Controller
                 'whatsapp_message' => $widget->whatsapp_message,
             ],
             'steps' => $steps,
+            'inactivity' => $flow ? [
+                'warning_seconds' => $flow->inactivity_warning_seconds ?? 120,
+                'warning_message' => $flow->inactivity_warning_message ?? 'Ainda por aqui? 👀 Se quiser continuar, é só responder. A sessão expira em 2 minutos.',
+                'close_seconds'   => $flow->inactivity_close_seconds ?? 120,
+                'close_message'   => $flow->inactivity_close_message ?? 'Opa! A conversa foi encerrada por inatividade. Reinicie o chat para tentar de novo 😉',
+            ] : null,
         ]);
     }
 

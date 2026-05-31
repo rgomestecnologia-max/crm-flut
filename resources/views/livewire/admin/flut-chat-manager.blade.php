@@ -142,6 +142,41 @@
             <button wire:click="$set('showStepForm', true)" style="padding:6px 14px; font-size:11px; font-weight:600; color:#111; background:#a78bfa; border:none; border-radius:8px; cursor:pointer;">+ Novo Step</button>
         </div>
 
+        {{-- Configuração de inatividade --}}
+        @php $flow = \App\Models\FlutChatFlow::find($editingFlowId); @endphp
+        @if($flow)
+        <div x-data="{ showInactivity: false }" style="margin-bottom:16px;">
+            <button @click="showInactivity = !showInactivity" style="font-size:10px; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24" :style="showInactivity && 'transform:rotate(90deg)'"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                ⏱ Configuração de Inatividade
+            </button>
+            <div x-show="showInactivity" x-transition style="margin-top:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3); display:block; margin-bottom:3px;">Aviso após (segundos)</label>
+                        <input type="number" value="{{ $flow->inactivity_warning_seconds }}" wire:change="updateFlowInactivity({{ $flow->id }}, 'inactivity_warning_seconds', $event.target.value)"
+                               style="width:100%; padding:6px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none;">
+                    </div>
+                    <div>
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3); display:block; margin-bottom:3px;">Encerrar após aviso (segundos)</label>
+                        <input type="number" value="{{ $flow->inactivity_close_seconds }}" wire:change="updateFlowInactivity({{ $flow->id }}, 'inactivity_close_seconds', $event.target.value)"
+                               style="width:100%; padding:6px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none;">
+                    </div>
+                    <div class="col-span-2" style="grid-column: 1 / -1;">
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3); display:block; margin-bottom:3px;">Mensagem de aviso</label>
+                        <input type="text" value="{{ $flow->inactivity_warning_message }}" wire:change="updateFlowInactivity({{ $flow->id }}, 'inactivity_warning_message', $event.target.value)"
+                               style="width:100%; padding:6px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none; box-sizing:border-box;">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3); display:block; margin-bottom:3px;">Mensagem de encerramento</label>
+                        <input type="text" value="{{ $flow->inactivity_close_message }}" wire:change="updateFlowInactivity({{ $flow->id }}, 'inactivity_close_message', $event.target.value)"
+                               style="width:100%; padding:6px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none; box-sizing:border-box;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         @if($showStepForm)
         <div style="background:rgba(167,139,250,0.05); border:1px solid rgba(167,139,250,0.2); border-radius:12px; padding:16px; margin-bottom:16px;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">

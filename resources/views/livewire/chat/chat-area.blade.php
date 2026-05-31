@@ -1719,7 +1719,32 @@ function senderColor(?string $identifier): string {
     {{-- Input (só para conversas ativas) --}}
     @if($flutChatConv->status === 'active')
     <div style="border-top:1px solid rgba(255,255,255,0.05); padding:8px 12px; flex-shrink:0; background:rgba(8,12,22,0.7);"
-         x-data="{ fcEmoji: false }">
+         x-data="{
+            fcEmoji: false,
+            fcRec: false, fcRecSec: 0, fcRecTimer: null, fcMediaRec: null, fcChunks: [],
+            async fcStartRec() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.fcMediaRec = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/ogg;codecs=opus') ? 'audio/ogg;codecs=opus' : 'audio/webm;codecs=opus' });
+                    this.fcChunks = [];
+                    this.fcMediaRec.ondataavailable = e => { if (e.data.size) this.fcChunks.push(e.data); };
+                    this.fcMediaRec.onstop = () => {
+                        stream.getTracks().forEach(t => t.stop());
+                        if (!this.fcChunks.length) return;
+                        const blob = new Blob(this.fcChunks, { type: this.fcMediaRec.mimeType });
+                        const reader = new FileReader();
+                        reader.onloadend = () => { $wire.receiveFlutChatAudio(reader.result); };
+                        reader.readAsDataURL(blob);
+                    };
+                    this.fcMediaRec.start();
+                    this.fcRec = true; this.fcRecSec = 0;
+                    this.fcRecTimer = setInterval(() => this.fcRecSec++, 1000);
+                } catch(e) { $dispatch('toast', { type: 'error', message: 'Microfone não disponível.' }); }
+            },
+            fcStopRec() { if (this.fcMediaRec?.state === 'recording') this.fcMediaRec.stop(); this.fcRec = false; clearInterval(this.fcRecTimer); },
+            fcCancelRec() { if (this.fcMediaRec?.state === 'recording') { this.fcMediaRec.ondataavailable = null; this.fcMediaRec.onstop = () => this.fcMediaRec.stream?.getTracks().forEach(t => t.stop()); this.fcMediaRec.stop(); } this.fcRec = false; this.fcChunks = []; clearInterval(this.fcRecTimer); },
+            fcFmtRec(s) { return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
+         }">
 
         {{-- Respostas rápidas --}}
         @if($showQuickReplies)
@@ -1827,8 +1852,25 @@ function senderColor(?string $identifier): string {
                 </div>
             </div>
 
+            {{-- Mic --}}
+            <button x-show="!fcRec" @click="fcStartRec()" title="Gravar áudio"
+                    style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; flex-shrink:0;"
+                    onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3z"/></svg>
+            </button>
+
+            {{-- Gravação ativa --}}
+            <template x-if="fcRec">
+                <div style="display:flex; align-items:center; gap:6px; flex:1;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#ef4444; animation:pulse 1.5s ease-in-out infinite;"></span>
+                    <span style="font-size:11px; color:#f87171; font-family:monospace;" x-text="fcFmtRec(fcRecSec)"></span>
+                    <button @click="fcCancelRec()" style="font-size:10px; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer;">Cancelar</button>
+                    <button @click="fcStopRec()" style="padding:4px 10px; font-size:10px; font-weight:600; color:#111; background:#b2ff00; border:none; border-radius:6px; cursor:pointer;">Enviar</button>
+                </div>
+            </template>
+
             {{-- Enviar --}}
-            <button wire:click="sendFlutChatReply"
+            <button x-show="!fcRec" wire:click="sendFlutChatReply"
                     style="width:36px; height:36px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border-radius:10px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; flex-shrink:0;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
             </button>

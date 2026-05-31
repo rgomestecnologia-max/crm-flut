@@ -125,6 +125,37 @@ class ChatArea extends Component
         $this->dispatch('scroll-to-bottom');
     }
 
+    public function receiveFlutChatAudio(string $dataUrl): void
+    {
+        if (!$this->flutChatConvId) return;
+
+        $conv = \App\Models\FlutChatConversation::find($this->flutChatConvId);
+        if (!$conv) return;
+
+        [$header, $base64] = explode(',', $dataUrl, 2);
+        $raw = base64_decode($base64);
+        $ext = str_contains($header, 'ogg') ? 'ogg' : 'webm';
+
+        $dir = 'attachments/' . date('Y/m');
+        $filename = 'audio_' . uniqid() . '.' . $ext;
+        $path = $dir . '/' . $filename;
+        \App\Services\MediaStorage::put($path, $raw);
+        $url = \App\Services\MediaStorage::url($path);
+
+        \App\Models\FlutChatMessage::create([
+            'conversation_id' => $conv->id,
+            'sender_type'     => 'agent',
+            'sender_id'       => Auth::id(),
+            'content'         => '',
+            'media_url'       => $url,
+            'media_type'      => 'audio',
+            'media_filename'  => $filename,
+        ]);
+
+        $conv->update(['last_message_at' => now(), 'assigned_to' => $conv->assigned_to ?? Auth::id()]);
+        $this->dispatch('scroll-to-bottom');
+    }
+
     public function sendFlutChatFile(): void
     {
         if (!$this->flutChatConvId || empty($this->pendingFiles)) return;

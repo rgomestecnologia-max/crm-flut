@@ -7,6 +7,7 @@
 
   let config = null, steps = [], currentStep = null, collected = {}, chatOpen = false, aiMode = false, aiMessages = [];
   let liveConvId = null, liveLastMsgId = 0, livePollTimer = null;
+  let inactivityConfig = null, inactivityTimer = null, inactivityWarned = false, chatEnded = false;
 
   // ── Styles ──
   const css = document.createElement('style');
@@ -44,6 +45,7 @@
     if (data.error) return;
     config = data.widget;
     steps = data.steps || [];
+    inactivityConfig = data.inactivity || null;
     if (steps.length) currentStep = steps.find(s => s.sort_order === Math.min(...steps.map(x => x.sort_order)));
     render();
   }).catch(() => {});
@@ -106,6 +108,7 @@
       if (!document.getElementById('flut-chat-messages').children.length && currentStep) {
         // Inicia conversa ao vivo quando o chat abre
         if (!liveConvId) startLiveConversation();
+        resetInactivity();
         setTimeout(() => processStep(currentStep), 500);
       }
     } else {
@@ -167,6 +170,7 @@
     addUser(val);
     if (field.dataset.key) collected[field.dataset.key] = val;
     sendLiveMessage(val);
+    resetInactivity();
     field.value = '';
     document.getElementById('flut-chat-input').style.display = 'none';
 
@@ -189,6 +193,7 @@
       btn.onclick = () => {
         addUser(opt.label);
         sendLiveMessage(opt.label);
+        resetInactivity();
         div.remove();
         collected['opcao'] = opt.label;
         if (opt.next_step_id) {
@@ -232,6 +237,7 @@
       const opt = step.options[parseInt(sel.value)];
       addUser(opt.label);
       sendLiveMessage(opt.label);
+      resetInactivity();
       collected['opcao'] = opt.label;
       sel.remove();
       field.style.display = '';
@@ -352,8 +358,8 @@
     addUser(text);
     document.getElementById('flut-chat-field').value = '';
     aiMessages.push({role:'user', content: text});
-    // Salva na conversa ao vivo
     sendLiveMessage(text);
+    resetInactivity();
     showTyping();
 
     fetch(API + '/ai', {
@@ -448,4 +454,52 @@
   function hideTyping() { const t = document.getElementById('fc-typing'); if (t) t.remove(); }
   function scroll() { const m = document.getElementById('flut-chat-messages'); if (m) m.scrollTop = m.scrollHeight; }
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  // ── Inatividade ──
+  function resetInactivity() {
+    if (!inactivityConfig || chatEnded) return;
+    clearTimeout(inactivityTimer);
+    inactivityWarned = false;
+    inactivityTimer = setTimeout(() => {
+      if (chatEnded) return;
+      // Aviso
+      addBot(inactivityConfig.warning_message);
+      inactivityWarned = true;
+      // Timer de encerramento
+      inactivityTimer = setTimeout(() => {
+        if (chatEnded) return;
+        chatEnded = true;
+        // Mensagem de encerramento
+        const msgs = document.getElementById('flut-chat-messages');
+        const div = document.createElement('div');
+        div.style.cssText = 'align-self:flex-start;max-width:85%;';
+        div.innerHTML = '<div class="fc-msg fc-bot" style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-bottom-left-radius:4px;">' + esc(inactivityConfig.close_message) + '</div>';
+        msgs.appendChild(div);
+        // Botão reiniciar
+        const btnDiv = document.createElement('div');
+        btnDiv.style.cssText = 'align-self:flex-end;margin-top:6px;';
+        btnDiv.innerHTML = '<button onclick="window._fcRestart()" style="padding:10px 20px;border-radius:24px;border:none;cursor:pointer;font-size:13px;font-weight:700;color:#fff;background:' + config.color + ';box-shadow:0 2px 8px rgba(0,0,0,0.2);">Reiniciar Chat 🔄</button>';
+        msgs.appendChild(btnDiv);
+        scroll();
+        // Desabilita input e para polling
+        document.getElementById('flut-chat-input').style.display = 'none';
+        if (livePollTimer) { clearInterval(livePollTimer); livePollTimer = null; }
+      }, (inactivityConfig.close_seconds || 120) * 1000);
+    }, (inactivityConfig.warning_seconds || 120) * 1000);
+  }
+
+  window._fcRestart = function() {
+    chatEnded = false; aiMode = false; aiMessages = [];
+    collected = {}; inactivityWarned = false;
+    liveConvId = null; liveLastMsgId = 0;
+    if (livePollTimer) { clearInterval(livePollTimer); livePollTimer = null; }
+    const msgs = document.getElementById('flut-chat-messages');
+    if (msgs) msgs.innerHTML = '';
+    document.getElementById('flut-chat-input').style.display = 'none';
+    currentStep = steps.length ? steps.find(s => s.sort_order === Math.min(...steps.map(x => x.sort_order))) : null;
+    if (currentStep) {
+      startLiveConversation();
+      setTimeout(() => processStep(currentStep), 500);
+    }
+  };
 })();
