@@ -92,6 +92,16 @@
     document.querySelectorAll('.trigger-flut').forEach(el => {
       el.addEventListener('click', e => { e.preventDefault(); toggle(); });
     });
+
+    // Auto-abrir após 10s se nunca abriu nesta sessão
+    if (!sessionStorage.getItem('flut_auto_opened')) {
+      setTimeout(() => {
+        if (!chatOpen) {
+          sessionStorage.setItem('flut_auto_opened', '1');
+          toggle();
+        }
+      }, 10000);
+    }
   }
 
   function toggle() {
