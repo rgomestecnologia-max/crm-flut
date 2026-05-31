@@ -325,7 +325,7 @@
               addBotMedia('<audio src="' + msg.media_url + '" controls style="width:100%;"></audio>');
             } else if (msg.media_url && msg.media_type === 'document') {
               addBotMedia('<a href="' + msg.media_url + '" target="_blank" style="color:' + config.color + ';font-size:12px;text-decoration:underline;">📎 ' + (msg.media_filename || 'Documento') + '</a>');
-            } else {
+            } else if (msg.content) {
               addBot(msg.content);
             }
           } else if (msg.sender_type === 'system') {
