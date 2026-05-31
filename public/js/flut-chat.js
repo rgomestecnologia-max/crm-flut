@@ -104,6 +104,8 @@
       box.classList.add('open');
       btn.style.display = 'none';
       if (!document.getElementById('flut-chat-messages').children.length && currentStep) {
+        // Inicia conversa ao vivo quando o chat abre
+        if (!liveConvId) startLiveConversation();
         setTimeout(() => processStep(currentStep), 500);
       }
     } else {
@@ -164,6 +166,7 @@
 
     addUser(val);
     if (field.dataset.key) collected[field.dataset.key] = val;
+    sendLiveMessage(val);
     field.value = '';
     document.getElementById('flut-chat-input').style.display = 'none';
 
@@ -185,6 +188,7 @@
       btn.textContent = opt.label;
       btn.onclick = () => {
         addUser(opt.label);
+        sendLiveMessage(opt.label);
         div.remove();
         collected['opcao'] = opt.label;
         if (opt.next_step_id) {
@@ -227,6 +231,7 @@
       if (!sel.value) return;
       const opt = step.options[parseInt(sel.value)];
       addUser(opt.label);
+      sendLiveMessage(opt.label);
       collected['opcao'] = opt.label;
       sel.remove();
       field.style.display = '';
@@ -297,7 +302,7 @@
   }
 
   function sendLiveMessage(text) {
-    if (!liveConvId) return;
+    if (!liveConvId || !text) return;
     fetch(API + '/conversation/' + liveConvId + '/message', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ content: text, visitor_name: collected['nome'] || collected['name'] || null })
