@@ -54,6 +54,59 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 </div>
             </div>
 
+            {{-- SMTP / SendGrid --}}
+            <div style="margin-top:28px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+                    <div style="width:2px; height:16px; background:#6366f1; border-radius:2px;"></div>
+                    <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">SMTP (Email)</h3>
+                </div>
+
+                <div style="background:rgba(99,102,241,0.04); border:1px solid rgba(99,102,241,0.15); border-radius:10px; padding:12px 14px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:flex-start; gap:10px;">
+                        <svg width="16" height="16" fill="none" stroke="#818cf8" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.55); line-height:1.5;">
+                            Configure o SMTP para envio de emails (notificações FlutChat, etc). Para <strong style="color:rgba(255,255,255,0.8);">SendGrid</strong>: Host: smtp.sendgrid.net, Porta: 587, Usuário: apikey, Senha: sua API Key.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;" class="mobile-grid-1">
+                    <div>
+                        <label style="{{ $labelStyle }}">Host SMTP</label>
+                        <input wire:model="smtp_host" type="text" placeholder="smtp.sendgrid.net"
+                               style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    </div>
+                    <div>
+                        <label style="{{ $labelStyle }}">Porta</label>
+                        <input wire:model="smtp_port" type="text" placeholder="587"
+                               style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    </div>
+                    <div>
+                        <label style="{{ $labelStyle }}">Usuário</label>
+                        <input wire:model="smtp_username" type="text" placeholder="apikey"
+                               style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    </div>
+                    <div>
+                        <label style="{{ $labelStyle }}">Senha / API Key {{ $smtpKeySaved ? '(em branco = manter)' : '' }}</label>
+                        <input wire:model="smtp_password" type="password"
+                               placeholder="{{ $smtpKeySaved ? '••••••••••••••••••' : 'SG.xxxx...' }}"
+                               style="{{ $inputStyle }} font-family:monospace;" {!! $inputFocus !!}>
+                    </div>
+                    <div>
+                        <label style="{{ $labelStyle }}">Email Remetente</label>
+                        <input wire:model="smtp_from_address" type="email" placeholder="noreply@flut.com.br"
+                               style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    </div>
+                    <div>
+                        <label style="{{ $labelStyle }}">Nome Remetente</label>
+                        <input wire:model="smtp_from_name" type="text" placeholder="CRM Flut"
+                               style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    </div>
+                </div>
+            </div>
+
             <div style="margin-top:20px;">
                 <button type="submit"
                         style="padding:9px 24px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; font-size:12px; font-weight:700; border-radius:9px; border:none; cursor:pointer; transition:all 0.2s;"
