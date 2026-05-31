@@ -1634,6 +1634,12 @@ function senderColor(?string $identifier): string {
         @else
         <span style="padding:3px 8px; font-size:9px; font-weight:700; background:rgba(107,114,128,0.15); color:#9ca3af; border-radius:10px;">ENCERRADA</span>
         @endif
+        @if(auth()->user()->canManageCompany())
+        <button wire:click="deleteFlutChat({{ $flutChatConvId }})" wire:confirm="Excluir esta conversa e todo o histórico?"
+                style="padding:4px 8px; font-size:10px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;" title="Excluir conversa">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+        @endif
     </div>
 
     {{-- Messages --}}
@@ -1674,6 +1680,12 @@ function senderColor(?string $identifier): string {
                     <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:3px; text-align:right;">{{ $fcMsg->created_at->format('H:i') }}</p>
                 </div>
             </div>
+            @elseif($fcMsg->sender_type === 'system')
+            <div style="display:flex; justify-content:center; margin:4px 0;">
+                <span style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.25); font-size:10px; padding:4px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.06);">
+                    {{ $fcMsg->content }}
+                </span>
+            </div>
             @else
             <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%;">
                 <div style="width:26px; height:26px; border-radius:50%; background:rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
@@ -1693,13 +1705,73 @@ function senderColor(?string $identifier): string {
 
     {{-- Input (só para conversas ativas) --}}
     @if($flutChatConv->status === 'active')
-    <div style="border-top:1px solid rgba(255,255,255,0.05); padding:10px 14px; display:flex; gap:8px; flex-shrink:0; background:rgba(8,12,22,0.7);">
-        <input wire:model="messageText" wire:keydown.enter="sendFlutChatReply" type="text" placeholder="Responder ao visitante..."
-               style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:8px 14px; font-size:13px; color:white; outline:none; font-family:inherit;">
-        <button wire:click="sendFlutChatReply"
-                style="width:38px; height:38px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; flex-shrink:0;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-        </button>
+    <div style="border-top:1px solid rgba(255,255,255,0.05); padding:8px 12px; flex-shrink:0; background:rgba(8,12,22,0.7);"
+         x-data="{ fcEmoji: false }">
+
+        {{-- Respostas rápidas --}}
+        @if($showQuickReplies)
+        <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:200px; overflow:hidden; display:flex; flex-direction:column;">
+            <div style="padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:6px;">
+                <svg width="12" height="12" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <input wire:model.live.debounce.200ms="quickReplySearch" type="text" placeholder="Buscar..."
+                       style="flex:1; background:transparent; border:none; outline:none; font-size:11px; color:white; font-family:inherit;">
+                <button wire:click="$set('showQuickReplies', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:12px;">✕</button>
+            </div>
+            <div style="overflow-y:auto; max-height:160px;">
+                @forelse($quickReplies as $qr)
+                <button wire:click="useQuickReply({{ $qr->id }})"
+                        style="width:100%; text-align:left; padding:8px 10px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; color:white; font-size:11px;"
+                        onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
+                    <span style="color:#b2ff00; font-weight:600;">⚡ {{ $qr->title }}</span>
+                    <span style="color:rgba(255,255,255,0.3); margin-left:6px;">{{ \Illuminate\Support\Str::limit($qr->content, 50) }}</span>
+                </button>
+                @empty
+                <p style="padding:12px; text-align:center; font-size:10px; color:rgba(255,255,255,0.3);">Nenhuma resposta rápida.</p>
+                @endforelse
+            </div>
+        </div>
+        @endif
+
+        <div style="display:flex; align-items:flex-end; gap:6px;">
+            {{-- Respostas rápidas --}}
+            <button wire:click="$set('showQuickReplies', !$showQuickReplies)" title="Respostas rápidas"
+                    style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; flex-shrink:0;"
+                    onmouseover="this.style.color='#b2ff00'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </button>
+
+            {{-- Input --}}
+            <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; overflow:hidden; display:flex; align-items:flex-end;">
+                <textarea wire:model="messageText" wire:keydown.enter.prevent="sendFlutChatReply" placeholder="Responder ao visitante..." rows="1"
+                          style="flex:1; background:transparent; padding:8px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:100px; font-family:inherit; line-height:1.5; border:none;"
+                          oninput="this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+            </div>
+
+            {{-- Emojis --}}
+            <div style="position:relative; flex-shrink:0;">
+                <button @click="fcEmoji=!fcEmoji" title="Emojis"
+                        style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer;"
+                        onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </button>
+                <div x-show="fcEmoji" x-transition @click.outside="fcEmoji=false"
+                     style="position:absolute; bottom:40px; right:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px; width:260px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+                    <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:2px; max-height:160px; overflow-y:auto;">
+                        @foreach(['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','🤗','🤩','👍','👎','👏','🙏','❤','🔥','✅','❌','⚠️','💯','✨','🎉','👀','💬','📱','💻','🚀'] as $emoji)
+                        <button @click="$wire.set('messageText', ($wire.messageText||'') + '{{ $emoji }}'); fcEmoji=false"
+                                style="font-size:16px; padding:3px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">{{ $emoji }}</button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Enviar --}}
+            <button wire:click="sendFlutChatReply"
+                    style="width:36px; height:36px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border-radius:10px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; flex-shrink:0;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+        </div>
     </div>
     @endif
 

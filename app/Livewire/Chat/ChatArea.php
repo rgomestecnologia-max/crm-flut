@@ -128,9 +128,27 @@ class ChatArea extends Component
     public function closeFlutChat(): void
     {
         if ($this->flutChatConvId) {
+            // Envia aviso de encerramento para o visitante
+            \App\Models\FlutChatMessage::create([
+                'conversation_id' => $this->flutChatConvId,
+                'sender_type'     => 'system',
+                'content'         => 'Atendimento encerrado. Obrigado pelo contato!',
+            ]);
+
             \App\Models\FlutChatConversation::find($this->flutChatConvId)?->update(['status' => 'closed']);
             $this->flutChatConvId = null;
             $this->dispatch('toast', type: 'success', message: 'Conversa FlutChat encerrada.');
+        }
+    }
+
+    public function deleteFlutChat(int $id): void
+    {
+        $conv = \App\Models\FlutChatConversation::find($id);
+        if ($conv) {
+            \App\Models\FlutChatMessage::where('conversation_id', $id)->delete();
+            $conv->delete();
+            if ($this->flutChatConvId === $id) $this->flutChatConvId = null;
+            $this->dispatch('toast', type: 'success', message: 'Conversa excluída.');
         }
     }
 

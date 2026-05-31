@@ -316,9 +316,19 @@
       .then(data => {
         (data.messages || []).forEach(msg => {
           if (msg.id > liveLastMsgId) liveLastMsgId = msg.id;
-          // Só mostra mensagens do agente (visitor msgs já foram adicionadas localmente)
           if (msg.sender_type === 'agent') {
             addBot(msg.content);
+          } else if (msg.sender_type === 'system') {
+            // Mensagem de sistema (encerramento)
+            const msgs = document.getElementById('flut-chat-messages');
+            const sys = document.createElement('div');
+            sys.style.cssText = 'text-align:center;margin:8px 0;';
+            sys.innerHTML = '<span style="background:rgba(0,0,0,0.08);color:#888;font-size:11px;padding:4px 14px;border-radius:10px;">' + msg.content + '</span>';
+            msgs.appendChild(sys);
+            scroll();
+            // Desabilita input
+            document.getElementById('flut-chat-input').style.display = 'none';
+            if (livePollTimer) { clearInterval(livePollTimer); livePollTimer = null; }
           }
         });
       }).catch(() => {});
