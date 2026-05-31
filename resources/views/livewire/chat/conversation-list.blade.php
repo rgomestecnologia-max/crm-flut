@@ -140,7 +140,7 @@
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
-        $flutChatCount = \App\Models\FlutChatConversation::where('status', 'active')->count();
+        $flutChatCount = \App\Models\FlutChatConversation::count();
         $tabs[] = ['key' => 'flutchat', 'label' => 'FlutChat', 'count' => $flutChatCount, 'color' => '#6366f1', 'activeBg' => 'rgba(99,102,241,0.12)', 'activeColor' => '#818cf8'];
         if (($counts['archived'] ?? 0) > 0) {
             $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
@@ -177,7 +177,7 @@
     <div style="flex:1; overflow-y:auto; max-height:calc(100vh - 180px);">
         @if($filter === 'flutchat')
         {{-- FlutChat conversations --}}
-        @php $flutConvs = \App\Models\FlutChatConversation::with(['widget', 'latestMessage'])->where('status', 'active')->latest('last_message_at')->get(); @endphp
+        @php $flutConvs = \App\Models\FlutChatConversation::with(['widget', 'latestMessage'])->latest('last_message_at')->take(50)->get(); @endphp
         @forelse($flutConvs as $fc)
         <div wire:key="fc-{{ $fc->id }}"
              wire:click="$dispatch('flutchat-selected', { id: {{ $fc->id }} })"
@@ -190,7 +190,12 @@
                 <div style="flex:1; min-width:0;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <p style="font-size:12px; font-weight:600; color:white; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $fc->visitor_name ?: 'Visitante' }}</p>
-                        <span style="font-size:9px; color:rgba(255,255,255,0.25); flex-shrink:0;">{{ $fc->last_message_at?->format('H:i') }}</span>
+                        <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                            @if($fc->status === 'active')
+                            <span style="width:6px; height:6px; border-radius:50%; background:#4ade80;"></span>
+                            @endif
+                            <span style="font-size:9px; color:rgba(255,255,255,0.25);">{{ $fc->last_message_at?->format('H:i') }}</span>
+                        </div>
                     </div>
                     <p style="font-size:11px; color:rgba(255,255,255,0.3); margin:2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                         {{ $fc->widget?->name }} · {{ \Illuminate\Support\Str::limit($fc->latestMessage?->content ?? '', 40) }}

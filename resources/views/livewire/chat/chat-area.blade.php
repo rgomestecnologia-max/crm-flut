@@ -1627,41 +1627,72 @@ function senderColor(?string $identifier): string {
             <p style="font-size:13px; font-weight:700; color:white; margin:0;">{{ $flutChatConv->visitor_name ?: 'Visitante' }}</p>
             <p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;">FlutChat · {{ $flutChatConv->widget?->name }}</p>
         </div>
+        @if($flutChatConv->status === 'active')
         <span style="padding:3px 8px; font-size:9px; font-weight:700; background:rgba(99,102,241,0.15); color:#818cf8; border-radius:10px;">AO VIVO</span>
         <button wire:click="closeFlutChat" wire:confirm="Encerrar esta conversa?"
                 style="padding:4px 10px; font-size:10px; color:#f87171; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">Encerrar</button>
+        @else
+        <span style="padding:3px 8px; font-size:9px; font-weight:700; background:rgba(107,114,128,0.15); color:#9ca3af; border-radius:10px;">ENCERRADA</span>
+        @endif
     </div>
 
     {{-- Messages --}}
-    <div wire:poll.3s style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;">
+    <div wire:poll.3s style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:6px;">
+        @php $fcLastDate = null; @endphp
         @foreach($flutChatMessages as $fcMsg)
-        @if($fcMsg->sender_type === 'visitor')
-        <div style="max-width:75%; align-self:flex-start;">
-            <div style="background:rgba(31,41,55,0.8); color:rgba(255,255,255,0.88); border-radius:14px 14px 14px 4px; padding:8px 12px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06);">
-                {{ $fcMsg->content }}
+            @php $fcDate = $fcMsg->created_at->format('Y-m-d'); @endphp
+            @if($fcDate !== $fcLastDate)
+            <div style="display:flex; justify-content:center; margin:8px 0 4px;">
+                <span style="background:rgba(88,101,124,0.7); color:rgba(255,255,255,0.85); font-size:11px; font-weight:600; padding:4px 14px; border-radius:8px;">{{ $fcMsg->created_at->format('d/m/Y') }}</span>
             </div>
-            <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:2px;">{{ $fcMsg->created_at->format('H:i') }}</p>
-        </div>
-        @elseif($fcMsg->sender_type === 'agent')
-        <div style="max-width:75%; align-self:flex-end;">
-            <div style="background:rgba(45,74,8,0.5); color:white; border-radius:14px 14px 4px 14px; padding:8px 12px; font-size:13px; line-height:1.5;">
-                {{ $fcMsg->content }}
+            @php $fcLastDate = $fcDate; @endphp
+            @endif
+
+            @if($fcMsg->sender_type === 'visitor')
+            <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%;">
+                <div style="width:26px; height:26px; border-radius:50%; background:rgba(99,102,241,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
+                    <span style="font-size:10px; font-weight:700; color:#818cf8;">{{ mb_strtoupper(mb_substr($flutChatConv->visitor_name ?? '?', 0, 1)) }}</span>
+                </div>
+                <div>
+                    <div style="background:rgba(31,41,55,0.8); color:rgba(255,255,255,0.88); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06); max-width:min(400px, 85vw); word-break:break-word;">
+                        <span style="white-space:pre-wrap;">{{ $fcMsg->content }}</span>
+                    </div>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:3px;">{{ $fcMsg->created_at->format('H:i') }}</p>
+                </div>
             </div>
-            <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:2px; text-align:right;">{{ $fcMsg->sender?->name ?? 'Agente' }} · {{ $fcMsg->created_at->format('H:i') }}</p>
-        </div>
-        @else
-        <div style="max-width:75%; align-self:flex-start;">
-            <div style="background:rgba(99,102,241,0.1); color:rgba(255,255,255,0.7); border-radius:14px; padding:8px 12px; font-size:12px; line-height:1.5; border:1px solid rgba(99,102,241,0.2);">
-                🤖 {{ $fcMsg->content }}
+            @elseif($fcMsg->sender_type === 'agent')
+            <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse;">
+                @php $fcAgentName = $fcMsg->sender?->name ?? 'Agente'; $fcAgentInit = mb_strtoupper(mb_substr($fcAgentName, 0, 1)); @endphp
+                <div style="width:26px; height:26px; border-radius:50%; background:rgba(178,255,0,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
+                    <span style="font-size:10px; font-weight:700; color:#b2ff00;">{{ $fcAgentInit }}</span>
+                </div>
+                <div>
+                    <div style="background:rgba(45,74,8,0.5); color:white; border-radius:18px 18px 4px 18px; padding:10px 14px; font-size:13px; line-height:1.5; max-width:min(400px, 85vw); word-break:break-word;">
+                        <p style="font-size:10px; font-weight:600; color:#b2ff00; margin-bottom:3px;">{{ $fcAgentName }}</p>
+                        <span style="white-space:pre-wrap;">{{ $fcMsg->content }}</span>
+                    </div>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:3px; text-align:right;">{{ $fcMsg->created_at->format('H:i') }}</p>
+                </div>
             </div>
-            <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:2px;">IA · {{ $fcMsg->created_at->format('H:i') }}</p>
-        </div>
-        @endif
+            @else
+            <div style="display:flex; align-items:flex-end; gap:8px; max-width:75%;">
+                <div style="width:26px; height:26px; border-radius:50%; background:rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-bottom:2px;">
+                    <span style="font-size:12px;">🤖</span>
+                </div>
+                <div>
+                    <div style="background:rgba(99,102,241,0.1); color:rgba(255,255,255,0.8); border-radius:18px 18px 18px 4px; padding:10px 14px; font-size:13px; line-height:1.5; border:1px solid rgba(99,102,241,0.15); max-width:min(400px, 85vw); word-break:break-word;">
+                        <span style="white-space:pre-wrap;">{{ $fcMsg->content }}</span>
+                    </div>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:3px;">IA · {{ $fcMsg->created_at->format('H:i') }}</p>
+                </div>
+            </div>
+            @endif
         @endforeach
         <div id="fc-bottom-anchor"></div>
     </div>
 
-    {{-- Input --}}
+    {{-- Input (só para conversas ativas) --}}
+    @if($flutChatConv->status === 'active')
     <div style="border-top:1px solid rgba(255,255,255,0.05); padding:10px 14px; display:flex; gap:8px; flex-shrink:0; background:rgba(8,12,22,0.7);">
         <input wire:model="messageText" wire:keydown.enter="sendFlutChatReply" type="text" placeholder="Responder ao visitante..."
                style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:8px 14px; font-size:13px; color:white; outline:none; font-family:inherit;">
@@ -1670,6 +1701,7 @@ function senderColor(?string $identifier): string {
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
         </button>
     </div>
+    @endif
 
     @else
     {{-- Empty state --}}
