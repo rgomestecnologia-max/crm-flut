@@ -121,8 +121,8 @@
         <div style="margin-bottom:8px;">
             <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-bottom:4px;">{{ $w->name }}:</p>
             <div x-data style="display:flex; gap:6px;">
-                <code style="flex:1; font-size:10px; padding:8px; background:rgba(0,0,0,0.3); border-radius:6px; color:#b2ff00; overflow-x:auto; white-space:nowrap;">&lt;script src="{{ url('/js/flut-chat.js') }}?id={{ $w->public_id }}"&gt;&lt;/script&gt;</code>
-                <button @click="navigator.clipboard.writeText('<script src=\'{{ url('/js/flut-chat.js') }}?id={{ $w->public_id }}\'><\/script>'); $dispatch('toast', {type:'success', message:'Copiado!'})"
+                <code style="flex:1; font-size:10px; padding:8px; background:rgba(0,0,0,0.3); border-radius:6px; color:#b2ff00; overflow-x:auto; white-space:nowrap;">&lt;script src="{{ url('/js/flut-chat.js') }}?id={{ $w->public_id }}&v={{ filemtime(public_path('js/flut-chat.js')) }}"&gt;&lt;/script&gt;</code>
+                <button @click="navigator.clipboard.writeText('<script src=\'{{ url('/js/flut-chat.js') }}?id={{ $w->public_id }}&v={{ filemtime(public_path('js/flut-chat.js')) }}\'><\/script>'); $dispatch('toast', {type:'success', message:'Copiado!'})"
                         style="padding:4px 10px; font-size:10px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer; flex-shrink:0;">Copiar</button>
             </div>
         </div>
