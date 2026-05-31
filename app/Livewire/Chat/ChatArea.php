@@ -150,7 +150,7 @@ class ChatArea extends Component
                 'conversation_id' => $conv->id,
                 'sender_type'     => 'agent',
                 'sender_id'       => Auth::id(),
-                'content'         => $type === 'document' ? $name : null,
+                'content'         => $type === 'document' ? $name : '',
                 'media_url'       => $url,
                 'media_type'      => $type,
                 'media_filename'  => $name,
