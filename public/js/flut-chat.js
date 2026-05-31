@@ -6,6 +6,7 @@
   const API = script.src.split('/js/')[0] + '/api/flut-chat/' + widgetId;
 
   let config = null, steps = [], currentStep = null, collected = {}, chatOpen = false, aiMode = false, aiMessages = [];
+  let liveConvId = null, liveLastMsgId = 0, livePollTimer = null;
 
   // ── Styles ──
   const css = document.createElement('style');
@@ -262,6 +263,8 @@
       document.getElementById('flut-chat-input').style.display = 'flex';
       document.getElementById('flut-chat-field').placeholder = 'Digite sua mensagem...';
       document.getElementById('flut-chat-field').focus();
+      // Inicia conversa ao vivo para agentes acompanharem
+      startLiveConversation();
     }
     else if (action === 'redirect') {
       window.open(step.action_value || '/', '_blank');
@@ -271,10 +274,57 @@
     }
   }
 
+  // ── Chat ao vivo ──
+  function getVisitorId() {
+    let vid = localStorage.getItem('flut_visitor_id');
+    if (!vid) { vid = 'v_' + Math.random().toString(36).substr(2, 12) + Date.now().toString(36); localStorage.setItem('flut_visitor_id', vid); }
+    return vid;
+  }
+
+  function startLiveConversation() {
+    const visitorName = collected['nome'] || collected['name'] || null;
+    fetch(API + '/conversation', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ visitor_id: getVisitorId(), visitor_name: visitorName })
+    }).then(r => r.json()).then(data => {
+      if (data.conversation_id) {
+        liveConvId = data.conversation_id;
+        // Inicia polling para receber mensagens do agente
+        if (livePollTimer) clearInterval(livePollTimer);
+        livePollTimer = setInterval(pollLiveMessages, 3000);
+      }
+    }).catch(() => {});
+  }
+
+  function sendLiveMessage(text) {
+    if (!liveConvId) return;
+    fetch(API + '/conversation/' + liveConvId + '/message', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ content: text, visitor_name: collected['nome'] || collected['name'] || null })
+    }).catch(() => {});
+  }
+
+  function pollLiveMessages() {
+    if (!liveConvId) return;
+    fetch(API + '/conversation/' + liveConvId + '/messages?after=' + liveLastMsgId)
+      .then(r => r.json())
+      .then(data => {
+        (data.messages || []).forEach(msg => {
+          if (msg.id > liveLastMsgId) liveLastMsgId = msg.id;
+          // Só mostra mensagens do agente (visitor msgs já foram adicionadas localmente)
+          if (msg.sender_type === 'agent') {
+            addBot(msg.content);
+          }
+        });
+      }).catch(() => {});
+  }
+
   function sendAiMessage(text) {
     addUser(text);
     document.getElementById('flut-chat-field').value = '';
     aiMessages.push({role:'user', content: text});
+    // Salva na conversa ao vivo
+    sendLiveMessage(text);
     showTyping();
 
     fetch(API + '/ai', {

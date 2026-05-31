@@ -109,6 +109,9 @@ Route::middleware(['auth', 'company'])->group(function () {
     // Chat Interno
     Route::get('/internal-chat', fn() => view('internal-chat.index'))->name('internal-chat.index');
 
+    // FlutChat Live
+    Route::get('/flut-chat-live', fn() => view('flut-chat-live.index'))->name('flut-chat-live.index');
+
     // CRM
     Route::get('/crm', fn() => view('crm.index'))->middleware('module:crm')->name('crm.index');
     Route::get('/crm/tasks', fn() => view('crm.tasks'))->middleware('module:crm')->name('crm.tasks');

@@ -184,4 +184,71 @@ class FlutChatController extends Controller
             return response()->json(['error' => 'AI error', 'message' => $e->getMessage()], 500);
         }
     }
+
+    // ── Chat ao vivo ──────────────────────────────────────────────────
+
+    public function startConversation(string $publicId, Request $request): JsonResponse
+    {
+        $widget = FlutChatWidget::withoutGlobalScopes()
+            ->where('public_id', $publicId)->where('is_active', true)->first();
+        if (!$widget) return response()->json(['error' => 'Widget not found'], 404);
+
+        $visitorId = $request->input('visitor_id');
+        if (!$visitorId) return response()->json(['error' => 'visitor_id required'], 400);
+
+        $conv = \App\Models\FlutChatConversation::withoutGlobalScopes()
+            ->where('widget_id', $widget->id)
+            ->where('visitor_id', $visitorId)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$conv) {
+            $conv = \App\Models\FlutChatConversation::withoutGlobalScopes()->create([
+                'company_id'      => $widget->company_id,
+                'widget_id'       => $widget->id,
+                'visitor_id'      => $visitorId,
+                'visitor_name'    => $request->input('visitor_name'),
+                'status'          => 'active',
+                'last_message_at' => now(),
+            ]);
+        }
+
+        return response()->json(['conversation_id' => $conv->id]);
+    }
+
+    public function sendMessage(string $publicId, int $conversationId, Request $request): JsonResponse
+    {
+        $conv = \App\Models\FlutChatConversation::withoutGlobalScopes()->find($conversationId);
+        if (!$conv || $conv->status !== 'active') return response()->json(['error' => 'Conversation not found'], 404);
+
+        if ($request->input('visitor_name') && !$conv->visitor_name) {
+            $conv->update(['visitor_name' => $request->input('visitor_name')]);
+        }
+
+        $msg = \App\Models\FlutChatMessage::withoutGlobalScopes()->create([
+            'company_id'      => $conv->company_id,
+            'conversation_id' => $conv->id,
+            'sender_type'     => 'visitor',
+            'content'         => $request->input('content', ''),
+        ]);
+
+        $conv->update(['last_message_at' => now()]);
+
+        return response()->json(['success' => true, 'message_id' => $msg->id]);
+    }
+
+    public function getMessages(string $publicId, int $conversationId, Request $request): JsonResponse
+    {
+        $conv = \App\Models\FlutChatConversation::withoutGlobalScopes()->find($conversationId);
+        if (!$conv) return response()->json(['error' => 'Conversation not found'], 404);
+
+        $afterId = (int) $request->query('after', 0);
+        $messages = \App\Models\FlutChatMessage::withoutGlobalScopes()
+            ->where('conversation_id', $conv->id)
+            ->when($afterId, fn($q) => $q->where('id', '>', $afterId))
+            ->orderBy('id')
+            ->get(['id', 'sender_type', 'sender_id', 'content', 'created_at']);
+
+        return response()->json(['messages' => $messages]);
+    }
 }

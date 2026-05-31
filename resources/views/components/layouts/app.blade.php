@@ -246,6 +246,19 @@
             </a>
             @endif
 
+            @php $flutChatLiveCount = \App\Models\FlutChatConversation::where('status', 'active')->count(); @endphp
+            @if($flutChatLiveCount > 0)
+            <a href="{{ route('flut-chat-live.index') }}"
+               class="nav-item {{ request()->routeIs('flut-chat-live*') ? 'active' : '' }}"
+               style="color:{{ request()->routeIs('flut-chat-live*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                </svg>
+                <span x-show="sidebarOpen">FlutChat</span>
+                <span style="min-width:16px; height:16px; padding:0 4px; border-radius:20px; background:#6366f1; color:white; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center;">{{ $flutChatLiveCount }}</span>
+            </a>
+            @endif
+
             @if($canSee('internal-chat'))
             <a href="{{ route('internal-chat.index') }}"
                class="nav-item {{ request()->routeIs('internal-chat*') ? 'active' : '' }}"
