@@ -255,11 +255,8 @@
   function doAction(step) {
     const action = step.action_type;
 
-    // Save lead
-    fetch(API + '/lead', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ data: collected, action: action, page_url: window.location.href })
-    }).catch(() => {});
+    // Save lead (ação final)
+    saveLead(action);
 
     if (action === 'whatsapp') {
       const num = config.whatsapp_number || step.action_value || '';
@@ -300,10 +297,18 @@
     }).then(r => r.json()).then(data => {
       if (data.conversation_id) {
         liveConvId = data.conversation_id;
-        // Inicia polling para receber mensagens do agente
         if (livePollTimer) clearInterval(livePollTimer);
         livePollTimer = setInterval(pollLiveMessages, 3000);
+        // Salva lead ao iniciar conversa
+        saveLead('chat');
       }
+    }).catch(() => {});
+  }
+
+  function saveLead(action) {
+    fetch(API + '/lead', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ data: collected, action: action || 'chat', page_url: window.location.href })
     }).catch(() => {});
   }
 

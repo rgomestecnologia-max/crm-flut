@@ -1681,7 +1681,29 @@ function senderColor(?string $identifier): string {
                         @elseif($fcMsg->media_url && $fcMsg->media_type === 'video')
                         <video src="{{ $fcMsg->media_url }}" controls style="max-width:240px; border-radius:8px; display:block; margin-bottom:4px;"></video>
                         @elseif($fcMsg->media_url && $fcMsg->media_type === 'audio')
-                        <audio src="{{ $fcMsg->media_url }}" controls style="width:100%; margin-bottom:4px;"></audio>
+                        @php $fcAudioBars = array_map(fn($i) => max(15, min(100, abs(sin(($i+1)*strlen($fcMsg->media_url)*0.07+$i*1.9))*85+15)), range(0,39)); @endphp
+                        <div x-data="{ playing:false, progress:0, currentTime:0, duration:0, speed:1, speeds:[1,1.5,2], bars:{{ json_encode($fcAudioBars) }}, audioEl:null, _int:null, init(){ this.audioEl=this.$el.querySelector('audio'); }, cycleSpeed(){ const i=this.speeds.indexOf(this.speed); this.speed=this.speeds[(i+1)%this.speeds.length]; this.audioEl.playbackRate=this.speed; }, toggle(){ const a=this.audioEl; if(this.playing){ a.pause(); this.playing=false; if(this._int){clearInterval(this._int);this._int=null;} } else { document.querySelectorAll('audio').forEach(x=>{if(x!==a)x.pause();}); a.play().then(()=>{ this.playing=true; if(a.duration&&isFinite(a.duration))this.duration=a.duration; this._int=setInterval(()=>{ if(a.ended){this.playing=false;this.progress=0;this.currentTime=0;a.currentTime=0;clearInterval(this._int);this._int=null;return;} this.currentTime=a.currentTime; if(a.duration&&isFinite(a.duration))this.duration=a.duration; if(this.duration>0)this.progress=a.currentTime/this.duration; },100); }).catch(()=>{}); } }, seek(e){ if(!this.duration)return; const r=Math.max(0,Math.min(1,(e.clientX-e.currentTarget.getBoundingClientRect().left)/e.currentTarget.offsetWidth)); this.audioEl.currentTime=r*this.duration; this.progress=r; }, fmt(s){ if(!s||isNaN(s))return '0:00'; s=Math.floor(s); return Math.floor(s/60)+':'+(''+(s%60)).padStart(2,'0'); } }" style="width:min(250px,80vw);">
+                            <audio src="{{ $fcMsg->media_url }}" preload="metadata" style="display:none;"></audio>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button @click.stop="toggle()" style="flex-shrink:0; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.08); border:none; cursor:pointer; color:rgba(255,255,255,0.8); display:flex; align-items:center; justify-content:center;">
+                                    <svg x-show="!playing" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    <svg x-show="playing" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                </button>
+                                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                    <div style="display:flex; align-items:center; gap:1px; height:24px; cursor:pointer; position:relative;" @click.stop="seek($event)">
+                                        <div style="position:absolute; width:8px; height:8px; border-radius:50%; background:#b2ff00; z-index:10; top:50%; transform:translateY(-50%);" :style="'left:calc('+progress*100+'% - 4px)'"></div>
+                                        <template x-for="(bar,i) in bars" :key="i"><div style="border-radius:1px; width:3px; flex-shrink:0;" :style="'height:'+bar+'%;background:'+((i/bars.length)<=progress?'#b2ff00':'rgba(255,255,255,0.15)')"></div></template>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between;">
+                                        <span style="font-size:9px; color:rgba(255,255,255,0.4);" x-text="playing?fmt(duration-currentTime):fmt(duration)"></span>
+                                        <button @click.stop="cycleSpeed()" style="font-size:9px; font-weight:700; color:#b2ff00; border:none; background:transparent; cursor:pointer;" x-text="speed+'x'"></button>
+                                    </div>
+                                </div>
+                                <div style="width:24px; height:24px; border-radius:50%; background:rgba(178,255,0,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <svg width="10" height="10" fill="#b2ff00" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/></svg>
+                                </div>
+                            </div>
+                        </div>
                         @elseif($fcMsg->media_url && $fcMsg->media_type === 'document')
                         <a href="{{ $fcMsg->media_url }}" target="_blank" style="display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(255,255,255,0.08); border-radius:8px; text-decoration:none; margin-bottom:4px;">
                             <svg width="14" height="14" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -1758,6 +1780,7 @@ function senderColor(?string $identifier): string {
             <div style="overflow-y:auto; max-height:160px;">
                 @forelse($quickReplies as $qr)
                 <button wire:click="useQuickReply({{ $qr->id }})"
+                        x-on:click="setTimeout(() => { const ta = document.getElementById('fc-reply-input'); if(ta) { ta.value = $wire.messageText; ta.focus(); } }, 200)"
                         style="width:100%; text-align:left; padding:8px 10px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; color:white; font-size:11px;"
                         onmouseover="this.style.background='rgba(178,255,0,0.06)'" onmouseout="this.style.background='transparent'">
                     <span style="color:#b2ff00; font-weight:600;">⚡ {{ $qr->title }}</span>
