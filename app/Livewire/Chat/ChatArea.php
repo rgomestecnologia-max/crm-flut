@@ -1261,26 +1261,27 @@ class ChatArea extends Component
         $crmStages      = collect();
         $crmCards       = collect();
 
+        // Respostas rápidas — disponíveis tanto para WhatsApp quanto FlutChat
+        if ($this->showQuickReplies && ($this->conversationId || $this->flutChatConvId)) {
+            $user    = Auth::user();
+            $deptIds = $user->departmentIds();
+
+            $quickReplies = QuickReply::where(function ($q) use ($deptIds) {
+                $q->whereNull('department_id');
+                if (!empty($deptIds)) {
+                    $q->orWhereIn('department_id', $deptIds);
+                }
+            })->when($this->quickReplySearch, fn($q) =>
+                $q->where('title', 'like', "%{$this->quickReplySearch}%")
+                  ->orWhere('content', 'like', "%{$this->quickReplySearch}%")
+            )->get();
+        }
+
         if ($this->conversationId) {
             $messages = Message::where('conversation_id', $this->conversationId)
                 ->with(['sender', 'replyTo'])
                 ->orderBy('created_at')
                 ->get();
-
-            if ($this->showQuickReplies) {
-                $user    = Auth::user();
-                $deptIds = $user->departmentIds();
-
-                $quickReplies = QuickReply::where(function ($q) use ($deptIds) {
-                    $q->whereNull('department_id');
-                    if (!empty($deptIds)) {
-                        $q->orWhereIn('department_id', $deptIds);
-                    }
-                })->when($this->quickReplySearch, fn($q) =>
-                    $q->where('title', 'like', "%{$this->quickReplySearch}%")
-                      ->orWhere('content', 'like', "%{$this->quickReplySearch}%")
-                )->get();
-            }
 
             if ($this->showTransfer) {
                 $departments = Department::active()->get();

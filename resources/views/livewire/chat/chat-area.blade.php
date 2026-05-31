@@ -1742,9 +1742,13 @@ function senderColor(?string $identifier): string {
 
             {{-- Input --}}
             <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; overflow:hidden; display:flex; align-items:flex-end;">
-                <textarea wire:model="messageText" wire:keydown.enter.prevent="sendFlutChatReply" placeholder="Responder ao visitante..." rows="1"
-                          style="flex:1; background:transparent; padding:8px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:100px; font-family:inherit; line-height:1.5; border:none;"
-                          oninput="this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+                <textarea id="fc-reply-input"
+                          x-data x-init="$watch('$wire.messageText', v => { $el.value = v; $el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight,100)+'px'; })"
+                          x-on:keydown.enter.prevent="$wire.set('messageText', $el.value); $wire.sendFlutChatReply()"
+                          x-on:input="$wire.set('messageText', $el.value, false); $el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight,100)+'px'"
+                          x-on:message-sent.window="$el.value=''; $el.style.height='auto'"
+                          placeholder="Responder ao visitante..." rows="1"
+                          style="flex:1; background:transparent; padding:8px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:100px; font-family:inherit; line-height:1.5; border:none;"></textarea>
             </div>
 
             {{-- Emojis --}}
@@ -1758,7 +1762,7 @@ function senderColor(?string $identifier): string {
                      style="position:absolute; bottom:40px; right:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px; width:260px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
                     <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:2px; max-height:160px; overflow-y:auto;">
                         @foreach(['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','🤗','🤩','👍','👎','👏','🙏','❤','🔥','✅','❌','⚠️','💯','✨','🎉','👀','💬','📱','💻','🚀'] as $emoji)
-                        <button @click="$wire.set('messageText', ($wire.messageText||'') + '{{ $emoji }}'); fcEmoji=false"
+                        <button @click="const ta=document.getElementById('fc-reply-input'); const cur=ta.value||''; ta.value=cur+'{{ $emoji }}'; $wire.set('messageText', ta.value); fcEmoji=false; ta.focus()"
                                 style="font-size:16px; padding:3px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
                                 onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">{{ $emoji }}</button>
                         @endforeach
