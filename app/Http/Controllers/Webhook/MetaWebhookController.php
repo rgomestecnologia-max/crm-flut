@@ -44,9 +44,42 @@ class MetaWebhookController extends Controller
     public function handle(Request $request): JsonResponse
     {
         $payload = $request->all();
-
+        $object  = $payload['object'] ?? '';
         $entries = $payload['entry'] ?? [];
 
+        // Messenger: object = 'page'
+        if ($object === 'page') {
+            foreach ($entries as $entry) {
+                $pageId = $entry['id'] ?? null;
+                $messaging = $entry['messaging'] ?? [];
+                foreach ($messaging as $event) {
+                    if (!isset($event['message'])) continue;
+                    $config = MetaWhatsAppConfig::withoutGlobalScopes()
+                        ->where('page_id', $pageId)->where('messenger_enabled', true)->first();
+                    if (!$config) continue;
+                    \App\Jobs\ProcessMessengerMessage::dispatch($config, $event, 'messenger');
+                }
+            }
+            return response()->json(['status' => 'ok']);
+        }
+
+        // Instagram: object = 'instagram'
+        if ($object === 'instagram') {
+            foreach ($entries as $entry) {
+                $igId = $entry['id'] ?? null;
+                $messaging = $entry['messaging'] ?? [];
+                foreach ($messaging as $event) {
+                    if (!isset($event['message'])) continue;
+                    $config = MetaWhatsAppConfig::withoutGlobalScopes()
+                        ->where('instagram_account_id', $igId)->where('instagram_enabled', true)->first();
+                    if (!$config) continue;
+                    \App\Jobs\ProcessMessengerMessage::dispatch($config, $event, 'instagram');
+                }
+            }
+            return response()->json(['status' => 'ok']);
+        }
+
+        // WhatsApp: object = 'whatsapp_business_account'
         foreach ($entries as $entry) {
             $changes = $entry['changes'] ?? [];
 
@@ -54,39 +87,27 @@ class MetaWebhookController extends Controller
                 $value = $change['value'] ?? [];
                 $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
 
-                if (!$phoneNumberId) {
-                    continue;
-                }
+                if (!$phoneNumberId) continue;
 
-                // Resolve a empresa pelo phone_number_id
                 $config = MetaWhatsAppConfig::withoutGlobalScopes()
-                    ->where('phone_number_id', $phoneNumberId)
-                    ->first();
+                    ->where('phone_number_id', $phoneNumberId)->first();
 
                 if (!$config) {
                     Log::warning('MetaWebhook: config não encontrada', ['phone_number_id' => $phoneNumberId]);
                     continue;
                 }
 
-                // Processa status updates (sent/delivered/read/failed)
                 $statuses = $value['statuses'] ?? [];
                 foreach ($statuses as $status) {
                     $this->processStatus($status);
                 }
 
-                // Processa mensagens recebidas
                 $messages = $value['messages'] ?? [];
                 $contacts = $value['contacts'] ?? [];
 
                 foreach ($messages as $message) {
                     $contactInfo = $contacts[0] ?? null;
-
-                    ProcessMetaMessage::dispatch(
-                        $config->company_id,
-                        $message,
-                        $contactInfo,
-                        $phoneNumberId,
-                    );
+                    ProcessMetaMessage::dispatch($config->company_id, $message, $contactInfo, $phoneNumberId);
                 }
             }
         }

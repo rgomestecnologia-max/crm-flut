@@ -28,14 +28,22 @@ class SendWhatsAppMessage implements ShouldQueue
     {
         app(\App\Services\CurrentCompany::class)->set((int) $this->message->company_id, persist: false);
 
-        $contact  = $this->message->conversation->contact;
+        $conversation = $this->message->conversation;
+        $contact      = $conversation->contact;
+        $channel      = $conversation->channel ?? 'whatsapp';
+
+        // Messenger ou Instagram — envia via MetaMessengerService
+        if (in_array($channel, ['messenger', 'instagram'])) {
+            $this->sendViaMessenger($contact, $channel);
+            return;
+        }
+
+        // WhatsApp
         $realPhone = ($contact->phone && preg_match('/^55\d{10,11}$/', $contact->phone)) ? $contact->phone : null;
         $phone     = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
-        // Multi-instância: prioridade conversa → departamento → padrão
         $specificConfig = null;
-        $conversation = $this->message->conversation;
         if ($conversation->evolution_api_config_id) {
             $specificConfig = \App\Models\EvolutionApiConfig::find($conversation->evolution_api_config_id);
         } elseif ($conversation->department?->evolution_api_config_id) {
@@ -57,6 +65,40 @@ class SendWhatsAppMessage implements ShouldQueue
         } else {
             $this->sendViaEvolution($service, $phone, $mediaRef);
         }
+    }
+
+    private function sendViaMessenger($contact, string $channel): void
+    {
+        $config = \App\Models\MetaWhatsAppConfig::where('company_id', $this->message->company_id)->first();
+        if (!$config || !$contact->meta_user_id) {
+            $this->message->update(['delivery_status' => 'failed']);
+            return;
+        }
+
+        $pageId = $config->page_id;
+        $token  = $channel === 'messenger' ? $config->page_access_token : $config->access_token;
+        if (!$pageId || !$token) {
+            $this->message->update(['delivery_status' => 'failed']);
+            return;
+        }
+
+        $svc = new \App\Services\MetaMessengerService($pageId, $token);
+        $text = $this->message->content;
+        $mediaUrl = $this->message->media_url;
+
+        $result = match ($this->message->type) {
+            'image'    => $svc->sendImage($contact->meta_user_id, $mediaUrl),
+            'video'    => $svc->sendVideo($contact->meta_user_id, $mediaUrl),
+            'audio'    => $svc->sendAudio($contact->meta_user_id, $mediaUrl),
+            'document' => $svc->sendDocument($contact->meta_user_id, $mediaUrl, $this->message->media_filename ?? 'file'),
+            default    => $svc->sendText($contact->meta_user_id, $text),
+        };
+
+        $msgId = $result['message_id'] ?? null;
+        $this->message->update([
+            'delivery_status' => ($result['success'] ?? false) ? 'sent' : 'failed',
+            'zapi_message_id' => $msgId,
+        ]);
     }
 
     private function sendViaEvolution(EvolutionApiService $api, string $phone, ?string $mediaRef): void

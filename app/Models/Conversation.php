@@ -16,7 +16,7 @@ class Conversation extends Model
 
     protected $fillable = [
         'company_id', 'contact_id', 'department_id', 'evolution_api_config_id', 'assigned_to',
-        'status', 'protocol', 'last_message_at', 'menu_awaiting',
+        'status', 'channel', 'protocol', 'last_message_at', 'menu_awaiting',
         'waiting_human_reason', 'is_group', 'is_archived', 'group_name', 'source_automation_id',
     ];
 

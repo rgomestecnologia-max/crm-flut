@@ -264,6 +264,11 @@
                                     <span style="font-size:12px; font-weight:600; color:{{ $conv->unread_count > 0 ? 'white' : 'rgba(255,255,255,0.8)' }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                         {{ $conv->is_group ? ($conv->group_name ?: $conv->contact?->display_name ?? 'Sem nome') : ($conv->contact?->display_name ?? 'Sem nome') }}
                                     </span>
+                                    @if(($conv->channel ?? 'whatsapp') === 'messenger')
+                                    <span style="flex-shrink:0; font-size:10px; color:#0084ff;" title="Messenger">💬</span>
+                                    @elseif(($conv->channel ?? 'whatsapp') === 'instagram')
+                                    <span style="flex-shrink:0; font-size:10px; color:#E1306C;" title="Instagram">📸</span>
+                                    @endif
                                     @if($conv->is_group)
                                     <span style="flex-shrink:0; display:inline-flex; align-items:center; gap:2px; font-size:8px; font-weight:700; padding:2px 5px; border-radius:20px; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.25);">
                                         <svg width="8" height="8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

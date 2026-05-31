@@ -12,7 +12,7 @@ class Contact extends Model
 {
     use Auditable, BelongsToCompany;
 
-    protected $fillable = ['company_id', 'phone', 'chat_lid', 'name', 'email', 'avatar_url', 'notes'];
+    protected $fillable = ['company_id', 'phone', 'chat_lid', 'meta_user_id', 'name', 'email', 'avatar_url', 'notes'];
 
     public function conversations(): HasMany
     {

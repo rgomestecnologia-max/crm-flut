@@ -19,7 +19,12 @@ class MetaWhatsAppConfig extends Model
         'access_token',
         'verify_token',
         'phone_display',
+        'page_id',
+        'page_access_token',
+        'instagram_account_id',
         'is_active',
+        'messenger_enabled',
+        'instagram_enabled',
     ];
 
     protected $casts = [
