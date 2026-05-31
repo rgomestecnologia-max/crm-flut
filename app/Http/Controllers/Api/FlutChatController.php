@@ -251,4 +251,31 @@ class FlutChatController extends Controller
 
         return response()->json(['messages' => $messages]);
     }
+
+    public function downloadMedia(string $publicId, int $messageId)
+    {
+        $msg = \App\Models\FlutChatMessage::withoutGlobalScopes()->find($messageId);
+        if (!$msg || !$msg->media_url) abort(404);
+
+        $filename = $msg->media_filename ?? basename(parse_url($msg->media_url, PHP_URL_PATH));
+        $content = @file_get_contents($msg->media_url);
+        if (!$content) abort(404);
+
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $mime = match(true) {
+            in_array($ext, ['jpg','jpeg']) => 'image/jpeg',
+            $ext === 'png'  => 'image/png',
+            $ext === 'webp' => 'image/webp',
+            $ext === 'gif'  => 'image/gif',
+            $ext === 'mp4'  => 'video/mp4',
+            $ext === 'mp3'  => 'audio/mpeg',
+            $ext === 'ogg'  => 'audio/ogg',
+            $ext === 'pdf'  => 'application/pdf',
+            default => 'application/octet-stream',
+        };
+
+        return response($content)
+            ->header('Content-Type', $mime)
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
 }

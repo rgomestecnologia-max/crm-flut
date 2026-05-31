@@ -28,6 +28,7 @@ Route::prefix('flut-chat')->middleware('throttle:60,1')->group(function () {
     Route::post('/{publicId}/conversation', [\App\Http\Controllers\Api\FlutChatController::class, 'startConversation']);
     Route::post('/{publicId}/conversation/{conversationId}/message', [\App\Http\Controllers\Api\FlutChatController::class, 'sendMessage']);
     Route::get('/{publicId}/conversation/{conversationId}/messages', [\App\Http\Controllers\Api\FlutChatController::class, 'getMessages']);
+    Route::get('/{publicId}/download/{messageId}', [\App\Http\Controllers\Api\FlutChatController::class, 'downloadMedia']);
 });
 
 // ── API de Integração CRM ─────────────────────────────────────────────

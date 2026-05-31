@@ -319,16 +319,16 @@
           if (msg.sender_type === 'agent') {
             if (msg.media_url && msg.media_type === 'image') {
               const fn = msg.media_filename || 'imagem.jpg';
-              addBotMedia('<img src="' + msg.media_url + '" style="max-width:200px;border-radius:8px;display:block;">' + (msg.content ? '<p style="margin:4px 0 0;font-size:12px;">' + msg.content + '</p>' : '') + '<a href="#" onclick="event.preventDefault();_fcDownload(\'' + msg.media_url + '\',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar imagem</a>');
+              addBotMedia('<img src="' + msg.media_url + '" style="max-width:200px;border-radius:8px;display:block;">' + (msg.content ? '<p style="margin:4px 0 0;font-size:12px;">' + msg.content + '</p>' : '') + '<a href="#" onclick="event.preventDefault();_fcDownload(' + msg.id + ',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar imagem</a>');
             } else if (msg.media_url && msg.media_type === 'video') {
               const fn = msg.media_filename || 'video.mp4';
-              addBotMedia('<video src="' + msg.media_url + '" controls style="max-width:200px;border-radius:8px;display:block;"></video><a href="#" onclick="event.preventDefault();_fcDownload(\'' + msg.media_url + '\',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar vídeo</a>');
+              addBotMedia('<video src="' + msg.media_url + '" controls style="max-width:200px;border-radius:8px;display:block;"></video><a href="#" onclick="event.preventDefault();_fcDownload(' + msg.id + ',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar vídeo</a>');
             } else if (msg.media_url && msg.media_type === 'audio') {
               const fn = msg.media_filename || 'audio.ogg';
-              addBotMedia('<audio src="' + msg.media_url + '" controls style="width:100%;"></audio><a href="#" onclick="event.preventDefault();_fcDownload(\'' + msg.media_url + '\',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar áudio</a>');
+              addBotMedia('<audio src="' + msg.media_url + '" controls style="width:100%;"></audio><a href="#" onclick="event.preventDefault();_fcDownload(' + msg.id + ',\'' + fn + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:' + config.color + ';text-decoration:none;opacity:0.8;cursor:pointer;">⬇ Baixar áudio</a>');
             } else if (msg.media_url && msg.media_type === 'document') {
               const fn = msg.media_filename || 'documento';
-              addBotMedia('<a href="#" onclick="event.preventDefault();_fcDownload(\'' + msg.media_url + '\',\'' + fn + '\')" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(0,0,0,0.04);border-radius:8px;color:' + config.color + ';font-size:12px;text-decoration:none;cursor:pointer;"><span style="font-size:18px;">📄</span><span style="flex:1;">' + fn + '</span><span style="font-size:14px;">⬇</span></a>');
+              addBotMedia('<a href="#" onclick="event.preventDefault();_fcDownload(' + msg.id + ',\'' + fn + '\')" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(0,0,0,0.04);border-radius:8px;color:' + config.color + ';font-size:12px;text-decoration:none;cursor:pointer;"><span style="font-size:18px;">📄</span><span style="flex:1;">' + fn + '</span><span style="font-size:14px;">⬇</span></a>');
             } else if (msg.content) {
               addBot(msg.content);
             }
@@ -368,14 +368,15 @@
   }
 
   // ── UI Helpers ──
-  window._fcDownload = function(url, filename) {
-    fetch(url).then(r => r.blob()).then(b => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(b);
-      a.download = filename || 'download';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }).catch(() => window.open(url, '_blank'));
+  window._fcDownload = function(msgId, filename) {
+    const url = API + '/download/' + msgId;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'download';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   function addBot(text) {
