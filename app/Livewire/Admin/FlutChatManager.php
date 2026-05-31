@@ -24,6 +24,7 @@ class FlutChatManager extends Component
     public string $widgetPosition = 'bottom-right';
     public string $widgetWhatsapp = '';
     public string $widgetWhatsappMsg = '';
+    public string $widgetNotificationEmail = '';
     public bool $showWidgetForm = false;
 
     // Flow editor
@@ -62,8 +63,9 @@ class FlutChatManager extends Component
             'color'            => $this->widgetColor,
             'avatar_url'       => $this->widgetAvatarUrl ?: null,
             'position'         => $this->widgetPosition,
-            'whatsapp_number'  => $this->widgetWhatsapp ?: null,
-            'whatsapp_message' => $this->widgetWhatsappMsg ?: null,
+            'whatsapp_number'      => $this->widgetWhatsapp ?: null,
+            'whatsapp_message'     => $this->widgetWhatsappMsg ?: null,
+            'notification_email'   => $this->widgetNotificationEmail ?: null,
         ];
 
         if ($this->editingWidgetId) {
@@ -99,6 +101,7 @@ class FlutChatManager extends Component
         $this->widgetPosition   = $w->position;
         $this->widgetWhatsapp   = $w->whatsapp_number ?? '';
         $this->widgetWhatsappMsg = $w->whatsapp_message ?? '';
+        $this->widgetNotificationEmail = $w->notification_email ?? '';
         $this->showWidgetForm   = true;
     }
 
@@ -175,6 +178,7 @@ class FlutChatManager extends Component
         $this->widgetPosition = 'bottom-right';
         $this->widgetWhatsapp = '';
         $this->widgetWhatsappMsg = '';
+        $this->widgetNotificationEmail = '';
         $this->showWidgetForm = false;
     }
 
@@ -263,6 +267,12 @@ class FlutChatManager extends Component
         $this->dispatch('toast', type: 'success', message: 'Step excluído.');
     }
 
+    public function deleteLead(int $id): void
+    {
+        FlutChatLead::findOrFail($id)->delete();
+        $this->dispatch('toast', type: 'success', message: 'Lead excluído.');
+    }
+
     public function addOption(): void
     {
         $this->stepOptions[] = ['label' => '', 'next_step_id' => ''];
@@ -304,6 +314,22 @@ class FlutChatManager extends Component
             $recentLeads = FlutChatLead::with('widget')->latest()->take(50)->get();
         }
 
-        return view('livewire.admin.flut-chat-manager', compact('widgets', 'flowSteps', 'allSteps', 'recentLeads'));
+        $reports = [];
+        if ($this->tab === 'reports') {
+            $totalLeads = FlutChatLead::count();
+            $completedLeads = FlutChatLead::whereNotNull('action_taken')->count();
+            $reports = [
+                'total_leads'     => $totalLeads,
+                'completed_leads' => $completedLeads,
+                'conversion_rate' => $totalLeads > 0 ? round(($completedLeads / $totalLeads) * 100, 1) : 0,
+                'today_leads'     => FlutChatLead::whereDate('created_at', today())->count(),
+                'week_leads'      => FlutChatLead::where('created_at', '>=', now()->startOfWeek())->count(),
+                'month_leads'     => FlutChatLead::where('created_at', '>=', now()->startOfMonth())->count(),
+                'by_widget'       => FlutChatLead::selectRaw('widget_id, count(*) as total')->groupBy('widget_id')->with('widget')->get(),
+                'by_action'       => FlutChatLead::selectRaw('action_taken, count(*) as total')->whereNotNull('action_taken')->groupBy('action_taken')->pluck('total', 'action_taken'),
+            ];
+        }
+
+        return view('livewire.admin.flut-chat-manager', compact('widgets', 'flowSteps', 'allSteps', 'recentLeads', 'reports'));
     }
 }

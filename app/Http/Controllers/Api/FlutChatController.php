@@ -70,11 +70,27 @@ class FlutChatController extends Controller
             if (strlen($phone) === 11) $phone = '55' . $phone;
             try {
                 app(CurrentCompany::class)->set($widget->company_id, persist: false);
-                \App\Models\BroadcastContact::firstOrCreate(
+                $bc = \App\Models\BroadcastContact::firstOrCreate(
                     ['company_id' => $widget->company_id, 'phone' => $phone],
                     ['name' => $name, 'is_active' => true, 'tags' => ['flut-chat']]
                 );
+                // Garante tag flut-chat mesmo se contato já existia
+                $tags = $bc->tags ?? [];
+                if (!in_array('flut-chat', $tags)) {
+                    $tags[] = 'flut-chat';
+                    $bc->update(['tags' => $tags]);
+                }
             } catch (\Throwable) {}
+        }
+
+        // Notificação por email
+        if ($widget->notification_email) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($widget->notification_email)
+                    ->send(new \App\Mail\FlutChatLeadNotification($lead, $widget->name));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('FlutChat email notification failed', ['error' => $e->getMessage()]);
+            }
         }
 
         return response()->json(['success' => true, 'lead_id' => $lead->id]);

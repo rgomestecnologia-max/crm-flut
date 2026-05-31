@@ -1,7 +1,7 @@
 <div>
     {{-- Tabs --}}
     <div style="display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:12px;">
-        @foreach(['widgets' => 'Widgets', 'editor' => 'Editor de Fluxo', 'leads' => 'Leads Capturados'] as $k => $l)
+        @foreach(['widgets' => 'Widgets', 'editor' => 'Editor de Fluxo', 'leads' => 'Leads Capturados', 'reports' => 'Relatórios'] as $k => $l)
         <button wire:click="$set('tab', '{{ $k }}')"
                 style="padding:6px 16px; font-size:12px; font-weight:{{ $tab === $k ? '700' : '400' }}; border-radius:8px; cursor:pointer; border:1px solid {{ $tab === $k ? 'rgba(178,255,0,0.3)' : 'rgba(255,255,255,0.08)' }}; background:{{ $tab === $k ? 'rgba(178,255,0,0.1)' : 'transparent' }}; color:{{ $tab === $k ? '#b2ff00' : 'rgba(255,255,255,0.4)' }};">
             {{ $l }}
@@ -80,9 +80,15 @@
                 </select>
             </div>
         </div>
-        <div style="margin-top:12px;">
-            <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px;">Mensagem pré-preenchida do WhatsApp</label>
-            <input wire:model="widgetWhatsappMsg" type="text" placeholder="Olá! Vim pelo site e gostaria de..." style="width:100%; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; box-sizing:border-box;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+            <div>
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px;">Mensagem pré-preenchida do WhatsApp</label>
+                <input wire:model="widgetWhatsappMsg" type="text" placeholder="Olá! Vim pelo site e gostaria de..." style="width:100%; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; box-sizing:border-box;">
+            </div>
+            <div>
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px;">Email de notificação (novos leads)</label>
+                <input wire:model="widgetNotificationEmail" type="email" placeholder="admin@empresa.com" style="width:100%; padding:7px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:7px; color:white; outline:none; box-sizing:border-box;">
+            </div>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
             <button wire:click="$set('showWidgetForm', false)" style="padding:6px 14px; font-size:11px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:7px; cursor:pointer;">Cancelar</button>
@@ -267,7 +273,10 @@
     <div style="padding:12px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; margin-bottom:6px;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
             <span style="font-size:11px; font-weight:600; color:white;">{{ $lead->widget?->name ?? 'Widget removido' }}</span>
-            <span style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $lead->created_at->format('d/m/Y H:i') }}</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $lead->created_at->format('d/m/Y H:i') }}</span>
+                <button wire:click="deleteLead({{ $lead->id }})" wire:confirm="Excluir este lead?" style="font-size:10px; color:#f87171; background:none; border:none; cursor:pointer; padding:2px;">✕</button>
+            </div>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
             @foreach($lead->data ?? [] as $key => $val)
@@ -281,5 +290,56 @@
     @empty
     <p style="color:rgba(255,255,255,0.2); font-size:12px; text-align:center; padding:30px;">Nenhum lead capturado ainda.</p>
     @endforelse
+    @endif
+
+    {{-- ═══ TAB: RELATÓRIOS ═══ --}}
+    @if($tab === 'reports')
+    <h3 style="font-size:14px; font-weight:700; color:white; margin-bottom:16px;">Relatórios</h3>
+
+    {{-- Cards de métricas --}}
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:20px;">
+        @php
+            $cards = [
+                ['label' => 'Total de Leads', 'value' => $reports['total_leads'] ?? 0, 'color' => '#b2ff00'],
+                ['label' => 'Leads Completos', 'value' => $reports['completed_leads'] ?? 0, 'color' => '#4ade80'],
+                ['label' => 'Taxa de Conversão', 'value' => ($reports['conversion_rate'] ?? 0) . '%', 'color' => '#60a5fa'],
+                ['label' => 'Hoje', 'value' => $reports['today_leads'] ?? 0, 'color' => '#f59e0b'],
+                ['label' => 'Esta Semana', 'value' => $reports['week_leads'] ?? 0, 'color' => '#a78bfa'],
+                ['label' => 'Este Mês', 'value' => $reports['month_leads'] ?? 0, 'color' => '#ec4899'],
+            ];
+        @endphp
+        @foreach($cards as $card)
+        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:16px; text-align:center;">
+            <p style="font-size:24px; font-weight:800; color:{{ $card['color'] }}; margin-bottom:4px;">{{ $card['value'] }}</p>
+            <p style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.05em;">{{ $card['label'] }}</p>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- Leads por widget --}}
+    @if(!empty($reports['by_widget']) && $reports['by_widget']->count())
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:16px; margin-bottom:16px;">
+        <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.05em;">Leads por Widget</p>
+        @foreach($reports['by_widget'] as $bw)
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="font-size:12px; color:rgba(255,255,255,0.7);">{{ $bw->widget?->name ?? 'Removido' }}</span>
+            <span style="font-size:12px; font-weight:700; color:#b2ff00;">{{ $bw->total }}</span>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
+    {{-- Leads por ação --}}
+    @if(!empty($reports['by_action']) && count($reports['by_action']))
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:16px;">
+        <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.05em;">Leads por Ação</p>
+        @foreach($reports['by_action'] as $action => $count)
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="font-size:12px; color:rgba(255,255,255,0.7);">{{ ucfirst($action) }}</span>
+            <span style="font-size:12px; font-weight:700; color:#60a5fa;">{{ $count }}</span>
+        </div>
+        @endforeach
+    </div>
+    @endif
     @endif
 </div>
