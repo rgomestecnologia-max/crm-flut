@@ -140,8 +140,13 @@
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
-        $flutChatCount = \App\Models\FlutChatConversation::count();
-        $tabs[] = ['key' => 'flutchat', 'label' => 'FlutChat', 'count' => $flutChatCount, 'color' => '#6366f1', 'activeBg' => 'rgba(99,102,241,0.12)', 'activeColor' => '#818cf8'];
+        $companyModulesFC = \App\Models\Company::find(app(\App\Services\CurrentCompany::class)->id())?->modules ?? [];
+        $hasFlutChat = in_array('admin.flut-chat', $companyModulesFC) || auth()->user()->isAdmin();
+        $hasActiveFlow = $hasFlutChat && \App\Models\FlutChatFlow::where('is_active', true)->exists();
+        if ($hasActiveFlow) {
+            $flutChatCount = \App\Models\FlutChatConversation::count();
+            $tabs[] = ['key' => 'flutchat', 'label' => 'FlutChat', 'count' => $flutChatCount, 'color' => '#6366f1', 'activeBg' => 'rgba(99,102,241,0.12)', 'activeColor' => '#818cf8'];
+        }
         if (($counts['archived'] ?? 0) > 0) {
             $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
         }
