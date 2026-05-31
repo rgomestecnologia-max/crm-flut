@@ -227,8 +227,65 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             </div>
         </div>
 
+        {{-- ═══ MESSENGER & INSTAGRAM ═══ --}}
+        <div style="margin-top:28px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                <div style="width:2px; height:16px; background:#0084ff; border-radius:2px;"></div>
+                <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Facebook Messenger & Instagram</h3>
+            </div>
+
+            <div style="background:rgba(0,132,255,0.04); border:1px solid rgba(0,132,255,0.15); border-radius:10px; padding:12px 14px; margin-bottom:16px;">
+                <p style="font-size:11px; color:rgba(255,255,255,0.55); line-height:1.5;">
+                    Conecte sua <strong style="color:rgba(255,255,255,0.8);">Facebook Page</strong> para receber mensagens do Messenger e do Instagram Direct diretamente no atendimento.
+                    Os IDs podem ser encontrados nas configurações da sua Page e conta Instagram Business no Meta Business Suite.
+                </p>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div>
+                    <label style="{{ $labelStyle }}">Facebook Page ID</label>
+                    <input wire:model="page_id" type="text" placeholder="123456789012345"
+                           style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:3px;">ID numérico da sua página do Facebook</p>
+                </div>
+                <div>
+                    <label style="{{ $labelStyle }}">Page Access Token {{ $hasPageToken ? '(em branco = manter)' : '' }}</label>
+                    <input wire:model="page_access_token" type="password"
+                           placeholder="{{ $hasPageToken ? '••••••••••••••' : 'EAAx...' }}"
+                           style="{{ $inputStyle }} font-family:monospace;" {!! $inputFocus !!}>
+                    <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:3px;">Token da página com permissão pages_messaging</p>
+                </div>
+                <div>
+                    <label style="{{ $labelStyle }}">Instagram Account ID</label>
+                    <input wire:model="instagram_account_id" type="text" placeholder="17841400000000"
+                           style="{{ $inputStyle }}" {!! $inputFocus !!}>
+                    <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:3px;">ID da conta Instagram Business vinculada à Page</p>
+                </div>
+                <div>
+                    <label style="{{ $labelStyle }}">Webhook URL (mesma do WhatsApp)</label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" value="{{ $webhookUrl }}" readonly
+                               style="{{ $inputStyle }} opacity:0.6; cursor:default;">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:16px; margin-top:16px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input wire:model="messenger_enabled" type="checkbox"
+                           style="width:16px; height:16px; accent-color:#0084ff; cursor:pointer;">
+                    <span style="font-size:12px; color:rgba(255,255,255,0.7);">💬 Ativar Messenger</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input wire:model="instagram_enabled" type="checkbox"
+                           style="width:16px; height:16px; accent-color:#E1306C; cursor:pointer;">
+                    <span style="font-size:12px; color:rgba(255,255,255,0.7);">📸 Ativar Instagram DM</span>
+                </label>
+            </div>
+        </div>
+
         {{-- Save --}}
-        <div style="display:flex; justify-content:flex-end;">
+        <div style="display:flex; justify-content:flex-end; margin-top:20px;">
             <button type="submit"
                     style="display:flex; align-items:center; gap:8px; padding:10px 24px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; font-size:13px; font-weight:700; border-radius:11px; border:none; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 16px rgba(178,255,0,0.3);"
                     onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 24px rgba(178,255,0,0.4)'"

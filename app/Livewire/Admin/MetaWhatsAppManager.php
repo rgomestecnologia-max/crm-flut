@@ -27,6 +27,14 @@ class MetaWhatsAppManager extends Component
     public string $webhookUrl    = '';
     public ?string $metaAppId    = '';
 
+    // Messenger / Instagram
+    public string $page_id              = '';
+    public string $page_access_token    = '';
+    public string $instagram_account_id = '';
+    public bool   $messenger_enabled    = false;
+    public bool   $instagram_enabled    = false;
+    public bool   $hasPageToken         = false;
+
     public function mount(): void
     {
         $config = MetaWhatsAppConfig::current();
@@ -39,6 +47,12 @@ class MetaWhatsAppManager extends Component
             $this->verify_token                 = $config->verify_token ?? '';
             $this->phone_display                = $config->phone_display ?? '';
             $this->is_active                    = $config->is_active;
+            $this->page_id                      = $config->page_id ?? '';
+            $this->page_access_token            = '';
+            $this->hasPageToken                 = !empty($config->page_access_token);
+            $this->instagram_account_id         = $config->instagram_account_id ?? '';
+            $this->messenger_enabled            = $config->messenger_enabled ?? false;
+            $this->instagram_enabled            = $config->instagram_enabled ?? false;
         }
 
         if (!$this->verify_token) {
@@ -73,11 +87,21 @@ class MetaWhatsAppManager extends Component
             'phone_display'                => $this->phone_display ?: null,
             'is_active'                    => $this->is_active,
         ];
-        // Só atualiza token se foi preenchido (novo token)
         if ($this->access_token) {
             $data['access_token'] = $this->access_token;
             $this->hasAccessToken = true;
-            $this->access_token   = ''; // Limpa da property
+            $this->access_token   = '';
+        }
+
+        // Messenger / Instagram
+        $data['page_id']              = $this->page_id ?: null;
+        $data['instagram_account_id'] = $this->instagram_account_id ?: null;
+        $data['messenger_enabled']    = $this->messenger_enabled;
+        $data['instagram_enabled']    = $this->instagram_enabled;
+        if ($this->page_access_token) {
+            $data['page_access_token'] = $this->page_access_token;
+            $this->hasPageToken = true;
+            $this->page_access_token = '';
         }
 
         MetaWhatsAppConfig::updateOrCreate(
