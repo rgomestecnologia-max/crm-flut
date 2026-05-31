@@ -180,9 +180,9 @@
         @php $flutConvs = \App\Models\FlutChatConversation::with(['widget', 'latestMessage'])->where('status', 'active')->latest('last_message_at')->get(); @endphp
         @forelse($flutConvs as $fc)
         <div wire:key="fc-{{ $fc->id }}"
+             wire:click="$dispatch('flutchat-selected', { id: {{ $fc->id }} })"
              style="padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.03); cursor:pointer; transition:background 0.15s;"
-             onmouseover="this.style.background='rgba(99,102,241,0.05)'" onmouseout="this.style.background='transparent'"
-             onclick="window.location='{{ route('flut-chat-live.index') }}?conv={{ $fc->id }}'">
+             onmouseover="this.style.background='rgba(99,102,241,0.05)'" onmouseout="this.style.background='transparent'">
             <div style="display:flex; align-items:center; gap:10px;">
                 <div style="width:38px; height:38px; border-radius:50%; background:rgba(99,102,241,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <span style="font-size:14px; font-weight:700; color:#818cf8;">{{ mb_strtoupper(mb_substr($fc->visitor_name ?? '?', 0, 1)) }}</span>

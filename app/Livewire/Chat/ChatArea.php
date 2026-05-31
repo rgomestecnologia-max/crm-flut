@@ -68,6 +68,9 @@ class ChatArea extends Component
 
     public ?Conversation $conversation = null;
 
+    // FlutChat ao vivo
+    public ?int $flutChatConvId = null;
+
     public function mount(?int $conversationId = null): void
     {
         if ($conversationId) {
@@ -79,6 +82,7 @@ class ChatArea extends Component
     {
         $listeners = [
             'conversation-selected' => 'loadConversation',
+            'flutchat-selected'     => 'loadFlutChat',
         ];
 
         if ($this->conversationId) {
@@ -88,8 +92,51 @@ class ChatArea extends Component
         return $listeners;
     }
 
+    public function loadFlutChat(int $id): void
+    {
+        $this->flutChatConvId = $id;
+        $this->conversationId = null;
+        $this->conversation   = null;
+        $this->messageText    = '';
+        $this->dispatch('scroll-to-bottom');
+    }
+
+    public function sendFlutChatReply(): void
+    {
+        if (!$this->flutChatConvId || !trim($this->messageText)) return;
+
+        $conv = \App\Models\FlutChatConversation::find($this->flutChatConvId);
+        if (!$conv) return;
+
+        \App\Models\FlutChatMessage::create([
+            'conversation_id' => $conv->id,
+            'sender_type'     => 'agent',
+            'sender_id'       => Auth::id(),
+            'content'         => trim($this->messageText),
+        ]);
+
+        $conv->update([
+            'last_message_at' => now(),
+            'assigned_to'     => $conv->assigned_to ?? Auth::id(),
+        ]);
+
+        $this->messageText = '';
+        $this->dispatch('message-sent');
+        $this->dispatch('scroll-to-bottom');
+    }
+
+    public function closeFlutChat(): void
+    {
+        if ($this->flutChatConvId) {
+            \App\Models\FlutChatConversation::find($this->flutChatConvId)?->update(['status' => 'closed']);
+            $this->flutChatConvId = null;
+            $this->dispatch('toast', type: 'success', message: 'Conversa FlutChat encerrada.');
+        }
+    }
+
     public function loadConversation(int $id): void
     {
+        $this->flutChatConvId = null; // Sai do modo FlutChat
         $user = Auth::user();
         $conv = Conversation::with(['contact', 'department', 'assignedAgent'])->find($id);
 
@@ -1272,10 +1319,18 @@ class ChatArea extends Component
                 )->latest('last_message_at')->take(30)->get();
         }
 
+        $flutChatMessages = collect();
+        $flutChatConv = null;
+        if ($this->flutChatConvId) {
+            $flutChatConv = \App\Models\FlutChatConversation::with('widget')->find($this->flutChatConvId);
+            $flutChatMessages = \App\Models\FlutChatMessage::where('conversation_id', $this->flutChatConvId)
+                ->with('sender')->orderBy('id')->get();
+        }
+
         return view('livewire.chat.chat-area', compact(
             'messages', 'quickReplies', 'departments', 'transferAgents',
             'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone', 'replyToMessage',
-            'contactList', 'forwardConversations'
+            'contactList', 'forwardConversations', 'flutChatMessages', 'flutChatConv'
         ));
     }
 }

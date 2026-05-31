@@ -1617,6 +1617,60 @@ function senderColor(?string $identifier): string {
         </div>
     @endif
 
+    @elseif($flutChatConvId && $flutChatConv)
+    {{-- FlutChat Live --}}
+    <div style="min-height:56px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:8px 16px; gap:10px; flex-shrink:0; background:rgba(11,15,28,0.6);">
+        <div style="width:36px; height:36px; border-radius:50%; background:rgba(99,102,241,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <span style="font-size:14px; font-weight:700; color:#818cf8;">{{ mb_strtoupper(mb_substr($flutChatConv->visitor_name ?? '?', 0, 1)) }}</span>
+        </div>
+        <div style="flex:1;">
+            <p style="font-size:13px; font-weight:700; color:white; margin:0;">{{ $flutChatConv->visitor_name ?: 'Visitante' }}</p>
+            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;">FlutChat · {{ $flutChatConv->widget?->name }}</p>
+        </div>
+        <span style="padding:3px 8px; font-size:9px; font-weight:700; background:rgba(99,102,241,0.15); color:#818cf8; border-radius:10px;">AO VIVO</span>
+        <button wire:click="closeFlutChat" wire:confirm="Encerrar esta conversa?"
+                style="padding:4px 10px; font-size:10px; color:#f87171; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">Encerrar</button>
+    </div>
+
+    {{-- Messages --}}
+    <div wire:poll.3s style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;">
+        @foreach($flutChatMessages as $fcMsg)
+        @if($fcMsg->sender_type === 'visitor')
+        <div style="max-width:75%; align-self:flex-start;">
+            <div style="background:rgba(31,41,55,0.8); color:rgba(255,255,255,0.88); border-radius:14px 14px 14px 4px; padding:8px 12px; font-size:13px; line-height:1.5; border:1px solid rgba(255,255,255,0.06);">
+                {{ $fcMsg->content }}
+            </div>
+            <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:2px;">{{ $fcMsg->created_at->format('H:i') }}</p>
+        </div>
+        @elseif($fcMsg->sender_type === 'agent')
+        <div style="max-width:75%; align-self:flex-end;">
+            <div style="background:rgba(45,74,8,0.5); color:white; border-radius:14px 14px 4px 14px; padding:8px 12px; font-size:13px; line-height:1.5;">
+                {{ $fcMsg->content }}
+            </div>
+            <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:2px; text-align:right;">{{ $fcMsg->sender?->name ?? 'Agente' }} · {{ $fcMsg->created_at->format('H:i') }}</p>
+        </div>
+        @else
+        <div style="max-width:75%; align-self:flex-start;">
+            <div style="background:rgba(99,102,241,0.1); color:rgba(255,255,255,0.7); border-radius:14px; padding:8px 12px; font-size:12px; line-height:1.5; border:1px solid rgba(99,102,241,0.2);">
+                🤖 {{ $fcMsg->content }}
+            </div>
+            <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:2px;">IA · {{ $fcMsg->created_at->format('H:i') }}</p>
+        </div>
+        @endif
+        @endforeach
+        <div id="fc-bottom-anchor"></div>
+    </div>
+
+    {{-- Input --}}
+    <div style="border-top:1px solid rgba(255,255,255,0.05); padding:10px 14px; display:flex; gap:8px; flex-shrink:0; background:rgba(8,12,22,0.7);">
+        <input wire:model="messageText" wire:keydown.enter="sendFlutChatReply" type="text" placeholder="Responder ao visitante..."
+               style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:8px 14px; font-size:13px; color:white; outline:none; font-family:inherit;">
+        <button wire:click="sendFlutChatReply"
+                style="width:38px; height:38px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; flex-shrink:0;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        </button>
+    </div>
+
     @else
     {{-- Empty state --}}
     <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:rgba(255,255,255,0.15);">
