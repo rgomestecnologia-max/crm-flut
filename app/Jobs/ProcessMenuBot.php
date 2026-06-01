@@ -158,6 +158,82 @@ class ProcessMenuBot implements ShouldQueue
             $confirmText = "Perfeito! Direcionando você para o setor de *{$department->name}*. Em breve um de nossos atendentes irá te responder. 😊";
         }
 
+        // Se o departamento usa OUTRA instância WhatsApp, avisa o cliente
+        $originalEvoId = $this->conversation->getOriginal('evolution_api_config_id');
+        $deptUsesOtherNumber = $department->evolution_api_config_id
+            && $department->evolution_api_config_id !== $originalEvoId;
+
+        if ($deptUsesOtherNumber) {
+            // Busca o número da nova instância
+            $newConfig = \App\Models\EvolutionApiConfig::find($department->evolution_api_config_id);
+            $newNumber = '';
+            if ($newConfig) {
+                try {
+                    $api = new \App\Services\EvolutionApiService($newConfig);
+                    $info = $api->fetchInstances($newConfig->instance_name);
+                    $ownerJid = $info[0]['ownerJid'] ?? null;
+                    if ($ownerJid) {
+                        $num = str_replace('@s.whatsapp.net', '', $ownerJid);
+                        $newNumber = '(' . substr($num, 2, 2) . ') ' . substr($num, 4, 5) . '-' . substr($num, 9);
+                    }
+                } catch (\Throwable) {}
+            }
+
+            $transferMsg = "✅ Seu atendimento foi direcionado para o setor de *{$department->name}*.\n\n"
+                . "📱 Você receberá uma mensagem do nosso número exclusivo desse setor"
+                . ($newNumber ? " (*{$newNumber}*)" : "") . ".\n\n"
+                . "Se quiser falar com outro setor ao mesmo tempo, basta digitar o número da opção desejada:";
+
+            $this->saveAndSend($transferMsg);
+
+            // Reenvia o menu de opções para o cliente poder escolher outro setor
+            $this->conversation->update([
+                'department_id'            => $this->conversation->getOriginal('department_id'),
+                'evolution_api_config_id'  => $originalEvoId,
+                'menu_awaiting'            => true,
+            ]);
+
+            $deptList = $this->getMenuDepartments();
+            $menuLines = [];
+            foreach ($deptList as $idx => $d) {
+                $menuLines[] = ($idx + 1) . ' - ' . $d->name;
+            }
+            $this->saveAndSend(implode("\n", $menuLines));
+
+            // Cria a conversa no outro número para o dept atender
+            $newConv = \App\Models\Conversation::create([
+                'contact_id'             => $this->conversation->contact_id,
+                'department_id'          => $department->id,
+                'evolution_api_config_id' => $department->evolution_api_config_id,
+                'status'                 => 'open',
+                'is_group'               => false,
+            ]);
+
+            // Envia mensagem de boas-vindas no novo número
+            $welcomeText = "Olá! Sou do setor de *{$department->name}* da {$this->config->company_name}. Como posso ajudar? 😊";
+            $welcomeMsg = Message::create([
+                'conversation_id' => $newConv->id,
+                'sender_type'     => 'agent',
+                'sender_id'       => null,
+                'content'         => $welcomeText,
+                'type'            => 'text',
+                'delivery_status' => 'pending',
+            ]);
+            $newConv->update(['last_message_at' => now()]);
+            \App\Jobs\SendWhatsAppMessage::dispatch($welcomeMsg);
+
+            // Mensagem de sistema
+            Message::create([
+                'conversation_id' => $this->conversation->id,
+                'sender_type'     => 'system',
+                'content'         => "Menu: cliente direcionado para {$department->name} (outro número)",
+                'type'            => 'text',
+                'delivery_status' => 'sent',
+            ]);
+
+            return;
+        }
+
         $msg = $this->saveAndSend($confirmText);
 
         // Mensagem de sistema no histórico
