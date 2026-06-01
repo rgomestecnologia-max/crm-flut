@@ -60,7 +60,7 @@
                     <div class="bar" style="background:#b2ff00;"></div>
                     <h2>Multi-atendimento WhatsApp</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.multi ? '#b2ff00' : 'rgba(255,255,255,0.1)' }" @click="modules.multi = !modules.multi; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.multi ? '#b2ff00' : 'rgba(255,255,255,0.1)' }" @click="modules.multi = !modules.multi; calc()">
                     <span :style="{ left: modules.multi ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -95,7 +95,7 @@
                     <div class="bar" style="background:#8b5cf6;"></div>
                     <h2>CRM — Pipeline de Vendas</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.crm ? '#8b5cf6' : 'rgba(255,255,255,0.1)' }" @click="modules.crm = !modules.crm; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.crm ? '#8b5cf6' : 'rgba(255,255,255,0.1)' }" @click="modules.crm = !modules.crm; calc()">
                     <span :style="{ left: modules.crm ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -123,7 +123,7 @@
                     <div class="bar" style="background:#3b82f6;"></div>
                     <h2>Disparos em Massa</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.email ? '#3b82f6' : 'rgba(255,255,255,0.1)' }" @click="modules.email = !modules.email; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.email ? '#3b82f6' : 'rgba(255,255,255,0.1)' }" @click="modules.email = !modules.email; calc()">
                     <span :style="{ left: modules.email ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -167,7 +167,7 @@
                     <div class="bar" style="background:#ec4899;"></div>
                     <h2>IA de Atendimento</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.ia ? '#ec4899' : 'rgba(255,255,255,0.1)' }" @click="modules.ia = !modules.ia; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.ia ? '#ec4899' : 'rgba(255,255,255,0.1)' }" @click="modules.ia = !modules.ia; calc()">
                     <span :style="{ left: modules.ia ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -199,7 +199,7 @@
                     <div class="bar" style="background:#06b6d4;"></div>
                     <h2>Integrações Externas</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.integrations ? '#06b6d4' : 'rgba(255,255,255,0.1)' }" @click="modules.integrations = !modules.integrations; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.integrations ? '#06b6d4' : 'rgba(255,255,255,0.1)' }" @click="modules.integrations = !modules.integrations; calc()">
                     <span :style="{ left: modules.integrations ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -229,7 +229,7 @@
                     <div class="bar" style="background:#10b981;"></div>
                     <h2>Chat Interno</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.chatInterno ? '#10b981' : 'rgba(255,255,255,0.1)' }" @click="modules.chatInterno = !modules.chatInterno; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.chatInterno ? '#10b981' : 'rgba(255,255,255,0.1)' }" @click="modules.chatInterno = !modules.chatInterno; calc()">
                     <span :style="{ left: modules.chatInterno ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -244,7 +244,7 @@
                     <div class="bar" style="background:#6366f1;"></div>
                     <h2>FlutChat</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.flutchat ? '#6366f1' : 'rgba(255,255,255,0.1)' }" @click="modules.flutchat = !modules.flutchat; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.flutchat ? '#6366f1' : 'rgba(255,255,255,0.1)' }" @click="modules.flutchat = !modules.flutchat; calc()">
                     <span :style="{ left: modules.flutchat ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -270,7 +270,7 @@
                     <div class="bar" style="background:#f59e0b;"></div>
                     <h2>FlutZap</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.flutzap ? '#f59e0b' : 'rgba(255,255,255,0.1)' }" @click="modules.flutzap = !modules.flutzap; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.flutzap ? '#f59e0b' : 'rgba(255,255,255,0.1)' }" @click="modules.flutzap = !modules.flutzap; calc()">
                     <span :style="{ left: modules.flutzap ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -285,7 +285,7 @@
                     <div class="bar" style="background:#14b8a6;"></div>
                     <h2>Gestão Consultiva</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.consultoria ? '#14b8a6' : 'rgba(255,255,255,0.1)' }" @click="modules.consultoria = !modules.consultoria; useCustom=false; calc()">
+                <button class="toggle" :style="{ background: modules.consultoria ? '#14b8a6' : 'rgba(255,255,255,0.1)' }" @click="modules.consultoria = !modules.consultoria; calc()">
                     <span :style="{ left: modules.consultoria ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -503,77 +503,65 @@ function pricingSimulator() {
 
         fmt(v) { return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
 
-        calc() {
-            // Se tem valores personalizados salvos, usar diretamente
-            if (this.useCustom && this.customDetails) {
-                let monthly = 0, setup = 0;
-                this.detail = {};
-                for (const key in this.customDetails) {
-                    this.detail[key] = parseFloat(this.customDetails[key]) || 0;
-                    if (key.endsWith('_monthly')) monthly += this.detail[key];
-                    if (key.endsWith('_setup')) setup += this.detail[key];
-                }
-                this.originalTotal.monthly = monthly;
-                this.originalTotal.setup = setup;
-                this.total.monthly = monthly;
-                this.total.setup = setup;
-                // Após primeiro cálculo, desativa para permitir recálculo se módulos mudarem
-                return;
+        // Helper: usa valor customizado se existir, senão calcula padrão
+        _cv(key, defaultVal) {
+            if (this.customDetails && this.customDetails[key] !== undefined) {
+                return parseFloat(this.customDetails[key]) || 0;
             }
+            return defaultVal;
+        },
 
+        calc() {
             let monthly = 0, setup = 0;
             this.detail = {};
 
             if (this.modules.multi) {
-                let m = parseFloat(C.multi_base_price);
+                let defM = parseFloat(C.multi_base_price);
                 const baseUsers = parseInt(C.multi_base_users);
-                const extra = Math.max(0, this.multi.users - baseUsers) * parseFloat(C.multi_extra_user);
-                m += extra;
-                const extraInst = Math.max(0, this.multi.instances - 1) * parseFloat(C.multi_extra_instance);
-                m += extraInst;
-                const s = parseFloat(C.multi_setup);
+                defM += Math.max(0, this.multi.users - baseUsers) * parseFloat(C.multi_extra_user);
+                defM += Math.max(0, this.multi.instances - 1) * parseFloat(C.multi_extra_instance);
+                const m = this._cv('multi_monthly', defM);
+                const s = this._cv('multi_setup', parseFloat(C.multi_setup));
                 this.detail.multi_monthly = m;
                 this.detail.multi_setup = s;
                 monthly += m; setup += s;
             }
             if (this.modules.crm) {
-                const m = parseFloat(C.crm_price);
-                const s = parseFloat(C.crm_setup);
+                const m = this._cv('crm_monthly', parseFloat(C.crm_price));
+                const s = this._cv('crm_setup', parseFloat(C.crm_setup));
                 this.detail.crm_monthly = m;
                 this.detail.crm_setup = s;
                 monthly += m; setup += s;
             }
             if (this.modules.email) {
                 const prices = { 'none': 0, '5k': parseFloat(C.email_5k_price), '20k': parseFloat(C.email_20k_price), '50k': parseFloat(C.email_50k_price) };
-                let m = prices[this.email.plan] ?? 0;
-                let s = this.email.plan !== 'none' ? parseFloat(C.email_setup) : 0;
-                // WhatsApp broadcast
-                if (this.email.whatsapp) {
-                    m += 200;
-                    if (s === 0) s = parseFloat(C.email_setup); // setup se só tem WhatsApp
-                }
+                let defM = prices[this.email.plan] ?? 0;
+                let defS = this.email.plan !== 'none' ? parseFloat(C.email_setup) : 0;
+                if (this.email.whatsapp) { defM += 200; if (defS === 0) defS = parseFloat(C.email_setup); }
+                const m = this._cv('email_monthly', defM);
+                const s = this._cv('email_setup', defS);
                 this.detail.email_monthly = m;
                 this.detail.email_setup = s;
                 monthly += m; setup += s;
             }
             if (this.modules.ia) {
-                const m = this.ia.flows * parseFloat(C.ia_flow_price);
-                const s = this.ia.flows * parseFloat(C.ia_flow_setup);
+                const m = this._cv('ia_monthly', this.ia.flows * parseFloat(C.ia_flow_price));
+                const s = this._cv('ia_setup', this.ia.flows * parseFloat(C.ia_flow_setup));
                 this.detail.ia_monthly = m;
                 this.detail.ia_setup = s;
                 monthly += m; setup += s;
             }
             if (this.modules.integrations) {
-                const m = this.integrations.count * parseFloat(C.integration_monthly);
-                const s = this.integrations.count * parseFloat(C.integration_setup);
+                const m = this._cv('int_monthly', this.integrations.count * parseFloat(C.integration_monthly));
+                const s = this._cv('int_setup', this.integrations.count * parseFloat(C.integration_setup));
                 this.detail.int_monthly = m;
                 this.detail.int_setup = s;
                 monthly += m; setup += s;
             }
 
             if (this.modules.chatInterno) {
-                const m = parseFloat(C.chat_interno_price);
-                const s = parseFloat(C.chat_interno_setup);
+                const m = this._cv('chatInterno_monthly', parseFloat(C.chat_interno_price));
+                const s = this._cv('chatInterno_setup', parseFloat(C.chat_interno_setup));
                 this.detail.chatInterno_monthly = m;
                 this.detail.chatInterno_setup = s;
                 monthly += m; setup += s;
@@ -581,24 +569,24 @@ function pricingSimulator() {
 
             if (this.modules.flutchat) {
                 const withAi = this.flutchat.withAi === '1' || this.flutchat.withAi === 1;
-                const m = parseFloat(withAi ? C.flutchat_ia_price : C.flutchat_price);
-                const s = parseFloat(C.flutchat_setup);
+                const m = this._cv('flutchat_monthly', parseFloat(withAi ? C.flutchat_ia_price : C.flutchat_price));
+                const s = this._cv('flutchat_setup', parseFloat(C.flutchat_setup));
                 this.detail.flutchat_monthly = m;
                 this.detail.flutchat_setup = s;
                 monthly += m; setup += s;
             }
 
             if (this.modules.flutzap) {
-                const m = parseFloat(C.flutzap_price);
-                const s = parseFloat(C.flutzap_setup);
+                const m = this._cv('flutzap_monthly', parseFloat(C.flutzap_price));
+                const s = this._cv('flutzap_setup', parseFloat(C.flutzap_setup));
                 this.detail.flutzap_monthly = m;
                 this.detail.flutzap_setup = s;
                 monthly += m; setup += s;
             }
 
             if (this.modules.consultoria) {
-                const m = parseFloat(C.consultoria_price);
-                const s = parseFloat(C.consultoria_setup || 0);
+                const m = this._cv('consultoria_monthly', parseFloat(C.consultoria_price));
+                const s = this._cv('consultoria_setup', parseFloat(C.consultoria_setup || 0));
                 this.detail.consultoria_monthly = m;
                 this.detail.consultoria_setup = s;
                 monthly += m; setup += s;
@@ -657,6 +645,7 @@ function pricingSimulator() {
                 if (data.success) {
                     this.savedId = data.id;
                     this.proposalId = data.id;
+                    this.customDetails = { ...this.detail };
                 } else {
                     alert('Erro ao salvar proposta. Tente novamente.');
                 }
