@@ -118,7 +118,7 @@
     @php
         $tabCount = 2 + ($aiActive ? 1 : 0) + 1 + (($counts['archived'] ?? 0) > 0 ? 1 : 0) + count($tags) + ($showDeptQueues ? max(0, count($deptQueueCounts) - 1) : 0);
     @endphp
-    <div style="display:flex; {{ $tabCount > 4 ? 'flex-wrap:wrap;' : '' }} padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
+    <div style="display:flex; flex-wrap:wrap; padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
         @php
         $tabs = [
             ['key' => 'mine',     'label' => 'Minhas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
@@ -166,9 +166,10 @@
         @endphp
         @foreach($tabs as $tab)
         <button wire:click="setFilter('{{ $tab['key'] }}')"
-                style="display:flex; align-items:center; gap:5px; padding:5px 9px; border-radius:7px; font-size:11px; font-weight:{{ $filter === $tab['key'] ? '600' : '400' }}; border:none; cursor:pointer; transition:all 0.15s; white-space:nowrap;
+                style="display:flex; align-items:center; gap:5px; padding:5px 9px; border-radius:7px; font-size:11px; font-weight:500; border:none; cursor:pointer; transition:all 0.15s; white-space:nowrap;
                        background:{{ $filter === $tab['key'] ? $tab['activeBg'] : 'transparent' }};
-                       color:{{ $filter === $tab['key'] ? $tab['activeColor'] : 'rgba(255,255,255,0.3)' }};">
+                       color:{{ $filter === $tab['key'] ? $tab['activeColor'] : 'rgba(255,255,255,0.3)' }};
+                       {{ $filter === $tab['key'] ? 'border:1px solid ' . $tab['color'] . '40;' : 'border:1px solid transparent;' }}">
             {{ $tab['label'] }}
             @if($tab['count'] !== null && $tab['count'] > 0)
                 <span style="display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; border-radius:20px; font-size:9px; font-weight:700; background:{{ $tab['color'] }}; color:white; line-height:1;">
