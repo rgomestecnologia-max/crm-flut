@@ -162,7 +162,7 @@ class ProcessMenuBot implements ShouldQueue
             // Avisa o cliente na conversa original
             $transferMsg = "✅ Seu atendimento foi direcionado para o setor de *{$department->name}*.\n\n"
                 . "📱 Você receberá uma mensagem do nosso número exclusivo desse setor"
-                . ($newNumber ? " (*{$newNumber}*)" : "") . ".\n\n"
+                . ($newNumber ? " {$newNumber}" : "") . ".\n\n"
                 . "Se quiser falar com outro setor, basta digitar o número da opção desejada:";
             $this->saveAndSend($transferMsg);
 
