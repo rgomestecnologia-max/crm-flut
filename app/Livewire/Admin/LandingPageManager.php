@@ -218,6 +218,14 @@ class LandingPageManager extends Component
         }
     }
 
+    public function reorderSections(array $ids): void
+    {
+        foreach ($ids as $order => $id) {
+            LandingPageSection::where('id', $id)->update(['sort_order' => $order + 1]);
+        }
+        $this->loadSections();
+    }
+
     public function moveSectionUp(int $id): void
     {
         $section = LandingPageSection::findOrFail($id);

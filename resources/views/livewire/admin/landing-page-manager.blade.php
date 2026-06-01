@@ -83,14 +83,39 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
         </div>
     </div>
 
+    <div id="lp-sortable"
+         x-data
+         x-init="
+            if (typeof Sortable === 'undefined') {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js';
+                s.onload = () => initSortable();
+                document.head.appendChild(s);
+            } else { $nextTick(() => initSortable()); }
+            function initSortable() {
+                const el = document.getElementById('lp-sortable');
+                if (!el || el._sortable) return;
+                el._sortable = Sortable.create(el, {
+                    handle: '.lp-drag-handle',
+                    animation: 200,
+                    ghostClass: 'lp-ghost',
+                    onEnd: () => {
+                        const ids = [...el.querySelectorAll('[data-section-id]')].map(e => parseInt(e.dataset.sectionId));
+                        @this.call('reorderSections', ids);
+                    }
+                });
+            }
+         ">
+    <style>.lp-ghost{opacity:0.3;border:2px dashed #b2ff00 !important;} .lp-drag-handle{cursor:grab;} .lp-drag-handle:active{cursor:grabbing;}</style>
     @foreach($sections as $idx => $section)
-    <div style="background:rgba(255,255,255,0.02); border:1px solid {{ $section['visible'] ? 'rgba(255,255,255,0.06)' : 'rgba(239,68,68,0.2)' }}; border-radius:10px; padding:12px 14px; margin-bottom:8px; {{ !$section['visible'] ? 'opacity:0.5;' : '' }}">
+    <div data-section-id="{{ $section['id'] }}" style="background:rgba(255,255,255,0.02); border:1px solid {{ $section['visible'] ? 'rgba(255,255,255,0.06)' : 'rgba(239,68,68,0.2)' }}; border-radius:10px; padding:12px 14px; margin-bottom:8px; {{ !$section['visible'] ? 'opacity:0.5;' : '' }}">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span class="lp-drag-handle" style="color:rgba(255,255,255,0.15); font-size:14px; padding:0 4px;" title="Arrastar para reordenar">☰</span>
             <span style="font-size:11px; font-weight:700; color:#b2ff00;">{{ $sectionTypes[$section['type']] ?? $section['type'] }}</span>
             <span style="font-size:9px; color:rgba(255,255,255,0.2);">#{{ $section['sort_order'] }}</span>
             <span style="flex:1;"></span>
-            <button wire:click="moveSectionUp({{ $section['id'] }})" style="font-size:10px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;">▲</button>
-            <button wire:click="moveSectionDown({{ $section['id'] }})" style="font-size:10px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;">▼</button>
+            <button wire:click="moveSectionUp({{ $section['id'] }})" style="font-size:10px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;" title="Mover para cima">▲</button>
+            <button wire:click="moveSectionDown({{ $section['id'] }})" style="font-size:10px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;" title="Mover para baixo">▼</button>
             <button wire:click="toggleSectionVisibility({{ $section['id'] }})" style="font-size:10px; color:{{ $section['visible'] ? 'rgba(255,255,255,0.3)' : '#f87171' }}; background:none; border:none; cursor:pointer;">{{ $section['visible'] ? '👁' : '🚫' }}</button>
             <button wire:click="deleteSection({{ $section['id'] }})" wire:confirm="Excluir seção?" style="font-size:10px; color:#f87171; background:none; border:none; cursor:pointer;">✕</button>
         </div>
@@ -271,6 +296,7 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
         @endif
     </div>
     @endforeach
+    </div>{{-- /lp-sortable --}}
 
     @if($currentPage)
     <div style="margin-top:16px; padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px;">
