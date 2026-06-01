@@ -536,16 +536,23 @@ class ProcessEvolutionMessage implements ShouldQueue
                 } catch (\Throwable) {}
             }
 
-            // ── Humano respondeu pelo WhatsApp direto → para a IA ──
+            // ── Humano respondeu pelo WhatsApp direto → para IA e URA ──
             if ($fromMe && !$isGroup) {
-                // Só marca waiting_human_reason se a IA está ativa
-                // Chatbot sozinho (URA) não precisa — é só menu de departamento
                 $botConfig = AiBotConfig::current();
                 $hasAi = $botConfig && $botConfig->is_active && $botConfig->hasKey();
 
+                $updateData = [];
+                // Para a IA
                 if ($hasAi && !$conversation->waiting_human_reason) {
-                    $conversation->update(['waiting_human_reason' => 'Atendente respondeu pelo WhatsApp']);
-                    Log::info('Humano detectado via WhatsApp direto, IA parada', [
+                    $updateData['waiting_human_reason'] = 'Atendente respondeu pelo WhatsApp';
+                }
+                // Para a URA
+                if ($conversation->menu_awaiting) {
+                    $updateData['menu_awaiting'] = false;
+                }
+                if (!empty($updateData)) {
+                    $conversation->update($updateData);
+                    Log::info('Humano detectado via WhatsApp direto, IA/URA parada', [
                         'conv' => $conversation->id, 'content' => substr($content, 0, 50),
                     ]);
                 }
