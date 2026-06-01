@@ -206,6 +206,7 @@ class ChatArea extends Component
 
             \App\Models\FlutChatConversation::find($this->flutChatConvId)?->update(['status' => 'closed']);
             $this->flutChatConvId = null;
+            $this->dispatch('conversation-deleted');
             $this->dispatch('toast', type: 'success', message: 'Conversa FlutChat encerrada.');
         }
     }
@@ -217,6 +218,7 @@ class ChatArea extends Component
             \App\Models\FlutChatMessage::where('conversation_id', $id)->delete();
             $conv->delete();
             if ($this->flutChatConvId === $id) $this->flutChatConvId = null;
+            $this->dispatch('conversation-deleted');
             $this->dispatch('toast', type: 'success', message: 'Conversa excluída.');
         }
     }
