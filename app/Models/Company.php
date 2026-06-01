@@ -46,8 +46,9 @@ class Company extends Model
             'admin.chatbot'    => 'Chatbot',
             'admin.ia'         => 'IA de Atendimento',
             'admin.automation' => 'Automação',
-            'admin.flut-chat'  => 'Flut Chat',
-            'admin.audit'      => 'Auditoria',
+            'admin.flut-chat'    => 'Flut Chat',
+            'admin.landing-pages'=> 'Landing Pages',
+            'admin.audit'        => 'Auditoria',
         ],
     ];
 

@@ -409,6 +409,17 @@
                 </a>
                 @endif
 
+                @if($canSee('admin.landing-pages'))
+                <a href="{{ route('admin.landing-pages.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.landing-pages*') ? 'active' : '' }}"
+                   style="color:{{ request()->routeIs('admin.landing-pages*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V9a2 2 0 012-2h2a2 2 0 012 2v9a2 2 0 01-2 2h-2z"/>
+                    </svg>
+                    <span x-show="sidebarOpen">Landing Pages</span>
+                </a>
+                @endif
+
                 @if($canSee('admin.audit'))
                 <a href="{{ route('admin.audit.index') }}"
                    class="nav-item {{ request()->routeIs('admin.audit*') ? 'active' : '' }}"

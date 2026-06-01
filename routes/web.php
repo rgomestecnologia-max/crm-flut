@@ -18,6 +18,9 @@ Route::post('/pricing/save', [PricingController::class, 'save'])->name('pricing.
 Route::get('/pricing/{token}/editar', [PricingController::class, 'edit'])->name('pricing.edit');
 Route::put('/pricing/{token}', [PricingController::class, 'update'])->name('pricing.update');
 
+// Landing Pages (público)
+Route::get('/lp/{companySlug}/{pageSlug}', [App\Http\Controllers\LandingPageViewController::class, 'show'])->name('lp.show');
+
 // Legal (público, sem auth — Meta App Verification)
 Route::get('/privacy', fn() => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn() => view('legal.terms'))->name('terms');
@@ -144,6 +147,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('quick-replies', fn() => view('admin.quick-replies.index'))->name('quick-replies.index');
         Route::get('backups', fn() => view('admin.backups.index'))->name('backups.index');
         Route::get('flut-chat', fn() => view('admin.flut-chat.index'))->name('flut-chat.index')->middleware('module:admin.flut-chat');
+        Route::get('landing-pages', fn() => view('admin.landing-pages.index'))->name('landing-pages.index')->middleware('module:admin.landing-pages');
     });
 
     // Download de mídia (proxy para evitar CORS em URLs externas)

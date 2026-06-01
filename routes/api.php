@@ -31,6 +31,9 @@ Route::prefix('flut-chat')->middleware('throttle:60,1')->group(function () {
     Route::get('/{publicId}/download/{messageId}', [\App\Http\Controllers\Api\FlutChatController::class, 'downloadMedia']);
 });
 
+// ── Landing Pages (público) ───────────────────────────────────────────
+Route::post('/lp/{pageId}/lead', [\App\Http\Controllers\Api\LandingPageController::class, 'saveLead'])->middleware('throttle:30,1');
+
 // ── API de Integração CRM ─────────────────────────────────────────────
 Route::middleware(['api.token', 'throttle:100,1'])->group(function () {
     Route::post('/leads', [LeadController::class, 'store'])->name('api.leads.store');
