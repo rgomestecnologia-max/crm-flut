@@ -121,7 +121,7 @@
     <div style="display:flex; {{ $tabCount > 4 ? 'flex-wrap:wrap;' : '' }} padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
         @php
         $tabs = [
-            ['key' => 'mine',     'label' => 'Minhas Conversas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
+            ['key' => 'mine',     'label' => 'Minhas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
         ];
         if ($showDeptQueues) {
             // Supervisor: filas separadas por departamento
@@ -139,7 +139,6 @@
         if ($aiActive) {
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
-        $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
         $companyModulesFC = \App\Models\Company::find(app(\App\Services\CurrentCompany::class)->id())?->modules ?? [];
         $hasFlutChat = in_array('admin.flut-chat', $companyModulesFC) || auth()->user()->isAdmin();
         $hasActiveFlow = $hasFlutChat && \App\Models\FlutChatFlow::where('is_active', true)->exists();
@@ -162,6 +161,8 @@
                 'activeColor' => $tagColor,
             ];
         }
+        // "Todos" sempre por último
+        $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
         @endphp
         @foreach($tabs as $tab)
         <button wire:click="setFilter('{{ $tab['key'] }}')"
