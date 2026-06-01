@@ -83,6 +83,9 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
         </div>
     </div>
 
+    <div style="display:flex; gap:16px;" x-data="{ previewKey: 0 }">
+    {{-- Painel esquerdo: seções --}}
+    <div style="flex:1; min-width:0; max-height:calc(100vh - 160px); overflow-y:auto; padding-right:8px;">
     <div id="lp-sortable"
          x-data
          x-init="
@@ -299,11 +302,33 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
     </div>{{-- /lp-sortable --}}
 
     @if($currentPage)
-    <div style="margin-top:16px; padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px;">
-        <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-bottom:6px;">🔗 URL da página:</p>
-        <code style="font-size:11px; color:#b2ff00;">{{ $currentPage->public_url }}</code>
+    <div style="margin-top:12px; padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px;">
+        <p style="font-size:9px; color:rgba(255,255,255,0.3); margin-bottom:4px;">🔗 URL:</p>
+        <code style="font-size:10px; color:#b2ff00; word-break:break-all;">{{ $currentPage->public_url }}</code>
     </div>
     @endif
+    </div>{{-- /painel esquerdo --}}
+
+    {{-- Painel direito: preview ao vivo --}}
+    @if($currentPage)
+    <div style="flex:1; min-width:0; display:flex; flex-direction:column; max-height:calc(100vh - 160px);" class="lp-preview-panel">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.4);">Preview</span>
+            <button @click="previewKey++; $nextTick(() => { const f = document.getElementById('lp-preview-frame'); if(f) f.src = f.src; })"
+                    style="font-size:10px; color:#60a5fa; background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.2); border-radius:5px; padding:3px 8px; cursor:pointer;">
+                🔄 Atualizar
+            </button>
+        </div>
+        <div style="flex:1; border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; background:#fff;">
+            <iframe id="lp-preview-frame" :key="previewKey"
+                    src="{{ $currentPage->public_url }}"
+                    style="width:100%; height:100%; border:none;"
+                    sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+        </div>
+    </div>
+    @endif
+    </div>{{-- /split view --}}
+    <style>@media(max-width:1024px){ .lp-preview-panel { display:none !important; } }</style>
     @endif
     @endif
 
