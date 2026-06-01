@@ -61,7 +61,7 @@ class PricingConfig extends Model
             'flutzap_price'           => '249.00',
             'flutzap_setup'           => '400.00',
 
-            // Gestão Consultiva
+            // Gestão Consultiva e Operacional
             'consultoria_price'       => '500.00',
             'consultoria_hours'       => '4',
             'consultoria_setup'       => '0.00',

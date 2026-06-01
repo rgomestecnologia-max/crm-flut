@@ -277,13 +277,13 @@
             <p class="module-desc">Botão flutuante de WhatsApp com formulário inteligente — coleta dados do visitante e salva na nuvem antes de abrir a conversa.</p>
         </div>
 
-        {{-- Gestão Consultiva --}}
+        {{-- Gestão Consultiva e Operacional --}}
         <div class="module" style="border-color: rgba(20,184,166,0.1);">
             <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#14b8a680,transparent);"></div>
             <div class="module-header">
                 <div class="module-title">
                     <div class="bar" style="background:#14b8a6;"></div>
-                    <h2>Gestão Consultiva</h2>
+                    <h2>Gestão Consultiva e Operacional</h2>
                 </div>
                 <button class="toggle" :style="{ background: modules.consultoria ? '#14b8a6' : 'rgba(255,255,255,0.1)' }" @click="modules.consultoria = !modules.consultoria; calc()">
                     <span :style="{ left: modules.consultoria ? '25px' : '3px' }"></span>
@@ -415,7 +415,7 @@
                 </template>
                 <template x-if="modules.consultoria">
                     <div>
-                        <div class="breakdown-item"><span>Gestão Consultiva (<span x-text="C.consultoria_hours || '4'"></span>h/mês)</span><span class="val">R$ <span x-text="fmt(detail.consultoria_monthly)"></span>/mês</span></div>
+                        <div class="breakdown-item"><span>Gestão Consultiva e Operacional (<span x-text="C.consultoria_hours || '4'"></span>h/mês)</span><span class="val">R$ <span x-text="fmt(detail.consultoria_monthly)"></span>/mês</span></div>
                     </div>
                 </template>
             </div>
@@ -844,7 +844,7 @@ function pricingSimulator() {
                 benefits: C.flutzap_benefits || ''
             });
             if (this.modules.consultoria) moduleData.push({
-                key: 'consultoria', title: 'Gestão Consultiva',
+                key: 'consultoria', title: 'Gestão Consultiva e Operacional',
                 subtitle: (C.consultoria_hours || '4') + ' horas/mês',
                 monthly: this.detail.consultoria_monthly, setup: this.detail.consultoria_setup,
                 benefits: C.consultoria_benefits || ''

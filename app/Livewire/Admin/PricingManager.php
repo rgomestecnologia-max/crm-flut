@@ -91,9 +91,9 @@ class PricingManager extends Component
             'flutchat_setup'       => ['FlutChat — Implantação', 'R$'],
             'flutzap_price'        => ['FlutZap — Mensalidade', 'R$/mês'],
             'flutzap_setup'        => ['FlutZap — Implantação', 'R$'],
-            'consultoria_price'    => ['Gestão Consultiva — Mensalidade', 'R$/mês'],
-            'consultoria_hours'    => ['Gestão Consultiva — Horas/mês', 'horas'],
-            'consultoria_setup'    => ['Gestão Consultiva — Implantação', 'R$'],
+            'consultoria_price'    => ['Gestão Consultiva e Operacional — Mensalidade', 'R$/mês'],
+            'consultoria_hours'    => ['Gestão Consultiva e Operacional — Horas/mês', 'horas'],
+            'consultoria_setup'    => ['Gestão Consultiva e Operacional — Implantação', 'R$'],
         ];
 
         return view('livewire.admin.pricing-manager', compact('labels'));

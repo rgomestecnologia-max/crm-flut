@@ -21,7 +21,7 @@
                 'Chat Interno' => ['chat_interno_price','chat_interno_setup'],
                 'FlutChat' => ['flutchat_price','flutchat_ia_price','flutchat_setup'],
                 'FlutZap' => ['flutzap_price','flutzap_setup'],
-                'Gestão Consultiva' => ['consultoria_price','consultoria_hours','consultoria_setup'],
+                'Gestão Consultiva e Operacional' => ['consultoria_price','consultoria_hours','consultoria_setup'],
             ];
             $benefitsKeys = [
                 'Multi-atendimento' => 'multi_benefits',
@@ -32,7 +32,7 @@
                 'Chat Interno' => 'chat_interno_benefits',
                 'FlutChat' => 'flutchat_benefits',
                 'FlutZap' => 'flutzap_benefits',
-                'Gestão Consultiva' => 'consultoria_benefits',
+                'Gestão Consultiva e Operacional' => 'consultoria_benefits',
             ];
             $imgModels = ['multi_image','crm_image','email_image','ia_image','integration_image','chat_interno_image','flutchat_image','flutzap_image','consultoria_image'];
             $imgConfigs = ['multi_screenshot','crm_screenshot','email_screenshot','ia_screenshot','integration_screenshot','chat_interno_screenshot','flutchat_screenshot','flutzap_screenshot','consultoria_screenshot'];

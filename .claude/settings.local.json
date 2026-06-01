@@ -125,7 +125,22 @@
       "Bash(mkdir -p /Users/rogerio/Downloads/projeto-crm/public/icons)",
       "Bash(sips -g pixelWidth -g pixelHeight /Users/rogerio/Downloads/projeto-crm/public/images/logo-flut.webp)",
       "Bash(pip3 install:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(git pull:*)",
+      "Bash(sqlite3 /Users/rogerio/Downloads/projeto-crm/database/database.sqlite \".schema broadcast_contacts\")",
+      "Bash(cat /Users/rogerio/Downloads/projeto-crm/database/migrations/*.php)",
+      "WebFetch(domain:www.t21visual.com.br)",
+      "WebFetch(domain:flut.com.br)",
+      "Bash(scp:*)",
+      "Bash(dig +short flut.com.br A)",
+      "Bash(nslookup flut.com.br)",
+      "Bash(dig flut.com.br ANY +short)",
+      "Bash(dig www.flut.com.br ANY +short)",
+      "Bash(host flut.com.br)",
+      "Bash(nslookup:*)",
+      "Bash(traceroute -m 5 flut.com.br)",
+      "Bash(traceroute -m 5 2.24.200.133)",
+      "Bash(echo \"---STATUS: $?\")"
     ]
   }
 }
