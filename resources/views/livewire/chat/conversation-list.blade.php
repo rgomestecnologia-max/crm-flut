@@ -342,7 +342,7 @@
                 </button>
 
                 {{-- Botão Assumir (fora do <button> de seleção pra não gerar HTML inválido) --}}
-                @if(!$conv->assigned_to && $filter === 'queue')
+                @if(!$conv->assigned_to && ($filter === 'queue' || str_starts_with($filter, 'queue_')))
                     <div style="padding:0 14px 8px;">
                         <button wire:click="assignToMe({{ $conv->id }})"
                                 style="font-size:10px; font-weight:700; color:#fbbf24; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:6px; padding:3px 10px; cursor:pointer; transition:all 0.15s;"
