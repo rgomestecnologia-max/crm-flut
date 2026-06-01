@@ -253,6 +253,7 @@ class ConversationList extends Component
             'assigned_to'          => $user->id,
             'status'               => 'open',
             'waiting_human_reason' => null,
+            'menu_awaiting'        => false,
         ]);
 
         // Troca pro filtro "Minhas Conversas" pra o agente ver a conversa assumida
