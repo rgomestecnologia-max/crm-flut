@@ -134,6 +134,7 @@
                             if (!empty($modules['chatInterno'])) $moduleRows[] = ['key' => 'chatInterno', 'label' => 'Chat Interno'];
                             if (!empty($modules['flutchat'])) $moduleRows[] = ['key' => 'flutchat', 'label' => 'FlutChat' . (($cfg['flutchat_with_ai'] ?? '0') === '1' ? ' (com IA)' : '')];
                             if (!empty($modules['flutzap'])) $moduleRows[] = ['key' => 'flutzap', 'label' => 'FlutZap'];
+                            if (!empty($modules['consultoria'])) $moduleRows[] = ['key' => 'consultoria', 'label' => 'Gestão Consultiva (' . ($cfg['consultoria_hours'] ?? '4') . 'h/mês)'];
                             // Módulos personalizados (custom_N)
                             foreach ($details as $dk => $dv) {
                                 if (str_starts_with($dk, 'custom_') && str_ends_with($dk, '_label')) {

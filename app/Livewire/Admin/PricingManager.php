@@ -12,7 +12,7 @@ class PricingManager extends Component
     use WithFileUploads;
 
     public array $prices = [];
-    public $multi_image, $crm_image, $email_image, $ia_image, $integration_image, $chat_interno_image, $flutchat_image, $flutzap_image;
+    public $multi_image, $crm_image, $email_image, $ia_image, $integration_image, $chat_interno_image, $flutchat_image, $flutzap_image, $consultoria_image;
 
     public function mount(): void
     {
@@ -36,6 +36,7 @@ class PricingManager extends Component
             'chat_interno_image' => 'chat_interno_screenshot',
             'flutchat_image' => 'flutchat_screenshot',
             'flutzap_image' => 'flutzap_screenshot',
+            'consultoria_image' => 'consultoria_screenshot',
         ];
 
         foreach ($imageKeys as $prop => $configKey) {
@@ -90,6 +91,9 @@ class PricingManager extends Component
             'flutchat_setup'       => ['FlutChat — Implantação', 'R$'],
             'flutzap_price'        => ['FlutZap — Mensalidade', 'R$/mês'],
             'flutzap_setup'        => ['FlutZap — Implantação', 'R$'],
+            'consultoria_price'    => ['Gestão Consultiva — Mensalidade', 'R$/mês'],
+            'consultoria_hours'    => ['Gestão Consultiva — Horas/mês', 'horas'],
+            'consultoria_setup'    => ['Gestão Consultiva — Implantação', 'R$'],
         ];
 
         return view('livewire.admin.pricing-manager', compact('labels'));

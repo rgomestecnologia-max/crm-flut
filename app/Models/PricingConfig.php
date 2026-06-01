@@ -61,6 +61,11 @@ class PricingConfig extends Model
             'flutzap_price'           => '249.00',
             'flutzap_setup'           => '400.00',
 
+            // Gestão Consultiva
+            'consultoria_price'       => '500.00',
+            'consultoria_hours'       => '4',
+            'consultoria_setup'       => '0.00',
+
             // Integrações
             'integration_setup'       => '800.00',
             'integration_monthly'     => '200.00',
@@ -82,6 +87,8 @@ class PricingConfig extends Model
 
             'flutzap_benefits' => "Botão flutuante de WhatsApp para o site da sua empresa — muito mais que um simples link. Um formulário inteligente que coleta informações do visitante antes de abrir o WhatsApp, salvando tudo automaticamente na nuvem.\n\n✅ Botão flutuante de WhatsApp personalizado no site\n✅ Formulário de captura antes de abrir a conversa (nome, e-mail, interesse)\n✅ Dados do visitante salvos automaticamente na nuvem (CRM)\n✅ Mensagem pré-preenchida no WhatsApp com os dados coletados\n✅ Painel com histórico de todos os cliques e formulários preenchidos\n✅ Múltiplos botões por site (um para cada página ou setor)\n✅ Design personalizável (cor, ícone, posição, animação)\n✅ Responsivo — funciona perfeitamente em celular e desktop\n✅ Instalação simples com 1 linha de código\n✅ Relatórios de conversão (quantos visitantes clicaram e preencheram)\n\nSaiba exatamente quem está entrando em contato pelo site. Chega de receber \"Oi\" no WhatsApp sem saber de onde veio — com o FlutZap, cada lead chega identificado e registrado.",
 
+            'consultoria_benefits' => "Tenha um especialista Flut dedicado ao sucesso da sua operação — acompanhamento mensal com foco em resultados.\n\n✅ Acompanhamento mensal do CRM e indicadores\n✅ Suporte operacional para sua equipe\n✅ Análise do funil de vendas com insights acionáveis\n✅ Reunião de alinhamento mensal\n✅ Sugestões de melhorias contínuas na operação\n✅ Melhorias contínuas no treinamento e processo de atendimento da IA\n✅ Criação e disparo de campanhas de marketing\n✅ Criação de novas automações sob demanda\n✅ Criação de visões e relatórios customizados\n\n4 horas mensais de consultoria dedicada para garantir que sua empresa extraia o máximo da plataforma.",
+
             // Screenshots dos módulos (PDF)
             'multi_screenshot' => '',
             'crm_screenshot' => '',
@@ -91,6 +98,7 @@ class PricingConfig extends Model
             'chat_interno_screenshot' => '',
             'flutchat_screenshot' => '',
             'flutzap_screenshot' => '',
+            'consultoria_screenshot' => '',
         ];
     }
 

@@ -277,6 +277,36 @@
             <p class="module-desc">Botão flutuante de WhatsApp com formulário inteligente — coleta dados do visitante e salva na nuvem antes de abrir a conversa.</p>
         </div>
 
+        {{-- Gestão Consultiva --}}
+        <div class="module" style="border-color: rgba(20,184,166,0.1);">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#14b8a680,transparent);"></div>
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="bar" style="background:#14b8a6;"></div>
+                    <h2>Gestão Consultiva</h2>
+                </div>
+                <button class="toggle" :style="{ background: modules.consultoria ? '#14b8a6' : 'rgba(255,255,255,0.1)' }" @click="modules.consultoria = !modules.consultoria; useCustom=false; calc()">
+                    <span :style="{ left: modules.consultoria ? '25px' : '3px' }"></span>
+                </button>
+            </div>
+            <p class="module-desc">Especialista Flut dedicado ao sucesso da sua operação — acompanhamento mensal com foco em resultados.</p>
+            <template x-if="modules.consultoria">
+                <div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Acompanhamento CRM</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Suporte operacional</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Análise do funil</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Reunião de alinhamento</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Melhorias contínuas IA</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Campanhas</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Automações</span>
+                        <span style="font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.15); color:#2dd4bf;">Relatórios customizados</span>
+                    </div>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-top:10px;">Inclui <strong style="color:rgba(255,255,255,0.6);" x-text="C.consultoria_hours || '4'"></strong> horas/mês de consultoria dedicada</p>
+                </div>
+            </template>
+        </div>
+
         {{-- Resultado --}}
         <div class="result">
             <h3>Seu investimento</h3>
@@ -383,6 +413,11 @@
                         <div class="breakdown-item"><span>↳ Implantação</span><span class="val">R$ <span x-text="fmt(detail.flutzap_setup)"></span></span></div>
                     </div>
                 </template>
+                <template x-if="modules.consultoria">
+                    <div>
+                        <div class="breakdown-item"><span>Gestão Consultiva (<span x-text="C.consultoria_hours || '4'"></span>h/mês)</span><span class="val">R$ <span x-text="fmt(detail.consultoria_monthly)"></span>/mês</span></div>
+                    </div>
+                </template>
             </div>
         </div>
 
@@ -447,7 +482,7 @@ function pricingSimulator() {
     const existing = @json($proposal ?? null);
     const refUserId = @json($refUserId ?? null);
     return {
-        modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false, chatInterno: false, flutchat: false, flutzap: false },
+        modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false, chatInterno: false, flutchat: false, flutzap: false, consultoria: false },
         multi: { users: existing?.config?.multi_users ?? 1, instances: existing?.config?.multi_instances ?? 1 },
         email: { plan: existing?.config?.email_plan ?? '5k', whatsapp: existing?.config?.email_whatsapp ?? false },
         ia: { flows: existing?.config?.ia_flows ?? 1 },
@@ -561,6 +596,14 @@ function pricingSimulator() {
                 monthly += m; setup += s;
             }
 
+            if (this.modules.consultoria) {
+                const m = parseFloat(C.consultoria_price);
+                const s = parseFloat(C.consultoria_setup || 0);
+                this.detail.consultoria_monthly = m;
+                this.detail.consultoria_setup = s;
+                monthly += m; setup += s;
+            }
+
             // Salva originais antes do desconto
             this.originalTotal.monthly = monthly;
             this.originalTotal.setup = setup;
@@ -668,7 +711,7 @@ function pricingSimulator() {
 
             // Carregar screenshots dos módulos (boa qualidade)
             const moduleScreenshots = {};
-            for (const key of ['multi','crm','email','ia','integrations','chatInterno','flutchat','flutzap']) {
+            for (const key of ['multi','crm','email','ia','integrations','chatInterno','flutchat','flutzap','consultoria']) {
                 const configKey = {integrations:'integration', chatInterno:'chat_interno'}[key] || key;
                 const url = C[configKey + '_screenshot'];
                 if (url) {
@@ -756,7 +799,8 @@ function pricingSimulator() {
             const moduleColors = {
                 multi: [178, 255, 0], crm: [139, 92, 246], email: [59, 130, 246],
                 ia: [236, 72, 153], integrations: [6, 182, 212],
-                chatInterno: [16, 185, 129], flutchat: [99, 102, 241], flutzap: [245, 158, 11]
+                chatInterno: [16, 185, 129], flutchat: [99, 102, 241], flutzap: [245, 158, 11],
+                consultoria: [20, 184, 166]
             };
             const moduleData = [];
             if (this.modules.multi) moduleData.push({
@@ -809,6 +853,12 @@ function pricingSimulator() {
                 subtitle: 'Automação WhatsApp',
                 monthly: this.detail.flutzap_monthly, setup: this.detail.flutzap_setup,
                 benefits: C.flutzap_benefits || ''
+            });
+            if (this.modules.consultoria) moduleData.push({
+                key: 'consultoria', title: 'Gestão Consultiva',
+                subtitle: (C.consultoria_hours || '4') + ' horas/mês',
+                monthly: this.detail.consultoria_monthly, setup: this.detail.consultoria_setup,
+                benefits: C.consultoria_benefits || ''
             });
 
             for (const mod of moduleData) {
