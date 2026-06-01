@@ -136,34 +136,14 @@ class ProcessMenuBot implements ShouldQueue
 
         $hasAi = $this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey();
 
-        // Roteia para o departamento escolhido
-        // waiting_human_reason fica null para a conversa entrar na Fila do departamento
-        // Multi-instância: atualiza instância da conversa para o número do departamento
-        $updateData = [
-            'department_id'        => $department->id,
-            'menu_awaiting'        => false,
-            'status'               => 'open',
-            'waiting_human_reason' => null,
-        ];
-        if ($department->evolution_api_config_id) {
-            $updateData['evolution_api_config_id'] = $department->evolution_api_config_id;
-        }
-        $this->conversation->update($updateData);
-
-        // Mensagem de confirmação
-        $afterMsg = $this->config->after_selection_message;
-        if ($afterMsg) {
-            $confirmText = str_replace('{departamento}', $department->name, $afterMsg);
-        } else {
-            $confirmText = "Perfeito! Direcionando você para o setor de *{$department->name}*. Em breve um de nossos atendentes irá te responder. 😊";
-        }
-
-        // Se o departamento usa OUTRA instância WhatsApp, avisa o cliente
-        $originalEvoId = $this->conversation->getOriginal('evolution_api_config_id');
+        // Verifica se dept usa outro número WhatsApp
+        $currentEvoId = $this->conversation->evolution_api_config_id;
         $deptUsesOtherNumber = $department->evolution_api_config_id
-            && $department->evolution_api_config_id !== $originalEvoId;
+            && $department->evolution_api_config_id !== $currentEvoId;
 
         if ($deptUsesOtherNumber) {
+            // ── MULTI-NÚMERO: cria conversa separada no outro número ──
+
             // Busca o número da nova instância
             $newConfig = \App\Models\EvolutionApiConfig::find($department->evolution_api_config_id);
             $newNumber = '';
@@ -179,20 +159,15 @@ class ProcessMenuBot implements ShouldQueue
                 } catch (\Throwable) {}
             }
 
+            // Avisa o cliente na conversa original
             $transferMsg = "✅ Seu atendimento foi direcionado para o setor de *{$department->name}*.\n\n"
                 . "📱 Você receberá uma mensagem do nosso número exclusivo desse setor"
                 . ($newNumber ? " (*{$newNumber}*)" : "") . ".\n\n"
-                . "Se quiser falar com outro setor ao mesmo tempo, basta digitar o número da opção desejada:";
-
+                . "Se quiser falar com outro setor, basta digitar o número da opção desejada:";
             $this->saveAndSend($transferMsg);
 
-            // Reenvia o menu de opções para o cliente poder escolher outro setor
-            $this->conversation->update([
-                'department_id'            => $this->conversation->getOriginal('department_id'),
-                'evolution_api_config_id'  => $originalEvoId,
-                'menu_awaiting'            => true,
-            ]);
-
+            // Reenvia menu na conversa original (mantém no dept/instância original)
+            $this->conversation->update(['menu_awaiting' => true]);
             $deptList = $this->getMenuDepartments();
             $menuLines = [];
             foreach ($deptList as $idx => $d) {
@@ -200,7 +175,7 @@ class ProcessMenuBot implements ShouldQueue
             }
             $this->saveAndSend(implode("\n", $menuLines));
 
-            // Cria a conversa no outro número para o dept atender
+            // Cria conversa SEPARADA no outro número
             $newConv = \App\Models\Conversation::create([
                 'contact_id'             => $this->conversation->contact_id,
                 'department_id'          => $department->id,
@@ -209,7 +184,7 @@ class ProcessMenuBot implements ShouldQueue
                 'is_group'               => false,
             ]);
 
-            // Envia mensagem de boas-vindas no novo número
+            // Envia boas-vindas pelo novo número
             $welcomeText = "Olá! Sou do setor de *{$department->name}* da {$this->config->company_name}. Como posso ajudar? 😊";
             $welcomeMsg = Message::create([
                 'conversation_id' => $newConv->id,
@@ -222,7 +197,10 @@ class ProcessMenuBot implements ShouldQueue
             $newConv->update(['last_message_at' => now()]);
             \App\Jobs\SendWhatsAppMessage::dispatch($welcomeMsg);
 
-            // Mensagem de sistema
+            // Auto-criar card no pipeline do departamento
+            $this->autoCreateCardAndTag($department);
+
+            // Sistema
             Message::create([
                 'conversation_id' => $this->conversation->id,
                 'sender_type'     => 'system',
@@ -231,8 +209,24 @@ class ProcessMenuBot implements ShouldQueue
                 'delivery_status' => 'sent',
             ]);
 
+            Log::info('MenuBot: multi-número — conversa separada criada', [
+                'original' => $this->conversation->id, 'nova' => $newConv->id, 'dept' => $department->name,
+            ]);
             return;
         }
+
+        // ── MESMO NÚMERO: transfere conversa normalmente ──
+        $this->conversation->update([
+            'department_id'        => $department->id,
+            'menu_awaiting'        => false,
+            'status'               => 'open',
+            'waiting_human_reason' => null,
+        ]);
+
+        $afterMsg = $this->config->after_selection_message;
+        $confirmText = $afterMsg
+            ? str_replace('{departamento}', $department->name, $afterMsg)
+            : "Perfeito! Direcionando você para o setor de *{$department->name}*. Em breve um de nossos atendentes irá te responder. 😊";
 
         $msg = $this->saveAndSend($confirmText);
 
