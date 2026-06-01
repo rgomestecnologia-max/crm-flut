@@ -1643,7 +1643,7 @@ function senderColor(?string $identifier): string {
     </div>
 
     {{-- Messages --}}
-    <div wire:poll.3s style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:6px;">
+    <div @if($flutChatConv->status === 'active') wire:poll.10s.visible @endif style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:6px;">
         @php $fcLastDate = null; @endphp
         @foreach($flutChatMessages as $fcMsg)
             @php $fcDate = $fcMsg->created_at->format('Y-m-d'); @endphp
