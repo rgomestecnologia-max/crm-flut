@@ -131,7 +131,7 @@
                 if (!in_array($dept->id, array_keys($deptQueueCounts))) continue;
                 $c = $deptColors[$colorIdx % count($deptColors)];
                 $colorIdx++;
-                $tabs[] = ['key' => 'queue_' . $dept->id, 'label' => 'Fila ' . $dept->name, 'count' => $deptQueueCounts[$dept->id] ?? 0, 'color' => $c, 'activeBg' => $c . '20', 'activeColor' => $c];
+                $tabs[] = ['key' => 'queue_' . $dept->id, 'label' => $dept->name, 'count' => $deptQueueCounts[$dept->id] ?? 0, 'color' => $c, 'activeBg' => $c . '20', 'activeColor' => $c];
             }
         } else {
             $tabs[] = ['key' => 'queue', 'label' => 'Fila', 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
