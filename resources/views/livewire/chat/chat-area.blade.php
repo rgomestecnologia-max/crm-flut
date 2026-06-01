@@ -571,7 +571,6 @@ function senderColor(?string $identifier): string {
                                                 onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'"
                                                 onmouseout="this.style.color='rgba(255,255,255,0.55)'; this.style.background='rgba(255,255,255,0.05)'">Ver</button>
                                         @endif
-                                    </div>
                                         <a href="{{ route('media.download', $msg->id) }}"
                                            style="font-size:11px; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; padding:3px 9px; text-decoration:none; font-weight:600; cursor:pointer;"
                                            onmouseover="this.style.background='rgba(178,255,0,0.16)'" onmouseout="this.style.background='rgba(178,255,0,0.08)'">↓</a>
