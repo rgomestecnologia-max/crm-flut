@@ -313,8 +313,16 @@ class ProcessEvolutionMessage implements ShouldQueue
                     }
                 }
             } else {
+                // Multi-instância: resolve config da instância primeiro
+                $evoConfig = EvolutionApiConfig::withoutCompanyScope()
+                    ->where('instance_name', $instanceName)
+                    ->first();
+
+                // Busca conversa existente — filtra pela instância para permitir
+                // conversas separadas por número (ex: Vendas + Criação)
                 $conversation = Conversation::where('contact_id', $contact->id)
                     ->where('is_group', false)
+                    ->when($evoConfig, fn($q) => $q->where('evolution_api_config_id', $evoConfig->id))
                     ->where(function ($q) {
                         $q->whereIn('status', ['open', 'pending', 'resolved'])
                           ->orWhere('is_archived', true);
@@ -324,11 +332,6 @@ class ProcessEvolutionMessage implements ShouldQueue
 
                 if (!$conversation) {
                     if ($fromMe) return;
-
-                    // Multi-instância: usa departamento padrão da instância se configurado
-                    $evoConfig = EvolutionApiConfig::withoutCompanyScope()
-                        ->where('instance_name', $instanceName)
-                        ->first();
                     $department = ($evoConfig && $evoConfig->default_department_id)
                         ? Department::find($evoConfig->default_department_id)
                         : Department::active()->first();
