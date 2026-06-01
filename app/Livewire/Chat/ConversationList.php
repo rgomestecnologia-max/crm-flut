@@ -358,7 +358,9 @@ class ConversationList extends Component
         if ($user->isAdmin() && ($isAdminViewingOtherCompany || empty($userDeptIds))) {
             $userDeptIds = Department::active()->pluck('id')->all();
         }
-        $showDeptQueues = $currentCompanyId === 3 && ($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1;
+        // Mostra abas por departamento quando: empresa tem multi-instância OU múltiplos depts
+        $hasMultiInstance = Department::active()->whereNotNull('evolution_api_config_id')->count() > 0;
+        $showDeptQueues = $hasMultiInstance || (($user->isSupervisor() || $user->isAdmin()) && count($userDeptIds) > 1);
         if ($showDeptQueues) {
             foreach ($userDeptIds as $deptId) {
                 $deptQueueCounts[$deptId] = (clone $baseQuery)
