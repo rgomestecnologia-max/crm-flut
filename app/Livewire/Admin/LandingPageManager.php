@@ -33,6 +33,7 @@ class LandingPageManager extends Component
     public ?int $editingPageId = null;
     public array $sections = [];
     public string $addSectionType = 'hero';
+    public $sectionImage = null; // upload temporário
 
     public function savePage(): void
     {
@@ -155,6 +156,66 @@ class LandingPageManager extends Component
         $config[$key] = $value;
         $section->update(['config' => $config]);
         $this->loadSections();
+    }
+
+    public function uploadSectionImage(int $sectionId, string $key): void
+    {
+        if (!$this->sectionImage) return;
+        $this->validate(['sectionImage' => 'image|max:5120']);
+        $dir = 'landing-pages/' . date('Y/m');
+        $path = \App\Services\MediaStorage::store($this->sectionImage, $dir);
+        $url = \App\Services\MediaStorage::url($path);
+        $this->updateSectionConfig($sectionId, $key, $url);
+        $this->sectionImage = null;
+        $this->dispatch('toast', type: 'success', message: 'Imagem enviada.');
+    }
+
+    public function addSectionItem(int $sectionId, string $key): void
+    {
+        $section = LandingPageSection::find($sectionId);
+        if (!$section) return;
+        $config = $section->config ?? [];
+        $items = $config[$key] ?? [];
+        $items[] = match($key) {
+            'items' => match($section->type) {
+                'features' => ['icon' => '⭐', 'title' => 'Novo item', 'desc' => 'Descrição'],
+                'testimonials' => ['name' => 'Nome', 'text' => 'Depoimento', 'photo' => ''],
+                'faq' => ['q' => 'Pergunta?', 'a' => 'Resposta'],
+                'stats' => ['value' => '0', 'label' => 'Label'],
+                default => [],
+            },
+            'fields' => ['label' => 'Novo campo', 'key' => 'campo_' . count($items), 'type' => 'text', 'required' => false],
+            'links' => ['label' => 'Link', 'url' => '#'],
+            'images' => '',
+            default => [],
+        };
+        $config[$key] = $items;
+        $section->update(['config' => $config]);
+        $this->loadSections();
+    }
+
+    public function removeSectionItem(int $sectionId, string $key, int $index): void
+    {
+        $section = LandingPageSection::find($sectionId);
+        if (!$section) return;
+        $config = $section->config ?? [];
+        $items = $config[$key] ?? [];
+        unset($items[$index]);
+        $config[$key] = array_values($items);
+        $section->update(['config' => $config]);
+        $this->loadSections();
+    }
+
+    public function updateSectionItem(int $sectionId, string $key, int $index, string $field, $value): void
+    {
+        $section = LandingPageSection::find($sectionId);
+        if (!$section) return;
+        $config = $section->config ?? [];
+        if (isset($config[$key][$index])) {
+            $config[$key][$index][$field] = $value;
+            $section->update(['config' => $config]);
+            $this->loadSections();
+        }
     }
 
     public function moveSectionUp(int $id): void
