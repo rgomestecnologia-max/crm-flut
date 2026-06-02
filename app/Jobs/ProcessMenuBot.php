@@ -363,6 +363,18 @@ class ProcessMenuBot implements ShouldQueue
                 ]);
             }
 
+            // OrangeXpress: preenche campo "Departamento" no card
+            $companyId = app(\App\Services\CurrentCompany::class)->id();
+            if ($companyId == 3 && $card) {
+                $deptField = \App\Models\CrmCustomField::where('company_id', 3)->where('key', 'departamento')->first();
+                if ($deptField) {
+                    \App\Models\CrmCardFieldValue::updateOrCreate(
+                        ['card_id' => $card->id, 'field_id' => $deptField->id],
+                        ['value' => $department->name]
+                    );
+                }
+            }
+
             // Tagueia conversa com tag do pipeline (se existir tag com mesmo nome)
             $tag = \App\Models\Tag::where('name', $pipeline->name)->first();
             if ($tag && !$this->conversation->tags()->where('tags.id', $tag->id)->exists()) {

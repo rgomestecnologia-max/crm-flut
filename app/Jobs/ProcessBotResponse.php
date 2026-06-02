@@ -630,6 +630,18 @@ class ProcessBotResponse implements ShouldQueue
                     'card' => $card->id, 'stage' => $newStage->name, 'dept' => $deptId,
                 ]);
             }
+
+            // Preenche campo "Departamento" no card
+            if ($card) {
+                $deptNames = [9 => 'Recife', 10 => 'Fortaleza', 11 => 'São Paulo'];
+                $deptField = \App\Models\CrmCustomField::where('company_id', 3)->where('key', 'departamento')->first();
+                if ($deptField && isset($deptNames[$deptId])) {
+                    \App\Models\CrmCardFieldValue::updateOrCreate(
+                        ['card_id' => $card->id, 'field_id' => $deptField->id],
+                        ['value' => $deptNames[$deptId]]
+                    );
+                }
+            }
         } catch (\Throwable $e) {
             Log::warning('IA: moveCardToDeptStage falhou', ['error' => $e->getMessage()]);
         }
