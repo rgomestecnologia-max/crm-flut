@@ -316,31 +316,18 @@ class LeadController extends Controller
                         );
                     }
 
-                    // IA envia saudação
-                    $botConfig = \App\Models\AiBotConfig::current();
-                    if ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
-                        $greeting = "Olá " . ($contact->name ?? '') . "! Vi que você se cadastrou no nosso site. 😊 Sou a assistente virtual da Orangexpress e posso te ajudar a encontrar a máquina extratora ideal para o seu negócio. Me conta, qual o seu ramo de atividade?";
+                    // Mensagem de sistema
+                    \App\Models\Message::create([
+                        'conversation_id' => $newConv->id,
+                        'sender_type'     => 'system',
+                        'content'         => "Roteamento DDD: departamento " . ($deptNames[$deptId] ?? $deptId),
+                        'type'            => 'text',
+                        'delivery_status' => 'sent',
+                    ]);
 
-                        $msg = \App\Models\Message::create([
-                            'conversation_id' => $newConv->id,
-                            'sender_type'     => 'agent',
-                            'sender_id'       => null,
-                            'content'         => $greeting,
-                            'type'            => 'text',
-                            'delivery_status' => 'pending',
-                        ]);
-                        $newConv->update(['last_message_at' => now()]);
-                        \App\Jobs\SendWhatsAppMessage::dispatch($msg);
-
-                        // Mensagem de sistema
-                        \App\Models\Message::create([
-                            'conversation_id' => $newConv->id,
-                            'sender_type'     => 'system',
-                            'content'         => "Roteamento DDD: departamento " . ($deptNames[$deptId] ?? $deptId),
-                            'type'            => 'text',
-                            'delivery_status' => 'sent',
-                        ]);
-                    }
+                    // IA envia saudação após 2 min (aguarda cliente enviar mensagem primeiro)
+                    \App\Jobs\SendSiteLeadGreeting::dispatch($newConv->id, $contact->name ?? '')
+                        ->delay(now()->addMinutes(2));
 
                     \Log::info('API /leads: conversa + IA criada para lead do site', [
                         'contact' => $contact->name, 'dept' => $deptId, 'conv' => $newConv->id,
