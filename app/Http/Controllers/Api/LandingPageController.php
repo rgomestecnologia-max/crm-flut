@@ -51,6 +51,10 @@ class LandingPageController extends Controller
                     $bc->update(['tags' => $tags]);
                 }
 
+                // Gatilho de funil: landing_page + tag
+                \App\Services\EmailFunnelEnroller::enrollByLandingPage($page->company_id, $bc->id, $page->slug);
+                \App\Services\EmailFunnelEnroller::enrollByTag($page->company_id, $bc->id, $bc->tags ?? []);
+
                 // CRM card
                 $pipeline = \App\Models\CrmPipeline::first();
                 $stage = $pipeline?->stages()->orderBy('sort_order')->first();

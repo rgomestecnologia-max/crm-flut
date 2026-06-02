@@ -3,15 +3,17 @@
 namespace App\Livewire\Broadcasts;
 
 use App\Models\EmailFunnel;
+use App\Models\EmailFunnelLog;
 use App\Models\EmailFunnelStep;
 use App\Models\EmailFunnelSubscriber;
 use App\Models\BroadcastContact;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class EmailFunnelManager extends Component
 {
-    public string $tab = 'list'; // list, editor, subscribers
+    public string $tab = 'list'; // list, editor, subscribers, analytics
 
     // CRUD
     public bool $showForm = false;
@@ -165,6 +167,13 @@ class EmailFunnelManager extends Component
         $this->dispatch('toast', type: 'success', message: 'Step removido.');
     }
 
+    // Analytics
+    public function openAnalytics(int $funnelId): void
+    {
+        $this->editingFunnelId = $funnelId;
+        $this->tab = 'analytics';
+    }
+
     // Subscribers
     public function openSubscribers(int $funnelId): void
     {
@@ -247,6 +256,67 @@ class EmailFunnelManager extends Component
                 )->orderBy('name')->take(30)->get();
         }
 
-        return view('livewire.broadcasts.email-funnel-manager', compact('funnels', 'steps', 'subscribers', 'contacts'));
+        // Analytics
+        $analytics = [];
+        $stepAnalytics = collect();
+        $funnelPositions = collect();
+        if ($this->editingFunnelId && $this->tab === 'analytics') {
+            $funnelSteps = EmailFunnelStep::where('funnel_id', $this->editingFunnelId)->orderBy('sort_order')->get();
+
+            // Métricas por step (apenas emails)
+            foreach ($funnelSteps->where('type', 'email') as $step) {
+                $logs = EmailFunnelLog::where('step_id', $step->id);
+                $sent    = (clone $logs)->where('action', 'sent')->count();
+                $opened  = (clone $logs)->where('action', 'opened')->count();
+                $clicked = (clone $logs)->where('action', 'clicked')->count();
+                $failed  = (clone $logs)->where('action', 'failed')->count();
+                $bounced = (clone $logs)->where('action', 'bounced')->count();
+
+                $stepAnalytics->push([
+                    'step'         => $step,
+                    'sent'         => $sent,
+                    'opened'       => $opened,
+                    'clicked'      => $clicked,
+                    'failed'       => $failed,
+                    'bounced'      => $bounced,
+                    'open_rate'    => $sent > 0 ? round(($opened / $sent) * 100, 1) : 0,
+                    'click_rate'   => $sent > 0 ? round(($clicked / $sent) * 100, 1) : 0,
+                ]);
+            }
+
+            // Totais gerais
+            $totalSubs = EmailFunnelSubscriber::where('funnel_id', $this->editingFunnelId)->count();
+            $activeSubs = EmailFunnelSubscriber::where('funnel_id', $this->editingFunnelId)->where('status', 'active')->count();
+            $completedSubs = EmailFunnelSubscriber::where('funnel_id', $this->editingFunnelId)->where('status', 'completed')->count();
+            $unsubscribed = EmailFunnelSubscriber::where('funnel_id', $this->editingFunnelId)->where('status', 'unsubscribed')->count();
+
+            $allStepIds = $funnelSteps->pluck('id');
+            $totalSent = EmailFunnelLog::whereIn('step_id', $allStepIds)->where('action', 'sent')->count();
+            $totalOpened = EmailFunnelLog::whereIn('step_id', $allStepIds)->where('action', 'opened')->count();
+            $totalClicked = EmailFunnelLog::whereIn('step_id', $allStepIds)->where('action', 'clicked')->count();
+
+            $analytics = [
+                'total_subscribers' => $totalSubs,
+                'active'            => $activeSubs,
+                'completed'         => $completedSubs,
+                'unsubscribed'      => $unsubscribed,
+                'total_sent'        => $totalSent,
+                'total_opened'      => $totalOpened,
+                'total_clicked'     => $totalClicked,
+                'avg_open_rate'     => $totalSent > 0 ? round(($totalOpened / $totalSent) * 100, 1) : 0,
+                'avg_click_rate'    => $totalSent > 0 ? round(($totalClicked / $totalSent) * 100, 1) : 0,
+            ];
+
+            // Posição de cada subscriber no funil (quantos em cada step)
+            $funnelPositions = EmailFunnelSubscriber::where('funnel_id', $this->editingFunnelId)
+                ->where('status', 'active')
+                ->select('current_step_id', DB::raw('count(*) as total'))
+                ->groupBy('current_step_id')
+                ->pluck('total', 'current_step_id');
+        }
+
+        return view('livewire.broadcasts.email-funnel-manager', compact(
+            'funnels', 'steps', 'subscribers', 'contacts', 'analytics', 'stepAnalytics', 'funnelPositions'
+        ));
     }
 }

@@ -143,10 +143,15 @@ class LeadController extends Controller
         $contact->save();
 
         // ── Salva também como Lead (broadcast_contacts) ──────────────
-        \App\Models\BroadcastContact::firstOrCreate(
+        $bc = \App\Models\BroadcastContact::firstOrCreate(
             ['phone' => $phone],
             ['name' => $data['name'], 'tags' => ['site'], 'is_active' => true]
         );
+
+        // Gatilho de funil de email por tag
+        if ($bc->wasRecentlyCreated && !empty($bc->tags)) {
+            \App\Services\EmailFunnelEnroller::enrollByTag($bc->company_id, $bc->id, $bc->tags);
+        }
 
         // ── Cria ou atualiza card ─────────────────────────────────────
         $isUpdate = false;

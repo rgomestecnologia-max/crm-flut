@@ -86,6 +86,10 @@ class FlutChatController extends Controller
                     $tags[] = 'flut-chat';
                     $bc->update(['tags' => $tags]);
                 }
+
+                // Gatilho de funil: flutchat + tag
+                \App\Services\EmailFunnelEnroller::enrollByFlutChat($widget->company_id, $bc->id);
+                \App\Services\EmailFunnelEnroller::enrollByTag($widget->company_id, $bc->id, $bc->tags ?? []);
                 // Cria card no CRM (primeiro pipeline, primeira etapa)
                 try {
                     $pipeline = \App\Models\CrmPipeline::first();

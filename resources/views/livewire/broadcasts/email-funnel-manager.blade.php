@@ -7,7 +7,7 @@ $stepLabels = ['email' => 'Email', 'delay' => 'Delay', 'condition' => 'Condiçã
 <div>
     {{-- Tabs --}}
     <div style="display:flex; gap:8px; margin-bottom:16px;">
-        @foreach(['list' => 'Funis', 'editor' => 'Editor de Steps', 'subscribers' => 'Contatos'] as $k => $l)
+        @foreach(['list' => 'Funis', 'editor' => 'Editor de Steps', 'subscribers' => 'Contatos', 'analytics' => 'Analytics'] as $k => $l)
         <button wire:click="$set('tab', '{{ $k }}')" style="padding:5px 14px; font-size:11px; font-weight:{{ $tab === $k ? '600' : '400' }}; border-radius:7px; cursor:pointer; border:1px solid {{ $tab === $k ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)' }}; background:{{ $tab === $k ? 'rgba(139,92,246,0.1)' : 'transparent' }}; color:{{ $tab === $k ? '#a78bfa' : 'rgba(255,255,255,0.4)' }};">{{ $l }}</button>
         @endforeach
     </div>
@@ -32,8 +32,19 @@ $stepLabels = ['email' => 'Email', 'delay' => 'Delay', 'condition' => 'Condiçã
                     <option value="crm_stage">Card movido no CRM</option>
                 </select>
             </div>
-            @if($triggerType !== 'manual')
-            <div style="grid-column:1/-1;"><label style="{{ $labelStyle }}">Valor do gatilho (nome da tag, ID da página, etc.)</label><input wire:model="triggerValue" type="text" placeholder="Ex: lead-quente" style="{{ $inputStyle }}"></div>
+            @if($triggerType === 'tag')
+            <div style="grid-column:1/-1;"><label style="{{ $labelStyle }}">Nome da tag</label><input wire:model="triggerValue" type="text" placeholder="Ex: lead-quente, newsletter" style="{{ $inputStyle }}"></div>
+            @elseif($triggerType === 'landing_page')
+            <div style="grid-column:1/-1;"><label style="{{ $labelStyle }}">Slug da Landing Page (ou deixe vazio para todas)</label><input wire:model="triggerValue" type="text" placeholder="Ex: promo-verao" style="{{ $inputStyle }}"></div>
+            @elseif($triggerType === 'crm_stage')
+            <div style="grid-column:1/-1;"><label style="{{ $labelStyle }}">ID da etapa do CRM</label>
+                <select wire:model="triggerValue" style="{{ $inputStyle }}">
+                    <option value="">Selecione a etapa...</option>
+                    @foreach(\App\Models\CrmStage::with('pipeline')->orderBy('pipeline_id')->orderBy('sort_order')->get() as $stage)
+                    <option value="{{ $stage->id }}">{{ $stage->pipeline?->name }} → {{ $stage->name }}</option>
+                    @endforeach
+                </select>
+            </div>
             @endif
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
@@ -48,11 +59,13 @@ $stepLabels = ['email' => 'Email', 'delay' => 'Delay', 'condition' => 'Condiçã
         <div style="width:10px; height:10px; border-radius:50%; background:{{ $f->status === 'active' ? '#4ade80' : ($f->status === 'paused' ? '#f59e0b' : '#6b7280') }}; flex-shrink:0;"></div>
         <div style="flex:1; min-width:0;">
             <p style="font-size:13px; font-weight:700; color:white;">{{ $f->name }}</p>
-            <p style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $f->subscribers_count }} contatos ({{ $f->active_count ?? 0 }} ativos, {{ $f->completed_count ?? 0 }} completos) · {{ $f->trigger_type }} · {{ ucfirst($f->status) }}</p>
+            @php $triggerLabels = ['manual' => 'Manual', 'tag' => 'Tag: '.($f->trigger_value ?? '—'), 'landing_page' => 'Landing Page'.($f->trigger_value ? ': '.$f->trigger_value : ''), 'flutchat' => 'FlutChat', 'crm_stage' => 'CRM Stage'.($f->trigger_value ? ' #'.$f->trigger_value : '')]; @endphp
+            <p style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $f->subscribers_count }} contatos ({{ $f->active_count ?? 0 }} ativos, {{ $f->completed_count ?? 0 }} completos) · {{ $triggerLabels[$f->trigger_type] ?? $f->trigger_type }} · {{ ucfirst($f->status) }}</p>
         </div>
         <div style="display:flex; gap:6px; flex-shrink:0;">
             <button wire:click="openEditor({{ $f->id }})" style="padding:4px 10px; font-size:10px; font-weight:600; color:#a78bfa; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.2); border-radius:6px; cursor:pointer;">Steps</button>
             <button wire:click="openSubscribers({{ $f->id }})" style="padding:4px 10px; font-size:10px; color:#60a5fa; background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.2); border-radius:6px; cursor:pointer;">Contatos</button>
+            <button wire:click="openAnalytics({{ $f->id }})" style="padding:4px 10px; font-size:10px; color:#4ade80; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.2); border-radius:6px; cursor:pointer;">Analytics</button>
             <button wire:click="toggleFunnelStatus({{ $f->id }})" style="padding:4px 10px; font-size:10px; color:{{ $f->status === 'active' ? '#f59e0b' : '#4ade80' }}; background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:6px; cursor:pointer;">{{ $f->status === 'active' ? 'Pausar' : 'Ativar' }}</button>
             <button wire:click="editFunnel({{ $f->id }})" style="padding:4px 10px; font-size:10px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:6px; cursor:pointer;">Config</button>
             <button wire:click="deleteFunnel({{ $f->id }})" wire:confirm="Excluir funil e todos os dados?" style="padding:4px 10px; font-size:10px; color:#f87171; background:transparent; border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">✕</button>
@@ -179,6 +192,132 @@ $stepLabels = ['email' => 'Email', 'delay' => 'Delay', 'condition' => 'Condiçã
     @endforeach
     @if($subscribers->isEmpty())
     <p style="color:rgba(255,255,255,0.2); font-size:12px; text-align:center; padding:20px;">Nenhum contato neste funil.</p>
+    @endif
+    @endif
+    @endif
+
+    {{-- ═══ ANALYTICS ═══ --}}
+    @if($tab === 'analytics')
+    @if(!$editingFunnelId)
+    <p style="color:rgba(255,255,255,0.3); font-size:13px; text-align:center; padding:40px;">Selecione um funil e clique em "Analytics".</p>
+    @else
+    @php $currentFunnel = $funnels->firstWhere('id', $editingFunnelId); @endphp
+    <h3 style="font-size:14px; font-weight:700; color:white; margin-bottom:14px;">Analytics: {{ $currentFunnel?->name }}</h3>
+
+    {{-- Cards de resumo --}}
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:20px;">
+        @foreach([
+            ['label' => 'Total Contatos', 'value' => $analytics['total_subscribers'] ?? 0, 'color' => '#a78bfa', 'bg' => 'rgba(139,92,246,0.1)'],
+            ['label' => 'Ativos', 'value' => $analytics['active'] ?? 0, 'color' => '#4ade80', 'bg' => 'rgba(74,222,128,0.1)'],
+            ['label' => 'Completos', 'value' => $analytics['completed'] ?? 0, 'color' => '#60a5fa', 'bg' => 'rgba(96,165,250,0.1)'],
+            ['label' => 'Descadastros', 'value' => $analytics['unsubscribed'] ?? 0, 'color' => '#f87171', 'bg' => 'rgba(248,113,113,0.1)'],
+            ['label' => 'Emails Enviados', 'value' => $analytics['total_sent'] ?? 0, 'color' => '#fbbf24', 'bg' => 'rgba(251,191,36,0.1)'],
+            ['label' => 'Taxa Abertura', 'value' => ($analytics['avg_open_rate'] ?? 0) . '%', 'color' => '#34d399', 'bg' => 'rgba(52,211,153,0.1)'],
+            ['label' => 'Taxa Clique', 'value' => ($analytics['avg_click_rate'] ?? 0) . '%', 'color' => '#38bdf8', 'bg' => 'rgba(56,189,248,0.1)'],
+        ] as $card)
+        <div style="background:{{ $card['bg'] }}; border:1px solid {{ $card['color'] }}22; border-radius:10px; padding:14px 12px; text-align:center;">
+            <p style="font-size:22px; font-weight:800; color:{{ $card['color'] }}; margin:0;">{{ $card['value'] }}</p>
+            <p style="font-size:10px; color:rgba(255,255,255,0.4); margin:4px 0 0;">{{ $card['label'] }}</p>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- Métricas por step --}}
+    @if($stepAnalytics->isNotEmpty())
+    <h4 style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">Desempenho por Email</h4>
+    <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <thead>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <th style="text-align:left; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">#</th>
+                    <th style="text-align:left; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">Assunto</th>
+                    <th style="text-align:center; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">Enviados</th>
+                    <th style="text-align:center; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">Abertos</th>
+                    <th style="text-align:center; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">Clicados</th>
+                    <th style="text-align:center; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">Falhas</th>
+                    <th style="text-align:center; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">% Abertura</th>
+                    <th style="text-align:center; padding:8px 10px; color:rgba(255,255,255,0.4); font-weight:600;">% Clique</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($stepAnalytics as $sa)
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                    <td style="padding:8px 10px; color:rgba(255,255,255,0.5);">{{ $sa['step']->sort_order }}</td>
+                    <td style="padding:8px 10px; color:white; font-weight:600;">{{ $sa['step']->config['subject'] ?? '—' }}</td>
+                    <td style="padding:8px 10px; text-align:center; color:#fbbf24; font-weight:700;">{{ $sa['sent'] }}</td>
+                    <td style="padding:8px 10px; text-align:center; color:#4ade80; font-weight:700;">{{ $sa['opened'] }}</td>
+                    <td style="padding:8px 10px; text-align:center; color:#60a5fa; font-weight:700;">{{ $sa['clicked'] }}</td>
+                    <td style="padding:8px 10px; text-align:center; color:#f87171; font-weight:700;">{{ $sa['failed'] + $sa['bounced'] }}</td>
+                    <td style="padding:8px 10px; text-align:center;">
+                        <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <div style="width:50px; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+                                <div style="width:{{ min($sa['open_rate'], 100) }}%; height:100%; background:#4ade80; border-radius:3px;"></div>
+                            </div>
+                            <span style="color:#4ade80; font-weight:700; font-size:11px;">{{ $sa['open_rate'] }}%</span>
+                        </div>
+                    </td>
+                    <td style="padding:8px 10px; text-align:center;">
+                        <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <div style="width:50px; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden;">
+                                <div style="width:{{ min($sa['click_rate'], 100) }}%; height:100%; background:#60a5fa; border-radius:3px;"></div>
+                            </div>
+                            <span style="color:#60a5fa; font-weight:700; font-size:11px;">{{ $sa['click_rate'] }}%</span>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
+    {{-- Funil visual: quantos em cada etapa --}}
+    @php
+        $allFunnelSteps = \App\Models\EmailFunnelStep::where('funnel_id', $editingFunnelId)->orderBy('sort_order')->get();
+        $maxPosition = max($funnelPositions->max() ?: 0, $analytics['completed'] ?? 0, 1);
+    @endphp
+    @if($allFunnelSteps->isNotEmpty())
+    <h4 style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.6); margin:20px 0 10px; text-transform:uppercase; letter-spacing:0.5px;">Posicao dos Contatos no Funil</h4>
+    <div style="display:flex; flex-direction:column; gap:4px;">
+        @foreach($allFunnelSteps as $fs)
+        @php
+            $count = $funnelPositions[$fs->id] ?? 0;
+            $pct = $maxPosition > 0 ? ($count / $maxPosition) * 100 : 0;
+            $icon = $stepIcons[$fs->type] ?? '?';
+            $cfg = $fs->config ?? [];
+            $label = match($fs->type) {
+                'email' => $cfg['subject'] ?? 'Email',
+                'delay' => $cfg['label'] ?? ($cfg['seconds'] ?? 0) . 's',
+                'condition' => ucfirst($cfg['field'] ?? 'condição'),
+                default => $fs->type,
+            };
+        @endphp
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:120px; flex-shrink:0; text-align:right;">
+                <span style="font-size:11px; color:rgba(255,255,255,0.5);">{{ $icon }} {{ $label }}</span>
+            </div>
+            <div style="flex:1; height:22px; background:rgba(255,255,255,0.04); border-radius:4px; overflow:hidden; position:relative;">
+                <div style="width:{{ max($pct, 2) }}%; height:100%; background:{{ $fs->type === 'email' ? 'rgba(139,92,246,0.4)' : ($fs->type === 'delay' ? 'rgba(245,158,11,0.4)' : 'rgba(59,130,246,0.4)') }}; border-radius:4px; transition:width 0.3s;"></div>
+                @if($count > 0)
+                <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:10px; font-weight:700; color:white;">{{ $count }}</span>
+                @endif
+            </div>
+        </div>
+        @endforeach
+        {{-- Completos --}}
+        @php $completedCount = $analytics['completed'] ?? 0; @endphp
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:120px; flex-shrink:0; text-align:right;">
+                <span style="font-size:11px; color:rgba(255,255,255,0.5);">✅ Completos</span>
+            </div>
+            <div style="flex:1; height:22px; background:rgba(255,255,255,0.04); border-radius:4px; overflow:hidden; position:relative;">
+                <div style="width:{{ $maxPosition > 0 ? max(($completedCount / $maxPosition) * 100, 2) : 2 }}%; height:100%; background:rgba(74,222,128,0.4); border-radius:4px;"></div>
+                @if($completedCount > 0)
+                <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:10px; font-weight:700; color:white;">{{ $completedCount }}</span>
+                @endif
+            </div>
+        </div>
+    </div>
     @endif
     @endif
     @endif

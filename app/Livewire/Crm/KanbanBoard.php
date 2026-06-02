@@ -74,6 +74,16 @@ class KanbanBoard extends Component
         // Disparar automações de follow-up para a nova etapa
         if ($oldStageId !== $stageId) {
             $this->triggerStageAutomations($card, $stageId);
+
+            // Gatilho de funil de email por stage
+            if ($card->contact_id) {
+                $companyId = $card->company_id ?? app(\App\Services\CurrentCompany::class)->id();
+                $bc = \App\Models\BroadcastContact::where('company_id', $companyId)
+                    ->where('phone', $card->contact?->phone)->first();
+                if ($bc) {
+                    \App\Services\EmailFunnelEnroller::enrollByCrmStage($companyId, $bc->id, $stageId);
+                }
+            }
         }
 
         // Auto-tag conversa com base no pipeline (remove tag antiga se mudou de pipeline)
@@ -246,6 +256,16 @@ class KanbanBoard extends Component
             // Disparar automações de follow-up para a nova etapa
             if ($oldStageId !== (int) $this->card_stage_id) {
                 $this->triggerStageAutomations($card, (int) $this->card_stage_id);
+
+                // Gatilho de funil de email por stage
+                if ($card->contact_id) {
+                    $companyId = $card->company_id ?? app(\App\Services\CurrentCompany::class)->id();
+                    $bc = \App\Models\BroadcastContact::where('company_id', $companyId)
+                        ->where('phone', $card->contact?->phone)->first();
+                    if ($bc) {
+                        \App\Services\EmailFunnelEnroller::enrollByCrmStage($companyId, $bc->id, (int) $this->card_stage_id);
+                    }
+                }
             }
 
             // Atualiza telefone do contato se alterado

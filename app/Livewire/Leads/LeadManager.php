@@ -75,10 +75,21 @@ class LeadManager extends Component
         ];
 
         if ($this->editingId) {
-            BroadcastContact::findOrFail($this->editingId)->update($data);
+            $bc = BroadcastContact::findOrFail($this->editingId);
+            $oldTags = $bc->tags ?? [];
+            $bc->update($data);
+            // Gatilho de funil: verifica tags novas
+            $newTags = array_diff($data['tags'], $oldTags);
+            if (!empty($newTags)) {
+                \App\Services\EmailFunnelEnroller::enrollByTag($bc->company_id, $bc->id, $newTags);
+            }
             $this->dispatch('toast', type: 'success', message: 'Lead atualizado.');
         } else {
-            BroadcastContact::create($data);
+            $bc = BroadcastContact::create($data);
+            // Gatilho de funil: verifica tags
+            if (!empty($data['tags'])) {
+                \App\Services\EmailFunnelEnroller::enrollByTag($bc->company_id, $bc->id, $data['tags']);
+            }
             $this->dispatch('toast', type: 'success', message: 'Lead adicionado.');
         }
 
