@@ -268,8 +268,8 @@ class ProcessBotResponse implements ShouldQueue
                 // Remove a tag [HANDOFF] do conteúdo
                 $cleanContent = trim(str_replace('[HANDOFF]', '', $cleanContent));
 
-                // Envia mensagem de fora do horário se aplicável
-                $this->sendOutsideHoursIfNeeded();
+                // Envia mensagem de fora do horário se aplicável (handoff voluntário da IA)
+                $this->sendOutsideHoursIfNeeded(isVoluntaryHandoff: true);
 
                 // Envia mensagem contextual do departamento (ex: FISPAL)
                 $this->sendDeptHandoffMessage();
@@ -457,6 +457,7 @@ class ProcessBotResponse implements ShouldQueue
         if ($this->config->checklist) {
             $prompt .= "\n\n---\nCHECKLIST DE ATENDIMENTO (informações a coletar do cliente):\n" . $this->config->checklist;
             $prompt .= "\nDurante a conversa, busque coletar essas informações de forma natural e não invasiva. Não pergunte tudo de uma vez — vá coletando ao longo da conversa.";
+            $prompt .= "\nIMPORTANTE: Você DEVE completar o checklist ANTES de transferir para um atendente. Mesmo fora do horário de atendimento, continue coletando as informações. Só faça [HANDOFF] após coletar todos os dados do checklist.";
         }
 
         // Campos customizados do CRM para preenchimento automático
@@ -526,10 +527,14 @@ class ProcessBotResponse implements ShouldQueue
      * Verifica se está fora do horário comercial e envia mensagem configurada no FAQ.
      * Parseia "Horario de atendimento.*: DIAS, das HH:MM as HH:MM" do FAQ.
      */
-    private function sendOutsideHoursIfNeeded(): void
+    private function sendOutsideHoursIfNeeded(bool $isVoluntaryHandoff = false): void
     {
         $faq = $this->config->faq ?? '';
         if (stripos($faq, 'FORA DO HORARIO') === false) return;
+
+        // Se tem checklist e não foi handoff voluntário da IA, não envia
+        // (a IA deve completar o checklist antes de avisar sobre horário)
+        if ($this->config->checklist && !$isVoluntaryHandoff) return;
 
         $now = now()->timezone('America/Sao_Paulo');
         $dayOfWeek = $now->dayOfWeek; // 0=dom, 6=sab
