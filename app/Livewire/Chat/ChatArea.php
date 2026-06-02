@@ -517,7 +517,7 @@ class ChatArea extends Component
         ]);
 
         // Auto-atribui a conversa ao agente que respondeu (tira da fila)
-        $updates = ['last_message_at' => now(), 'menu_awaiting' => false];
+        $updates = ['last_message_at' => now(), 'menu_awaiting' => false, 'waiting_human_reason' => null];
         if (!$this->conversation->assigned_to) {
             $updates['assigned_to'] = Auth::id();
             $updates['status']      = 'open';
