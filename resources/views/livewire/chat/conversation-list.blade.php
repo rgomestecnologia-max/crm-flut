@@ -159,7 +159,8 @@
                 $tabs[] = ['key' => 'queue_' . $dept->id, 'label' => $dept->name, 'count' => $deptQueueCounts[$dept->id] ?? 0, 'color' => $c, 'activeBg' => $c . '20', 'activeColor' => $c];
             }
         } else {
-            $tabs[] = ['key' => 'queue', 'label' => 'Fila', 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
+            $queueLabel = app(\App\Services\CurrentCompany::class)->id() === 3 ? 'IA' : 'Fila';
+            $tabs[] = ['key' => 'queue', 'label' => $queueLabel, 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
         }
         // "Todos" sempre por último
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
