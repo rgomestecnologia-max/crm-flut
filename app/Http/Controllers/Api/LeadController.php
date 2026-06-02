@@ -275,7 +275,14 @@ class LeadController extends Controller
 
         // OrangeXpress: cria conversa + ativa IA para leads do site
         $companyId = app(\App\Services\CurrentCompany::class)->id();
-        if ($companyId === 3 && isset($card) && $phone) {
+        if ($companyId === 3 && isset($card) && (!$phone || !str_starts_with($phone, '55') || strlen($phone) < 12)) {
+            // Telefone inválido → move card para etapa "Telefones Invalidos" (#65)
+            $card->update(['stage_id' => 65]);
+            \Log::info('API /leads: telefone inválido, card movido para Telefones Invalidos', [
+                'card' => $card->id, 'phone' => $phone,
+            ]);
+        }
+        if ($companyId === 3 && isset($card) && $phone && str_starts_with($phone, '55') && strlen($phone) >= 12) {
             try {
                 // Verifica se já tem conversa aberta
                 $existingConv = Conversation::where('contact_id', $contact->id)
