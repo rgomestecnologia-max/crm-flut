@@ -388,9 +388,21 @@ class ProcessEvolutionMessage implements ShouldQueue
                     }
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
-                    // Se humano estava atendendo via WhatsApp, mantém waiting_human_reason
-                    // para evitar que a IA entre na conversa do humano
+                    // Se humano estava atendendo via WhatsApp recentemente, mantém waiting_human_reason
+                    // para evitar que o menu/IA entre na conversa do humano
                     $keepWaiting = $conversation->waiting_human_reason === 'Atendente respondeu pelo WhatsApp';
+
+                    // Se a última mensagem do agente (fromMe) foi há mais de 24h, reseta o estado
+                    // para permitir novo menu quando o cliente voltar muito depois
+                    if ($keepWaiting) {
+                        $lastAgentMsg = Message::where('conversation_id', $conversation->id)
+                            ->where('sender_type', 'agent')
+                            ->latest()
+                            ->first();
+                        if ($lastAgentMsg && $lastAgentMsg->created_at->diffInHours(now()) > 24) {
+                            $keepWaiting = false;
+                        }
+                    }
 
                     $conversation->update([
                         'status'        => 'open',
@@ -538,12 +550,9 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             // ── Humano respondeu pelo WhatsApp direto → para IA e URA ──
             if ($fromMe && !$isGroup) {
-                $botConfig = AiBotConfig::current();
-                $hasAi = $botConfig && $botConfig->is_active && $botConfig->hasKey();
-
                 $updateData = [];
-                // Para a IA
-                if ($hasAi && !$conversation->waiting_human_reason) {
+                // Para a IA e URA: sempre marcar que humano está atendendo
+                if (!$conversation->waiting_human_reason) {
                     $updateData['waiting_human_reason'] = 'Atendente respondeu pelo WhatsApp';
                 }
                 // Para a URA

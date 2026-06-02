@@ -47,13 +47,16 @@ class ProcessMenuBot implements ShouldQueue
                 ->exists();
             if ($alreadyResponded) return;
 
-            // Se a conversa já tem agente, o bot não deve enviar menu nem "opção inválida".
-            // Limpa o menu_awaiting (caso tenha ficado stale) e delega para a IA se ativa.
-            if ($this->conversation->assigned_to) {
+            // Se a conversa já tem agente OU humano estava atendendo pelo WhatsApp,
+            // o bot não deve enviar menu nem "opção inválida".
+            $humanAttending = $this->conversation->assigned_to
+                || $this->conversation->waiting_human_reason === 'Atendente respondeu pelo WhatsApp';
+
+            if ($humanAttending) {
                 if ($this->conversation->menu_awaiting) {
                     $this->conversation->update(['menu_awaiting' => false]);
                 }
-                if ($this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
+                if ($this->conversation->assigned_to && $this->botConfig && $this->botConfig->is_active && $this->botConfig->hasKey()) {
                     ProcessBotResponse::dispatch($this->conversation, $this->botConfig, $this->triggerMessageId);
                 }
                 return;
