@@ -125,7 +125,8 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
     private function sendFollowUpMessage(Conversation $conv, AiBotConfig $config): void
     {
-        $contactName = $conv->contact->name ?? 'cliente';
+        $contact = \App\Models\Contact::withoutGlobalScopes()->find($conv->contact_id);
+        $contactName = $contact->name ?? 'cliente';
         $text = $config->inactivity_followup_message
             ?: "Oi {nome}! Vi que ficou um tempinho sem responder. 😊 Tem alguma dúvida que posso te ajudar? Se preferir, posso te conectar com um de nossos consultores!";
 
@@ -159,7 +160,8 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
     private function sendCloseMessage(Conversation $conv, AiBotConfig $config): void
     {
-        $contactName = $conv->contact->name ?? 'cliente';
+        $contact = \App\Models\Contact::withoutGlobalScopes()->find($conv->contact_id);
+        $contactName = $contact->name ?? 'cliente';
         $text = $config->inactivity_close_message
             ?: "Oi {nome}, como não recebi resposta, vou encerrar nosso atendimento por aqui. 😊 Caso precise de algo no futuro, é só mandar uma mensagem. Agradecemos o contato! Até mais! 👋";
 
