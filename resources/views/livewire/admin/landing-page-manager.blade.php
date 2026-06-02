@@ -103,7 +103,7 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <div style="display:flex; align-items:center; gap:10px;">
             <h3 style="font-size:14px; font-weight:700; color:white;">Editor: {{ $currentPage?->title }}</h3>
-            <a href="{{ $currentPage?->public_url }}" target="_blank" style="font-size:10px; color:#60a5fa; text-decoration:none; background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.2); border-radius:6px; padding:3px 8px;">👁 Preview</a>
+            <a href="{{ $currentPage?->public_url }}?preview=1" target="_blank" style="font-size:10px; color:#60a5fa; text-decoration:none; background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.2); border-radius:6px; padding:3px 8px;">👁 Preview</a>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
             <select wire:model="addSectionType" style="padding:5px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none;">
@@ -351,7 +351,7 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
         </div>
         <div style="flex:1; border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; background:#fff;">
             <iframe id="lp-preview-frame" :key="previewKey"
-                    src="{{ $currentPage->public_url }}"
+                    src="{{ $currentPage->public_url }}?preview=1"
                     style="width:100%; height:100%; border:none;"
                     sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
         </div>

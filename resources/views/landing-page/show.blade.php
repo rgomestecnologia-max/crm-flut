@@ -32,6 +32,11 @@
     @endif
 </head>
 <body>
+@if(!empty($isPreview) && $page->status !== 'published')
+<div style="background:#f59e0b;color:#111;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;position:sticky;top:0;z-index:9999;">
+    ⚠️ Modo Preview — Esta página ainda não está publicada. Somente você pode vê-la.
+</div>
+@endif
 @foreach($sections as $section)
 @php $cfg = $section->config ?? []; @endphp
 
