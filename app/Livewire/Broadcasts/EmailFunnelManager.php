@@ -227,7 +227,7 @@ class EmailFunnelManager extends Component
 
     public function render()
     {
-        $funnels = EmailFunnel::withCount('subscribers')->orderByDesc('updated_at')->get();
+        $funnels = EmailFunnel::withCount(['subscribers', 'subscribers as active_count' => fn($q) => $q->where('status', 'active'), 'subscribers as completed_count' => fn($q) => $q->where('status', 'completed')])->orderByDesc('updated_at')->get();
 
         $steps = collect();
         if ($this->editingFunnelId && $this->tab === 'editor') {

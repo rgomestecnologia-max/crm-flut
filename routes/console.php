@@ -11,6 +11,9 @@ Artisan::command('inspire', function () {
 // Verifica follow-ups pendentes a cada 5 minutos
 Schedule::command('followups:process')->everyFiveMinutes()->withoutOverlapping();
 
+// Processa funis de email marketing a cada 2 minutos
+Schedule::job(new \App\Jobs\ProcessEmailFunnel)->everyTwoMinutes()->withoutOverlapping()->name('email-funnels');
+
 // Monitoramento: limpa failed jobs e reinicia worker se houver acúmulo
 Schedule::call(function () {
     $failedCount = \DB::table('failed_jobs')->where('failed_at', '>=', now()->subHour())->count();

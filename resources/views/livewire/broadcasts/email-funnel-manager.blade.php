@@ -48,7 +48,7 @@ $stepLabels = ['email' => 'Email', 'delay' => 'Delay', 'condition' => 'Condiçã
         <div style="width:10px; height:10px; border-radius:50%; background:{{ $f->status === 'active' ? '#4ade80' : ($f->status === 'paused' ? '#f59e0b' : '#6b7280') }}; flex-shrink:0;"></div>
         <div style="flex:1; min-width:0;">
             <p style="font-size:13px; font-weight:700; color:white;">{{ $f->name }}</p>
-            <p style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $f->subscribers_count }} contatos · {{ $f->trigger_type }} · {{ ucfirst($f->status) }}</p>
+            <p style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $f->subscribers_count }} contatos ({{ $f->active_count ?? 0 }} ativos, {{ $f->completed_count ?? 0 }} completos) · {{ $f->trigger_type }} · {{ ucfirst($f->status) }}</p>
         </div>
         <div style="display:flex; gap:6px; flex-shrink:0;">
             <button wire:click="openEditor({{ $f->id }})" style="padding:4px 10px; font-size:10px; font-weight:600; color:#a78bfa; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.2); border-radius:6px; cursor:pointer;">Steps</button>
