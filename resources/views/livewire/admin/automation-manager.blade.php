@@ -184,7 +184,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if(!in_array(app(\App\Services\CurrentCompany::class)->id(), [2, 3, 11]))
         {{-- Resposta automática SIM/NÃO --}}
         <div class="mb-5 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
             <div class="flex items-center gap-2 mb-3">
