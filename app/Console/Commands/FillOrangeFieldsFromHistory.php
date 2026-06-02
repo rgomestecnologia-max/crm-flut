@@ -5,13 +5,15 @@ namespace App\Console\Commands;
 use App\Models\Conversation;
 use App\Models\CrmCard;
 use App\Models\CrmCardFieldValue;
+use App\Models\GlobalSetting;
 use App\Models\Message;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 
 class FillOrangeFieldsFromHistory extends Command
 {
     protected $signature = 'orange:fill-fields';
-    protected $description = 'Preenche ramo de atividade e produção diária a partir do histórico de conversas';
+    protected $description = 'Usa IA para extrair ramo de atividade e produção diária do histórico de conversas';
 
     public function handle(): void
     {
@@ -21,6 +23,14 @@ class FillOrangeFieldsFromHistory extends Command
         $prodFieldId = 39;
         $filled = 0;
         $already = 0;
+        $noData = 0;
+
+        $apiKey = GlobalSetting::get('gemini_api_key');
+        $model = GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
+        if (!$apiKey) {
+            $this->error('Gemini API key não configurada');
+            return;
+        }
 
         $convs = Conversation::withoutGlobalScopes()
             ->where('company_id', 3)
@@ -28,8 +38,11 @@ class FillOrangeFieldsFromHistory extends Command
             ->get();
 
         $this->info("Conversas a processar: {$convs->count()}");
+        $bar = $this->output->createProgressBar($convs->count());
 
         foreach ($convs as $conv) {
+            $bar->advance();
+
             $card = CrmCard::where('contact_id', $conv->contact_id)
                 ->where('pipeline_id', 6)->first();
             if (!$card) continue;
@@ -43,73 +56,80 @@ class FillOrangeFieldsFromHistory extends Command
 
             if ($hasRamo && $hasProd) { $already++; continue; }
 
-            $allMsgs = Message::where('conversation_id', $conv->id)
+            // Monta histórico resumido
+            $msgs = Message::where('conversation_id', $conv->id)
                 ->whereIn('sender_type', ['agent', 'contact'])
                 ->whereNotNull('content')
+                ->where('content', '!=', '')
                 ->orderBy('id')
+                ->take(30)
                 ->get();
 
-            $ramo = null;
-            $prod = null;
+            if ($msgs->count() < 2) continue;
 
-            foreach ($allMsgs as $i => $msg) {
-                if ($msg->sender_type !== 'agent') continue;
-                $content = mb_strtolower($msg->content ?? '');
-
-                // Pega próxima mensagem do contato
-                $nextContact = null;
-                for ($j = $i + 1; $j < $allMsgs->count(); $j++) {
-                    if ($allMsgs[$j]->sender_type === 'contact' && $allMsgs[$j]->content) {
-                        $nextContact = $allMsgs[$j];
-                        break;
-                    }
-                }
-                if (!$nextContact) continue;
-                $resp = trim($nextContact->content);
-                if (strlen($resp) > 200) continue;
-
-                // Pergunta sobre ramo
-                if (!$ramo && !$hasRamo && (
-                    str_contains($content, 'ramo') ||
-                    str_contains($content, 'atividade') ||
-                    str_contains($content, 'segmento') ||
-                    str_contains($content, 'qual o seu neg')
-                )) {
-                    $ramo = $resp;
-                }
-
-                // Pergunta sobre produção
-                if (!$prod && !$hasProd && (
-                    str_contains($content, 'produção') ||
-                    str_contains($content, 'producao') ||
-                    str_contains($content, 'estimativa') ||
-                    str_contains($content, 'volume') ||
-                    str_contains($content, 'litros por dia') ||
-                    str_contains($content, 'suco de laranja')
-                )) {
-                    $prod = $resp;
-                }
+            $history = '';
+            foreach ($msgs as $m) {
+                $role = $m->sender_type === 'contact' ? 'CLIENTE' : 'IA';
+                $history .= "{$role}: {$m->content}\n";
             }
 
-            $updated = false;
-            if ($ramo && !$hasRamo) {
-                CrmCardFieldValue::updateOrCreate(
-                    ['card_id' => $card->id, 'field_id' => $ramoFieldId],
-                    ['value' => $ramo]
-                );
-                $updated = true;
+            // Pergunta ao Gemini
+            $prompt = "Analise esta conversa entre um cliente e a IA da Orangexpress (empresa de máquinas extratoras de suco de laranja).\n\n"
+                . "CONVERSA:\n{$history}\n\n"
+                . "Extraia APENAS o que o CLIENTE informou (não o que a IA perguntou):\n"
+                . "1. Ramo de atividade do cliente (ex: restaurante, lanchonete, bar, mercado, etc.)\n"
+                . "2. Estimativa de produção diária de suco de laranja (ex: 200 litros, 50 copos, etc.)\n\n"
+                . "Responda SOMENTE no formato JSON, sem markdown:\n"
+                . "{\"ramo\": \"valor ou null\", \"producao\": \"valor ou null\"}\n\n"
+                . "REGRAS:\n"
+                . "- Se o cliente NÃO informou o dado, use null\n"
+                . "- Saudações (Boa tarde, Oi, Olá) NÃO são ramo de atividade\n"
+                . "- Seja conciso no valor (ex: 'Restaurante', não 'O cliente tem um restaurante')";
+
+            try {
+                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+                $response = Http::timeout(15)->post($url, [
+                    'contents' => [['parts' => [['text' => $prompt]]]],
+                    'generationConfig' => ['maxOutputTokens' => 100, 'temperature' => 0.1],
+                ]);
+
+                $text = $response->json('candidates.0.content.parts.0.text') ?? '';
+                $text = trim(str_replace(['```json', '```'], '', $text));
+                $data = json_decode($text, true);
+
+                if (!$data) continue;
+
+                $updated = false;
+                if (!$hasRamo && !empty($data['ramo']) && $data['ramo'] !== 'null') {
+                    CrmCardFieldValue::updateOrCreate(
+                        ['card_id' => $card->id, 'field_id' => $ramoFieldId],
+                        ['value' => $data['ramo']]
+                    );
+                    $updated = true;
+                }
+                if (!$hasProd && !empty($data['producao']) && $data['producao'] !== 'null') {
+                    CrmCardFieldValue::updateOrCreate(
+                        ['card_id' => $card->id, 'field_id' => $prodFieldId],
+                        ['value' => $data['producao']]
+                    );
+                    $updated = true;
+                }
+                if ($updated) {
+                    $filled++;
+                } else {
+                    $noData++;
+                }
+
+                usleep(200000); // 200ms entre requests
+            } catch (\Throwable $e) {
+                $this->warn("Erro conv #{$conv->id}: {$e->getMessage()}");
             }
-            if ($prod && !$hasProd) {
-                CrmCardFieldValue::updateOrCreate(
-                    ['card_id' => $card->id, 'field_id' => $prodFieldId],
-                    ['value' => $prod]
-                );
-                $updated = true;
-            }
-            if ($updated) $filled++;
         }
 
+        $bar->finish();
+        $this->newLine();
         $this->info("Cards atualizados: {$filled}");
         $this->info("Já tinham campos: {$already}");
+        $this->info("Sem dados na conversa: {$noData}");
     }
 }
