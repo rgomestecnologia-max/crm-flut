@@ -642,7 +642,7 @@ class ProcessBotResponse implements ShouldQueue
         $content = preg_replace('/\[FOTO:https?:\/\/[^\]]+\]/i', '', $content);
         $content = preg_replace('/\[DOC:https?:\/\/[^\]]+\]/i', '', $content);
         $content = preg_replace('/\[HANDOFF\]/i', '', $content);
-        $content = preg_replace('/\[FIELD:\w+=[^\]]+\]/i', '', $content);
+        $content = preg_replace('/\[FIELD:[^\]=]+=[^\]]+\]/i', '', $content);
         // Remove links Markdown [texto](url) → mantém só a URL
         $content = preg_replace('/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/', '$2', $content);
         return trim($content);
@@ -653,7 +653,7 @@ class ProcessBotResponse implements ShouldQueue
      */
     private function extractAndSaveFields(string $content): void
     {
-        preg_match_all('/\[FIELD:(\w+)=([^\]]+)\]/i', $content, $matches, PREG_SET_ORDER);
+        preg_match_all('/\[FIELD:([^\]=]+)=([^\]]+)\]/i', $content, $matches, PREG_SET_ORDER);
         if (empty($matches)) return;
 
         $contact = $this->conversation->contact;
