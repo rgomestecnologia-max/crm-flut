@@ -123,19 +123,6 @@
         $tabs = [
             ['key' => 'mine',     'label' => 'Minhas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
         ];
-        if ($showDeptQueues) {
-            // Supervisor: filas separadas por departamento
-            $deptColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#ec4899'];
-            $colorIdx = 0;
-            foreach ($departments as $dept) {
-                if (!in_array($dept->id, array_keys($deptQueueCounts))) continue;
-                $c = $deptColors[$colorIdx % count($deptColors)];
-                $colorIdx++;
-                $tabs[] = ['key' => 'queue_' . $dept->id, 'label' => $dept->name, 'count' => $deptQueueCounts[$dept->id] ?? 0, 'color' => $c, 'activeBg' => $c . '20', 'activeColor' => $c];
-            }
-        } else {
-            $tabs[] = ['key' => 'queue', 'label' => 'Fila', 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
-        }
         if ($aiActive) {
             $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
         }
@@ -160,6 +147,19 @@
                 'activeBg'    => $tagColor . '20',
                 'activeColor' => $tagColor,
             ];
+        }
+        // Filas (por departamento ou geral) — antes de "Todos"
+        if ($showDeptQueues) {
+            $deptColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#ec4899'];
+            $colorIdx = 0;
+            foreach ($departments as $dept) {
+                if (!in_array($dept->id, array_keys($deptQueueCounts))) continue;
+                $c = $deptColors[$colorIdx % count($deptColors)];
+                $colorIdx++;
+                $tabs[] = ['key' => 'queue_' . $dept->id, 'label' => $dept->name, 'count' => $deptQueueCounts[$dept->id] ?? 0, 'color' => $c, 'activeBg' => $c . '20', 'activeColor' => $c];
+            }
+        } else {
+            $tabs[] = ['key' => 'queue', 'label' => 'Fila', 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
         }
         // "Todos" sempre por último
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
