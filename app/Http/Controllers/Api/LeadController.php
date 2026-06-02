@@ -273,6 +273,84 @@ class LeadController extends Controller
             }
         }
 
+        // OrangeXpress: cria conversa + ativa IA para leads do site
+        $companyId = app(\App\Services\CurrentCompany::class)->id();
+        if ($companyId === 3 && isset($card) && $phone) {
+            try {
+                // Verifica se já tem conversa aberta
+                $existingConv = Conversation::where('contact_id', $contact->id)
+                    ->where('is_group', false)
+                    ->whereIn('status', ['open', 'pending'])
+                    ->first();
+
+                if (!$existingConv) {
+                    // Determina departamento por DDD
+                    $deptId = 9; // default: Recife
+                    if (strlen($phone) >= 12 && str_starts_with($phone, '55')) {
+                        $ddd = substr($phone, 2, 2);
+                        $dddRule = \App\Models\DddRoutingRule::where('ddd', $ddd)->where('is_active', true)->first();
+                        if ($dddRule && $dddRule->department_id) {
+                            $deptId = $dddRule->department_id;
+                        }
+                    }
+
+                    $evoConfig = \App\Models\EvolutionApiConfig::first();
+
+                    // Cria conversa
+                    $newConv = Conversation::create([
+                        'contact_id'             => $contact->id,
+                        'department_id'          => $deptId,
+                        'evolution_api_config_id' => $evoConfig?->id,
+                        'status'                 => 'open',
+                        'is_group'               => false,
+                        'last_message_at'        => now(),
+                    ]);
+
+                    // Preenche campo Departamento no card
+                    $deptNames = [9 => 'Recife', 10 => 'Fortaleza', 11 => 'São Paulo'];
+                    $deptField = \App\Models\CrmCustomField::where('company_id', 3)->where('key', 'departamento')->first();
+                    if ($deptField && isset($card) && isset($deptNames[$deptId])) {
+                        \App\Models\CrmCardFieldValue::updateOrCreate(
+                            ['card_id' => $card->id, 'field_id' => $deptField->id],
+                            ['value' => $deptNames[$deptId]]
+                        );
+                    }
+
+                    // IA envia saudação
+                    $botConfig = \App\Models\AiBotConfig::current();
+                    if ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
+                        $greeting = "Olá " . ($contact->name ?? '') . "! Vi que você se cadastrou no nosso site. 😊 Sou a assistente virtual da Orangexpress e posso te ajudar a encontrar a máquina extratora ideal para o seu negócio. Me conta, qual o seu ramo de atividade?";
+
+                        $msg = \App\Models\Message::create([
+                            'conversation_id' => $newConv->id,
+                            'sender_type'     => 'agent',
+                            'sender_id'       => null,
+                            'content'         => $greeting,
+                            'type'            => 'text',
+                            'delivery_status' => 'pending',
+                        ]);
+                        $newConv->update(['last_message_at' => now()]);
+                        \App\Jobs\SendWhatsAppMessage::dispatch($msg);
+
+                        // Mensagem de sistema
+                        \App\Models\Message::create([
+                            'conversation_id' => $newConv->id,
+                            'sender_type'     => 'system',
+                            'content'         => "Roteamento DDD: departamento " . ($deptNames[$deptId] ?? $deptId),
+                            'type'            => 'text',
+                            'delivery_status' => 'sent',
+                        ]);
+                    }
+
+                    \Log::info('API /leads: conversa + IA criada para lead do site', [
+                        'contact' => $contact->name, 'dept' => $deptId, 'conv' => $newConv->id,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('API /leads: falha ao criar conversa para lead', ['error' => $e->getMessage()]);
+            }
+        }
+
         // Auto-tag: se pipeline tem tag com mesmo nome, taguear conversa
         if (isset($card) && $card->contact_id) {
             $pipelineName = CrmPipeline::find($card->pipeline_id)?->name;
