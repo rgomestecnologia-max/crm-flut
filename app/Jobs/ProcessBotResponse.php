@@ -144,6 +144,8 @@ class ProcessBotResponse implements ShouldQueue
                     'delivery_status' => 'sent',
                 ]);
 
+                $this->moveCardToDeptStage();
+
                 try {
                     broadcast(new MessageReceived($handoffMsg));
                 } catch (\Throwable) {}
@@ -303,6 +305,8 @@ class ProcessBotResponse implements ShouldQueue
                     'type'            => 'text',
                     'delivery_status' => 'sent',
                 ]);
+
+                $this->moveCardToDeptStage();
 
                 $this->broadcastMessage($handoffMsg);
                 Log::info('IA: handoff detectado', ['conv' => $this->conversation->id]);
@@ -585,6 +589,50 @@ class ProcessBotResponse implements ShouldQueue
         SendWhatsAppMessage::dispatch($msg);
         $this->broadcastMessage($msg);
         Log::info('IA: mensagem fora do horário enviada', ['conv' => $this->conversation->id]);
+    }
+
+    /**
+     * OrangeXpress (empresa 3): move card do CRM para etapa do departamento no handoff.
+     */
+    private function moveCardToDeptStage(): void
+    {
+        try {
+            $companyId = $this->conversation->company_id;
+            if ($companyId != 3) return;
+
+            $deptId = $this->conversation->department_id;
+            if (!$deptId) return;
+
+            // Mapeamento dept → stage no pipeline Vendas (#6)
+            $deptStageMap = [9 => 62, 10 => 63, 11 => 64]; // Recife→REC, Fortaleza→FOR, SP→SP
+            $targetStageId = $deptStageMap[$deptId] ?? null;
+            if (!$targetStageId) return;
+
+            $contact = $this->conversation->contact;
+            if (!$contact) return;
+
+            $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                ->where('pipeline_id', 6)
+                ->first();
+
+            if ($card && in_array($card->stage_id, [10, 11, 62, 63, 64])) {
+                $oldStage = $card->stage?->name ?? '—';
+                $card->update(['stage_id' => $targetStageId]);
+
+                $newStage = \App\Models\CrmStage::find($targetStageId);
+                \App\Models\CrmCardActivity::create([
+                    'card_id' => $card->id,
+                    'type'    => 'stage_change',
+                    'content' => "IA: movido de «{$oldStage}» para «{$newStage->name}» (dept: {$deptId})",
+                ]);
+
+                Log::info('IA: card movido para etapa do departamento', [
+                    'card' => $card->id, 'stage' => $newStage->name, 'dept' => $deptId,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('IA: moveCardToDeptStage falhou', ['error' => $e->getMessage()]);
+        }
     }
 
     /**
