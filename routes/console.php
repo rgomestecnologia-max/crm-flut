@@ -14,6 +14,9 @@ Schedule::command('followups:process')->everyFiveMinutes()->withoutOverlapping()
 // Processa funis de email marketing a cada 2 minutos
 Schedule::job(new \App\Jobs\ProcessEmailFunnel)->everyTwoMinutes()->withoutOverlapping()->name('email-funnels');
 
+// Follow-up de inatividade da IA a cada 10 minutos
+Schedule::job(new \App\Jobs\ProcessAiInactivityFollowUp)->everyTenMinutes()->withoutOverlapping()->name('ai-inactivity');
+
 // Monitoramento: limpa failed jobs e reinicia worker se houver acúmulo
 Schedule::call(function () {
     $failedCount = \DB::table('failed_jobs')->where('failed_at', '>=', now()->subHour())->count();

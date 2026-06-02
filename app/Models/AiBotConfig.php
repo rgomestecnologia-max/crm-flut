@@ -28,6 +28,10 @@ class AiBotConfig extends Model
         'response_delay',
         'handoff_message',
         'handoff_prompt',
+        'inactivity_followup_minutes',
+        'inactivity_followup_message',
+        'inactivity_close_minutes',
+        'inactivity_close_message',
     ];
 
     protected $casts = [

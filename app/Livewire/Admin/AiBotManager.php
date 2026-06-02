@@ -23,6 +23,10 @@ class AiBotManager extends Component
     public int    $response_delay            = 0;
     public string $handoff_message           = '';
     public string $handoff_prompt            = '';
+    public ?int   $inactivity_followup_minutes = null;
+    public string $inactivity_followup_message = '';
+    public ?int   $inactivity_close_minutes    = null;
+    public string $inactivity_close_message    = '';
 
     public function mount(): void
     {
@@ -49,6 +53,10 @@ class AiBotManager extends Component
             $this->response_delay            = $config->response_delay ?? 0;
             $this->handoff_message           = $config->handoff_message ?? '';
             $this->handoff_prompt            = $config->handoff_prompt ?? '';
+            $this->inactivity_followup_minutes = $config->inactivity_followup_minutes;
+            $this->inactivity_followup_message = $config->inactivity_followup_message ?? '';
+            $this->inactivity_close_minutes    = $config->inactivity_close_minutes;
+            $this->inactivity_close_message    = $config->inactivity_close_message ?? '';
         }
     }
 
@@ -125,6 +133,8 @@ class AiBotManager extends Component
             'response_delay'            => 'required|integer|min:0|max:120',
             'handoff_message'           => 'nullable|string|max:1000',
             'handoff_prompt'            => 'nullable|string|max:4000',
+            'inactivity_followup_minutes' => 'nullable|integer|min:10|max:1440',
+            'inactivity_close_minutes'    => 'nullable|integer|min:10|max:1440',
         ]);
 
         $data = [
@@ -140,6 +150,10 @@ class AiBotManager extends Component
             'response_delay'            => $this->response_delay,
             'handoff_message'           => $this->handoff_message ?: null,
             'handoff_prompt'            => $this->handoff_prompt ?: null,
+            'inactivity_followup_minutes' => $this->inactivity_followup_minutes ?: null,
+            'inactivity_followup_message' => $this->inactivity_followup_message ?: null,
+            'inactivity_close_minutes'    => $this->inactivity_close_minutes ?: null,
+            'inactivity_close_message'    => $this->inactivity_close_message ?: null,
         ];
 
         // Se URL foi removida, limpa o conteúdo do site

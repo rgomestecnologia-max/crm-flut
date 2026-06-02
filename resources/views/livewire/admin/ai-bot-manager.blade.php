@@ -229,6 +229,40 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
             </div>
         </div>
 
+        {{-- Inatividade --}}
+        <div style="background:rgba(251,191,36,0.04); border:1px solid rgba(251,191,36,0.12); border-radius:14px; padding:22px; margin-bottom:22px;">
+            <h3 style="font-size:14px; font-weight:700; color:white; margin-bottom:6px;">Follow-up por Inatividade</h3>
+            <p style="font-size:11px; color:rgba(255,255,255,0.35); margin-bottom:16px;">Se o cliente não responder após a IA enviar mensagem, envia um follow-up e encerra automaticamente.</p>
+            <div style="display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap; margin-bottom:14px;">
+                <div>
+                    <label style="{{ $labelStyle }}">Follow-up após (min)</label>
+                    <input wire:model="inactivity_followup_minutes" type="number" min="10" max="1440" placeholder="60"
+                           style="width:96px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:13px; color:white; outline:none; text-align:center; font-family:inherit;"
+                           {!! $inputFocus !!}>
+                    <p style="font-size:9px; color:rgba(255,255,255,0.25); margin-top:3px;">60 = 1 hora</p>
+                </div>
+                <div>
+                    <label style="{{ $labelStyle }}">Encerrar após (min)</label>
+                    <input wire:model="inactivity_close_minutes" type="number" min="10" max="1440" placeholder="60"
+                           style="width:96px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:13px; color:white; outline:none; text-align:center; font-family:inherit;"
+                           {!! $inputFocus !!}>
+                    <p style="font-size:9px; color:rgba(255,255,255,0.25); margin-top:3px;">Após o follow-up</p>
+                </div>
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="{{ $labelStyle }}">Mensagem de follow-up (use {nome})</label>
+                <textarea wire:model="inactivity_followup_message" rows="2"
+                          placeholder="Oi {nome}! Vi que ficou um tempinho sem responder. Tem alguma dúvida que posso te ajudar? Se preferir, posso te conectar com um de nossos consultores!"
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+            </div>
+            <div>
+                <label style="{{ $labelStyle }}">Mensagem de encerramento (use {nome})</label>
+                <textarea wire:model="inactivity_close_message" rows="2"
+                          placeholder="Oi {nome}, como não recebi resposta, vou encerrar nosso atendimento. Caso precise de algo, é só mandar uma mensagem. Agradecemos o contato! 👋"
+                          style="{{ $inputStyle }} resize:none; line-height:1.6;" {!! $inputFocus !!}></textarea>
+            </div>
+        </div>
+
         {{-- Save --}}
         <div style="display:flex; justify-content:flex-end;">
             <button type="submit"
