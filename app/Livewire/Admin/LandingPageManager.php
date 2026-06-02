@@ -29,11 +29,107 @@ class LandingPageManager extends Component
     public string $custom_css = '';
     public ?int $flutchat_widget_id = null;
 
+    // IA
+    public bool $showAiForm = false;
+    public string $aiTitle = '';
+    public string $aiPrompt = '';
+
     // Editor
     public ?int $editingPageId = null;
     public array $sections = [];
     public string $addSectionType = 'hero';
     public $sectionImage = null; // upload temporário
+
+    public function generateWithAi(): void
+    {
+        if (!$this->aiTitle || !$this->aiPrompt) {
+            $this->dispatch('toast', type: 'error', message: 'Preencha o nome e a descrição.');
+            return;
+        }
+
+        $model  = \App\Models\GlobalSetting::get('gemini_model', 'gemini-2.5-flash');
+        $apiKey = \App\Models\GlobalSetting::get('gemini_api_key');
+        if (!$apiKey) {
+            $this->dispatch('toast', type: 'error', message: 'API Key do Gemini não configurada nas Configurações Globais.');
+            return;
+        }
+
+        $systemPrompt = <<<'PROMPT'
+Você é um gerador de landing pages. Com base na descrição do usuário, gere um JSON com um array de seções para uma landing page profissional.
+
+Tipos de seções disponíveis: header, hero, features, testimonials, form, cta, text, faq, stats, video, footer.
+
+Formato de resposta (APENAS JSON, sem markdown, sem ```):
+[
+  {"type":"header","config":{"logo":"","links":[{"label":"Início","url":"#"},{"label":"Contato","url":"#form"}],"bg_color":"#111827","text_color":"#ffffff"}},
+  {"type":"hero","config":{"title":"...","subtitle":"...","cta_text":"...","cta_url":"#form","bg_color":"#111827","text_color":"#ffffff","bg_image":"","button_color":"#b2ff00"}},
+  {"type":"features","config":{"title":"...","items":[{"icon":"emoji","title":"...","desc":"..."}],"bg_color":"#0f172a","text_color":"#ffffff"}},
+  {"type":"testimonials","config":{"title":"...","items":[{"name":"...","text":"...","photo":""}],"bg_color":"#1e293b","text_color":"#ffffff"}},
+  {"type":"form","config":{"title":"...","fields":[{"label":"Nome","key":"nome","type":"text","required":true},{"label":"WhatsApp","key":"whatsapp","type":"tel","required":true},{"label":"E-mail","key":"email","type":"email","required":false}],"button_text":"Enviar","bg_color":"#0f172a","text_color":"#ffffff","button_color":"#b2ff00"}},
+  {"type":"faq","config":{"title":"...","items":[{"q":"...","a":"..."}],"bg_color":"#1e293b","text_color":"#ffffff"}},
+  {"type":"cta","config":{"title":"...","subtitle":"...","button_text":"...","button_url":"#form","bg_color":"#b2ff00","text_color":"#111827"}},
+  {"type":"footer","config":{"text":"© 2026 ...","links":[],"bg_color":"#0f172a","text_color":"rgba(255,255,255,0.5)"}}
+]
+
+Regras:
+- Gere entre 5 e 10 seções relevantes para o negócio descrito
+- Use cores que combinem com o nicho (ex: saúde=verde/azul, luxo=dourado/preto, tech=azul/roxo)
+- Textos devem ser persuasivos e profissionais em português BR
+- Inclua sempre: header, hero, pelo menos 1 seção de conteúdo, form e footer
+- Emojis nos ícones de features
+- FAQ com perguntas relevantes ao nicho
+- Retorne APENAS o JSON, sem texto antes ou depois
+PROMPT;
+
+        try {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+            $response = \Illuminate\Support\Facades\Http::timeout(60)->post($url, [
+                'systemInstruction' => ['parts' => [['text' => $systemPrompt]]],
+                'contents' => [['role' => 'user', 'parts' => [['text' => "Crie uma landing page para: {$this->aiPrompt}"]]]],
+                'generationConfig' => ['maxOutputTokens' => 4096, 'temperature' => 0.8],
+            ]);
+
+            $text = $response->json('candidates.0.content.parts.0.text') ?? '';
+            // Limpa markdown se veio
+            $text = preg_replace('/^```json?\s*/i', '', trim($text));
+            $text = preg_replace('/```\s*$/', '', $text);
+            $sections = json_decode(trim($text), true);
+
+            if (!is_array($sections) || empty($sections)) {
+                $this->dispatch('toast', type: 'error', message: 'IA não gerou seções válidas. Tente reformular o prompt.');
+                return;
+            }
+
+            // Cria a página
+            $page = LandingPage::create([
+                'title' => $this->aiTitle,
+                'slug'  => Str::slug($this->aiTitle),
+                'status' => 'draft',
+            ]);
+
+            // Cria seções
+            foreach ($sections as $order => $section) {
+                if (!isset($section['type']) || !isset($section['config'])) continue;
+                LandingPageSection::create([
+                    'landing_page_id' => $page->id,
+                    'type'            => $section['type'],
+                    'sort_order'      => $order + 1,
+                    'config'          => $section['config'],
+                ]);
+            }
+
+            $this->showAiForm = false;
+            $this->aiTitle = '';
+            $this->aiPrompt = '';
+
+            $this->dispatch('toast', type: 'success', message: 'Landing page gerada com ' . count($sections) . ' seções! Edite no editor.');
+            \Illuminate\Support\Facades\Log::info('Landing Page gerada via IA', ['page' => $page->id, 'sections' => count($sections)]);
+
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', type: 'error', message: 'Erro ao gerar: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Landing Page IA falhou', ['error' => $e->getMessage()]);
+        }
+    }
 
     public function savePage(): void
     {

@@ -15,8 +15,38 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
     @if($tab === 'pages')
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <h3 style="font-size:14px; font-weight:700; color:white;">Landing Pages</h3>
-        <button wire:click="$set('showForm', true)" style="padding:6px 14px; font-size:11px; font-weight:600; color:#111; background:#b2ff00; border:none; border-radius:8px; cursor:pointer;">+ Nova Página</button>
+        <div style="display:flex; gap:8px;">
+            <button wire:click="$set('showForm', true)" style="padding:6px 14px; font-size:11px; font-weight:600; color:#111; background:#b2ff00; border:none; border-radius:8px; cursor:pointer;">🛠 Construtor Manual</button>
+            <button wire:click="$set('showAiForm', true)" style="padding:6px 14px; font-size:11px; font-weight:600; color:#fff; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; border-radius:8px; cursor:pointer;">🤖 Criar com IA</button>
+        </div>
     </div>
+
+    {{-- Modal IA --}}
+    @if($showAiForm)
+    <div style="background:linear-gradient(145deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04)); border:1px solid rgba(139,92,246,0.25); border-radius:12px; padding:20px; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+            <span style="font-size:20px;">🤖</span>
+            <h3 style="font-size:14px; font-weight:700; color:white;">Criar Landing Page com IA</h3>
+        </div>
+        <p style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:14px;">Descreva o que você precisa e a IA vai gerar a página completa com todas as seções, textos e cores. Depois você pode editar tudo no editor.</p>
+        <div style="margin-bottom:12px;">
+            <label style="{{ $labelStyle }}">Nome da página *</label>
+            <input wire:model="aiTitle" type="text" placeholder="Ex: Página de vendas do produto X" style="{{ $inputStyle }}">
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="{{ $labelStyle }}">Descreva o que você precisa (prompt)</label>
+            <textarea wire:model="aiPrompt" rows="4" placeholder="Ex: Crie uma landing page para uma clínica de estética em São Paulo. Deve ter seção de serviços (limpeza de pele, botox, preenchimento), depoimentos de clientes, formulário de agendamento e FAQ com perguntas sobre procedimentos. Cores em tons de rosa e dourado." style="{{ $inputStyle }} min-height:100px;"></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button wire:click="$set('showAiForm', false)" style="padding:6px 14px; font-size:11px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:7px; cursor:pointer;">Cancelar</button>
+            <button wire:click="generateWithAi" wire:loading.attr="disabled"
+                    style="padding:6px 16px; font-size:11px; font-weight:700; color:#fff; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; border-radius:7px; cursor:pointer;">
+                <span wire:loading.remove wire:target="generateWithAi">✨ Gerar Landing Page</span>
+                <span wire:loading wire:target="generateWithAi">⏳ Gerando... (pode levar alguns segundos)</span>
+            </button>
+        </div>
+    </div>
+    @endif
 
     @if($showForm)
     <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(178,255,0,0.15); border-radius:12px; padding:16px; margin-bottom:16px;">
