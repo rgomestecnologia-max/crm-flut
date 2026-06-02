@@ -372,16 +372,27 @@ class ProcessEvolutionMessage implements ShouldQueue
                             $vendas = \App\Models\CrmPipeline::where('name', 'Vendas')->first();
                             $novo = $vendas?->stages()->orderBy('sort_order')->first();
                             if ($vendas && $novo && $contact) {
-                                $exists = \App\Models\CrmCard::where('contact_id', $contact->id)
-                                    ->where('pipeline_id', $vendas->id)->exists();
-                                if (!$exists) {
-                                    \App\Models\CrmCard::create([
+                                $card = \App\Models\CrmCard::where('contact_id', $contact->id)
+                                    ->where('pipeline_id', $vendas->id)->first();
+                                if (!$card) {
+                                    $card = \App\Models\CrmCard::create([
                                         'pipeline_id' => $vendas->id,
                                         'stage_id'    => $novo->id,
                                         'contact_id'  => $contact->id,
                                         'title'       => $contact->display_name ?? $contact->name,
                                     ]);
                                     Log::info('Card criado automaticamente (nova conversa)', ['contact' => $contact->name]);
+                                }
+                                // Preenche campo Departamento
+                                if ($card && $conversation->department_id) {
+                                    $deptNames = [9 => 'Recife', 10 => 'Fortaleza', 11 => 'São Paulo'];
+                                    $deptField = \App\Models\CrmCustomField::where('company_id', 3)->where('key', 'departamento')->first();
+                                    if ($deptField && isset($deptNames[$conversation->department_id])) {
+                                        \App\Models\CrmCardFieldValue::updateOrCreate(
+                                            ['card_id' => $card->id, 'field_id' => $deptField->id],
+                                            ['value' => $deptNames[$conversation->department_id]]
+                                        );
+                                    }
                                 }
                             }
                         } catch (\Throwable) {}
@@ -754,10 +765,10 @@ class ProcessEvolutionMessage implements ShouldQueue
                             $vendas = \App\Models\CrmPipeline::where('name', 'Vendas')->first();
                             $novo   = $vendas?->stages()->orderBy('sort_order')->first();
                             if ($vendas && $novo && $contact) {
-                                $existingCard = \App\Models\CrmCard::where('contact_id', $contact->id)
+                                $adCard = \App\Models\CrmCard::where('contact_id', $contact->id)
                                     ->where('pipeline_id', $vendas->id)->first();
-                                if (!$existingCard) {
-                                    \App\Models\CrmCard::create([
+                                if (!$adCard) {
+                                    $adCard = \App\Models\CrmCard::create([
                                         'pipeline_id' => $vendas->id,
                                         'stage_id'    => $novo->id,
                                         'contact_id'  => $contact->id,
@@ -766,6 +777,17 @@ class ProcessEvolutionMessage implements ShouldQueue
                                     Log::info('ProcessEvolutionMessage: card criado via anúncio', [
                                         'contact' => $contact->name, 'pipeline' => $vendas->name,
                                     ]);
+                                }
+                                // Preenche campo Departamento
+                                if ($adCard && $conversation->department_id) {
+                                    $deptNames = [9 => 'Recife', 10 => 'Fortaleza', 11 => 'São Paulo'];
+                                    $deptField = \App\Models\CrmCustomField::where('company_id', 3)->where('key', 'departamento')->first();
+                                    if ($deptField && isset($deptNames[$conversation->department_id])) {
+                                        \App\Models\CrmCardFieldValue::updateOrCreate(
+                                            ['card_id' => $adCard->id, 'field_id' => $deptField->id],
+                                            ['value' => $deptNames[$conversation->department_id]]
+                                        );
+                                    }
                                 }
                             }
                         } catch (\Throwable $e) {
