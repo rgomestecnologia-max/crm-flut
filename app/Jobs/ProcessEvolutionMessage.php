@@ -387,13 +387,30 @@ class ProcessEvolutionMessage implements ShouldQueue
                         } catch (\Throwable) {}
                     }
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
+                    // Verifica se foi encerrada por inatividade da IA
+                    $closedByInactivity = Message::where('conversation_id', $conversation->id)
+                        ->where('sender_type', 'system')
+                        ->where('content', 'like', '%encerramento inatividade%')
+                        ->exists();
+
+                    // Se encerrada por inatividade e cliente está apenas concordando, não reabre
+                    if ($closedByInactivity && $content) {
+                        $ackPatterns = '/^(ok|tá|ta|beleza|blz|obrigad[oa]|brigad[oa]|valeu|vlw|tudo\s*bem|td\s*bem|certo|entendi|tranquilo|falou|até\s*mais|ate\s*mais|tchau|bye|👍|🙏|✅|👋|obg|tmj)[\s.!]*$/iu';
+                        if (preg_match($ackPatterns, trim($content))) {
+                            // Cliente concordou com encerramento — mantém resolvida, não responde
+                            Log::info('Conversa mantida encerrada: cliente concordou', [
+                                'conv' => $conversation->id, 'content' => $content,
+                            ]);
+                            // Salva a mensagem mas não processa bot
+                            try { broadcast(new \App\Events\MessageReceived($message))->toOthers(); } catch (\Throwable) {}
+                            return;
+                        }
+                    }
+
                     // Reabre a conversa: volta pra fila, reseta chatbot pra novo atendimento
                     // Se humano estava atendendo via WhatsApp recentemente, mantém waiting_human_reason
-                    // para evitar que o menu/IA entre na conversa do humano
                     $keepWaiting = $conversation->waiting_human_reason === 'Atendente respondeu pelo WhatsApp';
 
-                    // Se a última mensagem do agente (fromMe) foi há mais de 24h, reseta o estado
-                    // para permitir novo menu quando o cliente voltar muito depois
                     if ($keepWaiting) {
                         $lastAgentMsg = Message::where('conversation_id', $conversation->id)
                             ->where('sender_type', 'agent')
@@ -410,8 +427,9 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'menu_awaiting' => false,
                         'waiting_human_reason' => $keepWaiting ? $conversation->waiting_human_reason : null,
                     ]);
-                    if (!$keepWaiting) {
+                    if (!$keepWaiting && !$closedByInactivity) {
                         // Remove mensagens de sistema do menu anterior para permitir novo menu
+                        // (não remove se foi encerrada por inatividade — IA continua atendendo)
                         Message::where('conversation_id', $conversation->id)
                             ->where('sender_type', 'system')
                             ->where('content', 'like', 'Menu: cliente selecionou%')
