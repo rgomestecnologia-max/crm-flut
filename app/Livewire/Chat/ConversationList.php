@@ -21,6 +21,12 @@ class ConversationList extends Component
     public bool   $showBulkTransfer = false;
     public ?int   $bulkTransferDept = null;
 
+    // Nova conversa
+    public bool   $showNewConvModal = false;
+    public string $newConvPhone = '';
+    public string $newConvName = '';
+    public ?int   $newConvDeptId = null;
+
     public function mount(?int $activeId = null): void
     {
         $this->activeId = $activeId;
@@ -261,6 +267,75 @@ class ConversationList extends Component
         $this->activeId = $id;
         $this->dispatch('conversation-selected', id: $id);
         $this->dispatch('toast', type: 'success', message: 'Conversa atribuída a você.');
+    }
+
+    public function startNewConversation(): void
+    {
+        $this->validate([
+            'newConvPhone' => 'required|string|min:8',
+        ]);
+
+        $user = Auth::user();
+        $phone = preg_replace('/\D/', '', $this->newConvPhone);
+        if (strlen($phone) <= 11 && !str_starts_with($phone, '55')) {
+            $phone = '55' . $phone;
+        }
+
+        // Busca ou cria contato
+        $contact = \App\Models\Contact::where('phone', $phone)->first();
+        if (!$contact) {
+            $contact = \App\Models\Contact::create([
+                'phone' => $phone,
+                'name'  => $this->newConvName ?: null,
+            ]);
+        } elseif ($this->newConvName && !$contact->name) {
+            $contact->update(['name' => $this->newConvName]);
+        }
+
+        // Departamento selecionado ou primeiro do agente
+        $deptId = $this->newConvDeptId;
+        if (!$deptId) {
+            $deptId = $user->departments->first()?->id ?? Department::active()->first()?->id;
+        }
+        $dept = Department::find($deptId);
+
+        // Determina evolution_api_config_id
+        $evoConfigId = $dept?->evolution_api_config_id ?? \App\Models\EvolutionApiConfig::first()?->id;
+
+        // Busca conversa aberta existente para esse contato + número
+        $existingConv = Conversation::where('contact_id', $contact->id)
+            ->where('is_group', false)
+            ->when($evoConfigId, fn($q) => $q->where('evolution_api_config_id', $evoConfigId))
+            ->whereIn('status', ['open', 'pending'])
+            ->latest()
+            ->first();
+
+        if ($existingConv) {
+            $this->filter = 'mine';
+            $this->activeId = $existingConv->id;
+            $this->dispatch('conversation-selected', id: $existingConv->id);
+            $this->dispatch('toast', type: 'info', message: 'Conversa existente selecionada.');
+        } else {
+            $conv = Conversation::create([
+                'contact_id'             => $contact->id,
+                'department_id'          => $deptId,
+                'evolution_api_config_id' => $evoConfigId,
+                'status'                 => 'open',
+                'assigned_to'            => $user->id,
+                'is_group'               => false,
+                'last_message_at'        => now(),
+            ]);
+
+            $this->filter = 'mine';
+            $this->activeId = $conv->id;
+            $this->dispatch('conversation-selected', id: $conv->id);
+            $this->dispatch('toast', type: 'success', message: 'Nova conversa criada.');
+        }
+
+        $this->showNewConvModal = false;
+        $this->newConvPhone = '';
+        $this->newConvName = '';
+        $this->newConvDeptId = null;
     }
 
     public function render()

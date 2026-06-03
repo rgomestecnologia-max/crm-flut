@@ -13,6 +13,15 @@
             </p>
         </div>
 
+        {{-- Botão nova conversa --}}
+        <button wire:click="$set('showNewConvModal', true)"
+                title="Nova conversa"
+                style="width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; border:none; cursor:pointer; background:rgba(178,255,0,0.1); color:#b2ff00;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </button>
+
         {{-- Botão selecionar (admin + supervisor) --}}
         @if(auth()->user()->canManageCompany())
         <button wire:click="toggleSelectMode"
@@ -31,6 +40,63 @@
         </button>
         @endif
     </div>
+
+    {{-- Modal Nova Conversa --}}
+    @if($showNewConvModal)
+    <div style="position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);" wire:click.self="$set('showNewConvModal', false)">
+        <div style="background:#0f1320; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:380px; max-width:90vw;">
+            <h3 style="font-size:15px; font-weight:700; color:white; margin-bottom:16px;">Nova Conversa</h3>
+
+            <div style="margin-bottom:12px;">
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Telefone *</label>
+                <input wire:model="newConvPhone" type="tel" placeholder="(11) 99999-9999"
+                       style="width:100%; padding:10px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; outline:none; box-sizing:border-box;"
+                       onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                @error('newConvPhone') <p style="font-size:10px; color:#f87171; margin-top:4px;">{{ $message }}</p> @enderror
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Nome (opcional)</label>
+                <input wire:model="newConvName" type="text" placeholder="Nome do contato"
+                       style="width:100%; padding:10px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; outline:none; box-sizing:border-box;"
+                       onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+            </div>
+
+            @php
+                $userDepts = auth()->user()->departments;
+                if ($userDepts->isEmpty() && auth()->user()->canManageCompany()) {
+                    $userDepts = \App\Models\Department::active()->orderBy('sort_order')->get();
+                }
+                // Detecta múltiplos números WhatsApp
+                $evoConfigs = $userDepts->pluck('evolution_api_config_id')->filter()->unique();
+                $hasDefaultEvo = $userDepts->whereNull('evolution_api_config_id')->isNotEmpty();
+                $multiNumber = ($evoConfigs->count() + ($hasDefaultEvo ? 1 : 0)) > 1;
+            @endphp
+
+            <div style="margin-bottom:12px;">
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Departamento</label>
+                <select wire:model="newConvDeptId"
+                        style="width:100%; padding:10px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; outline:none; box-sizing:border-box;">
+                    <option value="">Selecione...</option>
+                    @foreach($userDepts as $dept)
+                        <option value="{{ $dept->id }}">{{ $dept->name }}{{ $multiNumber && $dept->evolution_api_config_id ? ' (' . ($dept->evolutionApiConfig->instance_name ?? '') . ')' : '' }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:18px;">
+                <button wire:click="$set('showNewConvModal', false)"
+                        style="padding:8px 16px; font-size:12px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:8px; cursor:pointer;">
+                    Cancelar
+                </button>
+                <button wire:click="startNewConversation"
+                        style="padding:8px 20px; font-size:12px; font-weight:700; color:#111; background:linear-gradient(135deg, #b2ff00, #8fcc00); border:none; border-radius:8px; cursor:pointer;">
+                    Iniciar Conversa
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Barra de ações em modo seleção --}}
     @if($selectMode)
