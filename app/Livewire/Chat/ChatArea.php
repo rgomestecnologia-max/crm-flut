@@ -602,18 +602,29 @@ class ChatArea extends Component
         } elseif ($type === 'video') {
             // Vídeo: comprimir com ffmpeg antes de salvar
             $compressed = $this->compressVideo($file->getRealPath());
+            $videoSource = $compressed ?: $file->getRealPath();
+            $baseName = uniqid('vid_', true);
+
             if ($compressed) {
-                $baseName = uniqid('vid_', true) . '.mp4';
-                $path = "{$dir}/{$baseName}";
+                $path = "{$dir}/{$baseName}.mp4";
                 MediaStorage::put($path, file_get_contents($compressed));
                 $url = MediaStorage::url($path);
                 $mime = 'video/mp4';
                 $name = pathinfo($name, PATHINFO_FILENAME) . '.mp4';
-                @unlink($compressed);
             } else {
                 $path = MediaStorage::store($file, $dir);
                 $url = MediaStorage::url($path);
+                $baseName = pathinfo($path, PATHINFO_FILENAME);
             }
+
+            // Gera thumbnail do vídeo
+            $thumbPath = $this->generateVideoThumbnail($videoSource);
+            if ($thumbPath) {
+                $thumbStoragePath = "{$dir}/{$baseName}_thumb.jpg";
+                MediaStorage::put($thumbStoragePath, file_get_contents($thumbPath));
+                @unlink($thumbPath);
+            }
+            if ($compressed) @unlink($compressed);
         } else {
             // Não-imagem ou não-otimizável: salva original
             $path    = MediaStorage::store($file, $dir);
@@ -1377,6 +1388,24 @@ class ChatArea extends Component
             Log::warning('Compressão de vídeo: exceção', ['error' => $e->getMessage()]);
             return null;
         }
+    }
+
+    private function generateVideoThumbnail(string $videoPath): ?string
+    {
+        try {
+            $thumbPath = sys_get_temp_dir() . '/' . uniqid('vid_thumb_') . '.jpg';
+            $cmd = sprintf(
+                'ffmpeg -i %s -ss 00:00:01 -vframes 1 -vf "scale=320:-1" -q:v 5 -y %s 2>&1',
+                escapeshellarg($videoPath),
+                escapeshellarg($thumbPath)
+            );
+            exec($cmd, $output, $returnCode);
+            if ($returnCode === 0 && file_exists($thumbPath) && filesize($thumbPath) > 0) {
+                return $thumbPath;
+            }
+            @unlink($thumbPath);
+        } catch (\Throwable) {}
+        return null;
     }
 
     public function render()

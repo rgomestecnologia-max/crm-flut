@@ -527,11 +527,23 @@ function senderColor(?string $identifier): string {
                                     <p style="font-size:11px; font-weight:700; color:{{ senderColor($msg->sender_phone ?? $msg->sender_name) }}; padding:8px 10px 4px;">{{ $msg->sender_name }}</p>
                                 @endif
                                 <div @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}', video: true })" style="cursor:pointer; position:relative;">
+                                    @if($msg->media_thumb_url)
+                                    <img src="{{ $msg->media_thumb_url }}" style="width:100%; height:auto; min-height:120px; max-height:240px; object-fit:cover; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div style="width:100%; height:160px; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center;">
+                                    @else
                                     <div style="width:100%; height:160px; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center;">
+                                    @endif
                                         <div style="width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,0.15); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;">
                                             <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                         </div>
                                     </div>
+                                    @if($msg->media_thumb_url)
+                                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);">
+                                        <div style="width:48px; height:48px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;">
+                                            <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
                                 @if($msg->content)
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6); white-space:pre-wrap;">{{ $msg->content }}</p>
@@ -815,11 +827,23 @@ function senderColor(?string $identifier): string {
                         @elseif($msg->type === 'video')
                             <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; overflow:hidden; border:1px solid rgba(45,74,8,0.6); max-width:min(300px, 70vw);">
                                 <div @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}', video: true })" style="cursor:pointer; position:relative;">
+                                    @if($msg->media_thumb_url)
+                                    <img src="{{ $msg->media_thumb_url }}" style="width:100%; height:auto; min-height:120px; max-height:240px; object-fit:cover; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div style="width:100%; height:160px; background:rgba(0,0,0,0.3); display:none; align-items:center; justify-content:center;">
+                                    @else
                                     <div style="width:100%; height:160px; background:rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
+                                    @endif
                                         <div style="width:48px; height:48px; border-radius:50%; background:rgba(178,255,0,0.2); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;">
                                             <svg width="22" height="22" fill="#b2ff00" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                         </div>
                                     </div>
+                                    @if($msg->media_thumb_url)
+                                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);">
+                                        <div style="width:48px; height:48px; border-radius:50%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;">
+                                            <svg width="22" height="22" fill="#b2ff00" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
                                 @if($msg->content)
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.7); white-space:pre-wrap;">{{ $msg->content }}</p>
