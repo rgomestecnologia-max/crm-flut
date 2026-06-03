@@ -94,10 +94,15 @@ class FillOrangeFieldsFromHistory extends Command
                 ]);
 
                 $text = $response->json('candidates.0.content.parts.0.text') ?? '';
-                $text = trim(str_replace(['```json', '```'], '', $text));
+                $text = trim(str_replace(['```json', '```', "\n"], '', $text));
                 $data = json_decode($text, true);
 
-                if (!$data) continue;
+                if (!$data) {
+                    if (!$hasRamo || !$hasProd) {
+                        $this->warn("Conv #{$conv->id} Card #{$card->id}: JSON inválido: {$text}");
+                    }
+                    continue;
+                }
 
                 $updated = false;
                 if (!$hasRamo && !empty($data['ramo']) && $data['ramo'] !== 'null') {
