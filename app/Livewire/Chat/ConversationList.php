@@ -288,6 +288,11 @@ class ConversationList extends Component
                 'phone' => $phone,
                 'name'  => $this->newConvName ?: null,
             ]);
+            // Cadastra também como lead
+            \App\Models\BroadcastContact::firstOrCreate(
+                ['phone' => $phone],
+                ['name' => $this->newConvName ?: null, 'tags' => ['manual'], 'is_active' => true]
+            );
         } elseif ($this->newConvName && !$contact->name) {
             $contact->update(['name' => $this->newConvName]);
         }
@@ -302,15 +307,22 @@ class ConversationList extends Component
         // Determina evolution_api_config_id
         $evoConfigId = $dept?->evolution_api_config_id ?? \App\Models\EvolutionApiConfig::first()?->id;
 
-        // Busca conversa aberta existente para esse contato + número
+        // Busca conversa existente para esse contato (qualquer status, incluindo resolvida)
         $existingConv = Conversation::where('contact_id', $contact->id)
             ->where('is_group', false)
             ->when($evoConfigId, fn($q) => $q->where('evolution_api_config_id', $evoConfigId))
-            ->whereIn('status', ['open', 'pending'])
             ->latest()
             ->first();
 
         if ($existingConv) {
+            // Reabre se estava resolvida
+            if ($existingConv->status === 'resolved') {
+                $existingConv->update([
+                    'status'               => 'open',
+                    'assigned_to'          => $user->id,
+                    'waiting_human_reason' => null,
+                ]);
+            }
             $this->filter = 'mine';
             $this->activeId = $existingConv->id;
             $this->dispatch('conversation-selected', id: $existingConv->id);
