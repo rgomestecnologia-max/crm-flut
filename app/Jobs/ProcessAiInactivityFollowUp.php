@@ -76,19 +76,23 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
         // Se a última mensagem é de humano (sender_id não nulo), ignora
         if ($lastMsg->sender_type === 'agent' && $lastMsg->sender_id !== null) return;
 
-        // Já encerrou por inatividade? Não processa de novo
-        $closeSent = Message::where('conversation_id', $conv->id)
-            ->where('sender_type', 'system')
-            ->where('content', 'like', '%encerramento inatividade%')
-            ->exists();
-        if ($closeSent) return;
-
-        // Verifica se já enviou follow-up de inatividade
+        // Busca último follow-up e último encerramento
         $followUpMsg = Message::where('conversation_id', $conv->id)
             ->where('sender_type', 'system')
             ->where('content', 'like', '%follow-up inatividade%')
             ->latest()
             ->first();
+
+        $closeMsg = Message::where('conversation_id', $conv->id)
+            ->where('sender_type', 'system')
+            ->where('content', 'like', '%encerramento inatividade%')
+            ->latest()
+            ->first();
+
+        // Se já encerrou DEPOIS do último follow-up (ou sem follow-up), não processa
+        if ($closeMsg && (!$followUpMsg || $closeMsg->created_at > $followUpMsg->created_at)) {
+            return;
+        }
 
         if ($followUpMsg) {
             // Cliente respondeu depois do follow-up? Se sim, IA já cuidou
