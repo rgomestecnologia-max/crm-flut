@@ -147,16 +147,25 @@ class ProcessMenuBot implements ShouldQueue
         if ($deptUsesOtherNumber) {
             // ── MULTI-NÚMERO: cria conversa separada no outro número ──
 
-            // Verifica se já existe conversa aberta nesse dept/número para evitar duplicatas
+            // Verifica se já existe conversa nesse número (aberta ou resolvida) para evitar duplicatas
             $existingOtherConv = \App\Models\Conversation::where('contact_id', $this->conversation->contact_id)
                 ->where('evolution_api_config_id', $department->evolution_api_config_id)
-                ->whereIn('status', ['open', 'pending'])
+                ->where('is_group', false)
+                ->latest()
                 ->first();
 
-            if ($existingOtherConv) {
+            if ($existingOtherConv && in_array($existingOtherConv->status, ['open', 'pending'])) {
                 // Já tem conversa aberta nesse número — avisa sem criar nova
                 $this->saveAndSend("Você já tem um atendimento em andamento no setor de *{$department->name}*. Aguarde a resposta pelo outro número. 😊");
                 return;
+            }
+            if ($existingOtherConv && $existingOtherConv->status === 'resolved') {
+                // Reabre conversa resolvida em vez de criar nova
+                $existingOtherConv->update([
+                    'status'        => 'open',
+                    'department_id' => $department->id,
+                    'waiting_human_reason' => null,
+                ]);
             }
 
             // Busca o número da nova instância
@@ -190,14 +199,16 @@ class ProcessMenuBot implements ShouldQueue
             }
             $this->saveAndSend(implode("\n", $menuLines));
 
-            // Cria conversa SEPARADA no outro número
-            $newConv = \App\Models\Conversation::create([
-                'contact_id'             => $this->conversation->contact_id,
-                'department_id'          => $department->id,
-                'evolution_api_config_id' => $department->evolution_api_config_id,
-                'status'                 => 'open',
-                'is_group'               => false,
-            ]);
+            // Usa conversa reaberta ou cria nova
+            $newConv = ($existingOtherConv && $existingOtherConv->status === 'open')
+                ? $existingOtherConv
+                : \App\Models\Conversation::create([
+                    'contact_id'             => $this->conversation->contact_id,
+                    'department_id'          => $department->id,
+                    'evolution_api_config_id' => $department->evolution_api_config_id,
+                    'status'                 => 'open',
+                    'is_group'               => false,
+                ]);
 
             // Envia boas-vindas pelo novo número
             $welcomeText = "Olá! Sou do setor de *{$department->name}* da {$this->config->company_name}. Como posso ajudar? 😊";
