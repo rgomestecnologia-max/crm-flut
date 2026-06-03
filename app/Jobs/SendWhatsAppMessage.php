@@ -76,7 +76,7 @@ class SendWhatsAppMessage implements ShouldQueue
         }
 
         $pageId = $config->page_id;
-        $token  = $channel === 'messenger' ? $config->page_access_token : $config->access_token;
+        $token  = $config->page_access_token;
         if (!$pageId || !$token) {
             $this->message->update(['delivery_status' => 'failed']);
             return;
