@@ -70,8 +70,19 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
         if (!$lastMsg) return;
 
-        // Se a última mensagem é do contato, a IA deveria ter respondido — ignora
-        if ($lastMsg->sender_type === 'contact') return;
+        // Se a última mensagem é do contato com texto, a IA deveria ter respondido — ignora
+        // (mas se é sticker/imagem/vídeo sem texto, a IA não responde — trata como inatividade)
+        if ($lastMsg->sender_type === 'contact' && $lastMsg->content && !in_array($lastMsg->type, ['sticker', 'image', 'video', 'document'])) {
+            return;
+        }
+        // Se é mídia do contato sem resposta da IA, usa a última msg do bot como referência
+        if ($lastMsg->sender_type === 'contact') {
+            $lastMsg = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
+                ->where('sender_type', 'agent')
+                ->latest()
+                ->first();
+            if (!$lastMsg) return;
+        }
 
         // Se a última mensagem é de humano (sender_id não nulo), ignora
         if ($lastMsg->sender_type === 'agent' && $lastMsg->sender_id !== null) return;
