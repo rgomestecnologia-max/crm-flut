@@ -10,7 +10,11 @@ class BroadcastContact extends Model
 {
     use Auditable, BelongsToCompany;
 
-    protected $fillable = ['company_id', 'name', 'phone', 'email', 'tags', 'is_active'];
+    protected $fillable = [
+        'company_id', 'type', 'name', 'company_name', 'document',
+        'phone', 'email', 'address', 'city', 'state',
+        'tags', 'notes', 'is_active',
+    ];
 
     protected function casts(): array
     {

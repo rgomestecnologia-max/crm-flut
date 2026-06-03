@@ -3,6 +3,10 @@
 namespace App\Livewire\Leads;
 
 use App\Models\BroadcastContact;
+use App\Models\CrmCard;
+use App\Models\CrmCardFieldValue;
+use App\Models\CrmCustomField;
+use App\Models\CrmPipeline;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -13,15 +17,27 @@ class LeadManager extends Component
 
     public string $search    = '';
     public string $filterTag = '';
+    public string $filterType = '';
 
     // Form
-    public bool    $showForm  = false;
-    public ?int    $editingId = null;
-    public string  $name      = '';
-    public string  $phone     = '';
-    public string  $email     = '';
-    public string  $tags      = '';
-    public bool    $is_active = true;
+    public bool    $showForm     = false;
+    public ?int    $editingId    = null;
+    public string  $type         = 'person';
+    public string  $name         = '';
+    public string  $company_name = '';
+    public string  $document     = '';
+    public string  $phone        = '';
+    public string  $email        = '';
+    public string  $address      = '';
+    public string  $city         = '';
+    public string  $state        = '';
+    public string  $tags         = '';
+    public string  $notes        = '';
+    public bool    $is_active    = true;
+
+    // CRM
+    public ?int   $pipelineId = null;
+    public array  $customFieldValues = [];
 
     // CSV import
     public bool $showImport  = false;
@@ -29,10 +45,12 @@ class LeadManager extends Component
 
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingFilterTag(): void { $this->resetPage(); }
+    public function updatingFilterType(): void { $this->resetPage(); }
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'name', 'phone', 'email', 'tags', 'is_active');
+        $this->reset('editingId', 'type', 'name', 'company_name', 'document', 'phone', 'email', 'address', 'city', 'state', 'tags', 'notes', 'is_active', 'pipelineId', 'customFieldValues');
+        $this->type = 'person';
         $this->is_active = true;
         $this->showForm  = true;
     }
@@ -40,13 +58,33 @@ class LeadManager extends Component
     public function openEdit(int $id): void
     {
         $lead = BroadcastContact::findOrFail($id);
-        $this->editingId = $id;
-        $this->name      = $lead->name ?? '';
-        $this->phone     = $lead->phone;
-        $this->email     = $lead->email ?? '';
-        $this->tags      = is_array($lead->tags) ? implode(', ', $lead->tags) : '';
-        $this->is_active = $lead->is_active;
-        $this->showForm  = true;
+        $this->editingId    = $id;
+        $this->type         = $lead->type ?? 'person';
+        $this->name         = $lead->name ?? '';
+        $this->company_name = $lead->company_name ?? '';
+        $this->document     = $lead->document ?? '';
+        $this->phone        = $lead->phone;
+        $this->email        = $lead->email ?? '';
+        $this->address      = $lead->address ?? '';
+        $this->city         = $lead->city ?? '';
+        $this->state        = $lead->state ?? '';
+        $this->tags         = is_array($lead->tags) ? implode(', ', $lead->tags) : '';
+        $this->notes        = $lead->notes ?? '';
+        $this->is_active    = $lead->is_active;
+
+        // Carrega valores dos campos CRM se tem card
+        $this->customFieldValues = [];
+        $contact = \App\Models\Contact::where('phone', $lead->phone)->first();
+        if ($contact) {
+            $card = CrmCard::where('contact_id', $contact->id)->latest()->first();
+            if ($card) {
+                $this->pipelineId = $card->pipeline_id;
+                $this->customFieldValues = CrmCardFieldValue::where('card_id', $card->id)
+                    ->pluck('value', 'field_id')->toArray();
+            }
+        }
+
+        $this->showForm = true;
     }
 
     public function save(): void
@@ -55,6 +93,7 @@ class LeadManager extends Component
             'name'  => 'nullable|string|max:200',
             'phone' => 'required|string|max:30',
             'email' => 'nullable|email|max:200',
+            'document' => 'nullable|string|max:30',
         ]);
 
         $phone = preg_replace('/\D/', '', $this->phone);
@@ -67,18 +106,24 @@ class LeadManager extends Component
             : [];
 
         $data = [
-            'name'      => $this->name ?: null,
-            'phone'     => $phone,
-            'email'     => $this->email ?: null,
-            'tags'      => array_values(array_filter($tagsArray)),
-            'is_active' => $this->is_active,
+            'type'         => $this->type,
+            'name'         => $this->name ?: null,
+            'company_name' => $this->type === 'company' ? ($this->company_name ?: null) : null,
+            'document'     => $this->document ?: null,
+            'phone'        => $phone,
+            'email'        => $this->email ?: null,
+            'address'      => $this->address ?: null,
+            'city'         => $this->city ?: null,
+            'state'        => $this->state ?: null,
+            'tags'         => array_values(array_filter($tagsArray)),
+            'notes'        => $this->notes ?: null,
+            'is_active'    => $this->is_active,
         ];
 
         if ($this->editingId) {
             $bc = BroadcastContact::findOrFail($this->editingId);
             $oldTags = $bc->tags ?? [];
             $bc->update($data);
-            // Gatilho de funil: verifica tags novas
             $newTags = array_diff($data['tags'], $oldTags);
             if (!empty($newTags)) {
                 \App\Services\EmailFunnelEnroller::enrollByTag($bc->company_id, $bc->id, $newTags);
@@ -86,19 +131,65 @@ class LeadManager extends Component
             $this->dispatch('toast', type: 'success', message: 'Lead atualizado.');
         } else {
             $bc = BroadcastContact::create($data);
-            // Gatilho de funil: verifica tags
             if (!empty($data['tags'])) {
                 \App\Services\EmailFunnelEnroller::enrollByTag($bc->company_id, $bc->id, $data['tags']);
             }
             $this->dispatch('toast', type: 'success', message: 'Lead adicionado.');
         }
 
-        // Sincronizar nome com Contact do atendimento
-        if ($this->name && $phone) {
-            \App\Models\Contact::where('phone', $phone)->update(['name' => $this->name]);
+        // Sincronizar Contact do atendimento
+        $contact = \App\Models\Contact::where('phone', $phone)->first();
+        if (!$contact) {
+            $contact = \App\Models\Contact::create([
+                'phone' => $phone,
+                'name'  => $this->name ?: ($this->company_name ?: null),
+            ]);
+        } elseif ($this->name) {
+            $contact->update(['name' => $this->name]);
         }
 
+        // CRM: cria ou atualiza card + campos personalizados
+        $this->saveCardAndFields($contact, $bc);
+
         $this->showForm = false;
+    }
+
+    private function saveCardAndFields(\App\Models\Contact $contact, BroadcastContact $bc): void
+    {
+        $pipelineId = $this->pipelineId ?: CrmPipeline::first()?->id;
+        if (!$pipelineId) return;
+
+        $pipeline = CrmPipeline::find($pipelineId);
+        if (!$pipeline) return;
+
+        $firstStage = $pipeline->stages()->orderBy('sort_order')->first();
+        if (!$firstStage) return;
+
+        // Busca card existente ou cria
+        $card = CrmCard::where('contact_id', $contact->id)
+            ->where('pipeline_id', $pipelineId)
+            ->first();
+
+        if (!$card) {
+            $card = CrmCard::create([
+                'pipeline_id' => $pipelineId,
+                'stage_id'    => $firstStage->id,
+                'contact_id'  => $contact->id,
+                'title'       => $this->name ?: ($this->company_name ?: $this->phone),
+            ]);
+        }
+
+        // Salva campos personalizados
+        $customFields = CrmCustomField::orderBy('sort_order')->get();
+        foreach ($customFields as $field) {
+            $value = $this->customFieldValues[$field->id] ?? null;
+            if ($value !== null && $value !== '') {
+                CrmCardFieldValue::updateOrCreate(
+                    ['card_id' => $card->id, 'field_id' => $field->id],
+                    ['value' => $value]
+                );
+            }
+        }
     }
 
     public function toggleActive(int $id): void
@@ -129,7 +220,7 @@ class LeadManager extends Component
 
         foreach ($lines as $i => $row) {
             if ($i === 0 && (strtolower($row[0] ?? '') === 'nome' || strtolower($row[0] ?? '') === 'name')) {
-                continue; // skip header
+                continue;
             }
 
             $name  = trim($row[0] ?? '');
@@ -157,9 +248,13 @@ class LeadManager extends Component
         $query = BroadcastContact::query();
 
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('phone', 'like', "%{$this->search}%");
+            $s = $this->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%")
+                  ->orWhere('company_name', 'like', "%{$s}%")
+                  ->orWhere('document', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%");
             });
         }
 
@@ -167,12 +262,18 @@ class LeadManager extends Component
             $query->whereJsonContains('tags', $this->filterTag);
         }
 
+        if ($this->filterType) {
+            $query->where('type', $this->filterType);
+        }
+
         $leads = $query->orderByDesc('created_at')->paginate(15);
 
-        // Coleta todas as tags únicas para o filtro
         $allTags = BroadcastContact::whereNotNull('tags')
             ->pluck('tags')->flatten()->unique()->sort()->values();
 
-        return view('livewire.leads.lead-manager', compact('leads', 'allTags'));
+        $pipelines = CrmPipeline::with('stages')->get();
+        $customFields = CrmCustomField::orderBy('sort_order')->get();
+
+        return view('livewire.leads.lead-manager', compact('leads', 'allTags', 'pipelines', 'customFields'));
     }
 }
