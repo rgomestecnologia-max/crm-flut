@@ -1324,12 +1324,16 @@ class ChatArea extends Component
         $targetAgent = $this->transferAgent ? User::find($this->transferAgent) : null;
         $department  = Department::find($this->transferTo);
 
+        // Se o dept destino usa outro número WhatsApp, atualiza a instância
+        $newEvoConfigId = $department->evolution_api_config_id ?? $conv->evolution_api_config_id;
+
         $conv->update([
-            'department_id' => $this->transferTo,
-            'assigned_to'   => $this->transferAgent,
+            'department_id'          => $this->transferTo,
+            'assigned_to'            => $this->transferAgent,
+            'evolution_api_config_id' => $newEvoConfigId,
             // Quando vai direto pra um agente, já entra como 'open' pra ele atender;
             // sem agente fica 'transferred' pra fila do setor.
-            'status'        => $this->transferAgent ? 'open' : 'transferred',
+            'status'                 => $this->transferAgent ? 'open' : 'transferred',
         ]);
 
         $systemMsg = $targetAgent
