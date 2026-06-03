@@ -599,6 +599,21 @@ class ChatArea extends Component
                 $url     = MediaStorage::url($path);
                 $content = MediaStorage::get($path);
             }
+        } elseif ($type === 'video') {
+            // Vídeo: comprimir com ffmpeg antes de salvar
+            $compressed = $this->compressVideo($file->getRealPath());
+            if ($compressed) {
+                $baseName = uniqid('vid_', true) . '.mp4';
+                $path = "{$dir}/{$baseName}";
+                MediaStorage::put($path, file_get_contents($compressed));
+                $url = MediaStorage::url($path);
+                $mime = 'video/mp4';
+                $name = pathinfo($name, PATHINFO_FILENAME) . '.mp4';
+                @unlink($compressed);
+            } else {
+                $path = MediaStorage::store($file, $dir);
+                $url = MediaStorage::url($path);
+            }
         } else {
             // Não-imagem ou não-otimizável: salva original
             $path    = MediaStorage::store($file, $dir);
@@ -1327,6 +1342,41 @@ class ChatArea extends Component
 
         // Atualiza a lista de conversas pra refletir a transferência
         $this->dispatch('conversation-deleted');
+    }
+
+    private function compressVideo(string $inputPath): ?string
+    {
+        try {
+            $outputPath = sys_get_temp_dir() . '/' . uniqid('vid_compressed_') . '.mp4';
+
+            // Comprime: H.264, CRF 28 (boa qualidade, arquivo menor), max 720p, audio AAC 128k
+            $cmd = sprintf(
+                'ffmpeg -i %s -vcodec libx264 -crf 28 -preset fast -vf "scale=min(1280\\,iw):min(720\\,ih):force_original_aspect_ratio=decrease" -acodec aac -b:a 128k -movflags +faststart -y %s 2>&1',
+                escapeshellarg($inputPath),
+                escapeshellarg($outputPath)
+            );
+
+            exec($cmd, $output, $returnCode);
+
+            if ($returnCode !== 0 || !file_exists($outputPath)) {
+                Log::warning('Compressão de vídeo falhou', ['code' => $returnCode, 'output' => implode("\n", array_slice($output, -5))]);
+                @unlink($outputPath);
+                return null;
+            }
+
+            $originalSize = filesize($inputPath);
+            $compressedSize = filesize($outputPath);
+            Log::info('Vídeo comprimido', [
+                'original' => round($originalSize / 1024 / 1024, 1) . 'MB',
+                'compressed' => round($compressedSize / 1024 / 1024, 1) . 'MB',
+                'reduction' => round((1 - $compressedSize / $originalSize) * 100) . '%',
+            ]);
+
+            return $outputPath;
+        } catch (\Throwable $e) {
+            Log::warning('Compressão de vídeo: exceção', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     public function render()
