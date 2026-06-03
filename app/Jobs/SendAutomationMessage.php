@@ -131,10 +131,13 @@ class SendAutomationMessage implements ShouldQueue
                     }
                 }
 
+                // Se IA vai atender primeiro, não atribui agente (fica na fila da IA)
+                $useAgent = $this->automation->ai_first_response ? null : $assignedTo;
+
                 $conversation = Conversation::create([
                     'contact_id'           => $this->contact->id,
                     'department_id'        => $deptId,
-                    'assigned_to'          => $assignedTo,
+                    'assigned_to'          => $useAgent,
                     'status'               => 'open',
                     'is_group'             => false,
                     'source_automation_id' => $this->automation->id,
@@ -143,10 +146,13 @@ class SendAutomationMessage implements ShouldQueue
                 if ($assignedTo) {
                     $agentName = \App\Models\User::find($assignedTo)?->name ?? '?';
                     $deptName  = Department::find($deptId)?->name ?? '?';
+                    $routeMsg = $useAgent
+                        ? "Roteamento DDD: atribuído a {$agentName} ({$deptName})"
+                        : "Roteamento DDD: departamento {$deptName}";
                     Message::create([
                         'conversation_id' => $conversation->id,
                         'sender_type'     => 'system',
-                        'content'         => "Roteamento DDD: atribuído a {$agentName} ({$deptName})",
+                        'content'         => $routeMsg,
                         'type'            => 'text',
                         'delivery_status' => 'sent',
                     ]);
