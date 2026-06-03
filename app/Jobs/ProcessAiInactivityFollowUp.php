@@ -62,13 +62,12 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
     private function processConversation(Conversation $conv, AiBotConfig $config, int $followUpMinutes, int $closeMinutes): void
     {
-        // Só processa conversas onde a IA participou (tem mensagem do bot)
-        $aiParticipated = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
+        // Só processa se a última mensagem do agente foi da IA (sender_id=null)
+        $lastAgentMsg = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
             ->where('sender_type', 'agent')
-            ->whereNull('sender_id')
-            ->whereNotNull('content')
-            ->exists();
-        if (!$aiParticipated) return;
+            ->latest()
+            ->first();
+        if (!$lastAgentMsg || $lastAgentMsg->sender_id !== null) return;
 
         // Pega a última mensagem da conversa (agent ou contact)
         $lastMsg = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
