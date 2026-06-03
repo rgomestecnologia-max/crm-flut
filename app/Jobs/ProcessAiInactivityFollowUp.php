@@ -33,13 +33,13 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
     private function processCompany(AiBotConfig $config): void
     {
-        $inactivityMinutes = $config->inactivity_followup_minutes ?? 60;
-        $closeMinutes = $config->inactivity_close_minutes ?? 60;
+        $inactivityMinutes = $config->inactivity_followup_minutes ?? null;
+        $closeMinutes = $config->inactivity_close_minutes ?? null;
 
         if (!$inactivityMinutes) return;
 
         // Busca conversas abertas sem agente humano, inativas pelo menor tempo configurado
-        $minMinutes = min($inactivityMinutes, $closeMinutes);
+        $minMinutes = min($inactivityMinutes, $closeMinutes ?: $inactivityMinutes);
         $conversations = Conversation::withoutGlobalScopes()
             ->where('company_id', $config->company_id)
             ->where('status', 'open')
