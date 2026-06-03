@@ -90,7 +90,7 @@ class FillOrangeFieldsFromHistory extends Command
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
                 $response = Http::timeout(15)->post($url, [
                     'contents' => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => ['maxOutputTokens' => 100, 'temperature' => 0.1],
+                    'generationConfig' => ['maxOutputTokens' => 256, 'temperature' => 0.1],
                 ]);
 
                 $text = $response->json('candidates.0.content.parts.0.text') ?? '';
