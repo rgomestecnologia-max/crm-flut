@@ -147,6 +147,18 @@ class ProcessMenuBot implements ShouldQueue
         if ($deptUsesOtherNumber) {
             // ── MULTI-NÚMERO: cria conversa separada no outro número ──
 
+            // Verifica se já existe conversa aberta nesse dept/número para evitar duplicatas
+            $existingOtherConv = \App\Models\Conversation::where('contact_id', $this->conversation->contact_id)
+                ->where('evolution_api_config_id', $department->evolution_api_config_id)
+                ->whereIn('status', ['open', 'pending'])
+                ->first();
+
+            if ($existingOtherConv) {
+                // Já tem conversa aberta nesse número — avisa sem criar nova
+                $this->saveAndSend("Você já tem um atendimento em andamento no setor de *{$department->name}*. Aguarde a resposta pelo outro número. 😊");
+                return;
+            }
+
             // Busca o número da nova instância
             $newConfig = \App\Models\EvolutionApiConfig::find($department->evolution_api_config_id);
             $newNumber = '';
