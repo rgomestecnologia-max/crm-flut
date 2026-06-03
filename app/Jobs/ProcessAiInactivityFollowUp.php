@@ -38,14 +38,15 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
         if (!$inactivityMinutes) return;
 
-        // Busca conversas abertas sem agente humano, onde a última mensagem é do bot
+        // Busca conversas abertas sem agente humano, inativas pelo menor tempo configurado
+        $minMinutes = min($inactivityMinutes, $closeMinutes);
         $conversations = Conversation::withoutGlobalScopes()
             ->where('company_id', $config->company_id)
             ->where('status', 'open')
             ->whereNull('assigned_to')
             ->whereNull('waiting_human_reason')
             ->where('is_group', false)
-            ->where('last_message_at', '<', now()->subMinutes($inactivityMinutes))
+            ->where('last_message_at', '<', now()->subMinutes($minMinutes))
             ->get();
 
         foreach ($conversations as $conv) {
@@ -61,7 +62,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
     private function processConversation(Conversation $conv, AiBotConfig $config, int $followUpMinutes, int $closeMinutes): void
     {
-        // Pega a última mensagem da conversa
+        // Pega a última mensagem da conversa (agent ou contact)
         $lastMsg = Message::where('conversation_id', $conv->id)
             ->whereIn('sender_type', ['agent', 'contact'])
             ->latest()
@@ -75,45 +76,30 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
         // Se a última mensagem é de humano (sender_id não nulo), ignora
         if ($lastMsg->sender_type === 'agent' && $lastMsg->sender_id !== null) return;
 
-        // A última mensagem é do bot. Verifica há quanto tempo
-        $minutesSinceLastMsg = now()->diffInMinutes($lastMsg->created_at);
-
-        // Verifica se já enviou follow-up de inatividade nesta conversa
-        $followUpSent = Message::where('conversation_id', $conv->id)
-            ->where('sender_type', 'system')
-            ->where('content', 'like', '%follow-up inatividade%')
-            ->where('created_at', '>', $lastMsg->created_at->subMinutes(5))
-            ->exists();
-
-        // Verifica se já enviou mensagem de encerramento
+        // Já encerrou por inatividade? Não processa de novo
         $closeSent = Message::where('conversation_id', $conv->id)
             ->where('sender_type', 'system')
             ->where('content', 'like', '%encerramento inatividade%')
-            ->where('created_at', '>', $lastMsg->created_at->subMinutes(5))
             ->exists();
-
         if ($closeSent) return;
 
-        if ($followUpSent) {
-            // Já enviou follow-up — verifica se passou mais tempo para encerrar
-            $followUpMsg = Message::where('conversation_id', $conv->id)
-                ->where('sender_type', 'system')
-                ->where('content', 'like', '%follow-up inatividade%')
-                ->latest()
-                ->first();
+        // Verifica se já enviou follow-up de inatividade
+        $followUpMsg = Message::where('conversation_id', $conv->id)
+            ->where('sender_type', 'system')
+            ->where('content', 'like', '%follow-up inatividade%')
+            ->latest()
+            ->first();
 
-            if (!$followUpMsg) return;
-
-            $minutesSinceFollowUp = now()->diffInMinutes($followUpMsg->created_at);
-
-            // Verifica se o cliente respondeu depois do follow-up
+        if ($followUpMsg) {
+            // Cliente respondeu depois do follow-up? Se sim, IA já cuidou
             $clientRepliedAfter = Message::where('conversation_id', $conv->id)
                 ->where('sender_type', 'contact')
                 ->where('created_at', '>', $followUpMsg->created_at)
                 ->exists();
-
             if ($clientRepliedAfter) return;
 
+            // Já enviou follow-up e cliente não respondeu — verifica se passou closeMinutes
+            $minutesSinceFollowUp = (int) now()->diffInMinutes($followUpMsg->created_at);
             if ($minutesSinceFollowUp >= $closeMinutes) {
                 $this->sendCloseMessage($conv, $config);
             }
