@@ -74,35 +74,36 @@ class FillOrangeFieldsFromHistory extends Command
             }
 
             // Pergunta ao Gemini
-            $prompt = "Analise esta conversa entre um cliente e a IA da Orangexpress (empresa de máquinas extratoras de suco de laranja).\n\n"
-                . "CONVERSA:\n{$history}\n\n"
-                . "Extraia APENAS o que o CLIENTE informou (não o que a IA perguntou):\n"
-                . "1. Ramo de atividade do cliente (ex: restaurante, lanchonete, bar, mercado, etc.)\n"
-                . "2. Estimativa de produção diária de suco de laranja (ex: 200 litros, 50 copos, etc.)\n\n"
-                . "Responda SOMENTE no formato JSON, sem markdown:\n"
-                . "{\"ramo\": \"valor ou null\", \"producao\": \"valor ou null\"}\n\n"
-                . "REGRAS:\n"
-                . "- Se o cliente NÃO informou o dado, use null\n"
-                . "- Saudações (Boa tarde, Oi, Olá) NÃO são ramo de atividade\n"
-                . "- Seja conciso no valor (ex: 'Restaurante', não 'O cliente tem um restaurante')";
+            $prompt = "Analise esta conversa e extraia dados do CLIENTE:\n\n"
+                . "{$history}\n\n"
+                . "Extraia:\n"
+                . "- ramo: ramo de atividade/negócio do cliente (restaurante, lanchonete, bar, etc). Use null se não informou.\n"
+                . "- producao: estimativa de produção diária de suco. Use null se não informou.\n"
+                . "Saudações (Oi, Boa tarde) NÃO são ramo. Seja conciso.";
 
             try {
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
                 $response = Http::timeout(15)->post($url, [
                     'contents' => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => ['maxOutputTokens' => 256, 'temperature' => 0.1],
+                    'generationConfig' => [
+                        'maxOutputTokens' => 256,
+                        'temperature' => 0.1,
+                        'responseMimeType' => 'application/json',
+                        'responseSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'ramo' => ['type' => 'string', 'nullable' => true],
+                                'producao' => ['type' => 'string', 'nullable' => true],
+                            ],
+                        ],
+                    ],
                 ]);
 
                 $text = $response->json('candidates.0.content.parts.0.text') ?? '';
-                $text = trim(str_replace(['```json', '```', "\n"], '', $text));
+                $text = trim(str_replace(['```json', '```'], '', $text));
                 $data = json_decode($text, true);
 
-                if (!$data) {
-                    if (!$hasRamo || !$hasProd) {
-                        $this->warn("Conv #{$conv->id} Card #{$card->id}: JSON inválido: {$text}");
-                    }
-                    continue;
-                }
+                if (!$data) continue;
 
                 $updated = false;
                 if (!$hasRamo && !empty($data['ramo']) && $data['ramo'] !== 'null') {
