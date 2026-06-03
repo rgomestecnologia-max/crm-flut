@@ -79,7 +79,7 @@
                         style="width:100%; padding:10px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; outline:none; box-sizing:border-box;">
                     <option value="">Selecione...</option>
                     @foreach($userDepts as $dept)
-                        <option value="{{ $dept->id }}">{{ $dept->name }}{{ $multiNumber && $dept->evolution_api_config_id ? ' (' . ($dept->evolutionApiConfig->instance_name ?? '') . ')' : '' }}</option>
+                        <option value="{{ $dept->id }}">{{ $dept->name }}@if($multiNumber && $dept->evolution_api_config_id) ({{ \App\Models\EvolutionApiConfig::find($dept->evolution_api_config_id)?->instance_name ?? '' }})@endif</option>
                     @endforeach
                 </select>
             </div>
