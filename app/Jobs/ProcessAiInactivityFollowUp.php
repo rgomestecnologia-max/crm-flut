@@ -63,7 +63,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
     private function processConversation(Conversation $conv, AiBotConfig $config, int $followUpMinutes, int $closeMinutes): void
     {
         // Pega a última mensagem da conversa (agent ou contact)
-        $lastMsg = Message::where('conversation_id', $conv->id)
+        $lastMsg = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
             ->whereIn('sender_type', ['agent', 'contact'])
             ->latest()
             ->first();
@@ -77,13 +77,13 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
         if ($lastMsg->sender_type === 'agent' && $lastMsg->sender_id !== null) return;
 
         // Busca último follow-up e último encerramento
-        $followUpMsg = Message::where('conversation_id', $conv->id)
+        $followUpMsg = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
             ->where('sender_type', 'system')
             ->where('content', 'like', '%follow-up inatividade%')
             ->latest()
             ->first();
 
-        $closeMsg = Message::where('conversation_id', $conv->id)
+        $closeMsg = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
             ->where('sender_type', 'system')
             ->where('content', 'like', '%encerramento inatividade%')
             ->latest()
@@ -96,7 +96,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
         if ($followUpMsg) {
             // Cliente respondeu depois do follow-up? Se sim, IA já cuidou
-            $clientRepliedAfter = Message::where('conversation_id', $conv->id)
+            $clientRepliedAfter = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
                 ->where('sender_type', 'contact')
                 ->where('created_at', '>', $followUpMsg->created_at)
                 ->exists();
@@ -122,7 +122,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
         $text = str_replace(['{nome}', '{name}'], [$contactName, $contactName], $text);
 
-        $msg = Message::create([
+        $msg = Message::withoutGlobalScopes()->create([
             'conversation_id' => $conv->id,
             'sender_type'     => 'agent',
             'sender_id'       => null,
@@ -135,7 +135,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
         SendWhatsAppMessage::dispatch($msg);
 
         // Marca que enviou follow-up (mensagem de sistema invisível)
-        Message::create([
+        Message::withoutGlobalScopes()->create([
             'conversation_id' => $conv->id,
             'sender_type'     => 'system',
             'content'         => 'IA: follow-up inatividade enviado',
@@ -157,7 +157,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
         $text = str_replace(['{nome}', '{name}'], [$contactName, $contactName], $text);
 
-        $msg = Message::create([
+        $msg = Message::withoutGlobalScopes()->create([
             'conversation_id' => $conv->id,
             'sender_type'     => 'agent',
             'sender_id'       => null,
@@ -175,7 +175,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
         ]);
 
         // Mensagens de sistema
-        Message::create([
+        Message::withoutGlobalScopes()->create([
             'conversation_id' => $conv->id,
             'sender_type'     => 'system',
             'content'         => 'IA: encerramento inatividade — conversa encerrada automaticamente',
