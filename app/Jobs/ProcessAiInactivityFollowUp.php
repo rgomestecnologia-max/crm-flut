@@ -103,7 +103,7 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
             if ($clientRepliedAfter) return;
 
             // Já enviou follow-up e cliente não respondeu — verifica se passou closeMinutes
-            $minutesSinceFollowUp = (int) now()->diffInMinutes($followUpMsg->created_at);
+            $minutesSinceFollowUp = (int) $followUpMsg->created_at->diffInMinutes(now(), absolute: true);
             if ($minutesSinceFollowUp >= $closeMinutes) {
                 $this->sendCloseMessage($conv, $config);
             }
