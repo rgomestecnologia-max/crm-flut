@@ -43,14 +43,14 @@ class FillOrangeFieldsFromHistory extends Command
         foreach ($convs as $conv) {
             $bar->advance();
 
-            $card = CrmCard::where('contact_id', $conv->contact_id)
+            $card = CrmCard::withoutGlobalScopes()->where('contact_id', $conv->contact_id)
                 ->where('pipeline_id', 6)->first();
             if (!$card) continue;
 
-            $hasRamo = CrmCardFieldValue::where('card_id', $card->id)
+            $hasRamo = CrmCardFieldValue::withoutGlobalScopes()->where('card_id', $card->id)
                 ->where('field_id', $ramoFieldId)
                 ->whereNotNull('value')->where('value', '!=', '')->exists();
-            $hasProd = CrmCardFieldValue::where('card_id', $card->id)
+            $hasProd = CrmCardFieldValue::withoutGlobalScopes()->where('card_id', $card->id)
                 ->where('field_id', $prodFieldId)
                 ->whereNotNull('value')->where('value', '!=', '')->exists();
 
@@ -101,14 +101,14 @@ class FillOrangeFieldsFromHistory extends Command
 
                 $updated = false;
                 if (!$hasRamo && !empty($data['ramo']) && $data['ramo'] !== 'null') {
-                    CrmCardFieldValue::updateOrCreate(
+                    CrmCardFieldValue::withoutGlobalScopes()->updateOrCreate(
                         ['card_id' => $card->id, 'field_id' => $ramoFieldId],
                         ['value' => $data['ramo']]
                     );
                     $updated = true;
                 }
                 if (!$hasProd && !empty($data['producao']) && $data['producao'] !== 'null') {
-                    CrmCardFieldValue::updateOrCreate(
+                    CrmCardFieldValue::withoutGlobalScopes()->updateOrCreate(
                         ['card_id' => $card->id, 'field_id' => $prodFieldId],
                         ['value' => $data['producao']]
                     );
