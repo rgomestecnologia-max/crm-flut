@@ -1093,7 +1093,7 @@ class ChatArea extends Component
     {
         if (!$this->conversationId) return;
 
-        $this->conversation->update(['status' => 'resolved']);
+        $this->conversation->update(['status' => 'resolved', 'waiting_human_reason' => null]);
 
         try {
             broadcast(new ConversationStatusChanged($this->conversation));
