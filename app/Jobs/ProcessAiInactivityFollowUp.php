@@ -113,14 +113,20 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
         }
 
         if ($followUpMsg) {
-            // Cliente respondeu depois do follow-up? Se sim, IA já cuidou
+            // Cliente respondeu depois do follow-up?
             $clientRepliedAfter = Message::withoutGlobalScopes()->where('conversation_id', $conv->id)
                 ->where('sender_type', 'contact')
                 ->where('created_at', '>', $followUpMsg->created_at)
                 ->exists();
-            if ($clientRepliedAfter) return;
 
-            // Já enviou follow-up e cliente não respondeu — verifica se passou closeMinutes
+            if ($clientRepliedAfter) {
+                // Cliente respondeu, a IA respondeu de volta, mas ficou inativo de novo
+                // → novo ciclo de inatividade, envia novo follow-up
+                $this->sendFollowUpMessage($conv, $config);
+                return;
+            }
+
+            // Cliente não respondeu ao follow-up — verifica se passou closeMinutes para encerrar
             $minutesSinceFollowUp = (int) $followUpMsg->created_at->diffInMinutes(now(), absolute: true);
             if ($minutesSinceFollowUp >= $closeMinutes) {
                 $this->sendCloseMessage($conv, $config);
