@@ -1324,29 +1324,91 @@ class ChatArea extends Component
         $targetAgent = $this->transferAgent ? User::find($this->transferAgent) : null;
         $department  = Department::find($this->transferTo);
 
-        // Se o dept destino usa outro número WhatsApp, atualiza a instância
-        $newEvoConfigId = $department->evolution_api_config_id ?? $conv->evolution_api_config_id;
+        // Multi-número: dept destino usa instância diferente?
+        $deptUsesOtherNumber = $department->evolution_api_config_id
+            && $department->evolution_api_config_id !== $conv->evolution_api_config_id;
 
-        $conv->update([
-            'department_id'          => $this->transferTo,
-            'assigned_to'            => $this->transferAgent,
-            'evolution_api_config_id' => $newEvoConfigId,
-            // Quando vai direto pra um agente, já entra como 'open' pra ele atender;
-            // sem agente fica 'transferred' pra fila do setor.
-            'status'                 => $this->transferAgent ? 'open' : 'transferred',
-        ]);
+        if ($deptUsesOtherNumber) {
+            // ── MULTI-NÚMERO: encerra conversa atual e cria/reabre na outra instância ──
+            $conv->update(['status' => 'resolved', 'waiting_human_reason' => null]);
 
-        $systemMsg = $targetAgent
-            ? "Conversa transferida para {$department->name} → {$targetAgent->name}."
-            : "Conversa transferida para o departamento {$department->name}.";
+            Message::create([
+                'conversation_id' => $conv->id,
+                'sender_type'     => 'system',
+                'content'         => "Conversa transferida para {$department->name} (outro número).",
+                'type'            => 'text',
+                'delivery_status' => 'sent',
+            ]);
 
-        Message::create([
-            'conversation_id' => $conv->id,
-            'sender_type'     => 'system',
-            'content'         => $systemMsg,
-            'type'            => 'text',
-            'delivery_status' => 'sent',
-        ]);
+            // Busca conversa existente na outra instância ou cria nova
+            $newConv = Conversation::where('contact_id', $conv->contact_id)
+                ->where('evolution_api_config_id', $department->evolution_api_config_id)
+                ->where('is_group', false)
+                ->latest()
+                ->first();
+
+            if ($newConv) {
+                $newConv->update([
+                    'status'        => 'open',
+                    'department_id' => $department->id,
+                    'assigned_to'   => $this->transferAgent,
+                    'waiting_human_reason' => null,
+                ]);
+            } else {
+                $newConv = Conversation::create([
+                    'contact_id'             => $conv->contact_id,
+                    'department_id'          => $department->id,
+                    'evolution_api_config_id' => $department->evolution_api_config_id,
+                    'status'                 => 'open',
+                    'assigned_to'            => $this->transferAgent,
+                    'is_group'               => false,
+                    'last_message_at'        => now(),
+                ]);
+            }
+
+            // Mensagem de boas-vindas na nova conversa
+            $companyName = app(\App\Services\CurrentCompany::class)->model()?->name ?? config('app.name');
+            $welcomeMsg = Message::create([
+                'conversation_id' => $newConv->id,
+                'sender_type'     => 'agent',
+                'sender_id'       => null,
+                'content'         => "Olá! Sou do setor de *{$department->name}* da {$companyName}. Como posso ajudar? 😊",
+                'type'            => 'text',
+                'delivery_status' => 'pending',
+            ]);
+            $newConv->update(['last_message_at' => now()]);
+            \App\Jobs\SendWhatsAppMessage::dispatch($welcomeMsg);
+
+            $systemMsg = $targetAgent
+                ? "Transferido de {$conv->department?->name} → {$department->name} ({$targetAgent->name}) [outro número]"
+                : "Transferido de {$conv->department?->name} → {$department->name} [outro número]";
+            Message::create([
+                'conversation_id' => $newConv->id,
+                'sender_type'     => 'system',
+                'content'         => $systemMsg,
+                'type'            => 'text',
+                'delivery_status' => 'sent',
+            ]);
+        } else {
+            // ── MESMO NÚMERO: transfere conversa normalmente ──
+            $conv->update([
+                'department_id' => $this->transferTo,
+                'assigned_to'   => $this->transferAgent,
+                'status'        => $this->transferAgent ? 'open' : 'transferred',
+            ]);
+
+            $systemMsg = $targetAgent
+                ? "Conversa transferida para {$department->name} → {$targetAgent->name}."
+                : "Conversa transferida para o departamento {$department->name}.";
+
+            Message::create([
+                'conversation_id' => $conv->id,
+                'sender_type'     => 'system',
+                'content'         => $systemMsg,
+                'type'            => 'text',
+                'delivery_status' => 'sent',
+            ]);
+        }
 
         $this->showTransfer   = false;
         $this->transferTo     = null;
