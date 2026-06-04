@@ -21,6 +21,9 @@ Route::put('/pricing/{token}', [PricingController::class, 'update'])->name('pric
 // Landing Pages (público)
 Route::get('/lp/{companySlug}/{pageSlug}', [App\Http\Controllers\LandingPageViewController::class, 'show'])->name('lp.show');
 
+// Link in Bio (público)
+Route::get('/bio/{companySlug}/{slug}', [App\Http\Controllers\LinkInBioViewController::class, 'show'])->name('bio.show');
+
 // Instagram OAuth Callback
 Route::get('/auth/meta/callback', function (\Illuminate\Http\Request $request) {
     $code = $request->query('code');
@@ -189,6 +192,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('backups', fn() => view('admin.backups.index'))->name('backups.index');
         Route::get('flut-chat', fn() => view('admin.flut-chat.index'))->name('flut-chat.index')->middleware('module:admin.flut-chat');
         Route::get('landing-pages', fn() => view('admin.landing-pages.index'))->name('landing-pages.index')->middleware('module:admin.landing-pages');
+        Route::get('link-in-bio', fn() => view('admin.link-in-bio.index'))->name('link-in-bio.index')->middleware('module:admin.link-in-bio');
     });
 
     // Download de mídia (proxy para evitar CORS em URLs externas)

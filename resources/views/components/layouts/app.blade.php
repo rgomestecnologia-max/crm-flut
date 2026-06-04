@@ -420,6 +420,17 @@
                 </a>
                 @endif
 
+                @if($canSee('admin.link-in-bio'))
+                <a href="{{ route('admin.link-in-bio.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.link-in-bio*') ? 'active' : '' }}"
+                   style="color:{{ request()->routeIs('admin.link-in-bio*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                    <span x-show="sidebarOpen">Link in Bio</span>
+                </a>
+                @endif
+
                 @if($canSee('admin.audit'))
                 <a href="{{ route('admin.audit.index') }}"
                    class="nav-item {{ request()->routeIs('admin.audit*') ? 'active' : '' }}"

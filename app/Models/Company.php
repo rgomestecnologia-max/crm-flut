@@ -48,6 +48,7 @@ class Company extends Model
             'admin.automation' => 'Automação',
             'admin.flut-chat'    => 'Flut Chat',
             'admin.landing-pages'=> 'Landing Pages',
+            'admin.link-in-bio'  => 'Link in Bio',
             'admin.audit'        => 'Auditoria',
         ],
     ];

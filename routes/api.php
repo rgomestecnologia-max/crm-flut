@@ -34,6 +34,9 @@ Route::prefix('flut-chat')->middleware('throttle:60,1')->group(function () {
 // ── Landing Pages (público) ───────────────────────────────────────────
 Route::post('/lp/{pageId}/lead', [\App\Http\Controllers\Api\LandingPageController::class, 'saveLead'])->middleware('throttle:30,1');
 
+// ── Link in Bio: tracking de clicks ──────────────────────────────────
+Route::post('/bio/click/{linkId}', [\App\Http\Controllers\LinkInBioViewController::class, 'trackClick']);
+
 // ── Proxy de imagens (evitar CORS do R2 no PDF) ──────────────────────
 Route::get('/proxy-image', function (\Illuminate\Http\Request $request) {
     $url = $request->query('url');
