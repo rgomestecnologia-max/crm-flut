@@ -43,8 +43,9 @@ class PricingManager extends Component
         foreach ($imageKeys as $prop => $configKey) {
             if ($this->$prop) {
                 $filename = str_replace('_image', '', $prop) . '.' . $this->$prop->getClientOriginalExtension();
-                $this->$prop->storeAs('modules', $filename, 'public');
-                $this->prices[$configKey] = '/storage/modules/' . $filename;
+                $path = 'modules/' . $filename;
+                \App\Services\MediaStorage::put($path, file_get_contents($this->$prop->getRealPath()));
+                $this->prices[$configKey] = \App\Services\MediaStorage::url($path);
                 $this->$prop = null;
             }
         }
@@ -59,8 +60,9 @@ class PricingManager extends Component
     {
         $path = $this->prices[$configKey] ?? '';
         if ($path) {
-            $storagePath = str_replace('/storage/', '', $path);
-            Storage::disk('public')->delete($storagePath);
+            // Remove do R2 ou storage local
+            $filename = basename(parse_url($path, PHP_URL_PATH));
+            \App\Services\MediaStorage::delete('modules/' . $filename);
         }
         $this->prices[$configKey] = '';
         PricingConfig::set($configKey, '');
