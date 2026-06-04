@@ -42,7 +42,7 @@ class PricingManager extends Component
 
         foreach ($imageKeys as $prop => $configKey) {
             if ($this->$prop) {
-                $filename = str_replace('_image', '', $prop) . '.' . $this->$prop->getClientOriginalExtension();
+                $filename = str_replace('_image', '', $prop) . '_' . time() . '.' . $this->$prop->getClientOriginalExtension();
                 $path = 'modules/' . $filename;
                 \App\Services\MediaStorage::put($path, file_get_contents($this->$prop->getRealPath()));
                 $this->prices[$configKey] = \App\Services\MediaStorage::url($path);
