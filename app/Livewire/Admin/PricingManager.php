@@ -12,7 +12,7 @@ class PricingManager extends Component
     use WithFileUploads;
 
     public array $prices = [];
-    public $multi_image, $crm_image, $email_image, $ia_image, $integration_image, $chat_interno_image, $flutchat_image, $flutzap_image, $consultoria_image;
+    public $multi_image, $crm_image, $email_image, $ia_image, $integration_image, $chat_interno_image, $landing_image, $flutchat_image, $flutzap_image, $consultoria_image;
 
     public function mount(): void
     {
@@ -34,6 +34,7 @@ class PricingManager extends Component
             'ia_image' => 'ia_screenshot',
             'integration_image' => 'integration_screenshot',
             'chat_interno_image' => 'chat_interno_screenshot',
+            'landing_image' => 'landing_screenshot',
             'flutchat_image' => 'flutchat_screenshot',
             'flutzap_image' => 'flutzap_screenshot',
             'consultoria_image' => 'consultoria_screenshot',
