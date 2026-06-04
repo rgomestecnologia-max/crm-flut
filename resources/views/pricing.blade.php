@@ -1017,7 +1017,8 @@ function pricingSimulator() {
                         if (loaded && img.width > 0) {
                             const imgW = pw - mx * 2;
                             const imgH = (img.height / img.width) * imgW;
-                            const maxImgH = 140;
+                            const spaceLeft = ph - 25 - y - 10;
+                            const maxImgH = Math.min(90, Math.max(50, spaceLeft));
                             const finalH = Math.min(imgH, maxImgH);
                             const finalW = imgH > maxImgH ? (img.width / img.height) * maxImgH : imgW;
                             if (y + finalH + 10 > ph - 25) { addFooter(); doc.addPage(); y = 25; }
