@@ -194,8 +194,9 @@ class ProcessAiInactivityFollowUp implements ShouldQueue
 
         // Encerra a conversa
         $conv->update([
-            'status'          => 'resolved',
-            'last_message_at' => now(),
+            'status'               => 'resolved',
+            'last_message_at'      => now(),
+            'waiting_human_reason' => null,
         ]);
 
         // Mensagens de sistema
