@@ -83,6 +83,20 @@
                             </select>
                         </div>
                     </div>
+                    <div style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button class="toggle" style="flex-shrink:0;" :style="{ background: multi.messenger ? '#0084ff' : 'rgba(255,255,255,0.1)' }" @click="multi.messenger = !multi.messenger; clearCustom(); calc()">
+                                <span :style="{ left: multi.messenger ? '25px' : '3px' }"></span>
+                            </button>
+                            <span style="font-size:12px; color:rgba(255,255,255,0.5);" x-text="multi.messenger ? 'Messenger Facebook (+R$ 49/mês)' : 'Messenger Facebook'"></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button class="toggle" style="flex-shrink:0;" :style="{ background: multi.instagram ? '#E1306C' : 'rgba(255,255,255,0.1)' }" @click="multi.instagram = !multi.instagram; clearCustom(); calc()">
+                                <span :style="{ left: multi.instagram ? '25px' : '3px' }"></span>
+                            </button>
+                            <span style="font-size:12px; color:rgba(255,255,255,0.5);" x-text="multi.instagram ? 'Instagram Direct (+R$ 49/mês)' : 'Instagram Direct'"></span>
+                        </div>
+                    </div>
                 </div>
             </template>
         </div>
@@ -236,6 +250,21 @@
             <p class="module-desc">Canal de comunicação exclusivo da equipe integrado ao CRM — sem misturar com WhatsApp pessoal.</p>
         </div>
 
+        {{-- Landing Pages --}}
+        <div class="module" style="border-color: rgba(249,115,22,0.1);">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f9731680,transparent);"></div>
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="bar" style="background:#f97316;"></div>
+                    <h2>Landing Pages</h2>
+                </div>
+                <button class="toggle" :style="{ background: modules.landing ? '#f97316' : 'rgba(255,255,255,0.1)' }" @click="modules.landing = !modules.landing; clearCustom(); calc()">
+                    <span :style="{ left: modules.landing ? '25px' : '3px' }"></span>
+                </button>
+            </div>
+            <p class="module-desc">Criação de landing pages com editor drag & drop, geração por IA e integração com CRM.</p>
+        </div>
+
         {{-- FlutChat --}}
         <div class="module" style="border-color: rgba(99,102,241,0.1);">
             <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#6366f180,transparent);"></div>
@@ -338,7 +367,7 @@
                 <template x-if="modules.multi">
                     <div>
                         <div class="breakdown-item">
-                            <span>Multi-atendimento (<span x-text="multi.users"></span> usuários, <span x-text="multi.instances"></span> número<span x-show="multi.instances > 1">s</span>)</span>
+                            <span>Multi-atendimento (<span x-text="multi.users"></span> usuários, <span x-text="multi.instances"></span> número<span x-show="multi.instances > 1">s</span><span x-show="multi.messenger">, Messenger</span><span x-show="multi.instagram">, Instagram</span>)</span>
                             <span class="val">R$ <span x-text="fmt(detail.multi_monthly)"></span>/mês</span>
                         </div>
                         <div class="breakdown-item">
@@ -399,6 +428,12 @@
                     <div>
                         <div class="breakdown-item"><span>Chat Interno</span><span class="val">R$ <span x-text="fmt(detail.chatInterno_monthly)"></span>/mês</span></div>
                         <div class="breakdown-item"><span>↳ Implantação</span><span class="val">R$ <span x-text="fmt(detail.chatInterno_setup)"></span></span></div>
+                    </div>
+                </template>
+                <template x-if="modules.landing">
+                    <div>
+                        <div class="breakdown-item"><span>Landing Pages</span><span class="val">R$ <span x-text="fmt(detail.landing_monthly)"></span>/mês</span></div>
+                        <div class="breakdown-item"><span>↳ Implantação</span><span class="val">R$ <span x-text="fmt(detail.landing_setup)"></span></span></div>
                     </div>
                 </template>
                 <template x-if="modules.flutchat">
@@ -482,8 +517,8 @@ function pricingSimulator() {
     const existing = @json($proposal ?? null);
     const refUserId = @json($refUserId ?? null);
     return {
-        modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false, chatInterno: false, flutchat: false, flutzap: false, consultoria: false },
-        multi: { users: existing?.config?.multi_users ?? 1, instances: existing?.config?.multi_instances ?? 1 },
+        modules: existing ? existing.modules : { multi: true, crm: false, email: false, ia: false, integrations: false, chatInterno: false, landing: false, flutchat: false, flutzap: false, consultoria: false },
+        multi: { users: existing?.config?.multi_users ?? 1, instances: existing?.config?.multi_instances ?? 1, messenger: existing?.config?.multi_messenger ?? false, instagram: existing?.config?.multi_instagram ?? false },
         email: { plan: existing?.config?.email_plan ?? '5k', whatsapp: existing?.config?.email_whatsapp ?? false },
         ia: { flows: existing?.config?.ia_flows ?? 1 },
         integrations: { count: existing?.config?.integrations_count ?? 1 },
@@ -525,6 +560,8 @@ function pricingSimulator() {
                 const baseUsers = parseInt(C.multi_base_users);
                 defM += Math.max(0, this.multi.users - baseUsers) * parseFloat(C.multi_extra_user);
                 defM += Math.max(0, this.multi.instances - 1) * parseFloat(C.multi_extra_instance);
+                if (this.multi.messenger) defM += parseFloat(C.multi_messenger_price || 49);
+                if (this.multi.instagram) defM += parseFloat(C.multi_instagram_price || 49);
                 const m = this._cv('multi_monthly', defM);
                 const s = this._cv('multi_setup', parseFloat(C.multi_setup));
                 this.detail.multi_monthly = m;
@@ -572,6 +609,13 @@ function pricingSimulator() {
                 monthly += m; setup += s;
             }
 
+            if (this.modules.landing) {
+                const m = this._cv('landing_monthly', parseFloat(C.landing_price || 149));
+                const s = this._cv('landing_setup', parseFloat(C.landing_setup || 399));
+                this.detail.landing_monthly = m;
+                this.detail.landing_setup = s;
+                monthly += m; setup += s;
+            }
             if (this.modules.flutchat) {
                 const withAi = this.flutchat.withAi === '1' || this.flutchat.withAi === 1;
                 const m = this._cv('flutchat_monthly', parseFloat(withAi ? C.flutchat_ia_price : C.flutchat_price));
@@ -634,6 +678,8 @@ function pricingSimulator() {
                         config: {
                             multi_users: this.multi.users,
                             multi_instances: this.multi.instances,
+                            multi_messenger: this.multi.messenger,
+                            multi_instagram: this.multi.instagram,
                             email_plan: this.email.plan,
                             email_whatsapp: this.email.whatsapp,
                             ia_flows: this.ia.flows,
@@ -794,16 +840,20 @@ function pricingSimulator() {
             const moduleColors = {
                 multi: [178, 255, 0], crm: [139, 92, 246], email: [59, 130, 246],
                 ia: [236, 72, 153], integrations: [6, 182, 212],
-                chatInterno: [16, 185, 129], flutchat: [99, 102, 241], flutzap: [245, 158, 11],
-                consultoria: [20, 184, 166]
+                chatInterno: [16, 185, 129], landing: [249, 115, 22], flutchat: [99, 102, 241],
+                flutzap: [245, 158, 11], consultoria: [20, 184, 166]
             };
             const moduleData = [];
-            if (this.modules.multi) moduleData.push({
+            if (this.modules.multi) {
+                let multiSub = `${this.multi.users} usuário${this.multi.users>1?'s':''}, ${this.multi.instances} número${this.multi.instances>1?'s':''}`;
+                if (this.multi.messenger) multiSub += ', Messenger';
+                if (this.multi.instagram) multiSub += ', Instagram';
+                moduleData.push({
                 key: 'multi', title: 'Multi-atendimento WhatsApp',
-                subtitle: `${this.multi.users} usuário${this.multi.users>1?'s':''}, ${this.multi.instances} número${this.multi.instances>1?'s':''}`,
+                subtitle: multiSub,
                 monthly: this.detail.multi_monthly, setup: this.detail.multi_setup,
                 benefits: C.multi_benefits || ''
-            });
+            });}
             if (this.modules.crm) moduleData.push({
                 key: 'crm', title: 'CRM — Pipeline de Vendas', subtitle: 'Gestão completa de vendas',
                 monthly: this.detail.crm_monthly, setup: this.detail.crm_setup,
@@ -836,6 +886,12 @@ function pricingSimulator() {
                 subtitle: 'Comunicação interna da equipe',
                 monthly: this.detail.chatInterno_monthly, setup: this.detail.chatInterno_setup,
                 benefits: C.chat_interno_benefits || ''
+            });
+            if (this.modules.landing) moduleData.push({
+                key: 'landing', title: 'Landing Pages',
+                subtitle: 'Criação de páginas com editor visual e IA',
+                monthly: this.detail.landing_monthly, setup: this.detail.landing_setup,
+                benefits: C.landing_benefits || ''
             });
             if (this.modules.flutchat) moduleData.push({
                 key: 'flutchat', title: 'FlutChat',

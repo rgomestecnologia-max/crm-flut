@@ -33,6 +33,8 @@ class PricingConfig extends Model
             'multi_extra_user'        => '49.00',
             'multi_extra_instance'    => '189.90',
             'multi_setup'             => '600.00',
+            'multi_messenger_price'   => '49.00',
+            'multi_instagram_price'   => '49.00',
 
             // CRM
             'crm_price'               => '349.90',
@@ -66,6 +68,10 @@ class PricingConfig extends Model
             'consultoria_hours'       => '4',
             'consultoria_setup'       => '0.00',
 
+            // Landing Pages
+            'landing_price'           => '149.00',
+            'landing_setup'           => '399.00',
+
             // Integrações
             'integration_setup'       => '800.00',
             'integration_monthly'     => '200.00',
@@ -75,7 +81,7 @@ class PricingConfig extends Model
 
             'crm_benefits' => "Pipeline visual estilo Kanban para acompanhar cada oportunidade de vendas do início ao fechamento.\n\n✅ Visualização completa do funil de vendas em tempo real\n✅ Cards personalizáveis com campos sob medida para seu negócio\n✅ Arraste e solte para mover oportunidades entre etapas\n✅ Histórico de atividades e anotações por card\n✅ Múltiplos pipelines (Comercial, Pós-venda, Suporte, etc.)\n✅ Exportação de dados para Excel\n✅ Filtros avançados e busca inteligente\n✅ Integração direta com o atendimento WhatsApp\n\nTenha controle total sobre suas vendas e não deixe nenhuma oportunidade escapar.",
 
-            'email_benefits' => "Campanhas de email e WhatsApp em massa com agendamento, templates profissionais e relatórios detalhados.\n\n✅ Disparo de email marketing em massa (até 50.000/mês)\n✅ Disparo de mensagens WhatsApp em massa\n✅ Templates personalizáveis com editor visual\n✅ Agendamento de campanhas para data e hora específicas\n✅ Segmentação de contatos por tags e filtros\n✅ Relatórios de abertura, cliques e entregas\n✅ Gestão de descadastros automática\n✅ API oficial do WhatsApp (Meta) para maior segurança\n\nAlcance seus clientes no canal certo, na hora certa, com a mensagem certa.",
+            'email_benefits' => "Campanhas de email e WhatsApp em massa com agendamento, templates profissionais, automação de funis e relatórios detalhados.\n\n✅ Disparo de email marketing em massa (até 50.000/mês)\n✅ Disparo de mensagens WhatsApp em massa\n✅ Automação de funis de email com delays e condições\n✅ Sequências automáticas (boas-vindas, nutrição, reativação)\n✅ Templates personalizáveis com editor visual\n✅ Agendamento de campanhas para data e hora específicas\n✅ Segmentação de contatos por tags e filtros\n✅ Relatórios de abertura, cliques e entregas\n✅ Gestão de descadastros automática\n✅ API oficial do WhatsApp (Meta) para maior segurança\n\nAlcance seus clientes no canal certo, na hora certa, com a mensagem certa.",
 
             'ia_benefits' => "Inteligência artificial que atende seus clientes 24 horas por dia, 7 dias por semana, com base de conhecimento personalizada.\n\n✅ Atendimento automático 24h via WhatsApp\n✅ Base de conhecimento treinada com informações do seu negócio\n✅ Respostas naturais e contextualizadas\n✅ Transferência automática para humano quando necessário\n✅ Múltiplos fluxos de IA (SDR, SAC, Agendamento, Cobranças, etc.)\n✅ Aprendizado contínuo com feedback dos atendimentos\n✅ Redução drástica no tempo de resposta\n✅ Economia de até 70% nos custos de atendimento\n\nDeixe a IA cuidar das perguntas frequentes enquanto sua equipe foca no que realmente importa.",
 
@@ -89,6 +95,8 @@ class PricingConfig extends Model
 
             'consultoria_benefits' => "Tenha um especialista Flut dedicado ao sucesso da sua operação — acompanhamento mensal com foco em resultados.\n\n✅ Acompanhamento mensal do CRM e indicadores\n✅ Suporte operacional para sua equipe\n✅ Análise do funil de vendas com insights acionáveis\n✅ Reunião de alinhamento mensal\n✅ Sugestões de melhorias contínuas na operação\n✅ Melhorias contínuas no treinamento e processo de atendimento da IA\n✅ Criação e disparo de campanhas de marketing\n✅ Criação de novas automações sob demanda\n✅ Criação de visões e relatórios customizados\n\n4 horas mensais de consultoria dedicada para garantir que sua empresa extraia o máximo da plataforma.",
 
+            'landing_benefits' => "Crie landing pages profissionais em minutos com editor visual drag & drop ou geração automática por IA.\n\n✅ Editor visual drag & drop intuitivo\n✅ Templates responsivos pré-desenhados\n✅ Geração automática de páginas com IA (Gemini)\n✅ Formulário integrado com CRM (captura de leads automática)\n✅ Analytics de conversão (views, leads, taxa)\n✅ SEO otimizado (meta tags, OG images)\n✅ Domínio personalizado (CNAME)\n✅ Blocos: Hero, Features, Depoimentos, FAQ, Vídeo, Galeria, CTA\n✅ Widget FlutChat integrado na landing page\n✅ Preview em tempo real lado a lado\n\nTransforme visitantes em leads qualificados com páginas de alta conversão — sem precisar de designer ou programador.",
+
             // Screenshots dos módulos (PDF)
             'multi_screenshot' => '',
             'crm_screenshot' => '',
@@ -99,6 +107,7 @@ class PricingConfig extends Model
             'flutchat_screenshot' => '',
             'flutzap_screenshot' => '',
             'consultoria_screenshot' => '',
+            'landing_screenshot' => '',
         ];
     }
 

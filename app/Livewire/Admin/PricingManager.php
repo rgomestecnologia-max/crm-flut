@@ -74,6 +74,8 @@ class PricingManager extends Component
             'multi_extra_user'     => ['Multi-atendimento — Usuário adicional', 'R$/mês'],
             'multi_extra_instance' => ['Multi-atendimento — Instância WhatsApp adicional', 'R$/mês'],
             'multi_setup'          => ['Multi-atendimento — Implantação', 'R$'],
+            'multi_messenger_price' => ['Multi-atendimento — Messenger Facebook', 'R$/mês'],
+            'multi_instagram_price' => ['Multi-atendimento — Instagram Direct', 'R$/mês'],
             'crm_price'            => ['CRM — Mensalidade', 'R$/mês'],
             'crm_setup'            => ['CRM — Implantação', 'R$'],
             'email_5k_price'       => ['Disparos Email — Até 5 mil/mês', 'R$/mês'],
@@ -94,6 +96,8 @@ class PricingManager extends Component
             'consultoria_price'    => ['Gestão Consultiva e Operacional — Mensalidade', 'R$/mês'],
             'consultoria_hours'    => ['Gestão Consultiva e Operacional — Horas/mês', 'horas'],
             'consultoria_setup'    => ['Gestão Consultiva e Operacional — Implantação', 'R$'],
+            'landing_price'        => ['Landing Pages — Mensalidade', 'R$/mês'],
+            'landing_setup'        => ['Landing Pages — Implantação', 'R$'],
         ];
 
         return view('livewire.admin.pricing-manager', compact('labels'));
