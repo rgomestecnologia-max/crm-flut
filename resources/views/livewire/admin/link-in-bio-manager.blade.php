@@ -212,14 +212,19 @@ $themes = \App\Models\LinkInBioPage::THEMES;
         </div>
 
         {{-- Lado direito: preview --}}
-        <div style="width:375px; flex-shrink:0; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:hidden;">
+        <div style="width:375px; flex-shrink:0; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:hidden;"
+             x-data="{ refreshKey: 0 }"
+             x-on:link-in-bio-updated.window="refreshKey++">
             <div style="padding:8px 12px; background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between;">
                 <span style="font-size:10px; color:rgba(255,255,255,0.3);">Preview</span>
-                @if($currentPage?->status === 'published')
-                <a href="{{ $currentPage->public_url }}" target="_blank" style="font-size:10px; color:#60a5fa; text-decoration:none;">Abrir →</a>
-                @endif
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button @click="refreshKey++" style="font-size:10px; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer;" title="Atualizar preview">🔄</button>
+                    @if($currentPage?->status === 'published')
+                    <a href="{{ $currentPage->public_url }}" target="_blank" style="font-size:10px; color:#60a5fa; text-decoration:none;">Abrir →</a>
+                    @endif
+                </div>
             </div>
-            <iframe src="{{ $currentPage?->public_url }}?preview=1" style="width:100%; height:calc(100% - 36px); border:none; background:white;"></iframe>
+            <iframe :src="'{{ $currentPage?->public_url }}?preview=1&r=' + refreshKey" style="width:100%; height:calc(100% - 36px); border:none; background:white;"></iframe>
         </div>
     </div>
     @endif

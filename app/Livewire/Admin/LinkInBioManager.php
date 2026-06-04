@@ -118,6 +118,7 @@ class LinkInBioManager extends Component
         LinkInBioPage::findOrFail($this->editingPageId)->update(['avatar_url' => $url]);
         $this->avatarFile = null;
         $this->dispatch('toast', type: 'success', message: 'Avatar atualizado.');
+        $this->refreshPreview();
     }
 
     public function updateTheme(string $themeKey): void
@@ -127,12 +128,14 @@ class LinkInBioManager extends Component
         if (!$theme) return;
         LinkInBioPage::findOrFail($this->editingPageId)->update(['theme' => $theme]);
         $this->dispatch('toast', type: 'success', message: 'Tema aplicado.');
+        $this->refreshPreview();
     }
 
     public function updateBio(): void
     {
         if (!$this->editingPageId) return;
         LinkInBioPage::findOrFail($this->editingPageId)->update(['bio_text' => $this->bioText]);
+        $this->refreshPreview();
     }
 
     public function updateThemeColor(string $key, string $value): void
@@ -146,6 +149,7 @@ class LinkInBioManager extends Component
             $theme['bg_gradient'] = null; // Remove gradiente ao mudar cor de fundo
         }
         $page->update(['theme' => $theme]);
+        $this->refreshPreview();
     }
 
     public function addLink(): void
@@ -165,6 +169,7 @@ class LinkInBioManager extends Component
         $this->addLinkUrl = '';
         $this->addLinkIcon = '';
         $this->dispatch('toast', type: 'success', message: 'Link adicionado.');
+        $this->refreshPreview();
     }
 
     public function updateLink(int $id, string $field, $value): void
@@ -172,18 +177,21 @@ class LinkInBioManager extends Component
         $link = LinkInBioLink::find($id);
         if (!$link) return;
         $link->update([$field => $value]);
+        $this->refreshPreview();
     }
 
     public function toggleLink(int $id): void
     {
         $link = LinkInBioLink::findOrFail($id);
         $link->update(['is_active' => !$link->is_active]);
+        $this->refreshPreview();
     }
 
     public function deleteLink(int $id): void
     {
         LinkInBioLink::findOrFail($id)->delete();
         $this->dispatch('toast', type: 'success', message: 'Link removido.');
+        $this->refreshPreview();
     }
 
     public function moveLinkUp(int $id): void
@@ -195,6 +203,7 @@ class LinkInBioManager extends Component
             $tmp = $link->sort_order;
             $link->update(['sort_order' => $prev->sort_order]);
             $prev->update(['sort_order' => $tmp]);
+            $this->refreshPreview();
         }
     }
 
@@ -207,7 +216,13 @@ class LinkInBioManager extends Component
             $tmp = $link->sort_order;
             $link->update(['sort_order' => $next->sort_order]);
             $next->update(['sort_order' => $tmp]);
+            $this->refreshPreview();
         }
+    }
+
+    private function refreshPreview(): void
+    {
+        $this->dispatch('link-in-bio-updated');
     }
 
     private function resetForm(): void
