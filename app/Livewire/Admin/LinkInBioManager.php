@@ -135,6 +135,19 @@ class LinkInBioManager extends Component
         LinkInBioPage::findOrFail($this->editingPageId)->update(['bio_text' => $this->bioText]);
     }
 
+    public function updateThemeColor(string $key, string $value): void
+    {
+        if (!$this->editingPageId) return;
+        $page = LinkInBioPage::findOrFail($this->editingPageId);
+        $theme = $page->theme ?? LinkInBioPage::THEMES['dark'];
+        $theme[$key] = $value;
+        // Atualiza cores derivadas automaticamente
+        if ($key === 'bg_color') {
+            $theme['bg_gradient'] = null; // Remove gradiente ao mudar cor de fundo
+        }
+        $page->update(['theme' => $theme]);
+    }
+
     public function addLink(): void
     {
         if (!$this->editingPageId) return;

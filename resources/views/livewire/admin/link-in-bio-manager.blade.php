@@ -117,6 +117,49 @@ $themes = \App\Models\LinkInBioPage::THEMES;
                 </div>
             </div>
 
+            {{-- Personalização de cores --}}
+            <div style="margin-bottom:14px; padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px;">
+                <label style="{{ $labelStyle }}">Personalizar cores</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                    <div>
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3);">Fundo</label>
+                        <input type="color" value="{{ $currentPage?->theme['bg_color'] ?? '#0b0f1c' }}"
+                               wire:change="updateThemeColor('bg_color', $event.target.value)"
+                               style="width:100%; height:28px; border:none; border-radius:4px; cursor:pointer;">
+                    </div>
+                    <div>
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3);">Botão</label>
+                        <input type="color" value="{{ $currentPage?->theme['button_bg'] ?? '#b2ff00' }}"
+                               wire:change="updateThemeColor('button_bg', $event.target.value)"
+                               style="width:100%; height:28px; border:none; border-radius:4px; cursor:pointer;">
+                    </div>
+                    <div>
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3);">Texto</label>
+                        <input type="color" value="{{ $currentPage?->theme['text_color'] ?? '#ffffff' }}"
+                               wire:change="updateThemeColor('text_color', $event.target.value)"
+                               style="width:100%; height:28px; border:none; border-radius:4px; cursor:pointer;">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;">
+                    <div>
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3);">Texto do botão</label>
+                        <input type="color" value="{{ $currentPage?->theme['button_text'] ?? '#111111' }}"
+                               wire:change="updateThemeColor('button_text', $event.target.value)"
+                               style="width:100%; height:28px; border:none; border-radius:4px; cursor:pointer;">
+                    </div>
+                    <div>
+                        <label style="font-size:9px; color:rgba(255,255,255,0.3);">Borda do botão (px)</label>
+                        <select wire:change="updateThemeColor('button_radius', $event.target.value)"
+                                style="width:100%; padding:4px; font-size:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:white;">
+                            <option value="4px" {{ ($currentPage?->theme['button_radius'] ?? '') === '4px' ? 'selected' : '' }}>Quadrado (4px)</option>
+                            <option value="8px" {{ ($currentPage?->theme['button_radius'] ?? '') === '8px' ? 'selected' : '' }}>Arredondado (8px)</option>
+                            <option value="12px" {{ ($currentPage?->theme['button_radius'] ?? '12px') === '12px' ? 'selected' : '' }}>Médio (12px)</option>
+                            <option value="50px" {{ ($currentPage?->theme['button_radius'] ?? '') === '50px' ? 'selected' : '' }}>Pílula (50px)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             {{-- Adicionar link --}}
             <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px; margin-bottom:14px;">
                 <div style="display:flex; gap:6px; margin-bottom:8px;">
@@ -128,6 +171,13 @@ $themes = \App\Models\LinkInBioPage::THEMES;
                     </select>
                     <input wire:model="addLinkTitle" type="text" placeholder="Título" style="flex:1; {{ $inputStyle }}">
                 </div>
+                @if($addLinkType === 'social')
+                <div style="display:flex; gap:4px; margin-bottom:8px; flex-wrap:wrap;">
+                    @foreach(['📷' => 'Instagram', '👤' => 'Facebook', '🐦' => 'Twitter/X', '▶️' => 'YouTube', '💼' => 'LinkedIn', '📌' => 'Pinterest', '🎵' => 'TikTok', '💬' => 'WhatsApp', '📧' => 'Email', '🌐' => 'Website'] as $emoji => $name)
+                    <button type="button" wire:click="$set('addLinkIcon', '{{ $emoji }}')" style="padding:4px 8px; font-size:12px; border-radius:6px; cursor:pointer; border:1px solid {{ $addLinkIcon === $emoji ? 'rgba(249,115,22,0.4)' : 'rgba(255,255,255,0.08)' }}; background:{{ $addLinkIcon === $emoji ? 'rgba(249,115,22,0.1)' : 'transparent' }};" title="{{ $name }}">{{ $emoji }}</button>
+                    @endforeach
+                </div>
+                @endif
                 @if($addLinkType !== 'divider')
                 <div style="display:flex; gap:6px; margin-bottom:8px;">
                     <input wire:model="addLinkUrl" type="url" placeholder="https://..." style="flex:1; {{ $inputStyle }}">
