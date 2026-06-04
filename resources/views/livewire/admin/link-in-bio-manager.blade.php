@@ -79,7 +79,13 @@ $themes = \App\Models\LinkInBioPage::THEMES;
     <div style="display:flex; gap:16px; height:calc(100vh - 200px);">
         {{-- Lado esquerdo: configurações --}}
         <div style="flex:1; overflow-y:auto; padding-right:8px;">
-            <h3 style="font-size:14px; font-weight:700; color:white; margin-bottom:14px;">{{ $currentPage?->title }}</h3>
+            {{-- Título editável --}}
+            <div style="margin-bottom:14px;">
+                <label style="{{ $labelStyle }}">Título da página</label>
+                <input wire:model="title" wire:blur="updateTitle" type="text" placeholder="Nome da página"
+                       style="{{ $inputStyle }} font-size:14px; font-weight:700;"
+                       onfocus="this.style.borderColor='rgba(249,115,22,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+            </div>
 
             {{-- Avatar --}}
             <div style="margin-bottom:14px; display:flex; align-items:center; gap:12px;">
@@ -101,7 +107,7 @@ $themes = \App\Models\LinkInBioPage::THEMES;
             {{-- Bio --}}
             <div style="margin-bottom:14px;">
                 <label style="{{ $labelStyle }}">Bio / Descrição</label>
-                <textarea wire:model.blur="bioText" wire:change="updateBio" rows="2" style="{{ $inputStyle }} resize:none;"></textarea>
+                <textarea wire:model="bioText" wire:blur="updateBio" rows="2" placeholder="Uma frase sobre você ou sua empresa" style="{{ $inputStyle }} resize:none;"></textarea>
             </div>
 
             {{-- Temas --}}
@@ -189,24 +195,35 @@ $themes = \App\Models\LinkInBioPage::THEMES;
 
             {{-- Lista de links --}}
             @foreach($links as $link)
-            <div style="display:flex; align-items:center; gap:8px; padding:8px 10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; margin-bottom:4px; {{ !$link->is_active ? 'opacity:0.4;' : '' }}">
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                    <button wire:click="moveLinkUp({{ $link->id }})" style="font-size:8px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; padding:0;">▲</button>
-                    <button wire:click="moveLinkDown({{ $link->id }})" style="font-size:8px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; padding:0;">▼</button>
+            <div style="padding:8px 10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; margin-bottom:4px; {{ !$link->is_active ? 'opacity:0.4;' : '' }}">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <button wire:click="moveLinkUp({{ $link->id }})" style="font-size:8px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; padding:0;">▲</button>
+                        <button wire:click="moveLinkDown({{ $link->id }})" style="font-size:8px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; padding:0;">▼</button>
+                    </div>
+                    <span style="font-size:12px; flex-shrink:0;">
+                        {{ $link->type === 'link' ? '🔗' : ($link->type === 'header' ? '📝' : ($link->type === 'social' ? '📱' : '➖')) }}
+                    </span>
+                    <div style="flex:1; min-width:0;">
+                        <input type="text" value="{{ $link->title }}" wire:change="updateLink({{ $link->id }}, 'title', $event.target.value)"
+                               placeholder="Título do link"
+                               style="width:100%; padding:4px 8px; font-size:12px; font-weight:600; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:5px; color:white; outline:none;"
+                               onfocus="this.style.borderColor='rgba(249,115,22,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.06)'">
+                    </div>
+                    <button wire:click="toggleLink({{ $link->id }})" title="{{ $link->is_active ? 'Desativar' : 'Ativar' }}" style="font-size:14px; color:{{ $link->is_active ? '#4ade80' : '#6b7280' }}; background:none; border:none; cursor:pointer;">{{ $link->is_active ? '●' : '○' }}</button>
+                    <button wire:click="deleteLink({{ $link->id }})" wire:confirm="Remover link?" style="font-size:10px; color:#f87171; background:none; border:none; cursor:pointer;">✕</button>
                 </div>
-                <span style="font-size:12px; flex-shrink:0;">
-                    {{ $link->type === 'link' ? '🔗' : ($link->type === 'header' ? '📝' : ($link->type === 'social' ? '📱' : '➖')) }}
-                </span>
-                <div style="flex:1; min-width:0;">
-                    <input type="text" value="{{ $link->title }}" wire:change="updateLink({{ $link->id }}, 'title', $event.target.value)"
-                           style="width:100%; padding:3px 6px; font-size:11px; font-weight:600; background:transparent; border:none; color:white; outline:none;">
-                    @if($link->type !== 'divider' && $link->type !== 'header')
+                @if($link->type !== 'divider' && $link->type !== 'header')
+                <div style="margin-top:4px; padding-left:28px;">
                     <input type="url" value="{{ $link->url }}" wire:change="updateLink({{ $link->id }}, 'url', $event.target.value)"
-                           style="width:100%; padding:2px 6px; font-size:10px; background:transparent; border:none; color:rgba(255,255,255,0.3); outline:none;">
+                           placeholder="https://..."
+                           style="width:100%; padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:5px; color:rgba(255,255,255,0.5); outline:none;"
+                           onfocus="this.style.borderColor='rgba(249,115,22,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.06)'">
+                    @if($link->clicks_count > 0)
+                    <span style="font-size:9px; color:rgba(255,255,255,0.25); margin-top:2px; display:inline-block;">{{ $link->clicks_count }} click{{ $link->clicks_count > 1 ? 's' : '' }}</span>
                     @endif
                 </div>
-                <button wire:click="toggleLink({{ $link->id }})" style="font-size:9px; color:{{ $link->is_active ? '#4ade80' : '#6b7280' }}; background:none; border:none; cursor:pointer;">{{ $link->is_active ? '●' : '○' }}</button>
-                <button wire:click="deleteLink({{ $link->id }})" style="font-size:9px; color:#f87171; background:none; border:none; cursor:pointer;">✕</button>
+                @endif
             </div>
             @endforeach
         </div>

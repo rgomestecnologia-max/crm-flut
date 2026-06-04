@@ -116,7 +116,7 @@
         </div>
         @endif
 
-        <div class="powered">Feito com <a href="https://crm.flut.com.br" target="_blank">Flut</a></div>
+        <div class="powered">Feito com <a href="https://flut.com.br" target="_blank">Flut</a></div>
     </div>
 
     <script>

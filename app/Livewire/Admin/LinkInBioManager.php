@@ -102,6 +102,9 @@ class LinkInBioManager extends Component
     public function openEditor(int $pageId): void
     {
         $this->editingPageId = $pageId;
+        $page = LinkInBioPage::find($pageId);
+        $this->title = $page->title ?? '';
+        $this->bioText = $page->bio_text ?? '';
         $this->tab = 'editor';
     }
 
@@ -128,6 +131,13 @@ class LinkInBioManager extends Component
         if (!$theme) return;
         LinkInBioPage::findOrFail($this->editingPageId)->update(['theme' => $theme]);
         $this->dispatch('toast', type: 'success', message: 'Tema aplicado.');
+        $this->refreshPreview();
+    }
+
+    public function updateTitle(): void
+    {
+        if (!$this->editingPageId) return;
+        LinkInBioPage::findOrFail($this->editingPageId)->update(['title' => $this->title]);
         $this->refreshPreview();
     }
 
