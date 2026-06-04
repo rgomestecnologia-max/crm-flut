@@ -228,17 +228,37 @@ class LinkInBioManager extends Component
         return 'dark';
     }
 
+    public function openAnalytics(int $pageId): void
+    {
+        $this->editingPageId = $pageId;
+        $this->tab = 'analytics';
+    }
+
     public function render()
     {
         $pages = LinkInBioPage::withCount('links')->orderByDesc('updated_at')->get();
 
         $links = collect();
         $currentPage = null;
-        if ($this->editingPageId && $this->tab === 'editor') {
+        if ($this->editingPageId && in_array($this->tab, ['editor', 'analytics'])) {
             $currentPage = LinkInBioPage::find($this->editingPageId);
             $links = LinkInBioLink::where('page_id', $this->editingPageId)->orderBy('sort_order')->get();
         }
 
-        return view('livewire.admin.link-in-bio-manager', compact('pages', 'links', 'currentPage'));
+        // Analytics
+        $analytics = [];
+        if ($this->editingPageId && $this->tab === 'analytics') {
+            $totalClicks = $links->sum('clicks_count');
+            $analytics = [
+                'views'        => $currentPage->views_count ?? 0,
+                'total_clicks' => $totalClicks,
+                'ctr'          => ($currentPage->views_count ?? 0) > 0
+                    ? round(($totalClicks / $currentPage->views_count) * 100, 1)
+                    : 0,
+                'links_count'  => $links->where('type', 'link')->count(),
+            ];
+        }
+
+        return view('livewire.admin.link-in-bio-manager', compact('pages', 'links', 'currentPage', 'analytics'));
     }
 }

@@ -6,7 +6,7 @@ $themes = \App\Models\LinkInBioPage::THEMES;
 <div>
     {{-- Tabs --}}
     <div style="display:flex; gap:8px; margin-bottom:16px;">
-        @foreach(['list' => 'Páginas', 'editor' => 'Editor'] as $k => $l)
+        @foreach(['list' => 'Páginas', 'editor' => 'Editor', 'analytics' => 'Analytics'] as $k => $l)
         <button wire:click="$set('tab', '{{ $k }}')" style="padding:5px 14px; font-size:11px; font-weight:{{ $tab === $k ? '600' : '400' }}; border-radius:7px; cursor:pointer; border:1px solid {{ $tab === $k ? 'rgba(249,115,22,0.3)' : 'rgba(255,255,255,0.08)' }}; background:{{ $tab === $k ? 'rgba(249,115,22,0.1)' : 'transparent' }}; color:{{ $tab === $k ? '#fb923c' : 'rgba(255,255,255,0.4)' }};">{{ $l }}</button>
         @endforeach
     </div>
@@ -55,6 +55,7 @@ $themes = \App\Models\LinkInBioPage::THEMES;
         </div>
         <div style="display:flex; gap:6px; flex-shrink:0;">
             <button wire:click="openEditor({{ $p->id }})" style="padding:4px 10px; font-size:10px; font-weight:600; color:#fb923c; background:rgba(249,115,22,0.1); border:1px solid rgba(249,115,22,0.2); border-radius:6px; cursor:pointer;">Editor</button>
+            <button wire:click="openAnalytics({{ $p->id }})" style="padding:4px 10px; font-size:10px; color:#4ade80; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.2); border-radius:6px; cursor:pointer;">Analytics</button>
             @if($p->status === 'published')
             <a href="{{ $p->public_url }}" target="_blank" style="padding:4px 10px; font-size:10px; color:#60a5fa; background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.2); border-radius:6px; cursor:pointer; text-decoration:none;">Ver</a>
             @endif
@@ -221,6 +222,59 @@ $themes = \App\Models\LinkInBioPage::THEMES;
             <iframe src="{{ $currentPage?->public_url }}?preview=1" style="width:100%; height:calc(100% - 36px); border:none; background:white;"></iframe>
         </div>
     </div>
+    @endif
+    @endif
+
+    {{-- ═══ ANALYTICS ═══ --}}
+    @if($tab === 'analytics')
+    @if(!$editingPageId)
+    <p style="color:rgba(255,255,255,0.3); font-size:13px; text-align:center; padding:40px;">Selecione uma página e clique em "Analytics".</p>
+    @else
+    <h3 style="font-size:14px; font-weight:700; color:white; margin-bottom:14px;">Analytics: {{ $currentPage?->title }}</h3>
+
+    {{-- Cards de resumo --}}
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:20px;">
+        @foreach([
+            ['label' => 'Visualizações', 'value' => $analytics['views'] ?? 0, 'color' => '#60a5fa', 'bg' => 'rgba(96,165,250,0.1)'],
+            ['label' => 'Clicks Totais', 'value' => $analytics['total_clicks'] ?? 0, 'color' => '#4ade80', 'bg' => 'rgba(74,222,128,0.1)'],
+            ['label' => 'Taxa de Clique', 'value' => ($analytics['ctr'] ?? 0) . '%', 'color' => '#fbbf24', 'bg' => 'rgba(251,191,36,0.1)'],
+            ['label' => 'Links Ativos', 'value' => $analytics['links_count'] ?? 0, 'color' => '#fb923c', 'bg' => 'rgba(249,115,22,0.1)'],
+        ] as $card)
+        <div style="background:{{ $card['bg'] }}; border:1px solid {{ $card['color'] }}22; border-radius:10px; padding:14px 12px; text-align:center;">
+            <p style="font-size:24px; font-weight:800; color:{{ $card['color'] }}; margin:0;">{{ $card['value'] }}</p>
+            <p style="font-size:10px; color:rgba(255,255,255,0.4); margin:4px 0 0;">{{ $card['label'] }}</p>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- Desempenho por link --}}
+    @php $clickableLinks = $links->whereIn('type', ['link', 'social']); $maxClicks = $clickableLinks->max('clicks_count') ?: 1; @endphp
+    @if($clickableLinks->isNotEmpty())
+    <h4 style="font-size:12px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">Clicks por Link</h4>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+        @foreach($clickableLinks->sortByDesc('clicks_count') as $link)
+        @php $pct = ($link->clicks_count / $maxClicks) * 100; @endphp
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:200px; flex-shrink:0; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                <span style="font-size:11px; color:rgba(255,255,255,0.5);">{{ $link->icon }} {{ $link->title }}</span>
+            </div>
+            <div style="flex:1; height:24px; background:rgba(255,255,255,0.04); border-radius:4px; overflow:hidden; position:relative;">
+                <div style="width:{{ max($pct, 2) }}%; height:100%; background:rgba(249,115,22,0.4); border-radius:4px; transition:width 0.3s;"></div>
+                <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:10px; font-weight:700; color:white;">{{ $link->clicks_count }}</span>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
+    {{-- URL da página --}}
+    @if($currentPage?->status === 'published')
+    <div style="margin-top:20px; padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:10px; color:rgba(255,255,255,0.3);">URL:</span>
+        <code style="flex:1; font-size:11px; color:#60a5fa; word-break:break-all;">{{ $currentPage->public_url }}</code>
+        <button onclick="navigator.clipboard.writeText('{{ $currentPage->public_url }}')" style="padding:4px 10px; font-size:10px; color:#b2ff00; background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">Copiar</button>
+    </div>
+    @endif
     @endif
     @endif
 </div>
