@@ -60,7 +60,7 @@
                     <div class="bar" style="background:#b2ff00;"></div>
                     <h2>Multi-atendimento WhatsApp</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.multi ? '#b2ff00' : 'rgba(255,255,255,0.1)' }" @click="modules.multi = !modules.multi; calc()">
+                <button class="toggle" :style="{ background: modules.multi ? '#b2ff00' : 'rgba(255,255,255,0.1)' }" @click="modules.multi = !modules.multi; clearCustom(); calc()">
                     <span :style="{ left: modules.multi ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -70,11 +70,11 @@
                     <div class="field-row">
                         <div class="field">
                             <label>Quantidade de atendentes</label>
-                            <input type="number" min="1" max="50" x-model.number="multi.users" @input="calc()">
+                            <input type="number" min="1" max="50" x-model.number="multi.users" @input="clearCustom(); calc()">
                         </div>
                         <div class="field">
                             <label>Números de WhatsApp conectados</label>
-                            <select x-model.number="multi.instances" @change="calc()">
+                            <select x-model.number="multi.instances" @change="clearCustom(); calc()">
                                 <option value="1">1 número</option>
                                 <option value="2">2 números</option>
                                 <option value="3">3 números</option>
@@ -95,7 +95,7 @@
                     <div class="bar" style="background:#8b5cf6;"></div>
                     <h2>CRM — Pipeline de Vendas</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.crm ? '#8b5cf6' : 'rgba(255,255,255,0.1)' }" @click="modules.crm = !modules.crm; calc()">
+                <button class="toggle" :style="{ background: modules.crm ? '#8b5cf6' : 'rgba(255,255,255,0.1)' }" @click="modules.crm = !modules.crm; clearCustom(); calc()">
                     <span :style="{ left: modules.crm ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -123,7 +123,7 @@
                     <div class="bar" style="background:#3b82f6;"></div>
                     <h2>Disparos em Massa</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.email ? '#3b82f6' : 'rgba(255,255,255,0.1)' }" @click="modules.email = !modules.email; calc()">
+                <button class="toggle" :style="{ background: modules.email ? '#3b82f6' : 'rgba(255,255,255,0.1)' }" @click="modules.email = !modules.email; clearCustom(); calc()">
                     <span :style="{ left: modules.email ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -132,7 +132,7 @@
                 <div>
                     <div class="field">
                         <label>Disparo por Email — Volume mensal</label>
-                        <select x-model="email.plan" @change="calc()">
+                        <select x-model="email.plan" @change="clearCustom(); calc()">
                             <option value="none">Não preciso de email</option>
                             <option value="5k">Até 5.000 disparos/mês</option>
                             <option value="20k">Até 20.000 disparos/mês</option>
@@ -142,7 +142,7 @@
                     <div class="field" style="margin-top:12px;">
                         <label>Disparo por WhatsApp</label>
                         <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
-                            <button class="toggle" style="flex-shrink:0;" :style="{ background: email.whatsapp ? '#22c55e' : 'rgba(255,255,255,0.1)' }" @click="email.whatsapp = !email.whatsapp; calc()">
+                            <button class="toggle" style="flex-shrink:0;" :style="{ background: email.whatsapp ? '#22c55e' : 'rgba(255,255,255,0.1)' }" @click="email.whatsapp = !email.whatsapp; clearCustom(); calc()">
                                 <span :style="{ left: email.whatsapp ? '25px' : '3px' }"></span>
                             </button>
                             <span style="font-size:12px; color:rgba(255,255,255,0.5);" x-text="email.whatsapp ? 'Incluir disparo por WhatsApp (+R$ 200/mês)' : 'Sem disparo por WhatsApp'"></span>
@@ -167,7 +167,7 @@
                     <div class="bar" style="background:#ec4899;"></div>
                     <h2>IA de Atendimento</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.ia ? '#ec4899' : 'rgba(255,255,255,0.1)' }" @click="modules.ia = !modules.ia; calc()">
+                <button class="toggle" :style="{ background: modules.ia ? '#ec4899' : 'rgba(255,255,255,0.1)' }" @click="modules.ia = !modules.ia; clearCustom(); calc()">
                     <span :style="{ left: modules.ia ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -185,7 +185,7 @@
                     </div>
                     <div class="field">
                         <label>Quantidade de fluxos/agentes de IA</label>
-                        <input type="number" min="1" max="10" x-model.number="ia.flows" @input="calc()">
+                        <input type="number" min="1" max="10" x-model.number="ia.flows" @input="clearCustom(); calc()">
                     </div>
                 </div>
             </template>
@@ -199,7 +199,7 @@
                     <div class="bar" style="background:#06b6d4;"></div>
                     <h2>Integrações Externas</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.integrations ? '#06b6d4' : 'rgba(255,255,255,0.1)' }" @click="modules.integrations = !modules.integrations; calc()">
+                <button class="toggle" :style="{ background: modules.integrations ? '#06b6d4' : 'rgba(255,255,255,0.1)' }" @click="modules.integrations = !modules.integrations; clearCustom(); calc()">
                     <span :style="{ left: modules.integrations ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -215,7 +215,7 @@
                     </div>
                     <div class="field">
                         <label>Quantidade de integrações</label>
-                        <input type="number" min="1" max="10" x-model.number="integrations.count" @input="calc()">
+                        <input type="number" min="1" max="10" x-model.number="integrations.count" @input="clearCustom(); calc()">
                     </div>
                 </div>
             </template>
@@ -229,7 +229,7 @@
                     <div class="bar" style="background:#10b981;"></div>
                     <h2>Chat Interno</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.chatInterno ? '#10b981' : 'rgba(255,255,255,0.1)' }" @click="modules.chatInterno = !modules.chatInterno; calc()">
+                <button class="toggle" :style="{ background: modules.chatInterno ? '#10b981' : 'rgba(255,255,255,0.1)' }" @click="modules.chatInterno = !modules.chatInterno; clearCustom(); calc()">
                     <span :style="{ left: modules.chatInterno ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -244,7 +244,7 @@
                     <div class="bar" style="background:#6366f1;"></div>
                     <h2>FlutChat</h2>
                 </div>
-                <button class="toggle" :style="{ background: modules.flutchat ? '#6366f1' : 'rgba(255,255,255,0.1)' }" @click="modules.flutchat = !modules.flutchat; calc()">
+                <button class="toggle" :style="{ background: modules.flutchat ? '#6366f1' : 'rgba(255,255,255,0.1)' }" @click="modules.flutchat = !modules.flutchat; clearCustom(); calc()">
                     <span :style="{ left: modules.flutchat ? '25px' : '3px' }"></span>
                 </button>
             </div>
@@ -253,7 +253,7 @@
                 <div>
                     <div class="field">
                         <label>Incluir IA no chat?</label>
-                        <select x-model="flutchat.withAi" @change="calc()">
+                        <select x-model="flutchat.withAi" @change="clearCustom(); calc()">
                             <option value="0">Sem IA</option>
                             <option value="1">Com IA</option>
                         </select>
@@ -509,6 +509,11 @@ function pricingSimulator() {
                 return parseFloat(this.customDetails[key]) || 0;
             }
             return defaultVal;
+        },
+
+        // Limpa customDetails quando configuração muda (recalcula valores)
+        clearCustom() {
+            this.customDetails = null;
         },
 
         calc() {
