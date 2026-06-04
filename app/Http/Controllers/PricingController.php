@@ -37,6 +37,7 @@ class PricingController extends Controller
         return response()->json([
             'success' => true,
             'id'      => $proposal->id,
+            'token'   => $proposal->token,
             'message' => 'Proposta salva com sucesso!',
         ]);
     }
@@ -66,6 +67,7 @@ class PricingController extends Controller
         return response()->json([
             'success' => true,
             'id'      => $proposal->id,
+            'token'   => $proposal->token,
             'message' => 'Proposta atualizada com sucesso!',
         ]);
     }

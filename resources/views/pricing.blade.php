@@ -645,6 +645,7 @@ function pricingSimulator() {
                 if (data.success) {
                     this.savedId = data.id;
                     this.proposalId = data.id;
+                    if (data.token) this.proposalToken = data.token;
                     this.customDetails = { ...this.detail };
                 } else {
                     alert('Erro ao salvar proposta. Tente novamente.');
