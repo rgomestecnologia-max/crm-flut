@@ -199,6 +199,12 @@
             $flutChatCount = \App\Models\FlutChatConversation::count();
             $tabs[] = ['key' => 'flutchat', 'label' => 'FlutChat', 'count' => $flutChatCount, 'color' => '#6366f1', 'activeBg' => 'rgba(99,102,241,0.12)', 'activeColor' => '#818cf8'];
         }
+        if (($counts['messenger'] ?? 0) > 0) {
+            $tabs[] = ['key' => 'messenger', 'label' => 'Messenger', 'count' => $counts['messenger'], 'color' => '#0084ff', 'activeBg' => 'rgba(0,132,255,0.12)', 'activeColor' => '#0084ff'];
+        }
+        if (($counts['instagram'] ?? 0) > 0) {
+            $tabs[] = ['key' => 'instagram', 'label' => 'Instagram', 'count' => $counts['instagram'], 'color' => '#E1306C', 'activeBg' => 'rgba(225,48,108,0.12)', 'activeColor' => '#E1306C'];
+        }
         if (($counts['archived'] ?? 0) > 0) {
             $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
         }

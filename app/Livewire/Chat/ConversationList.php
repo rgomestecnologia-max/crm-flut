@@ -382,6 +382,12 @@ class ConversationList extends Component
             // Arquivadas
             'archived' => $query->where('is_archived', true),
 
+            // Messenger
+            'messenger' => $query->where('is_archived', false)->where('channel', 'messenger'),
+
+            // Instagram
+            'instagram' => $query->where('is_archived', false)->where('channel', 'instagram'),
+
             default    => null,
         };
 
@@ -431,8 +437,10 @@ class ConversationList extends Component
                     });
                 })->count(),
             'waiting'  => (clone $baseQuery)->where('is_archived', false)->whereNotNull('waiting_human_reason')->count(),
-            'all'      => (clone $baseQuery)->where('is_archived', false)->count(),
-            'archived' => (clone $baseQuery)->where('is_archived', true)->count(),
+            'all'       => (clone $baseQuery)->where('is_archived', false)->count(),
+            'archived'  => (clone $baseQuery)->where('is_archived', true)->count(),
+            'messenger' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'messenger')->count(),
+            'instagram' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'instagram')->count(),
         ];
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
