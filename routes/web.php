@@ -21,6 +21,47 @@ Route::put('/pricing/{token}', [PricingController::class, 'update'])->name('pric
 // Landing Pages (público)
 Route::get('/lp/{companySlug}/{pageSlug}', [App\Http\Controllers\LandingPageViewController::class, 'show'])->name('lp.show');
 
+// Instagram OAuth Callback
+Route::get('/auth/meta/callback', function (\Illuminate\Http\Request $request) {
+    $code = $request->query('code');
+    if (!$code) return redirect('/admin/meta-whatsapp')->with('error', 'Código não recebido.');
+
+    try {
+        // Troca code por short-lived token
+        $response = \Illuminate\Support\Facades\Http::asForm()->post('https://api.instagram.com/oauth/access_token', [
+            'client_id'     => '1548404910226347',
+            'client_secret' => env('INSTAGRAM_APP_SECRET', config('services.meta.app_secret', '')),
+            'grant_type'    => 'authorization_code',
+            'redirect_uri'  => 'https://crm.flut.com.br/auth/meta/callback',
+            'code'          => $code,
+        ]);
+
+        $data = $response->json();
+        $igUserId = $data['user_id'] ?? null;
+        $shortToken = $data['access_token'] ?? null;
+
+        if (!$shortToken) {
+            \Log::warning('Instagram OAuth: falha ao trocar code', ['response' => $data]);
+            return redirect('/admin/meta-whatsapp')->with('error', 'Falha ao obter token do Instagram.');
+        }
+
+        // Troca por long-lived token
+        $longResp = \Illuminate\Support\Facades\Http::get('https://graph.instagram.com/access_token', [
+            'grant_type'    => 'ig_exchange_token',
+            'client_secret' => env('INSTAGRAM_APP_SECRET', config('services.meta.app_secret', '')),
+            'access_token'  => $shortToken,
+        ]);
+        $longToken = $longResp->json('access_token') ?? $shortToken;
+
+        \Log::info('Instagram OAuth: token obtido', ['ig_user_id' => $igUserId]);
+
+        return redirect('/admin/meta-whatsapp')->with('success', 'Instagram conectado com sucesso! User ID: ' . $igUserId);
+    } catch (\Throwable $e) {
+        \Log::error('Instagram OAuth: erro', ['error' => $e->getMessage()]);
+        return redirect('/admin/meta-whatsapp')->with('error', 'Erro ao conectar Instagram: ' . $e->getMessage());
+    }
+});
+
 // Legal (público, sem auth — Meta App Verification)
 Route::get('/privacy', fn() => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn() => view('legal.terms'))->name('terms');
