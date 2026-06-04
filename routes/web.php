@@ -26,6 +26,8 @@ Route::get('/bio/{companySlug}/{slug}', [App\Http\Controllers\LinkInBioViewContr
 
 // Instagram OAuth Callback
 Route::get('/auth/meta/callback', function (\Illuminate\Http\Request $request) {
+    \Log::info('Instagram callback recebido', ['code' => substr($request->query('code', ''), 0, 20) . '...']);
+
     $code = $request->query('code');
     if (!$code) return redirect('/admin/meta-whatsapp')->with('error', 'Código não recebido.');
 
