@@ -710,20 +710,24 @@ function pricingSimulator() {
         async gerarPDF() {
             // Carregar e comprimir imagens para JPEG (reduz ~90% do tamanho do PDF)
             const loadAndCompress = (url, maxW = 800, quality = 0.6) => {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.onload = () => {
-                        const scale = Math.min(1, maxW / img.width);
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width * scale;
-                        canvas.height = img.height * scale;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', quality));
-                    };
-                    img.onerror = () => resolve(null);
-                    img.src = url;
+                return new Promise(async (resolve) => {
+                    try {
+                        // Para URLs externas (R2), usa proxy server-side para evitar CORS
+                        const proxyUrl = url.startsWith('http') ? '/api/proxy-image?url=' + encodeURIComponent(url) : url;
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => {
+                            const scale = Math.min(1, maxW / img.width);
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width * scale;
+                            canvas.height = img.height * scale;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            resolve(canvas.toDataURL('image/jpeg', quality));
+                        };
+                        img.onerror = () => resolve(null);
+                        img.src = proxyUrl;
+                    } catch(e) { resolve(null); }
                 });
             };
 
@@ -752,7 +756,7 @@ function pricingSimulator() {
 
             // Carregar screenshots dos módulos (boa qualidade)
             const moduleScreenshots = {};
-            for (const key of ['multi','crm','email','ia','integrations','chatInterno','flutchat','flutzap','consultoria']) {
+            for (const key of ['multi','crm','email','ia','integrations','chatInterno','landing','flutchat','flutzap','consultoria']) {
                 const configKey = {integrations:'integration', chatInterno:'chat_interno'}[key] || key;
                 const url = C[configKey + '_screenshot'];
                 if (url) {

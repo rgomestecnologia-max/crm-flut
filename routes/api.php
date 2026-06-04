@@ -34,6 +34,17 @@ Route::prefix('flut-chat')->middleware('throttle:60,1')->group(function () {
 // ── Landing Pages (público) ───────────────────────────────────────────
 Route::post('/lp/{pageId}/lead', [\App\Http\Controllers\Api\LandingPageController::class, 'saveLead'])->middleware('throttle:30,1');
 
+// ── Proxy de imagens (evitar CORS do R2 no PDF) ──────────────────────
+Route::get('/proxy-image', function (\Illuminate\Http\Request $request) {
+    $url = $request->query('url');
+    if (!$url || !str_contains($url, 'r2.dev')) abort(400);
+    $content = @file_get_contents($url);
+    if (!$content) abort(404);
+    $mime = 'image/png';
+    if (str_ends_with($url, '.jpg') || str_ends_with($url, '.jpeg')) $mime = 'image/jpeg';
+    return response($content)->header('Content-Type', $mime)->header('Access-Control-Allow-Origin', '*')->header('Cache-Control', 'public, max-age=3600');
+})->middleware('throttle:60,1');
+
 // ── API de Integração CRM ─────────────────────────────────────────────
 Route::middleware(['api.token', 'throttle:100,1'])->group(function () {
     Route::post('/leads', [LeadController::class, 'store'])->name('api.leads.store');
