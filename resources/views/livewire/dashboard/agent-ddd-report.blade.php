@@ -6,13 +6,21 @@
             <div style="width:2px; height:16px; background:#fb923c; border-radius:2px;"></div>
             <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Atendimentos por Agente × Estado</h3>
         </div>
-        <select wire:model.live="period" style="padding:5px 10px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none;">
-            <option value="1">Hoje</option>
-            <option value="7">7 dias</option>
-            <option value="30">30 dias</option>
-            <option value="90">90 dias</option>
-            <option value="all">Tudo</option>
-        </select>
+        <div style="display:flex; gap:8px;">
+            <select wire:model.live="agentFilter" style="padding:5px 10px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none;">
+                <option value="">Todos os agentes</option>
+                @foreach($agents as $agent)
+                <option value="{{ $agent->id }}">{{ $agent->name }}</option>
+                @endforeach
+            </select>
+            <select wire:model.live="period" style="padding:5px 10px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none;">
+                <option value="1">Hoje</option>
+                <option value="7">7 dias</option>
+                <option value="30">30 dias</option>
+                <option value="90">90 dias</option>
+                <option value="all">Tudo</option>
+            </select>
+        </div>
     </div>
 
     @if(empty($data))

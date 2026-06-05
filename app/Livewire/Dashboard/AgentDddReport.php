@@ -10,6 +10,7 @@ use Livewire\Component;
 class AgentDddReport extends Component
 {
     public string $period = '30';
+    public string $agentFilter = '';
 
     public const DDD_ESTADOS = [
         '11'=>'SP','12'=>'SP','13'=>'SP','14'=>'SP','15'=>'SP','16'=>'SP','17'=>'SP','18'=>'SP','19'=>'SP',
@@ -36,6 +37,10 @@ class AgentDddReport extends Component
 
         if ($this->period !== 'all') {
             $query->where('created_at', '>=', now()->subDays((int) $this->period));
+        }
+
+        if ($this->agentFilter) {
+            $query->where('assigned_to', (int) $this->agentFilter);
         }
 
         $conversations = $query->get();
@@ -76,6 +81,8 @@ class AgentDddReport extends Component
         $grandTotal = array_sum($estadoTotals);
         $maxValue = max(array_merge([1], array_values($estadoTotals)));
 
-        return view('livewire.dashboard.agent-ddd-report', compact('data', 'estados', 'estadoTotals', 'grandTotal', 'maxValue'));
+        $agents = User::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        return view('livewire.dashboard.agent-ddd-report', compact('data', 'estados', 'estadoTotals', 'grandTotal', 'maxValue', 'agents'));
     }
 }
