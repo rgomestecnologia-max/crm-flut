@@ -58,9 +58,11 @@
                 <livewire:dashboard.conversations-by-department />
                 <livewire:dashboard.agent-performance />
             </div>
+            @if(app(\App\Services\CurrentCompany::class)->id() === 3 && ($user->isAdmin() || $user->isSupervisor()))
             <div style="margin-top:16px;">
                 <livewire:dashboard.agent-ddd-report />
             </div>
+            @endif
             @endif
         </div>
         @endif
