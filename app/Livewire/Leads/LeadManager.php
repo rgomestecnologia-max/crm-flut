@@ -204,7 +204,7 @@ class LeadManager extends Component
         $this->showChatModal = true;
     }
 
-    public function startChat(): void
+    public function startChat()
     {
         if (!$this->chatLeadId) return;
 
