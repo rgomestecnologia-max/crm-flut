@@ -155,8 +155,14 @@ class ProcessMenuBot implements ShouldQueue
                 ->first();
 
             if ($existingOtherConv && in_array($existingOtherConv->status, ['open', 'pending'])) {
-                // Já tem conversa aberta nesse número — avisa sem criar nova
-                $this->saveAndSend("Você já tem um atendimento em andamento no setor de *{$department->name}*. Aguarde a resposta pelo outro número. 😊");
+                // Já tem conversa aberta nesse número — avisa e reenvia menu
+                $deptList = $this->getMenuDepartments();
+                $menuLines = ["Você já tem um atendimento em andamento no setor de *{$department->name}*. Aguarde a resposta pelo outro número. 😊", "", "Se quiser falar com outro setor, basta digitar o número da opção desejada:", ""];
+                foreach ($deptList as $idx => $d) {
+                    $menuLines[] = ($idx + 1) . ' - ' . $d->name;
+                }
+                $this->saveAndSend(implode("\n", $menuLines));
+                $this->conversation->update(['menu_awaiting' => true]);
                 return;
             }
             if ($existingOtherConv && $existingOtherConv->status === 'resolved') {
