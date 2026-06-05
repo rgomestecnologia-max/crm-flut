@@ -471,7 +471,6 @@
                     <span x-show="sidebarOpen">Config. Globais</span>
                 </a>
 
-                {{-- Evolution API (temporariamente oculto)
                 <a href="{{ route('admin.evolution.index') }}"
                    class="nav-item {{ request()->routeIs('admin.evolution*') ? 'active' : '' }}"
                    style="color:{{ request()->routeIs('admin.evolution*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
@@ -480,7 +479,6 @@
                     </svg>
                     <span x-show="sidebarOpen">Evolution API</span>
                 </a>
-                --}}
 
                 <a href="{{ route('admin.meta-whatsapp.index') }}"
                    class="nav-item {{ request()->routeIs('admin.meta-whatsapp*') ? 'active' : '' }}"

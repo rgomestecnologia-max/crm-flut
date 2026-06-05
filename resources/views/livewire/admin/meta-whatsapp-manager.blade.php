@@ -27,7 +27,6 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
     </div>
 
     {{-- Provider selector --}}
-    {{-- Provider selector (temporariamente oculto — Evolution API escondida)
     <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:20px 24px; position:relative; overflow:hidden;">
         <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, #3b82f680, transparent);"></div>
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
@@ -60,7 +59,6 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             </button>
         </div>
     </div>
-    --}}
 
     {{-- Toggle ativo --}}
     <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:20px 24px; display:flex; align-items:center; gap:16px; position:relative; overflow:hidden;">
