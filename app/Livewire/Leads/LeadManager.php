@@ -261,7 +261,7 @@ class LeadManager extends Component
         $this->showChatModal = false;
         $this->chatLeadId = null;
 
-        return $this->redirect(route('chat') . '?conv=' . $conv->id, navigate: true);
+        return redirect()->to('/chat/' . $conv->id);
     }
 
     public function toggleActive(int $id): void
