@@ -34,10 +34,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 <input type="date" x-model="dateFrom" @change="Livewire.dispatch('dashboard-date-changed', { from: dateFrom, to: dateTo })"
-                       style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; width:105px; cursor:pointer;">
+                       style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; width:105px; cursor:pointer; color-scheme:dark;">
                 <span style="font-size:10px; color:rgba(255,255,255,0.2);">até</span>
                 <input type="date" x-model="dateTo" @change="Livewire.dispatch('dashboard-date-changed', { from: dateFrom, to: dateTo })"
-                       style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; width:105px; cursor:pointer;">
+                       style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; width:105px; cursor:pointer; color-scheme:dark;">
                 <button x-show="dateFrom || dateTo" @click="dateFrom=''; dateTo=''; Livewire.dispatch('dashboard-date-changed', { from: null, to: null })"
                         style="background:none; border:none; color:#f87171; font-size:10px; cursor:pointer; padding:0 2px;" title="Limpar filtro">✕</button>
             </div>
