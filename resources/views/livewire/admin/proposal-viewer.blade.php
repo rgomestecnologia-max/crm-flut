@@ -207,12 +207,14 @@
                         Editar
                     </a>
 
-                    {{-- Personalizar valores --}}
+                    {{-- Personalizar valores (apenas admin) --}}
+                    @if(auth()->user()->isAdmin())
                     <button wire:click="openEditValues({{ $p['id'] }})"
                             style="padding:6px 14px; font-size:11px; background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); color:#a78bfa; border-radius:8px; cursor:pointer;">
                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:inline; vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                         Personalizar Valores
                     </button>
+                    @endif
 
                     {{-- Desconto --}}
                     <button wire:click="openDiscount({{ $p['id'] }})"

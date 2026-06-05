@@ -517,6 +517,7 @@
                     <span x-show="sidebarOpen">Onboardings</span>
                 </a>
 
+                @if(auth()->user()->isAdmin())
                 <a href="{{ route('admin.pricing.index') }}"
                    class="nav-item {{ request()->routeIs('admin.pricing*') ? 'active' : '' }}"
                    style="color:{{ request()->routeIs('admin.pricing*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
@@ -525,6 +526,7 @@
                     </svg>
                     <span x-show="sidebarOpen">Precificação</span>
                 </a>
+                @endif
 
                 <a href="{{ route('admin.proposals.index') }}"
                    class="nav-item {{ request()->routeIs('admin.proposals*') ? 'active' : '' }}"
