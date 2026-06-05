@@ -116,16 +116,7 @@
         {{-- ═══════════════════════════════════════════════════════════════
              ATIVIDADE RECENTE (modulo audit) — apenas supervisor/admin
         ═══════════════════════════════════════════════════════════════ --}}
-        @if($isManager && $hasAudit)
-        <div style="margin-bottom:24px;">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-                <div style="width:3px; height:18px; background:#f59e0b; border-radius:2px;"></div>
-                <h2 style="font-size:13px; font-weight:800; color:white; font-family:'Syne',sans-serif; text-transform:uppercase; letter-spacing:0.04em;">Atividade Recente</h2>
-            </div>
-
-            <livewire:dashboard.recent-activity />
-        </div>
-        @endif
+        {{-- Atividade Recente removida — disponível no menu Auditoria --}}
 
         {{-- ═══════════════════════════════════════════════════════════════
              ACOES RAPIDAS
