@@ -19,6 +19,11 @@ class LeadManager extends Component
     public string $filterTag = '';
     public string $filterType = '';
 
+    // Conversar
+    public bool $showChatModal = false;
+    public ?int $chatLeadId = null;
+    public ?int $chatDeptId = null;
+
     // Form
     public bool    $showForm     = false;
     public ?int    $editingId    = null;
@@ -190,6 +195,73 @@ class LeadManager extends Component
                 );
             }
         }
+    }
+
+    public function openChat(int $leadId): void
+    {
+        $this->chatLeadId = $leadId;
+        $this->chatDeptId = null;
+        $this->showChatModal = true;
+    }
+
+    public function startChat(): void
+    {
+        if (!$this->chatLeadId) return;
+
+        $lead = BroadcastContact::findOrFail($this->chatLeadId);
+        $phone = $lead->phone;
+        if (!$phone) {
+            $this->dispatch('toast', type: 'error', message: 'Lead sem telefone.');
+            return;
+        }
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        // Busca ou cria Contact
+        $contact = \App\Models\Contact::where('phone', $phone)->first();
+        if (!$contact) {
+            $contact = \App\Models\Contact::create([
+                'phone' => $phone,
+                'name'  => $lead->name ?: ($lead->company_name ?: null),
+            ]);
+        }
+
+        // Departamento e instância
+        $deptId = $this->chatDeptId ?: \App\Models\Department::active()->first()?->id;
+        $dept = \App\Models\Department::find($deptId);
+        $evoConfigId = $dept?->evolution_api_config_id ?? \App\Models\EvolutionApiConfig::first()?->id;
+
+        // Busca conversa existente nessa instância
+        $conv = \App\Models\Conversation::where('contact_id', $contact->id)
+            ->where('is_group', false)
+            ->when($evoConfigId, fn($q) => $q->where('evolution_api_config_id', $evoConfigId))
+            ->latest()
+            ->first();
+
+        if ($conv) {
+            if ($conv->status === 'resolved') {
+                $conv->update([
+                    'status'               => 'open',
+                    'assigned_to'          => $user->id,
+                    'waiting_human_reason' => null,
+                ]);
+            }
+        } else {
+            $conv = \App\Models\Conversation::create([
+                'contact_id'             => $contact->id,
+                'department_id'          => $deptId,
+                'evolution_api_config_id' => $evoConfigId,
+                'status'                 => 'open',
+                'assigned_to'            => $user->id,
+                'is_group'               => false,
+                'last_message_at'        => now(),
+            ]);
+        }
+
+        $this->showChatModal = false;
+        $this->chatLeadId = null;
+
+        return $this->redirect(route('chat') . '?conv=' . $conv->id, navigate: true);
     }
 
     public function toggleActive(int $id): void

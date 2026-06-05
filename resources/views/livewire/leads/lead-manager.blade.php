@@ -89,6 +89,9 @@ $labelStyle = "font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); tex
                         </td>
                         <td style="padding:10px 16px; text-align:right;">
                             <div style="display:flex; justify-content:flex-end; gap:6px;">
+                                @if($lead->phone)
+                                <button wire:click="openChat({{ $lead->id }})" style="padding:4px 10px; font-size:11px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">Conversar</button>
+                                @endif
                                 <button wire:click="openEdit({{ $lead->id }})" style="padding:4px 10px; font-size:11px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; cursor:pointer;">Editar</button>
                                 <button wire:click="delete({{ $lead->id }})" wire:confirm="Remover este lead?" style="padding:4px 10px; font-size:11px; color:#f87171; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">Remover</button>
                             </div>
@@ -240,6 +243,46 @@ $labelStyle = "font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); tex
             <div style="display:flex; gap:10px; margin-top:16px;">
                 <button wire:click="importCsv" style="flex:1; padding:8px; font-size:12px; font-weight:700; color:#111; background:linear-gradient(135deg, #b2ff00, #8fcc00); border:none; border-radius:8px; cursor:pointer;">Importar</button>
                 <button wire:click="$set('showImport', false)" style="padding:8px 16px; font-size:12px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; cursor:pointer;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Modal Conversar --}}
+    @if($showChatModal)
+    @php
+        $chatLead = \App\Models\BroadcastContact::find($chatLeadId);
+        $userDepts = auth()->user()->departments;
+        if ($userDepts->isEmpty() && auth()->user()->canManageCompany()) {
+            $userDepts = \App\Models\Department::active()->orderBy('sort_order')->get();
+        }
+        $hasMultiEvo = $userDepts->pluck('evolution_api_config_id')->filter()->unique()->count() > 0;
+    @endphp
+    <div style="position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);" wire:click.self="$set('showChatModal', false)">
+        <div style="background:#0f1320; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:380px; max-width:90vw;">
+            <h3 style="font-size:15px; font-weight:700; color:white; margin-bottom:6px;">Conversar com Lead</h3>
+            <p style="font-size:12px; color:rgba(255,255,255,0.4); margin-bottom:16px;">{{ $chatLead?->name ?: $chatLead?->phone }}</p>
+
+            <div style="margin-bottom:14px;">
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Departamento</label>
+                <select wire:model="chatDeptId"
+                        style="width:100%; padding:10px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; outline:none; box-sizing:border-box;">
+                    <option value="">Selecione...</option>
+                    @foreach($userDepts as $dept)
+                    <option value="{{ $dept->id }}">{{ $dept->name }}@if($hasMultiEvo && $dept->evolution_api_config_id) ({{ \App\Models\EvolutionApiConfig::find($dept->evolution_api_config_id)?->instance_name ?? '' }})@endif</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button wire:click="$set('showChatModal', false)"
+                        style="padding:8px 16px; font-size:12px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:8px; cursor:pointer;">
+                    Cancelar
+                </button>
+                <button wire:click="startChat"
+                        style="padding:8px 20px; font-size:12px; font-weight:700; color:#111; background:linear-gradient(135deg, #b2ff00, #8fcc00); border:none; border-radius:8px; cursor:pointer;">
+                    Iniciar Conversa
+                </button>
             </div>
         </div>
     </div>
