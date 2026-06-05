@@ -58,6 +58,9 @@
                 <livewire:dashboard.conversations-by-department />
                 <livewire:dashboard.agent-performance />
             </div>
+            <div style="margin-top:16px;">
+                <livewire:dashboard.agent-ddd-report />
+            </div>
             @endif
         </div>
         @endif
