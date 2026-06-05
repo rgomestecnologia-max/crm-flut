@@ -81,7 +81,8 @@ class AgentDddReport extends Component
         $grandTotal = array_sum($estadoTotals);
         $maxValue = max(array_merge([1], array_values($estadoTotals)));
 
-        $agents = User::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $companyId = app(\App\Services\CurrentCompany::class)->id();
+        $agents = User::where('is_active', true)->where('company_id', $companyId)->orderBy('name')->get(['id', 'name']);
 
         return view('livewire.dashboard.agent-ddd-report', compact('data', 'estados', 'estadoTotals', 'grandTotal', 'maxValue', 'agents'));
     }
