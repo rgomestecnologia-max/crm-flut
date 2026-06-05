@@ -163,9 +163,9 @@
     @endif
     @endif
 
-    {{-- Search --}}
-    <div style="padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
-        <div style="position:relative;">
+    {{-- Search + DDD filter --}}
+    <div style="padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0; display:flex; gap:6px;">
+        <div style="position:relative; flex:1;">
             <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,0.2); pointer-events:none;" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -177,6 +177,13 @@
                    onblur="this.style.borderColor='rgba(255,255,255,0.07)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'"
                    >
         </div>
+        <select wire:model.live="dddFilter"
+                style="width:70px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:8px 6px; font-size:11px; color:{{ $dddFilter ? '#fb923c' : 'rgba(255,255,255,0.4)' }}; outline:none; cursor:pointer;">
+            <option value="">DDD</option>
+            @foreach(['11','12','13','14','15','16','17','18','19','21','22','24','27','28','31','32','33','34','35','37','38','41','42','43','44','45','46','47','48','49','51','53','54','55','61','62','63','64','65','66','67','68','69','71','73','74','75','77','79','81','82','83','84','85','86','87','88','89','91','92','93','94','95','96','97','98','99'] as $ddd)
+            <option value="{{ $ddd }}">{{ $ddd }}</option>
+            @endforeach
+        </select>
     </div>
 
     {{-- Filter tabs --}}

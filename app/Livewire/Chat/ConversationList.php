@@ -21,6 +21,8 @@ class ConversationList extends Component
     public bool   $showBulkTransfer = false;
     public ?int   $bulkTransferDept = null;
 
+    public string $dddFilter = '';
+
     // Nova conversa
     public bool   $showNewConvModal = false;
     public string $newConvPhone = '';
@@ -409,6 +411,12 @@ class ConversationList extends Component
         if (str_starts_with($this->filter, 'tag_')) {
             $tagId = (int) substr($this->filter, 4);
             $query->whereHas('tags', fn($q) => $q->where('tags.id', $tagId));
+        }
+
+        // Filtro por DDD
+        if ($this->dddFilter) {
+            $ddd = $this->dddFilter;
+            $query->whereHas('contact', fn($q) => $q->where('phone', 'like', "55{$ddd}%"));
         }
 
         if ($this->search) {
