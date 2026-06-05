@@ -177,6 +177,7 @@
                    onblur="this.style.borderColor='rgba(255,255,255,0.07)'; this.style.background='rgba(255,255,255,0.04)'; this.style.boxShadow='none'"
                    >
         </div>
+        @if(app(\App\Services\CurrentCompany::class)->id() === 3)
         <select wire:model.live="dddFilter"
                 style="width:70px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:8px 6px; font-size:11px; color:{{ $dddFilter ? '#fb923c' : 'rgba(255,255,255,0.4)' }}; outline:none; cursor:pointer;">
             <option value="">DDD</option>
@@ -184,6 +185,7 @@
             <option value="{{ $ddd }}">{{ $ddd }}</option>
             @endforeach
         </select>
+        @endif
     </div>
 
     {{-- Filter tabs --}}
