@@ -13,13 +13,6 @@
                 <option value="{{ $agent->id }}">{{ $agent->name }}</option>
                 @endforeach
             </select>
-            <select wire:model.live="period" style="padding:5px 10px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; outline:none;">
-                <option value="1">Hoje</option>
-                <option value="7">7 dias</option>
-                <option value="30">30 dias</option>
-                <option value="90">90 dias</option>
-                <option value="all">Tudo</option>
-            </select>
         </div>
     </div>
 

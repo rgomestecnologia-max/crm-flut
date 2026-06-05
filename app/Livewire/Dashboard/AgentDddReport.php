@@ -9,8 +9,16 @@ use Livewire\Component;
 
 class AgentDddReport extends Component
 {
-    public string $period = '30';
     public string $agentFilter = '';
+    public ?string $dateFrom = null;
+    public ?string $dateTo = null;
+
+    #[\Livewire\Attributes\On('dashboard-date-changed')]
+    public function onDateChanged(?string $from = null, ?string $to = null): void
+    {
+        $this->dateFrom = $from;
+        $this->dateTo = $to;
+    }
 
     public const DDD_ESTADOS = [
         '11'=>'SP','12'=>'SP','13'=>'SP','14'=>'SP','15'=>'SP','16'=>'SP','17'=>'SP','18'=>'SP','19'=>'SP',
@@ -35,9 +43,8 @@ class AgentDddReport extends Component
             ->whereNotNull('assigned_to')
             ->where('is_group', false);
 
-        if ($this->period !== 'all') {
-            $query->where('created_at', '>=', now()->subDays((int) $this->period));
-        }
+        if ($this->dateFrom) $query->where('created_at', '>=', $this->dateFrom);
+        if ($this->dateTo) $query->where('created_at', '<=', $this->dateTo . ' 23:59:59');
 
         if ($this->agentFilter) {
             $query->where('assigned_to', (int) $this->agentFilter);

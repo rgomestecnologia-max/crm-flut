@@ -19,12 +19,11 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
-    /**
-     * Stats de conversas: minhas ativas, fila, resolvidas hoje, total.
-     */
-    public function conversationStats(User $user): array
+    public function conversationStats(User $user, ?string $from = null, ?string $to = null): array
     {
         $base = Conversation::forUser($user);
+        if ($from) $base->where('created_at', '>=', $from);
+        if ($to) $base->where('created_at', '<=', $to . ' 23:59:59');
 
         return [
             'mine'           => (clone $base)->where('assigned_to', $user->id)->where('status', 'open')->count(),
@@ -35,33 +34,34 @@ class DashboardService
                     $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
                 });
             })->count(),
-            'resolved_today' => (clone $base)->where('status', 'resolved')->whereDate('updated_at', today())->count(),
+            'resolved_today' => (clone $base)->where('status', 'resolved')
+                ->when(!$from && !$to, fn($q) => $q->whereDate('updated_at', today()))
+                ->when($from, fn($q) => $q->where('updated_at', '>=', $from))
+                ->when($to, fn($q) => $q->where('updated_at', '<=', $to . ' 23:59:59'))
+                ->count(),
             'total_open'     => (clone $base)->whereIn('status', ['open', 'pending', 'transferred'])->count(),
         ];
     }
 
-    /**
-     * Novos contatos criados hoje.
-     */
-    public function newContactsToday(): int
+    public function newContactsToday(?string $from = null, ?string $to = null): int
     {
-        return Contact::whereDate('created_at', today())->count();
+        $q = Contact::query();
+        if ($from) $q->where('created_at', '>=', $from);
+        elseif (!$to) $q->whereDate('created_at', today());
+        if ($to) $q->where('created_at', '<=', $to . ' 23:59:59');
+        return $q->count();
     }
 
-    /**
-     * Tempo médio de primeira resposta (em minutos).
-     * Calcula: para conversas de hoje com pelo menos 1 msg do contato e 1 do agente,
-     * a diferença entre a primeira msg do contato e a primeira resposta do agente.
-     */
-    public function avgResponseTime(User $user): ?float
+    public function avgResponseTime(User $user, ?string $from = null, ?string $to = null): ?float
     {
-        $conversationIds = Conversation::forUser($user)
-            ->whereDate('created_at', today())
-            ->pluck('id');
+        $q = Conversation::forUser($user);
+        if ($from) $q->where('created_at', '>=', $from);
+        elseif (!$to) $q->whereDate('created_at', today());
+        if ($to) $q->where('created_at', '<=', $to . ' 23:59:59');
+        $conversationIds = $q->pluck('id');
 
         if ($conversationIds->isEmpty()) return null;
 
-        // Subquery: pra cada conversa, pega a primeira msg do contato e a primeira do agente
         $placeholders = $conversationIds->map(fn() => '?')->implode(',');
         $bindings = $conversationIds->values()->all();
         $result = DB::select("
@@ -86,106 +86,76 @@ class DashboardService
         return $avg !== null ? round((float) $avg, 1) : null;
     }
 
-    /**
-     * Conversas abertas agrupadas por departamento (com nome e cor).
-     */
-    public function conversationsByDepartment(): Collection
+    public function conversationsByDepartment(?string $from = null, ?string $to = null): Collection
     {
-        return Conversation::whereIn('status', ['open', 'pending', 'transferred'])
-            ->join('departments', 'conversations.department_id', '=', 'departments.id')
-            ->selectRaw('departments.name, departments.color, count(*) as total')
+        $q = Conversation::whereIn('status', ['open', 'pending', 'transferred'])
+            ->join('departments', 'conversations.department_id', '=', 'departments.id');
+        if ($from) $q->where('conversations.created_at', '>=', $from);
+        if ($to) $q->where('conversations.created_at', '<=', $to . ' 23:59:59');
+        return $q->selectRaw('departments.name, departments.color, count(*) as total')
             ->groupBy('departments.id', 'departments.name', 'departments.color')
             ->orderByDesc('total')
             ->get();
     }
 
-    /**
-     * Performance dos agentes: conversas ativas, resolvidas hoje, status.
-     */
-    public function agentPerformance(): Collection
+    public function agentPerformance(?string $from = null, ?string $to = null): Collection
     {
         $companyId = app(CurrentCompany::class)->id();
 
         return User::where('is_active', true)
             ->where('company_id', $companyId)
             ->withCount([
-                'assignedConversations as active_count' => fn($q) => $q->where('status', 'open'),
-                'assignedConversations as resolved_today' => fn($q) => $q->where('status', 'resolved')->whereDate('updated_at', today()),
+                'assignedConversations as active_count' => function ($q) use ($from, $to) {
+                    $q->where('status', 'open');
+                    if ($from) $q->where('created_at', '>=', $from);
+                    if ($to) $q->where('created_at', '<=', $to . ' 23:59:59');
+                },
+                'assignedConversations as resolved_today' => function ($q) use ($from, $to) {
+                    $q->where('status', 'resolved');
+                    if ($from) $q->where('updated_at', '>=', $from);
+                    elseif (!$to) $q->whereDate('updated_at', today());
+                    if ($to) $q->where('updated_at', '<=', $to . ' 23:59:59');
+                },
             ])
             ->orderByDesc('active_count')
             ->get(['id', 'name', 'avatar', 'status', 'role', 'department_id', 'last_seen_at']);
     }
 
-    /**
-     * Últimas 10 ações no log de auditoria.
-     */
-    public function recentActivity(): Collection
+    public function crmStats(?string $from = null, ?string $to = null): array
     {
-        return AuditLog::with('user')
-            ->latest('created_at')
-            ->limit(10)
-            ->get();
-    }
+        $cardsQ = CrmCard::query();
+        if ($from) $cardsQ->where('created_at', '>=', $from);
+        if ($to) $cardsQ->where('created_at', '<=', $to . ' 23:59:59');
 
-    /**
-     * Resumo do pipeline CRM: cards por etapa com valor total.
-     */
-    public function pipelineSummary(): Collection
-    {
-        $pipelines = CrmPipeline::active()->with(['stages' => fn($q) => $q->orderBy('sort_order')])->get();
+        $activeCards = (clone $cardsQ)->count();
+        $createdToday = $from ? $activeCards : CrmCard::whereDate('created_at', today())->count();
 
-        // Busca a key do campo valor_da_reserva (se existir)
-        $valorField = CrmCustomField::where('key', 'valor_da_reserva')->first();
-
-        foreach ($pipelines as $pipeline) {
-            foreach ($pipeline->stages as $stage) {
-                $stage->cards_count = CrmCard::where('stage_id', $stage->id)->count();
-
-                if ($valorField) {
-                    $stage->total_value = CrmCardFieldValue::where('field_id', $valorField->id)
-                        ->whereIn('card_id', CrmCard::where('stage_id', $stage->id)->pluck('id'))
-                        ->sum(DB::raw('CAST(value AS DECIMAL(10,2))'));
-                } else {
-                    $stage->total_value = 0;
-                }
-            }
-        }
-
-        return $pipelines;
-    }
-
-    /**
-     * Stats do CRM: cards ativos, valor total, criados hoje.
-     */
-    public function crmStats(): array
-    {
-        $activeCards = CrmCard::count();
-        $createdToday = CrmCard::whereDate('created_at', today())->count();
-
-        // Valor total dos cards ativos
         $valorField = CrmCustomField::where('key', 'valor_da_reserva')->first();
         $totalValue = 0;
         if ($valorField) {
+            $cardIds = (clone $cardsQ)->pluck('id');
             $totalValue = CrmCardFieldValue::where('field_id', $valorField->id)
+                ->whereIn('card_id', $cardIds)
                 ->sum(DB::raw('CAST(value AS DECIMAL(10,2))'));
         }
-
-        // Pipelines ativos
-        $pipelinesCount = CrmPipeline::active()->count();
 
         return [
             'active_cards'   => $activeCards,
             'created_today'  => $createdToday,
             'total_value'    => $totalValue,
-            'pipelines'      => $pipelinesCount,
+            'pipelines'      => CrmPipeline::active()->count(),
         ];
     }
 
-    /**
-     * Stats de Leads (BroadcastContacts): hoje, semana, mês.
-     */
-    public function leadsStats(): array
+    public function leadsStats(?string $from = null, ?string $to = null): array
     {
+        if ($from || $to) {
+            $q = BroadcastContact::query();
+            if ($from) $q->where('created_at', '>=', $from);
+            if ($to) $q->where('created_at', '<=', $to . ' 23:59:59');
+            $count = $q->count();
+            return ['today' => $count, 'week' => $count, 'month' => $count, 'total' => BroadcastContact::count()];
+        }
         return [
             'today' => BroadcastContact::whereDate('created_at', today())->count(),
             'week'  => BroadcastContact::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
@@ -194,18 +164,18 @@ class DashboardService
         ];
     }
 
-    /**
-     * Stats de Disparos (Broadcasts): campanhas, enviados, taxa sucesso.
-     */
-    public function broadcastStats(): array
+    public function broadcastStats(?string $from = null, ?string $to = null): array
     {
-        $campaigns = BroadcastCampaign::count();
-        $activeCampaigns = BroadcastCampaign::whereIn('status', ['draft', 'running'])->count();
-        $totalSent = BroadcastCampaign::sum('sent_count');
-        $totalFailed = BroadcastCampaign::sum('failed_count');
+        $q = BroadcastCampaign::query();
+        if ($from) $q->where('created_at', '>=', $from);
+        if ($to) $q->where('created_at', '<=', $to . ' 23:59:59');
+
+        $campaigns = (clone $q)->count();
+        $activeCampaigns = (clone $q)->whereIn('status', ['draft', 'running'])->count();
+        $totalSent = (clone $q)->sum('sent_count');
+        $totalFailed = (clone $q)->sum('failed_count');
         $successRate = ($totalSent + $totalFailed) > 0
-            ? round(($totalSent / ($totalSent + $totalFailed)) * 100, 1)
-            : 0;
+            ? round(($totalSent / ($totalSent + $totalFailed)) * 100, 1) : 0;
 
         return [
             'total_campaigns'  => $campaigns,
@@ -213,5 +183,23 @@ class DashboardService
             'total_sent'       => (int) $totalSent,
             'success_rate'     => $successRate,
         ];
+    }
+
+    public function pipelineSummary(): Collection
+    {
+        $pipelines = CrmPipeline::active()->with(['stages' => fn($q) => $q->orderBy('sort_order')])->get();
+        $valorField = CrmCustomField::where('key', 'valor_da_reserva')->first();
+
+        foreach ($pipelines as $pipeline) {
+            foreach ($pipeline->stages as $stage) {
+                $stage->cards_count = CrmCard::where('stage_id', $stage->id)->count();
+                $stage->total_value = $valorField
+                    ? CrmCardFieldValue::where('field_id', $valorField->id)
+                        ->whereIn('card_id', CrmCard::where('stage_id', $stage->id)->pluck('id'))
+                        ->sum(DB::raw('CAST(value AS DECIMAL(10,2))'))
+                    : 0;
+            }
+        }
+        return $pipelines;
     }
 }
