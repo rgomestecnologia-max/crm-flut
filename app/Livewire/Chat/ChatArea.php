@@ -1587,16 +1587,15 @@ class ChatArea extends Component
 
         $forwardConversations = collect();
         if ($this->showForwardPicker) {
-            $forwardConversations = Conversation::with('contact')
+            $forwardConversations = Conversation::with(['contact', 'department'])
                 ->where('is_archived', false)
                 ->where('id', '!=', $this->conversationId)
-                ->whereIn('status', ['open', 'pending'])
                 ->when($this->forwardSearch, fn($q) =>
                     $q->whereHas('contact', fn($cq) =>
                         $cq->where('name', 'like', "%{$this->forwardSearch}%")
                             ->orWhere('phone', 'like', "%{$this->forwardSearch}%")
                     )
-                )->latest('last_message_at')->take(30)->get();
+                )->latest('last_message_at')->take(50)->get();
         }
 
         $flutChatMessages = collect();
