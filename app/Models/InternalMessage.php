@@ -11,7 +11,7 @@ class InternalMessage extends Model
     use BelongsToCompany;
 
     protected $fillable = [
-        'company_id', 'sender_id', 'recipient_id',
+        'company_id', 'sender_id', 'recipient_id', 'group_id',
         'content', 'type', 'media_url', 'media_filename', 'is_read',
     ];
 
@@ -25,5 +25,10 @@ class InternalMessage extends Model
     public function recipient(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recipient_id');
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(InternalGroup::class, 'group_id');
     }
 }

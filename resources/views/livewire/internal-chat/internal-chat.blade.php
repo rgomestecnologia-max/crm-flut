@@ -1,11 +1,44 @@
 <div style="display:flex; height:100%; overflow:hidden;">
     {{-- Lista de agentes --}}
     <div style="width:280px; flex-shrink:0; border-right:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; background:rgba(8,12,22,0.5);">
-        <div style="padding:14px; border-bottom:1px solid rgba(255,255,255,0.05);">
-            <h2 style="font-size:14px; font-weight:800; color:white; font-family:'Syne',sans-serif;">Chat Interno</h2>
-            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px;">{{ $agents->count() }} agentes</p>
+        <div style="padding:14px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between;">
+            <div>
+                <h2 style="font-size:14px; font-weight:800; color:white; font-family:'Syne',sans-serif;">Chat Interno</h2>
+                <p style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:2px;">{{ $agents->count() }} agentes · {{ $groups->count() }} grupos</p>
+            </div>
+            <button wire:click="$set('showGroupModal', true)" title="Novo grupo" style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(178,255,0,0.1); border:none; cursor:pointer; color:#b2ff00;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </button>
         </div>
         <div style="flex:1; overflow-y:auto;">
+            {{-- Grupos --}}
+            @foreach($groups as $group)
+            <button wire:click="selectGroup({{ $group->id }})"
+                    style="width:100%; text-align:left; padding:10px 14px; border:none; cursor:pointer; transition:background 0.1s; display:flex; align-items:center; gap:10px;
+                           background:{{ $selectedGroupId === $group->id ? 'rgba(178,255,0,0.06)' : 'transparent' }};
+                           border-left:3px solid {{ $selectedGroupId === $group->id ? '#b2ff00' : 'transparent' }};"
+                    onmouseover="if({{ $selectedGroupId === $group->id ? 'false' : 'true' }}) this.style.background='rgba(255,255,255,0.03)'"
+                    onmouseout="if({{ $selectedGroupId === $group->id ? 'false' : 'true' }}) this.style.background='transparent'">
+                <div style="width:36px; height:36px; border-radius:50%; background:rgba(139,92,246,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="16" height="16" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <p style="font-size:12px; font-weight:600; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $group->name }}</p>
+                        @if($group->unread_count > 0)
+                        <span style="min-width:18px; height:18px; padding:0 5px; border-radius:20px; background:#a78bfa; color:#111; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center;">{{ $group->unread_count }}</span>
+                        @endif
+                    </div>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        {{ $group->members->count() }} membros
+                    </p>
+                </div>
+            </button>
+            @endforeach
+            @if($groups->isNotEmpty() && $agents->isNotEmpty())
+            <div style="height:1px; background:rgba(255,255,255,0.04); margin:4px 14px;"></div>
+            @endif
+            {{-- Agentes (1-a-1) --}}
             @foreach($agents as $agent)
             <button wire:click="selectUser({{ $agent->id }})"
                     style="width:100%; text-align:left; padding:10px 14px; border:none; cursor:pointer; transition:background 0.1s; display:flex; align-items:center; gap:10px;
@@ -35,7 +68,55 @@
 
     {{-- Área de conversa --}}
     <div style="flex:1; display:flex; flex-direction:column; background:rgba(8,12,22,0.3);">
-        @if($selectedUser)
+        @if($selectedGroup)
+            {{-- Header do Grupo --}}
+            <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                <div style="width:32px; height:32px; border-radius:50%; background:rgba(139,92,246,0.2); display:flex; align-items:center; justify-content:center;">
+                    <svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div>
+                    <p style="font-size:13px; font-weight:700; color:white;">{{ $selectedGroup->name }}</p>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.3);">{{ $selectedGroup->members->pluck('name')->map(fn($n) => \Illuminate\Support\Str::before($n, ' '))->implode(', ') }}</p>
+                </div>
+            </div>
+
+            {{-- Mensagens do grupo --}}
+            <div style="flex:1; overflow-y:auto; padding:16px;" x-data x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)" x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+                @foreach($messages as $msg)
+                @php $isMe = $msg->sender_id === auth()->id(); @endphp
+                <div style="display:flex; justify-content:{{ $isMe ? 'flex-end' : 'flex-start' }}; margin-bottom:8px;">
+                    <div style="max-width:70%; padding:8px 12px; border-radius:{{ $isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px' }};
+                                background:{{ $isMe ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.04)' }};
+                                border:1px solid {{ $isMe ? 'rgba(178,255,0,0.15)' : 'rgba(255,255,255,0.06)' }};">
+                        @if(!$isMe)
+                        <p style="font-size:10px; font-weight:700; color:#a78bfa; margin-bottom:2px;">{{ $msg->sender?->name ?? '?' }}</p>
+                        @endif
+                        @if($msg->type === 'image')
+                            <img src="{{ $msg->media_url }}" style="max-width:200px; border-radius:8px; cursor:pointer;" onclick="window.open(this.src)">
+                        @elseif($msg->type === 'audio')
+                            <audio controls src="{{ $msg->media_url }}" style="max-width:220px; height:32px;"></audio>
+                        @elseif($msg->type === 'document')
+                            <a href="{{ $msg->media_url }}" target="_blank" style="color:#60a5fa; font-size:12px; text-decoration:none;">📎 {{ $msg->media_filename ?? 'Documento' }}</a>
+                        @else
+                            <p style="font-size:13px; color:{{ $isMe ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.7)' }}; white-space:pre-wrap; word-break:break-word;">{{ $msg->content }}</p>
+                        @endif
+                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:3px; text-align:{{ $isMe ? 'right' : 'left' }};">{{ $msg->created_at->format('H:i') }}</p>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            {{-- Input do grupo --}}
+            <div style="padding:10px 16px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0;">
+                <form wire:submit="sendMessage" style="display:flex; gap:8px;">
+                    <input wire:model="messageText" type="text" placeholder="Mensagem para o grupo..."
+                           style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 14px; font-size:13px; color:white; outline:none;"
+                           onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+                    <button type="submit" style="padding:10px 16px; background:#b2ff00; color:#111; font-weight:700; font-size:12px; border:none; border-radius:10px; cursor:pointer;">Enviar</button>
+                </form>
+            </div>
+
+        @elseif($selectedUser)
             {{-- Header --}}
             <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:10px; flex-shrink:0;">
                 <img src="{{ $selectedUser->avatar_url }}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
@@ -298,9 +379,44 @@
             <div style="flex:1; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.2);">
                 <div style="text-align:center;">
                     <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 12px; opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    <p style="font-size:14px;">Selecione um agente para conversar</p>
+                    <p style="font-size:14px;">Selecione um agente ou grupo para conversar</p>
                 </div>
             </div>
         @endif
     </div>
+
+    {{-- Modal Criar Grupo --}}
+    @if($showGroupModal)
+    <div style="position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);" wire:click.self="$set('showGroupModal', false)">
+        <div style="background:#0f1320; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:400px; max-width:90vw; max-height:80vh; overflow-y:auto;">
+            <h3 style="font-size:15px; font-weight:700; color:white; margin-bottom:16px;">Novo Grupo</h3>
+
+            <div style="margin-bottom:14px;">
+                <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:4px; text-transform:uppercase; font-weight:600;">Nome do grupo *</label>
+                <input wire:model="groupName" type="text" placeholder="Ex: Equipe Comercial"
+                       style="width:100%; padding:10px 12px; font-size:13px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; outline:none; box-sizing:border-box;">
+            </div>
+
+            <label style="font-size:10px; color:rgba(255,255,255,0.4); display:block; margin-bottom:8px; text-transform:uppercase; font-weight:600;">Membros</label>
+            <div style="max-height:250px; overflow-y:auto;">
+                @foreach($agents as $agent)
+                @php $selected = in_array($agent->id, $groupMemberIds); @endphp
+                <button wire:click="toggleGroupMember({{ $agent->id }})"
+                        style="width:100%; text-align:left; padding:8px 10px; background:{{ $selected ? 'rgba(178,255,0,0.06)' : 'transparent' }}; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; display:flex; align-items:center; gap:10px; color:white;">
+                    <div style="width:18px; height:18px; border-radius:4px; border:2px solid {{ $selected ? '#b2ff00' : 'rgba(255,255,255,0.15)' }}; background:{{ $selected ? '#b2ff00' : 'transparent' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        @if($selected)<svg width="10" height="10" fill="#111" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>@endif
+                    </div>
+                    <img src="{{ $agent->avatar_url }}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
+                    <span style="font-size:12px;">{{ $agent->name }}</span>
+                </button>
+                @endforeach
+            </div>
+
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+                <button wire:click="$set('showGroupModal', false)" style="padding:8px 16px; font-size:12px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:8px; cursor:pointer;">Cancelar</button>
+                <button wire:click="createGroup" style="padding:8px 20px; font-size:12px; font-weight:700; color:#111; background:#b2ff00; border:none; border-radius:8px; cursor:pointer;">Criar Grupo</button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

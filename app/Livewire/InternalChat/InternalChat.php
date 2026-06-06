@@ -3,6 +3,7 @@
 namespace App\Livewire\InternalChat;
 
 use App\Events\InternalMessageSent;
+use App\Models\InternalGroup;
 use App\Models\InternalMessage;
 use App\Models\User;
 use App\Services\MediaStorage;
@@ -15,8 +16,14 @@ class InternalChat extends Component
     use WithFileUploads;
 
     public ?int   $selectedUserId = null;
+    public ?int   $selectedGroupId = null;
     public string $messageText    = '';
     public        $attachment     = null;
+
+    // Criar grupo
+    public bool   $showGroupModal = false;
+    public string $groupName = '';
+    public array  $groupMemberIds = [];
 
     protected function getListeners(): array
     {
@@ -28,22 +35,65 @@ class InternalChat extends Component
     public function selectUser(int $userId): void
     {
         $this->selectedUserId = $userId;
+        $this->selectedGroupId = null;
         $this->messageText    = '';
 
-        // Marcar como lidas
         InternalMessage::where('sender_id', $userId)
             ->where('recipient_id', Auth::id())
             ->where('is_read', false)
             ->update(['is_read' => true]);
     }
 
+    public function selectGroup(int $groupId): void
+    {
+        $this->selectedGroupId = $groupId;
+        $this->selectedUserId = null;
+        $this->messageText = '';
+
+        // Marcar msgs do grupo como lidas
+        InternalMessage::where('group_id', $groupId)
+            ->where('sender_id', '!=', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+    }
+
+    public function createGroup(): void
+    {
+        if (!trim($this->groupName) || empty($this->groupMemberIds)) return;
+
+        $group = InternalGroup::create([
+            'name'       => trim($this->groupName),
+            'created_by' => Auth::id(),
+        ]);
+
+        $memberIds = array_unique(array_merge($this->groupMemberIds, [Auth::id()]));
+        $group->members()->attach($memberIds);
+
+        $this->showGroupModal = false;
+        $this->groupName = '';
+        $this->groupMemberIds = [];
+        $this->selectedGroupId = $group->id;
+        $this->selectedUserId = null;
+        $this->dispatch('toast', type: 'success', message: 'Grupo criado.');
+    }
+
+    public function toggleGroupMember(int $userId): void
+    {
+        if (in_array($userId, $this->groupMemberIds)) {
+            $this->groupMemberIds = array_values(array_diff($this->groupMemberIds, [$userId]));
+        } else {
+            $this->groupMemberIds[] = $userId;
+        }
+    }
+
     public function sendMessage(): void
     {
-        if (!$this->selectedUserId || !trim($this->messageText)) return;
+        if ((!$this->selectedUserId && !$this->selectedGroupId) || !trim($this->messageText)) return;
 
         $msg = InternalMessage::create([
             'sender_id'    => Auth::id(),
             'recipient_id' => $this->selectedUserId,
+            'group_id'     => $this->selectedGroupId,
             'content'      => trim($this->messageText),
             'type'         => 'text',
         ]);
@@ -56,7 +106,7 @@ class InternalChat extends Component
 
     public function sendFile(): void
     {
-        if (!$this->selectedUserId || !$this->attachment) return;
+        if ((!$this->selectedUserId && !$this->selectedGroupId) || !$this->attachment) return;
 
         $this->validate(['attachment' => 'required|file|max:10240']);
 
@@ -76,6 +126,7 @@ class InternalChat extends Component
         $msg = InternalMessage::create([
             'sender_id'      => Auth::id(),
             'recipient_id'   => $this->selectedUserId,
+            'group_id'       => $this->selectedGroupId,
             'content'        => $name,
             'type'           => $type,
             'media_url'      => $url,
@@ -112,7 +163,7 @@ class InternalChat extends Component
 
     public function receiveAudioBlob(string $dataUrl): void
     {
-        if (!$this->selectedUserId) return;
+        if (!$this->selectedUserId && !$this->selectedGroupId) return;
 
         $parts = explode(',', $dataUrl, 2);
         if (count($parts) < 2) return;
@@ -133,6 +184,7 @@ class InternalChat extends Component
         $msg = InternalMessage::create([
             'sender_id'      => Auth::id(),
             'recipient_id'   => $this->selectedUserId,
+            'group_id'       => $this->selectedGroupId,
             'content'        => null,
             'type'           => 'audio',
             'media_url'      => $url,
@@ -170,6 +222,19 @@ class InternalChat extends Component
             })
             ->sortByDesc(fn($a) => $a->last_internal_msg?->created_at ?? '0');
 
+        // Grupos do usuário
+        $groups = InternalGroup::whereHas('members', fn($q) => $q->where('user_id', $me->id))
+            ->with('latestMessage')
+            ->get()
+            ->map(function ($group) use ($me) {
+                $group->unread_count = InternalMessage::where('group_id', $group->id)
+                    ->where('sender_id', '!=', $me->id)
+                    ->where('is_read', false)
+                    ->count();
+                return $group;
+            })
+            ->sortByDesc(fn($g) => $g->latestMessage?->created_at ?? $g->created_at);
+
         // Mensagens da conversa selecionada
         $messages = collect();
         if ($this->selectedUserId) {
@@ -180,13 +245,20 @@ class InternalChat extends Component
                         $q2->where('sender_id', $this->selectedUserId)->where('recipient_id', Auth::id());
                     });
                 })
+                ->whereNull('group_id')
+                ->orderBy('created_at')
+                ->get();
+        } elseif ($this->selectedGroupId) {
+            $messages = InternalMessage::with('sender')
+                ->where('group_id', $this->selectedGroupId)
                 ->orderBy('created_at')
                 ->get();
         }
 
-        $selectedUser = $this->selectedUserId ? User::find($this->selectedUserId) : null;
-        $totalUnread  = InternalMessage::where('recipient_id', $me->id)->where('is_read', false)->count();
+        $selectedUser  = $this->selectedUserId ? User::find($this->selectedUserId) : null;
+        $selectedGroup = $this->selectedGroupId ? InternalGroup::with('members')->find($this->selectedGroupId) : null;
+        $totalUnread   = InternalMessage::where('recipient_id', $me->id)->where('is_read', false)->count();
 
-        return view('livewire.internal-chat.internal-chat', compact('agents', 'messages', 'selectedUser', 'totalUnread'));
+        return view('livewire.internal-chat.internal-chat', compact('agents', 'groups', 'messages', 'selectedUser', 'selectedGroup', 'totalUnread'));
     }
 }
