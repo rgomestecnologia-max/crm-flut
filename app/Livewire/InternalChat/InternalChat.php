@@ -77,6 +77,17 @@ class InternalChat extends Component
         $this->dispatch('toast', type: 'success', message: 'Grupo criado.');
     }
 
+    public function deleteGroup(int $groupId): void
+    {
+        $group = InternalGroup::find($groupId);
+        if (!$group) return;
+        $group->delete();
+        if ($this->selectedGroupId === $groupId) {
+            $this->selectedGroupId = null;
+        }
+        $this->dispatch('toast', type: 'success', message: 'Grupo excluído.');
+    }
+
     public function toggleGroupMember(int $userId): void
     {
         if (in_array($userId, $this->groupMemberIds)) {
