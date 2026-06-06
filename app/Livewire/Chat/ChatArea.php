@@ -62,6 +62,8 @@ class ChatArea extends Component
     // Encaminhar mensagem
     public bool   $showForwardPicker = false;
     public ?int   $forwardMessageId  = null;
+    public array  $forwardMessageIds = [];
+    public bool   $msgSelectMode     = false;
     public string $forwardSearch     = '';
     public array  $forwardSelected   = [];
     public string $forwardCaption    = '';
@@ -961,6 +963,38 @@ class ChatArea extends Component
     public function openForward(int $messageId): void
     {
         $this->forwardMessageId  = $messageId;
+        $this->forwardMessageIds = [$messageId];
+        $this->showForwardPicker = true;
+        $this->forwardSearch     = '';
+        $this->forwardSelected   = [];
+        $this->forwardCaption    = '';
+    }
+
+    public function toggleMessageSelect(int $msgId): void
+    {
+        if (in_array($msgId, $this->forwardMessageIds)) {
+            $this->forwardMessageIds = array_values(array_diff($this->forwardMessageIds, [$msgId]));
+        } else {
+            $this->forwardMessageIds[] = $msgId;
+        }
+    }
+
+    public function enterSelectMode(int $msgId): void
+    {
+        $this->msgSelectMode = true;
+        $this->forwardMessageIds = [$msgId];
+    }
+
+    public function cancelSelectMode(): void
+    {
+        $this->msgSelectMode = false;
+        $this->forwardMessageIds = [];
+    }
+
+    public function openForwardSelected(): void
+    {
+        if (empty($this->forwardMessageIds)) return;
+        $this->forwardMessageId = $this->forwardMessageIds[0];
         $this->showForwardPicker = true;
         $this->forwardSearch     = '';
         $this->forwardSelected   = [];
@@ -978,10 +1012,12 @@ class ChatArea extends Component
 
     public function sendForward(): void
     {
-        if (!$this->forwardMessageId || empty($this->forwardSelected)) return;
+        $messageIds = !empty($this->forwardMessageIds) ? $this->forwardMessageIds : ($this->forwardMessageId ? [$this->forwardMessageId] : []);
+        if (empty($messageIds) || empty($this->forwardSelected)) return;
 
-        $source = Message::find($this->forwardMessageId);
-        if (!$source) return;
+        // Ordena mensagens pela ordem original
+        $sources = Message::whereIn('id', $messageIds)->orderBy('id')->get();
+        if ($sources->isEmpty()) return;
 
         $userId = \Illuminate\Support\Facades\Auth::id();
         $caption = trim($this->forwardCaption);
@@ -992,31 +1028,31 @@ class ChatArea extends Component
             $target = Conversation::find($targetId);
             if (!$target) continue;
 
-            // Encaminha a mensagem original
-            $content = $source->content;
-            // Para mídia com legenda adicional, concatena
-            if ($caption && in_array($source->type, ['image', 'video', 'document'])) {
-                $content = $caption;
+            foreach ($sources as $source) {
+                $content = $source->content;
+                if ($caption && in_array($source->type, ['image', 'video', 'document'])) {
+                    $content = $caption;
+                }
+
+                $fwd = Message::create([
+                    'conversation_id' => $target->id,
+                    'sender_type'     => 'agent',
+                    'sender_id'       => $userId,
+                    'content'         => $content,
+                    'type'            => $source->type,
+                    'media_url'       => $source->media_url,
+                    'media_filename'  => $source->media_filename,
+                    'media_duration'  => $source->media_duration,
+                    'delivery_status' => 'pending',
+                ]);
+
+                $target->update(['last_message_at' => now()]);
+                try { \App\Jobs\SendWhatsAppMessage::dispatch($fwd); } catch (\Throwable) {}
+                try { broadcast(new \App\Events\MessageReceived($fwd)); } catch (\Throwable) {}
             }
 
-            $fwd = Message::create([
-                'conversation_id' => $target->id,
-                'sender_type'     => 'agent',
-                'sender_id'       => $userId,
-                'content'         => $content,
-                'type'            => $source->type,
-                'media_url'       => $source->media_url,
-                'media_filename'  => $source->media_filename,
-                'media_duration'  => $source->media_duration,
-                'delivery_status' => 'pending',
-            ]);
-
-            $target->update(['last_message_at' => now()]);
-            try { \App\Jobs\SendWhatsAppMessage::dispatch($fwd); } catch (\Throwable) {}
-            try { broadcast(new \App\Events\MessageReceived($fwd)); } catch (\Throwable) {}
-
-            // Se é texto e tem legenda, envia a legenda como mensagem separada
-            if ($caption && $source->type === 'text') {
+            // Legenda como mensagem separada (só uma vez por destino)
+            if ($caption && $sources->first()->type === 'text') {
                 $captionMsg = Message::create([
                     'conversation_id' => $target->id,
                     'sender_type'     => 'agent',
@@ -1034,17 +1070,19 @@ class ChatArea extends Component
 
         $this->showForwardPicker = false;
         $this->forwardMessageId  = null;
+        $this->forwardMessageIds = [];
+        $this->msgSelectMode     = false;
         $this->forwardSearch     = '';
         $this->forwardSelected   = [];
         $this->forwardCaption    = '';
 
-        // Abre a última conversa destino
         if ($lastTargetId) {
             $this->loadConversation($lastTargetId);
             $this->dispatch('conversation-selected', id: $lastTargetId);
         }
 
-        $this->dispatch('toast', type: 'success', message: "Encaminhado para {$count} conversa(s).");
+        $msgCount = $sources->count();
+        $this->dispatch('toast', type: 'success', message: "{$msgCount} mensagem(ns) encaminhada(s) para {$count} conversa(s).");
     }
 
     public function toggleTag(int $tagId): void

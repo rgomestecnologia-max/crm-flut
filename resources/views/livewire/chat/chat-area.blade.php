@@ -393,7 +393,12 @@ function senderColor(?string $identifier): string {
                 </div>
             @elseif($msg->isFromContact())
                 {{-- Contact message (left) --}}
-                <div wire:key="msg-{{ $msg->id }}" id="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
+                <div wire:key="msg-{{ $msg->id }}" id="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; position:relative;{{ $msgSelectMode && in_array($msg->id, $forwardMessageIds) ? ' background:rgba(59,130,246,0.08); border-radius:8px; padding:4px;' : '' }}" x-data="{ showMenu: false }" @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
+                    @if($msgSelectMode)
+                    <button wire:click="toggleMessageSelect({{ $msg->id }})" style="width:20px; height:20px; border-radius:4px; border:2px solid {{ in_array($msg->id, $forwardMessageIds) ? '#3b82f6' : 'rgba(255,255,255,0.15)' }}; background:{{ in_array($msg->id, $forwardMessageIds) ? '#3b82f6' : 'transparent' }}; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; margin-bottom:4px;">
+                        @if(in_array($msg->id, $forwardMessageIds))<svg width="10" height="10" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>@endif
+                    </button>
+                    @endif
                     <img x-data="{ err: false }"
                          :src="err ? '{{ $conversation->contact->avatar_fallback }}' : '{{ $conversation->contact->avatar }}'"
                          x-on:error="err = true" alt=""
@@ -685,6 +690,13 @@ function senderColor(?string $identifier): string {
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
                                 Encaminhar
                             </button>
+                            <button wire:click="enterSelectMode({{ $msg->id }})" @click="showMenu = false"
+                                    style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s; border-top:1px solid rgba(255,255,255,0.05);"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                Selecionar
+                            </button>
                             @if($conversation->is_group && $msg->sender_phone)
                             <button wire:click="openPrivateChat({{ $msg->id }})" @click="showMenu = false"
                                     style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s; border-top:1px solid rgba(255,255,255,0.05);"
@@ -699,9 +711,14 @@ function senderColor(?string $identifier): string {
                 </div>
             @else
                 {{-- Agent message (right) --}}
-                <div wire:key="msg-{{ $msg->id }}" id="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;"
+                <div wire:key="msg-{{ $msg->id }}" id="msg-{{ $msg->id }}" style="display:flex; align-items:flex-end; gap:8px; max-width:75%; margin-left:auto; flex-direction:row-reverse; position:relative;{{ $msgSelectMode && in_array($msg->id, $forwardMessageIds) ? ' background:rgba(59,130,246,0.08); border-radius:8px; padding:4px;' : '' }}"
                      x-data="{ showMenu: false, editing: false, editText: '' }"
                      @mouseenter="if(window.matchMedia('(hover:hover)').matches) showMenu = true" @mouseleave="if(window.matchMedia('(hover:hover)').matches) showMenu = false" @click="if(!window.matchMedia('(hover:hover)').matches && showMenu === false) showMenu = true" @click.outside="showMenu = false">
+                    @if($msgSelectMode)
+                    <button wire:click="toggleMessageSelect({{ $msg->id }})" style="width:20px; height:20px; border-radius:4px; border:2px solid {{ in_array($msg->id, $forwardMessageIds) ? '#3b82f6' : 'rgba(255,255,255,0.15)' }}; background:{{ in_array($msg->id, $forwardMessageIds) ? '#3b82f6' : 'transparent' }}; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; margin-bottom:4px;">
+                        @if(in_array($msg->id, $forwardMessageIds))<svg width="10" height="10" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>@endif
+                    </button>
+                    @endif
                     @php
                         $agentName = $msg->sender?->name ?? 'W';
                         $agentInit = mb_strtoupper(mb_substr($agentName, 0, 1));
@@ -1011,6 +1028,13 @@ function senderColor(?string $identifier): string {
                                     onmouseout="this.style.background='transparent'">
                                 <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
                                 Encaminhar
+                            </button>
+                            <button wire:click="enterSelectMode({{ $msg->id }})" @click="showMenu = false"
+                                    style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                Selecionar
                             </button>
                             <button wire:click="deleteMessage({{ $msg->id }})" wire:confirm="Excluir esta mensagem?"
                                     style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:#f87171; transition:background 0.1s;"
@@ -1488,6 +1512,20 @@ function senderColor(?string $identifier): string {
                     </p>
                     @endforelse
                 </div>
+            </div>
+            @endif
+
+            {{-- Barra de seleção de mensagens --}}
+            @if($msgSelectMode)
+            <div style="padding:8px 14px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:10px; margin-bottom:6px; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:12px; color:#60a5fa; font-weight:700;">{{ count($forwardMessageIds) }} selecionada(s)</span>
+                <span style="flex:1; font-size:10px; color:rgba(255,255,255,0.3);">Clique nas mensagens para selecionar</span>
+                <button wire:click="openForwardSelected" style="padding:5px 12px; font-size:11px; font-weight:600; color:white; background:#3b82f6; border:none; border-radius:6px; cursor:pointer;">
+                    Encaminhar
+                </button>
+                <button wire:click="cancelSelectMode" style="padding:5px 10px; font-size:11px; color:rgba(255,255,255,0.4); background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:6px; cursor:pointer;">
+                    Cancelar
+                </button>
             </div>
             @endif
 
