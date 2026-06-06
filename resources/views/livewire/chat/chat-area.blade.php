@@ -1558,12 +1558,47 @@ function senderColor(?string $identifier): string {
                         </div>
                     </button>
                     @empty
-                    <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">
-                        {{ $forwardSearch ? 'Nenhuma conversa encontrada.' : 'Nenhuma conversa ativa.' }}
-                    </p>
+                    @if(!$forwardSearch)
+                    <p style="padding:16px; text-align:center; font-size:11px; color:rgba(255,255,255,0.3);">Nenhuma conversa ativa.</p>
+                    @endif
                     @endforelse
+
+                    {{-- Chat Interno --}}
+                    @if($internalAgents->isNotEmpty() || $internalGroups->isNotEmpty())
+                    <div style="padding:4px 12px 2px; border-top:1px solid rgba(255,255,255,0.06);">
+                        <span style="font-size:9px; font-weight:700; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:0.5px;">Chat Interno</span>
+                    </div>
+                    @foreach($internalGroups as $ig)
+                    @php $gKey = 'group_'.$ig->id; $gSel = in_array($gKey, $forwardInternalTargets); @endphp
+                    <button wire:click="toggleForwardInternal('{{ $gKey }}')"
+                            style="width:100%; text-align:left; padding:8px 12px; background:{{ $gSel ? 'rgba(139,92,246,0.1)' : 'transparent' }}; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; color:white; display:flex; align-items:center; gap:10px;"
+                            onmouseover="this.style.background='{{ $gSel ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.05)' }}'"
+                            onmouseout="this.style.background='{{ $gSel ? 'rgba(139,92,246,0.1)' : 'transparent' }}'">
+                        <div style="width:30px; height:30px; border-radius:50%; background:rgba(139,92,246,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="12" height="12" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div style="flex:1;"><p style="font-size:12px; font-weight:600; margin:0;">{{ $ig->name }}</p><p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;">Grupo</p></div>
+                        <div style="width:20px; height:20px; border-radius:4px; border:2px solid {{ $gSel ? '#a78bfa' : 'rgba(255,255,255,0.15)' }}; background:{{ $gSel ? '#a78bfa' : 'transparent' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            @if($gSel)<svg width="12" height="12" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>@endif
+                        </div>
+                    </button>
+                    @endforeach
+                    @foreach($internalAgents as $ia)
+                    @php $uKey = 'user_'.$ia->id; $uSel = in_array($uKey, $forwardInternalTargets); @endphp
+                    <button wire:click="toggleForwardInternal('{{ $uKey }}')"
+                            style="width:100%; text-align:left; padding:8px 12px; background:{{ $uSel ? 'rgba(16,185,129,0.1)' : 'transparent' }}; border:none; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; color:white; display:flex; align-items:center; gap:10px;"
+                            onmouseover="this.style.background='{{ $uSel ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.05)' }}'"
+                            onmouseout="this.style.background='{{ $uSel ? 'rgba(16,185,129,0.1)' : 'transparent' }}'">
+                        <img src="{{ $ia->avatar_url }}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+                        <div style="flex:1;"><p style="font-size:12px; font-weight:600; margin:0;">{{ $ia->name }}</p><p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;">Chat Interno</p></div>
+                        <div style="width:20px; height:20px; border-radius:4px; border:2px solid {{ $uSel ? '#10b981' : 'rgba(255,255,255,0.15)' }}; background:{{ $uSel ? '#10b981' : 'transparent' }}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            @if($uSel)<svg width="12" height="12" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>@endif
+                        </div>
+                    </button>
+                    @endforeach
+                    @endif
                 </div>
-                @if(!empty($forwardSelected))
+                @if(!empty($forwardSelected) || !empty($forwardInternalTargets))
                 <div style="padding:8px 12px; border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
                     <input wire:model="forwardCaption" type="text" placeholder="Adicione uma mensagem..."
                            style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:7px 10px; outline:none; font-size:12px; color:white; font-family:inherit;"

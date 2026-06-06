@@ -66,6 +66,7 @@ class ChatArea extends Component
     public bool   $msgSelectMode     = false;
     public string $forwardSearch     = '';
     public array  $forwardSelected   = [];
+    public array  $forwardInternalTargets = []; // 'user_5', 'group_3'
     public string $forwardCaption    = '';
 
     public ?Conversation $conversation = null;
@@ -967,6 +968,7 @@ class ChatArea extends Component
         $this->showForwardPicker = true;
         $this->forwardSearch     = '';
         $this->forwardSelected   = [];
+        $this->forwardInternalTargets = [];
         $this->forwardCaption    = '';
     }
 
@@ -991,6 +993,15 @@ class ChatArea extends Component
         $this->forwardMessageIds = [];
     }
 
+    public function toggleForwardInternal(string $key): void
+    {
+        if (in_array($key, $this->forwardInternalTargets)) {
+            $this->forwardInternalTargets = array_values(array_diff($this->forwardInternalTargets, [$key]));
+        } else {
+            $this->forwardInternalTargets[] = $key;
+        }
+    }
+
     public function openForwardSelected(): void
     {
         if (empty($this->forwardMessageIds)) return;
@@ -998,6 +1009,7 @@ class ChatArea extends Component
         $this->showForwardPicker = true;
         $this->forwardSearch     = '';
         $this->forwardSelected   = [];
+        $this->forwardInternalTargets = [];
         $this->forwardCaption    = '';
     }
 
@@ -1013,7 +1025,7 @@ class ChatArea extends Component
     public function sendForward(): void
     {
         $messageIds = !empty($this->forwardMessageIds) ? $this->forwardMessageIds : ($this->forwardMessageId ? [$this->forwardMessageId] : []);
-        if (empty($messageIds) || empty($this->forwardSelected)) return;
+        if (empty($messageIds) || (empty($this->forwardSelected) && empty($this->forwardInternalTargets))) return;
 
         // Ordena mensagens pela ordem original
         $sources = Message::whereIn('id', $messageIds)->orderBy('id')->get();
@@ -1068,12 +1080,32 @@ class ChatArea extends Component
             $count++;
         }
 
+        // Encaminhar para Chat Interno (agentes e grupos)
+        $internalCount = 0;
+        foreach ($this->forwardInternalTargets as $target) {
+            [$type, $id] = explode('_', $target, 2);
+            foreach ($sources as $source) {
+                $content = $source->type === 'text' ? $source->content : ($source->media_filename ?? $source->content ?? '[Mídia]');
+                \App\Models\InternalMessage::create([
+                    'sender_id'    => $userId,
+                    'recipient_id' => $type === 'user' ? (int) $id : null,
+                    'group_id'     => $type === 'group' ? (int) $id : null,
+                    'content'      => $content,
+                    'type'         => $source->media_url ? $source->type : 'text',
+                    'media_url'    => $source->media_url,
+                    'media_filename' => $source->media_filename,
+                ]);
+            }
+            $internalCount++;
+        }
+
         $this->showForwardPicker = false;
         $this->forwardMessageId  = null;
         $this->forwardMessageIds = [];
         $this->msgSelectMode     = false;
         $this->forwardSearch     = '';
         $this->forwardSelected   = [];
+        $this->forwardInternalTargets = [];
         $this->forwardCaption    = '';
 
         if ($lastTargetId) {
@@ -1082,7 +1114,8 @@ class ChatArea extends Component
         }
 
         $msgCount = $sources->count();
-        $this->dispatch('toast', type: 'success', message: "{$msgCount} mensagem(ns) encaminhada(s) para {$count} conversa(s).");
+        $totalTargets = $count + $internalCount;
+        $this->dispatch('toast', type: 'success', message: "{$msgCount} mensagem(ns) encaminhada(s) para {$totalTargets} destino(s).");
     }
 
     public function toggleTag(int $tagId): void
@@ -1586,6 +1619,8 @@ class ChatArea extends Component
         }
 
         $forwardConversations = collect();
+        $internalAgents = collect();
+        $internalGroups = collect();
         if ($this->showForwardPicker) {
             $forwardConversations = Conversation::with(['contact', 'department'])
                 ->where('is_archived', false)
@@ -1596,6 +1631,19 @@ class ChatArea extends Component
                             ->orWhere('phone', 'like', "%{$this->forwardSearch}%")
                     )
                 )->latest('last_message_at')->take(50)->get();
+
+            // Chat interno (agentes + grupos) — só se módulo ativo
+            $company = app(\App\Services\CurrentCompany::class)->model();
+            if ($company && $company->hasModule('internal-chat')) {
+                $me = \Illuminate\Support\Facades\Auth::user();
+                $internalAgents = \App\Models\User::where('company_id', $company->id)
+                    ->where('id', '!=', $me->id)->where('is_active', true)
+                    ->when($this->forwardSearch, fn($q) => $q->where('name', 'like', "%{$this->forwardSearch}%"))
+                    ->orderBy('name')->get(['id', 'name', 'avatar']);
+                $internalGroups = \App\Models\InternalGroup::whereHas('members', fn($q) => $q->where('user_id', $me->id))
+                    ->when($this->forwardSearch, fn($q) => $q->where('name', 'like', "%{$this->forwardSearch}%"))
+                    ->orderBy('name')->get();
+            }
         }
 
         $flutChatMessages = collect();
@@ -1609,7 +1657,7 @@ class ChatArea extends Component
         return view('livewire.chat.chat-area', compact(
             'messages', 'quickReplies', 'departments', 'transferAgents',
             'crmPipelines', 'crmStages', 'crmCards', 'myReactionPhone', 'replyToMessage',
-            'contactList', 'forwardConversations', 'flutChatMessages', 'flutChatConv'
+            'contactList', 'forwardConversations', 'internalAgents', 'internalGroups', 'flutChatMessages', 'flutChatConv'
         ));
     }
 }
