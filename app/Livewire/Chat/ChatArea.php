@@ -1022,7 +1022,7 @@ class ChatArea extends Component
         }
     }
 
-    public function sendForward(): void
+    public function sendForward()
     {
         $messageIds = !empty($this->forwardMessageIds) ? $this->forwardMessageIds : ($this->forwardMessageId ? [$this->forwardMessageId] : []);
         if (empty($messageIds) || (empty($this->forwardSelected) && empty($this->forwardInternalTargets))) return;
@@ -1108,13 +1108,20 @@ class ChatArea extends Component
         $this->forwardInternalTargets = [];
         $this->forwardCaption    = '';
 
+        $msgCount = $sources->count();
+        $totalTargets = $count + $internalCount;
+
+        // Se encaminhou para chat interno, redireciona para lá
+        if ($internalCount > 0 && $count === 0) {
+            $this->dispatch('toast', type: 'success', message: "{$msgCount} mensagem(ns) encaminhada(s) para {$internalCount} destino(s) no Chat Interno.");
+            return $this->redirect('/internal-chat');
+        }
+
         if ($lastTargetId) {
             $this->loadConversation($lastTargetId);
             $this->dispatch('conversation-selected', id: $lastTargetId);
         }
 
-        $msgCount = $sources->count();
-        $totalTargets = $count + $internalCount;
         $this->dispatch('toast', type: 'success', message: "{$msgCount} mensagem(ns) encaminhada(s) para {$totalTargets} destino(s).");
     }
 
