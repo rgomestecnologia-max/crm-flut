@@ -50,19 +50,32 @@ class ProcessMessengerMessage implements ShouldQueue
                 $name = null;
                 $avatarUrl = null;
                 try {
-                    $token = $this->channel === 'messenger'
-                        ? $this->config->page_access_token
-                        : $this->config->access_token;
+                    $token = $this->config->page_access_token;
 
-                    $resp = Http::get("https://graph.facebook.com/v21.0/{$senderId}", [
-                        'fields'       => 'name,profile_pic',
-                        'access_token' => $token,
-                    ]);
-                    if ($resp->ok()) {
-                        $name = $resp->json('name');
-                        $avatarUrl = $resp->json('profile_pic');
+                    if ($this->channel === 'instagram') {
+                        // Instagram: busca username via Graph API
+                        $resp = Http::get("https://graph.facebook.com/v21.0/{$senderId}", [
+                            'fields'       => 'username,name,profile_pic',
+                            'access_token' => $token,
+                        ]);
+                        if ($resp->ok()) {
+                            $name = $resp->json('name') ?? $resp->json('username');
+                            $avatarUrl = $resp->json('profile_pic');
+                        }
+                    } else {
+                        // Messenger: busca nome normal
+                        $resp = Http::get("https://graph.facebook.com/v21.0/{$senderId}", [
+                            'fields'       => 'name,profile_pic',
+                            'access_token' => $token,
+                        ]);
+                        if ($resp->ok()) {
+                            $name = $resp->json('name');
+                            $avatarUrl = $resp->json('profile_pic');
+                        }
                     }
-                } catch (\Throwable) {}
+                } catch (\Throwable $e) {
+                    \Log::warning("ProcessMessengerMessage: falha ao buscar perfil {$senderId}", ['error' => $e->getMessage()]);
+                }
 
                 $contact = Contact::create([
                     'company_id'   => $this->config->company_id,
