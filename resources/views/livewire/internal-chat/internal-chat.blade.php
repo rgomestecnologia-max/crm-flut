@@ -110,14 +110,91 @@
                 @endforeach
             </div>
 
-            {{-- Input do grupo --}}
-            <div style="padding:10px 16px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0;">
-                <form wire:submit="sendMessage" style="display:flex; gap:8px;">
-                    <input wire:model="messageText" type="text" placeholder="Mensagem para o grupo..."
-                           style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 14px; font-size:13px; color:white; outline:none;"
+            {{-- Input do grupo (completo) --}}
+            <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0; position:relative;"
+                 x-data="{
+                    showEmoji: false,
+                    recording: false, recSeconds: 0, recTimer: null, mediaRecorder: null, audioChunks: [],
+                    async startRec() {
+                        try {
+                            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                            this.audioChunks = [];
+                            this.mediaRecorder = new MediaRecorder(stream);
+                            this.mediaRecorder.ondataavailable = e => { if(e.data.size>0) this.audioChunks.push(e.data); };
+                            this.mediaRecorder.onstop = () => {
+                                const blob = new Blob(this.audioChunks, { type: this.mediaRecorder.mimeType || 'audio/webm' });
+                                const reader = new FileReader();
+                                reader.onload = () => $wire.receiveAudioBlob(reader.result);
+                                reader.readAsDataURL(blob);
+                                stream.getTracks().forEach(t => t.stop());
+                            };
+                            this.mediaRecorder.start();
+                            this.recording = true; this.recSeconds = 0;
+                            this.recTimer = setInterval(() => this.recSeconds++, 1000);
+                        } catch(e) { alert('Permissão de microfone negada.'); }
+                    },
+                    stopRec() { if(this.mediaRecorder && this.recording) { this.mediaRecorder.stop(); this.recording = false; clearInterval(this.recTimer); } },
+                    cancelRec() { if(this.mediaRecorder) { this.mediaRecorder.ondataavailable=null; this.mediaRecorder.onstop=null; this.mediaRecorder.stop(); this.mediaRecorder.stream?.getTracks().forEach(t=>t.stop()); } this.recording=false; clearInterval(this.recTimer); this.audioChunks=[]; },
+                    fmtRec(s) { return Math.floor(s/60)+':'+(''+(s%60)).padStart(2,'0'); }
+                 }">
+                <div x-show="showEmoji" x-transition @click.outside="showEmoji = false"
+                     style="position:absolute; bottom:52px; right:10px; background:#1a1f2e; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:10px; width:320px; z-index:50; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+                    <div style="display:grid; grid-template-columns:repeat(9, 1fr); gap:2px; max-height:200px; overflow-y:auto;">
+                        @foreach(['😀','😂','🤣','😊','😍','🥰','😘','😎','🤩','🥳','😇','🤔','🤗','😅','👋','👍','👎','👏','🙌','🙏','💪','❤️','🔥','💯','✅','❌','⚡','🎉','🏆'] as $emoji)
+                            <button type="button" @click.stop="$wire.set('messageText', ($wire.messageText||'') + '{{ $emoji }}'); $refs.groupInput.value = ($refs.groupInput.value||'') + '{{ $emoji }}'; showEmoji=false; $refs.groupInput.focus();"
+                                    style="font-size:18px; padding:4px; border-radius:6px; border:none; background:transparent; cursor:pointer;">{{ $emoji }}</button>
+                        @endforeach
+                    </div>
+                </div>
+                @if($attachment)
+                <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:8px 12px; margin-bottom:8px;">
+                    @php $aMime = $attachment->getMimeType() ?? ''; @endphp
+                    @if(str_starts_with($aMime, 'image/'))
+                        <img src="{{ $attachment->temporaryUrl() }}" style="width:44px; height:44px; border-radius:8px; object-fit:cover; flex-shrink:0;">
+                    @else
+                        <div style="width:36px; height:36px; border-radius:8px; background:rgba(96,165,250,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="16" height="16" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                    @endif
+                    <div style="flex:1; min-width:0;">
+                        <p style="font-size:12px; color:rgba(255,255,255,0.8); overflow:hidden; text-overflow:ellipsis;">{{ $attachment->getClientOriginalName() }}</p>
+                    </div>
+                    <button wire:click="sendFile" style="padding:6px 12px; background:rgba(178,255,0,0.15); border:1px solid rgba(178,255,0,0.3); color:#b2ff00; font-size:11px; font-weight:600; border-radius:8px; cursor:pointer;">Enviar</button>
+                    <button wire:click="cancelFile" style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                @endif
+                <div x-show="recording" style="display:flex; align-items:center; gap:10px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:8px 12px; margin-bottom:8px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#ef4444; animation:pulse 1.5s ease-in-out infinite;"></span>
+                    <span style="font-size:12px; color:#f87171; font-family:monospace; flex:1;" x-text="'Gravando... ' + fmtRec(recSeconds)"></span>
+                    <button @click="cancelRec()" style="font-size:11px; color:rgba(255,255,255,0.3); background:transparent; border:none; cursor:pointer;">Cancelar</button>
+                    <button @click="stopRec()" style="font-size:11px; font-weight:600; background:#ef4444; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer;">Enviar</button>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label title="Enviar imagem" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px;" onmouseover="this.style.color='#4ade80'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <input type="file" wire:model="attachment" accept="image/*" style="display:none;">
+                    </label>
+                    <label title="Enviar documento" style="cursor:pointer; color:rgba(255,255,255,0.3); padding:6px;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                        <input type="file" wire:model="attachment" style="display:none;">
+                    </label>
+                    <input wire:model="messageText" type="text" placeholder="Mensagem para o grupo..." x-ref="groupInput"
+                           x-on:keydown.enter="$wire.sendMessage().then(() => { $refs.groupInput.value = ''; })"
+                           x-on:internal-scroll-bottom.window="$nextTick(() => { $refs.groupInput.value = ''; $refs.groupInput.focus(); })"
+                           style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:13px; color:white; outline:none;"
                            onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
-                    <button type="submit" style="padding:10px 16px; background:#b2ff00; color:#111; font-weight:700; font-size:12px; border:none; border-radius:10px; cursor:pointer;">Enviar</button>
-                </form>
+                    <button type="button" @click.stop="showEmoji = !showEmoji" title="Emojis" style="padding:6px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;" onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
+                    <button type="button" @click="recording ? stopRec() : startRec()" title="Gravar áudio" style="padding:6px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                    </button>
+                    <button wire:click="sendMessage" style="padding:8px; color:#b2ff00; background:none; border:none; cursor:pointer;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </div>
             </div>
 
         @elseif($selectedUser)
