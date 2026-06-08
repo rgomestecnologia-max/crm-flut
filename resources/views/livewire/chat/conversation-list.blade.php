@@ -214,6 +214,9 @@
         if (($counts['instagram'] ?? 0) > 0) {
             $tabs[] = ['key' => 'instagram', 'label' => 'Instagram', 'count' => $counts['instagram'], 'color' => '#E1306C', 'activeBg' => 'rgba(225,48,108,0.12)', 'activeColor' => '#E1306C'];
         }
+        if (($counts['groups'] ?? 0) > 0) {
+            $tabs[] = ['key' => 'groups', 'label' => 'Grupos', 'count' => $counts['groups'], 'color' => '#a855f7', 'activeBg' => 'rgba(168,85,247,0.12)', 'activeColor' => '#c084fc'];
+        }
         if (($counts['archived'] ?? 0) > 0) {
             $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
         }

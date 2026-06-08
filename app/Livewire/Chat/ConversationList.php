@@ -364,16 +364,11 @@ class ConversationList extends Component
             // Meus atendimentos: atribuídas a mim, status open (não arquivadas)
             'mine'     => $query->where('is_archived', false)->where('assigned_to', $user->id)->where('status', 'open'),
 
-            // Fila: conversas sem agente + grupos (exclui arquivadas, Aguardando e depts ocultos)
+            // Fila: conversas sem agente (exclui arquivadas, Aguardando, depts ocultos e grupos)
             'queue'    => $query->where('is_archived', false)->whereNull('waiting_human_reason')
+                ->where('is_group', false)
                 ->whereDoesntHave('department', fn($q) => $q->where('hide_from_main_queue', true))
-                ->where(function ($q) {
-                    $q->where(function ($q2) {
-                        $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
-                    })->orWhere(function ($q2) {
-                        $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
-                    });
-                }),
+                ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']),
 
             // Aguardando: conversas onde a IA pediu handoff (não arquivadas)
             'waiting'  => $query->where('is_archived', false)->whereNotNull('waiting_human_reason'),
@@ -390,6 +385,9 @@ class ConversationList extends Component
             // Instagram
             'instagram' => $query->where('is_archived', false)->where('channel', 'instagram'),
 
+            // Grupos
+            'groups' => $query->where('is_archived', false)->where('is_group', true)->whereIn('status', ['open', 'pending']),
+
             default    => null,
         };
 
@@ -397,14 +395,9 @@ class ConversationList extends Component
         if (str_starts_with($this->filter, 'queue_')) {
             $deptId = (int) substr($this->filter, 6);
             $query->where('is_archived', false)->whereNull('waiting_human_reason')
+                ->where('is_group', false)
                 ->where('department_id', $deptId)
-                ->where(function ($q) {
-                    $q->where(function ($q2) {
-                        $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
-                    })->orWhere(function ($q2) {
-                        $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
-                    });
-                });
+                ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
         }
 
         // Filtro por tag (ex: 'tag_5' filtra pela tag ID 5)
@@ -436,19 +429,16 @@ class ConversationList extends Component
         $counts = [
             'mine'     => (clone $baseQuery)->where('is_archived', false)->where('assigned_to', $user->id)->where('status', 'open')->count(),
             'queue'    => (clone $baseQuery)->where('is_archived', false)->whereNull('waiting_human_reason')
+                ->where('is_group', false)
                 ->whereDoesntHave('department', fn($q) => $q->where('hide_from_main_queue', true))
-                ->where(function ($q) {
-                    $q->where(function ($q2) {
-                        $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
-                    })->orWhere(function ($q2) {
-                        $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
-                    });
-                })->count(),
+                ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred'])
+                ->count(),
             'waiting'  => (clone $baseQuery)->where('is_archived', false)->whereNotNull('waiting_human_reason')->count(),
             'all'       => (clone $baseQuery)->where('is_archived', false)->count(),
             'archived'  => (clone $baseQuery)->where('is_archived', true)->count(),
             'messenger' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'messenger')->count(),
             'instagram' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'instagram')->count(),
+            'groups'    => (clone $baseQuery)->where('is_archived', false)->where('is_group', true)->whereIn('status', ['open', 'pending'])->count(),
         ];
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
@@ -470,14 +460,10 @@ class ConversationList extends Component
                 $deptQueueCounts[$deptId] = (clone $baseQuery)
                     ->where('is_archived', false)
                     ->whereNull('waiting_human_reason')
+                    ->where('is_group', false)
                     ->where('department_id', $deptId)
-                    ->where(function ($q) {
-                        $q->where(function ($q2) {
-                            $q2->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
-                        })->orWhere(function ($q2) {
-                            $q2->where('is_group', true)->whereIn('status', ['open', 'pending']);
-                        });
-                    })->count();
+                    ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred'])
+                    ->count();
             }
         }
 
