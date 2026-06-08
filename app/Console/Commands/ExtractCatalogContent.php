@@ -90,7 +90,7 @@ class ExtractCatalogContent extends Command
                 $model = GlobalSetting::get('gemini_model', 'gemini-2.0-flash');
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-                $geminiResponse = Http::timeout(60)->post($url, [
+                $requestBody = [
                     'contents' => [[
                         'parts' => [
                             [
@@ -116,7 +116,17 @@ class ExtractCatalogContent extends Command
                         'maxOutputTokens' => 4096,
                         'temperature' => 0.1,
                     ],
-                ]);
+                ];
+
+                $geminiResponse = retry(3, function () use ($url, $requestBody) {
+                    $r = Http::timeout(60)->post($url, $requestBody);
+                    if ($r->status() >= 500 || $r->status() === 429) {
+                        throw new \RuntimeException("Gemini transient error: {$r->status()}");
+                    }
+                    return $r;
+                }, function (int $attempt) {
+                    return $attempt * 5000; // 5s, 10s, 15s backoff
+                });
 
                 if (!$geminiResponse->successful()) {
                     $this->newLine();
@@ -156,9 +166,9 @@ class ExtractCatalogContent extends Command
 
             $bar->advance();
 
-            // Rate limit: wait 2s between calls
+            // Rate limit: wait 4s between calls
             if ($product !== $products->last()) {
-                sleep(2);
+                sleep(4);
             }
         }
 
