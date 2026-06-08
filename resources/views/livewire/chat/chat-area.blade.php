@@ -134,8 +134,8 @@ function senderColor(?string $identifier): string {
                     @endif
                 @endforeach
             </div>
-            <p class="chat-header-meta" style="font-size:10px; color:rgba(255,255,255,0.25); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:4px;">
-                <span>{{ $conversation->contact->phone }}</span>
+            <p class="chat-header-meta" style="font-size:10px; color:rgba(255,255,255,0.7); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:4px;">
+                <span style="color:white;">{{ $conversation->contact->phone }}</span>
                 <span style="color:rgba(255,255,255,0.1);">·</span>
                 <span class="mobile-dept" style="color: {{ $conversation->department->color }}">{{ $conversation->department->name }}</span>
                 <span style="color:rgba(255,255,255,0.1);">·</span>
