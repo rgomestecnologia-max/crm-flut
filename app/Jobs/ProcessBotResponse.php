@@ -219,7 +219,7 @@ class ProcessBotResponse implements ShouldQueue
                 'contents'          => $geminiContents,
                 'generationConfig'  => [
                     'maxOutputTokens' => 2048,
-                    'temperature'     => 0.7,
+                    'temperature'     => 0.3,
                 ],
             ];
 
