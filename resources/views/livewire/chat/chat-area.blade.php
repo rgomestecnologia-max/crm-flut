@@ -1372,12 +1372,6 @@ function senderColor(?string $identifier): string {
             <button @click="cancelRec()"
                     style="font-size:11px; color:rgba(255,255,255,0.3); background:transparent; border:none; cursor:pointer; padding:2px 8px; transition:color 0.15s;"
                     onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Cancelar</button>
-            <button @click="stopRec()"
-                    style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; background:#ef4444; color:white; padding:5px 10px; border-radius:7px; border:none; cursor:pointer; transition:all 0.15s;"
-                    onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
-                <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
-                Enviar
-            </button>
         </div>
 
         {{-- Emoji picker --}}
@@ -1690,22 +1684,27 @@ function senderColor(?string $identifier): string {
 
             {{-- Mic button --}}
             <button type="button" @click="recording ? stopRec() : startRec()" title="Gravar áudio"
-                    :style="recording ? 'background:#ef4444; animation:pulse 1.5s ease-in-out infinite;' : ''"
-                    style="padding:6px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer; transition:color 0.15s;"
-                    onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    :style="recording ? 'background:#ef4444; border-radius:50%; animation:pulse 1.5s ease-in-out infinite;' : ''"
+                    style="padding:8px; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer; transition:all 0.15s; flex-shrink:0;"
+                    onmouseover="if(!this.__x_refs)this.style.color='#f87171'" onmouseout="if(!this.__x_refs)this.style.color='rgba(255,255,255,0.4)'">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                 </svg>
             </button>
 
-            {{-- Send button --}}
-            <button @click="if(window._fcSending) return; window._fcSending=true; setTimeout(()=>window._fcSending=false, 2000); $wire.set('messageText', document.getElementById('main-message-input')?.value || ''); $wire.sendMessage()" wire:loading.attr="disabled"
-                    style="width:38px; height:38px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:none; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 10px rgba(178,255,0,0.3);"
-                    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 16px rgba(178,255,0,0.4)'"
-                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 10px rgba(178,255,0,0.3)'">
-                <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                </svg>
+            {{-- Send button (text or stop recording) --}}
+            <button @click="if(recording) { stopRec(); return; } if(window._fcSending) return; window._fcSending=true; setTimeout(()=>window._fcSending=false, 2000); $wire.set('messageText', document.getElementById('main-message-input')?.value || ''); $wire.sendMessage()" wire:loading.attr="disabled"
+                    :style="recording ? 'width:38px; height:38px; background:#ef4444; color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:none; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 10px rgba(239,68,68,0.3);' : 'width:38px; height:38px; background:linear-gradient(135deg, #b2ff00, #8fcc00); color:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:none; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 10px rgba(178,255,0,0.3);'"
+                    onmouseover="this.style.transform='scale(1.05)'"
+                    onmouseout="this.style.transform='scale(1)'">
+                <template x-if="recording">
+                    <svg width="17" height="17" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                </template>
+                <template x-if="!recording">
+                    <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </template>
             </button>
         </div>
     </div>
