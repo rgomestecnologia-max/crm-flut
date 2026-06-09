@@ -749,5 +749,19 @@ window.testNotification = async function() {
     reg.showNotification('CRM Flut', { body: 'Notificação de teste!', icon: '/icons/icon-192x192.png', badge: '/icons/icon-72x72.png', vibrate: [200,100,200], data: { url: '/dashboard' } });
 };
 </script>
+<script>
+// Heartbeat: mantém status online atualizado a cada 2 minutos
+(function() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrfToken) return;
+    function ping() {
+        if (document.visibilityState === 'hidden') return;
+        fetch('/heartbeat', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' } }).catch(() => {});
+    }
+    setInterval(ping, 120000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ping(); });
+    ping();
+})();
+</script>
 </body>
 </html>

@@ -144,6 +144,9 @@ Route::middleware('auth')->group(function () {
 
 // App — agora exige uma empresa atual via middleware 'company'
 Route::middleware(['auth', 'company'])->group(function () {
+    // Heartbeat: mantém last_seen_at atualizado enquanto o browser está aberto
+    Route::post('/heartbeat', fn() => response()->noContent())->name('heartbeat');
+
     // Dashboard é sempre acessível — é a página de entrada após login.
     // O módulo "dashboard" controla apenas se o link aparece na sidebar.
     Route::get('/', fn() => redirect()->route('dashboard'));
