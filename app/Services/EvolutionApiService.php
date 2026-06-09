@@ -179,12 +179,11 @@ class EvolutionApiService
     public function sendAudio(string $phone, string $audioUrlOrBase64): array
     {
         [$audio, $mime] = $this->extractMedia($audioUrlOrBase64, 'audio/ogg');
-        $isOgg = str_contains($mime, 'ogg');
 
         return $this->post("/message/sendWhatsAppAudio/{$this->instanceName}", [
             'number'   => $this->normalizePhone($phone),
             'audio'    => $audio,
-            'encoding' => !$isOgg,
+            'encoding' => true,
         ]);
     }
 
