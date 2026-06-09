@@ -1214,7 +1214,8 @@ function senderColor(?string $identifier): string {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     this.audioChunks = [];
-                    this.mediaRecorder = new MediaRecorder(stream);
+                    const recMime = MediaRecorder.isTypeSupported('audio/ogg;codecs=opus') ? 'audio/ogg;codecs=opus' : (MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : undefined);
+                    this.mediaRecorder = new MediaRecorder(stream, recMime ? { mimeType: recMime } : {});
                     this.mediaRecorder.ondataavailable = e => { if(e.data.size>0) this.audioChunks.push(e.data); };
                     this.mediaRecorder.onstop = () => {
                         const mimeType = this.mediaRecorder.mimeType || 'audio/webm';
