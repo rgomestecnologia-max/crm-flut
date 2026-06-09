@@ -331,7 +331,6 @@ class ProcessEvolutionMessage implements ShouldQueue
                     ->first();
 
                 if (!$conversation) {
-                    if ($fromMe) return;
                     $department = ($evoConfig && $evoConfig->default_department_id)
                         ? Department::find($evoConfig->default_department_id)
                         : Department::active()->first();
