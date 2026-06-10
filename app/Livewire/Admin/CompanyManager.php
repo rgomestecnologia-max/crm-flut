@@ -34,6 +34,10 @@ class CompanyManager extends Component
     // Push Notifications
     public bool $push_notifications = true;
 
+    // WhatsApp Providers
+    public string $whatsapp_provider  = 'evolution';
+    public string $broadcast_provider = 'evolution';
+
     /** Estado do modal de exclusão. */
     public ?int   $deletingId       = null;
     public string $deleteConfirmName = '';
@@ -68,6 +72,8 @@ class CompanyManager extends Component
         $this->sendgrid_from_email= $company->sendgrid_from_email ?? '';
         $this->sendgrid_from_name = $company->sendgrid_from_name ?? '';
         $this->push_notifications = $company->push_notifications ?? true;
+        $this->whatsapp_provider  = $company->whatsapp_provider ?? 'evolution';
+        $this->broadcast_provider = $company->broadcast_provider ?? 'evolution';
         $this->showForm           = true;
     }
 
@@ -118,6 +124,8 @@ class CompanyManager extends Component
             'sendgrid_from_email' => $this->sendgrid_from_email ?: null,
             'sendgrid_from_name'  => $this->sendgrid_from_name ?: null,
             'push_notifications'  => $this->push_notifications,
+            'whatsapp_provider'   => $this->whatsapp_provider,
+            'broadcast_provider'  => $this->broadcast_provider,
         ];
 
         if ($this->editingId) {

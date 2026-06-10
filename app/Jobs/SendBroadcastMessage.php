@@ -36,7 +36,7 @@ class SendBroadcastMessage implements ShouldQueue
 
         app(\App\Services\CurrentCompany::class)->set((int) $campaign->company_id, persist: false);
 
-        $api = WhatsAppProvider::service();
+        $api = WhatsAppProvider::broadcastService();
         if (!$api) {
             $run->update(['status' => 'failed']);
             $campaign->update(['status' => 'failed']);

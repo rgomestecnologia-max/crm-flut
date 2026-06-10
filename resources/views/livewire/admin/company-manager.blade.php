@@ -156,6 +156,28 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         </div>
         @endif
 
+        {{-- WhatsApp Providers --}}
+        @if($editingId)
+        <div style="display:flex; gap:12px; margin-top:18px;">
+            <div style="flex:1;">
+                <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:4px;">Provider Atendimento</label>
+                <select wire:model="whatsapp_provider"
+                        style="width:100%; padding:8px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none;">
+                    <option value="evolution">Evolution API</option>
+                    <option value="meta">Meta WhatsApp (Oficial)</option>
+                </select>
+            </div>
+            <div style="flex:1;">
+                <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:4px;">Provider Disparos</label>
+                <select wire:model="broadcast_provider"
+                        style="width:100%; padding:8px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none;">
+                    <option value="evolution">Evolution API</option>
+                    <option value="meta">Meta WhatsApp (Oficial)</option>
+                </select>
+            </div>
+        </div>
+        @endif
+
         <div style="display:flex; align-items:center; gap:20px; margin-top:18px;">
             <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
                 <input type="checkbox" wire:model="is_active" style="width:14px; height:14px; accent-color:#b2ff00; cursor:pointer;">
