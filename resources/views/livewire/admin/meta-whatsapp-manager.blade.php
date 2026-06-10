@@ -337,6 +337,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             config_id: '2103001323590709',
             response_type: 'code',
             override_default_response_type: true,
+            scope: 'whatsapp_business_management,whatsapp_business_messaging,business_management',
             extras: {
                 featureType: 'whatsapp_business_app_onboarding',
                 sessionInfoVersion: '3',

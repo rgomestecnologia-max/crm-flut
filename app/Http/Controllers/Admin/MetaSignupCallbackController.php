@@ -57,26 +57,50 @@ class MetaSignupCallbackController extends Controller
                 ? ($longResponse->json()['access_token'] ?? $shortToken)
                 : $shortToken;
 
-            // 3. Buscar WABA ID via debug_token
+            // 3. Buscar WABA ID via debug_token (requer app token)
             $wabaId        = null;
             $phoneNumberId = null;
             $phoneDisplay  = null;
 
-            $debugResponse = Http::withToken($accessToken)
+            $appToken = $appId . '|' . $appSecret;
+            $debugResponse = Http::withToken($appToken)
                 ->get('https://graph.facebook.com/v21.0/debug_token', [
                     'input_token' => $accessToken,
                 ]);
 
-            $granularScopes = $debugResponse->json()['data']['granular_scopes'] ?? [];
+            $granularScopes = $debugResponse->json('data.granular_scopes') ?? [];
             foreach ($granularScopes as $scope) {
-                if ($scope['permission'] === 'whatsapp_business_messaging' && !empty($scope['target_ids'])) {
-                    $wabaId = $scope['target_ids'][0];
+                $perm = $scope['permission'] ?? $scope['scope'] ?? null;
+                $targetIds = $scope['target_ids'] ?? [];
+                if ($perm === 'whatsapp_business_messaging' && !empty($targetIds)) {
+                    $wabaId = $targetIds[0];
                     break;
                 }
-                if ($scope['permission'] === 'whatsapp_business_management' && !empty($scope['target_ids']) && !$wabaId) {
-                    $wabaId = $scope['target_ids'][0];
+                if ($perm === 'whatsapp_business_management' && !empty($targetIds) && !$wabaId) {
+                    $wabaId = $targetIds[0];
                 }
             }
+
+            // Fallback: buscar WABAs via business_management API
+            if (!$wabaId) {
+                $bizResponse = Http::withToken($accessToken)
+                    ->get('https://graph.facebook.com/v21.0/me/businesses', ['fields' => 'id,name']);
+                $businesses = $bizResponse->json('data') ?? [];
+                foreach ($businesses as $biz) {
+                    $wabaResponse = Http::withToken($accessToken)
+                        ->get("https://graph.facebook.com/v21.0/{$biz['id']}/owned_whatsapp_business_accounts", ['fields' => 'id,name']);
+                    $wabas = $wabaResponse->json('data') ?? [];
+                    if (!empty($wabas[0])) {
+                        $wabaId = $wabas[0]['id'];
+                        break;
+                    }
+                }
+            }
+
+            Log::info('MetaSignupCallback: WABA lookup', [
+                'wabaId' => $wabaId,
+                'scopes' => array_column($granularScopes, 'scope'),
+            ]);
 
             // 4. Buscar phone numbers do WABA
             if ($wabaId) {
