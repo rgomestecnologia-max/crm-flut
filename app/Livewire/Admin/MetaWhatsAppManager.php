@@ -116,6 +116,23 @@ class MetaWhatsAppManager extends Component
     {
         $this->is_active = !$this->is_active;
         $this->save();
+
+        // Inscrever/desinscrever webhook do WABA automaticamente
+        $config = \App\Models\MetaWhatsAppConfig::current();
+        if ($config && $config->access_token && $config->whatsapp_business_account_id) {
+            try {
+                if ($this->is_active) {
+                    Http::withToken($config->access_token)
+                        ->post("https://graph.facebook.com/v21.0/{$config->whatsapp_business_account_id}/subscribed_apps");
+                    // Reativar Evolution webhook se estava desativado? Não — quem controla é o switchProvider
+                } else {
+                    Http::withToken($config->access_token)
+                        ->delete("https://graph.facebook.com/v21.0/{$config->whatsapp_business_account_id}/subscribed_apps");
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Meta toggle webhook failed', ['error' => $e->getMessage()]);
+            }
+        }
     }
 
     public function switchProvider(string $provider): void
