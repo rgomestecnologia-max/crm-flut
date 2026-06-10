@@ -103,16 +103,15 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                     Conecte seu WhatsApp Business em <strong style="color:rgba(255,255,255,0.6);">1 clique</strong>. O token, número e webhook serão configurados automaticamente.
                 </p>
             </div>
-            <a href="https://business.facebook.com/messaging/whatsapp/onboard/?app_id=986063410790085&config_id=2103001323590709&extras=%7B%22featureType%22%3A%22whatsapp_business_app_onboarding%22%2C%22sessionInfoVersion%22%3A%223%22%2C%22version%22%3A%22v4%22%7D&redirect_uri={{ urlencode(route('admin.meta-whatsapp.callback')) }}"
-                    target="_blank" rel="noopener"
-                    style="display:flex; align-items:center; gap:10px; padding:12px 24px; background:#1877f2; border:none; border-radius:10px; color:white; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 12px rgba(24,119,242,0.3); white-space:nowrap; text-decoration:none;"
+            <button onclick="launchWhatsAppSignup()" id="btn-whatsapp-signup"
+                    style="display:flex; align-items:center; gap:10px; padding:12px 24px; background:#1877f2; border:none; border-radius:10px; color:white; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 12px rgba(24,119,242,0.3); white-space:nowrap;"
                     onmouseover="this.style.background='#166fe5'; this.style.transform='translateY(-1px)'"
                     onmouseout="this.style.background='#1877f2'; this.style.transform='translateY(0)'">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                 </svg>
                 Conectar WhatsApp
-            </a>
+            </button>
             <a href="https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=1548404910226347&redirect_uri=https://crm.flut.com.br/auth/meta/callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights"
                     style="display:flex; align-items:center; gap:10px; padding:12px 24px; background:linear-gradient(135deg, #833AB4, #E1306C, #F77737); border:none; border-radius:10px; color:white; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 12px rgba(225,48,108,0.3); white-space:nowrap; text-decoration:none;"
                     onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 16px rgba(225,48,108,0.4)'"
@@ -308,7 +307,44 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         </div>
     </form>
 
-    {{-- Facebook SDK removido: usamos URL hospedada do Meta em vez de FB.login() --}}
+    {{-- Facebook SDK + Embedded Signup --}}
+    <script>
+    window.fbAsyncInit = function() {
+        FB.init({ appId: '986063410790085', autoLogAppEvents: true, xfbml: true, version: 'v21.0' });
+    };
+    (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id; js.async = true;
+        js.src = "https://connect.facebook.net/pt_BR/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    function launchWhatsAppSignup() {
+        FB.login(function(response) {
+            if (response.authResponse) {
+                const code = response.authResponse.code;
+                if (code) {
+                    // Redirect to our callback with the code
+                    window.location.href = '{{ route("admin.meta-whatsapp.callback") }}?code=' + encodeURIComponent(code);
+                } else {
+                    alert('Signup concluído mas nenhum código recebido. Tente novamente.');
+                }
+            } else {
+                console.log('WhatsApp signup cancelled or failed', response);
+            }
+        }, {
+            config_id: '2103001323590709',
+            response_type: 'code',
+            override_default_response_type: true,
+            extras: {
+                featureType: 'whatsapp_business_app_onboarding',
+                sessionInfoVersion: '3',
+                version: 'v4'
+            }
+        });
+    }
+    </script>
 
     {{-- Templates --}}
     <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; position:relative; overflow:hidden;">

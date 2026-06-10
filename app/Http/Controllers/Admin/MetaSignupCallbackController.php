@@ -33,6 +33,7 @@ class MetaSignupCallbackController extends Controller
             $tokenResponse = Http::get('https://graph.facebook.com/v21.0/oauth/access_token', [
                 'client_id'     => $appId,
                 'client_secret' => $appSecret,
+                'redirect_uri'  => route('admin.meta-whatsapp.callback'),
                 'code'          => $code,
             ]);
 
