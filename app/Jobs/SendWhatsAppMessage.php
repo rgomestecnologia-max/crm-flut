@@ -43,6 +43,18 @@ class SendWhatsAppMessage implements ShouldQueue
         $phone     = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
+        // Se provider da empresa é Meta e config ativa, usa Meta (prioridade sobre Evolution)
+        $provider = WhatsAppProvider::currentProvider();
+        if ($provider === 'meta') {
+            $metaConfig = \App\Models\MetaWhatsAppConfig::current();
+            if ($metaConfig && $metaConfig->is_active) {
+                $service = new MetaWhatsAppService($metaConfig);
+                $this->sendViaMeta($service, $phone, $mediaRef);
+                return;
+            }
+        }
+
+        // Evolution API (single ou multi-instância)
         $specificConfig = null;
         if ($conversation->evolution_api_config_id) {
             $specificConfig = \App\Models\EvolutionApiConfig::find($conversation->evolution_api_config_id);
