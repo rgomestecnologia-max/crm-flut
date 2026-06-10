@@ -29,11 +29,10 @@ class MetaSignupCallbackController extends Controller
         }
 
         try {
-            // 1. Trocar code por short-lived token
+            // 1. Trocar code por short-lived token (sem redirect_uri pois code veio via FB.login JS SDK)
             $tokenResponse = Http::get('https://graph.facebook.com/v21.0/oauth/access_token', [
                 'client_id'     => $appId,
                 'client_secret' => $appSecret,
-                'redirect_uri'  => route('admin.meta-whatsapp.callback'),
                 'code'          => $code,
             ]);
 
