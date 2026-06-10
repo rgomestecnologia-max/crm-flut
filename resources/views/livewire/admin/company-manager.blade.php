@@ -157,7 +157,6 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         @endif
 
         {{-- WhatsApp Providers --}}
-        @if($editingId)
         <div style="display:flex; gap:12px; margin-top:18px;">
             <div style="flex:1;">
                 <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:4px;">Provider Atendimento</label>
@@ -176,7 +175,6 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 </select>
             </div>
         </div>
-        @endif
 
         <div style="display:flex; align-items:center; gap:20px; margin-top:18px;">
             <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
