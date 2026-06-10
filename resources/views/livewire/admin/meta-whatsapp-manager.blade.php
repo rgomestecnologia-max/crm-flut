@@ -320,13 +320,38 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));
 
+    // Captura WABA ID e Phone Number ID via sessionInfoListener
+    window._embeddedData = {};
+    window.addEventListener('message', function(event) {
+        if (event.origin !== 'https://www.facebook.com' && event.origin !== 'https://web.facebook.com') return;
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'WA_EMBEDDED_SIGNUP') {
+                if (data.event === 'FINISH') {
+                    window._embeddedData = {
+                        waba_id: data.data?.waba_id,
+                        phone_number_id: data.data?.phone_number_id
+                    };
+                    console.log('Embedded Signup data:', window._embeddedData);
+                }
+            }
+        } catch(e) {}
+    });
+
     function launchWhatsAppSignup() {
         FB.login(function(response) {
             if (response.authResponse) {
                 const code = response.authResponse.code;
                 if (code) {
-                    // Redirect to our callback with the code
-                    window.location.href = '{{ route("admin.meta-whatsapp.callback") }}?code=' + encodeURIComponent(code);
+                    let url = '{{ route("admin.meta-whatsapp.callback") }}?code=' + encodeURIComponent(code);
+                    // Append WABA and phone data from sessionInfoListener
+                    if (window._embeddedData.waba_id) {
+                        url += '&waba_id=' + encodeURIComponent(window._embeddedData.waba_id);
+                    }
+                    if (window._embeddedData.phone_number_id) {
+                        url += '&phone_number_id=' + encodeURIComponent(window._embeddedData.phone_number_id);
+                    }
+                    window.location.href = url;
                 } else {
                     alert('Signup concluído mas nenhum código recebido. Tente novamente.');
                 }
@@ -337,7 +362,6 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
             config_id: '2103001323590709',
             response_type: 'code',
             override_default_response_type: true,
-            scope: 'whatsapp_business_management,whatsapp_business_messaging,business_management',
             extras: {
                 featureType: 'whatsapp_business_app_onboarding',
                 sessionInfoVersion: '3',

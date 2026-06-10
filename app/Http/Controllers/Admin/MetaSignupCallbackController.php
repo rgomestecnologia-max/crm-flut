@@ -57,49 +57,46 @@ class MetaSignupCallbackController extends Controller
                 ? ($longResponse->json()['access_token'] ?? $shortToken)
                 : $shortToken;
 
-            // 3. Buscar WABA ID via debug_token (requer app token)
-            $wabaId        = null;
-            $phoneNumberId = null;
+            // 3. Buscar WABA ID e Phone Number ID
+            // Prioridade: dados do sessionInfoListener (query string) > debug_token > business API
+            $wabaId        = $request->query('waba_id');
+            $phoneNumberId = $request->query('phone_number_id');
             $phoneDisplay  = null;
 
-            $appToken = $appId . '|' . $appSecret;
-            $debugResponse = Http::withToken($appToken)
-                ->get('https://graph.facebook.com/v21.0/debug_token', [
-                    'input_token' => $accessToken,
-                ]);
-
-            $granularScopes = $debugResponse->json('data.granular_scopes') ?? [];
-            foreach ($granularScopes as $scope) {
-                $perm = $scope['permission'] ?? $scope['scope'] ?? null;
-                $targetIds = $scope['target_ids'] ?? [];
-                if ($perm === 'whatsapp_business_messaging' && !empty($targetIds)) {
-                    $wabaId = $targetIds[0];
-                    break;
-                }
-                if ($perm === 'whatsapp_business_management' && !empty($targetIds) && !$wabaId) {
-                    $wabaId = $targetIds[0];
-                }
-            }
-
-            // Fallback: buscar WABAs via business_management API
+            // Se não veio via query string, tenta via debug_token
             if (!$wabaId) {
-                $bizResponse = Http::withToken($accessToken)
-                    ->get('https://graph.facebook.com/v21.0/me/businesses', ['fields' => 'id,name']);
-                $businesses = $bizResponse->json('data') ?? [];
-                foreach ($businesses as $biz) {
-                    $wabaResponse = Http::withToken($accessToken)
-                        ->get("https://graph.facebook.com/v21.0/{$biz['id']}/owned_whatsapp_business_accounts", ['fields' => 'id,name']);
-                    $wabas = $wabaResponse->json('data') ?? [];
-                    if (!empty($wabas[0])) {
-                        $wabaId = $wabas[0]['id'];
+                $appToken = $appId . '|' . $appSecret;
+                $debugResponse = Http::withToken($appToken)
+                    ->get('https://graph.facebook.com/v21.0/debug_token', [
+                        'input_token' => $accessToken,
+                    ]);
+
+                $granularScopes = $debugResponse->json('data.granular_scopes') ?? [];
+                foreach ($granularScopes as $scope) {
+                    $perm = $scope['permission'] ?? $scope['scope'] ?? null;
+                    $targetIds = $scope['target_ids'] ?? [];
+                    if (in_array($perm, ['whatsapp_business_messaging', 'whatsapp_business_management']) && !empty($targetIds)) {
+                        $wabaId = $targetIds[0];
                         break;
                     }
                 }
             }
 
+            // Fallback: buscar via assigned WABAs do system user
+            if (!$wabaId) {
+                $meResponse = Http::withToken($accessToken)->get('https://graph.facebook.com/v21.0/me');
+                $userId = $meResponse->json('id');
+                if ($userId) {
+                    $wabaResponse = Http::withToken($accessToken)
+                        ->get("https://graph.facebook.com/v21.0/{$userId}/assigned_whatsapp_business_accounts");
+                    $wabaId = $wabaResponse->json('data.0.id');
+                }
+            }
+
             Log::info('MetaSignupCallback: WABA lookup', [
-                'wabaId' => $wabaId,
-                'scopes' => array_column($granularScopes, 'scope'),
+                'wabaId'        => $wabaId,
+                'phoneNumberId' => $phoneNumberId,
+                'source'        => $request->query('waba_id') ? 'sessionInfo' : 'api',
             ]);
 
             // 4. Buscar phone numbers do WABA
