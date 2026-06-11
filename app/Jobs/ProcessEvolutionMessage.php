@@ -345,6 +345,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'evolution_api_config_id'  => $evoConfig?->id,
                         'status'                   => 'open',
                         'is_group'                 => false,
+                        'waiting_human_reason'     => $fromMe ? 'Atendente respondeu pelo WhatsApp' : null,
                     ]);
 
                     // Roteamento por DDD: redireciona para agente/departamento correto
