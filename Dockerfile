@@ -52,6 +52,7 @@ RUN php artisan storage:link 2>/dev/null || true
 
 # Configs do Nginx e Supervisor
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+RUN sed -i 's/client_max_body_size 1m;/client_max_body_size 210m;/' /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 EXPOSE 80 8080
