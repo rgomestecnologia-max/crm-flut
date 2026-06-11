@@ -489,7 +489,7 @@ class CampaignManager extends Component
 
         $company = app(\App\Services\CurrentCompany::class)->model();
         $sendgridConfigured = !empty($company?->sendgrid_api_key) || !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
-        $isMeta        = WhatsAppProvider::isMeta();
+        $isMeta        = ($company?->broadcast_provider ?? 'evolution') === 'meta';
         $metaTemplates = $isMeta ? MetaMessageTemplate::approved()->orderBy('name')->get() : collect();
 
         return view('livewire.broadcasts.campaign-manager', compact(
