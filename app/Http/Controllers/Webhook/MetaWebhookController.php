@@ -102,12 +102,17 @@ class MetaWebhookController extends Controller
                     $this->processStatus($status);
                 }
 
-                $messages = $value['messages'] ?? [];
-                $contacts = $value['contacts'] ?? [];
+                // Só processa mensagens recebidas se o provider de atendimento é meta
+                // (quando broadcast_provider=meta mas whatsapp_provider=evolution, ignora mensagens recebidas)
+                $company = \App\Models\Company::find($config->company_id);
+                if ($company && ($company->whatsapp_provider ?? 'evolution') === 'meta') {
+                    $messages = $value['messages'] ?? [];
+                    $contacts = $value['contacts'] ?? [];
 
-                foreach ($messages as $message) {
-                    $contactInfo = $contacts[0] ?? null;
-                    ProcessMetaMessage::dispatch($config->company_id, $message, $contactInfo, $phoneNumberId);
+                    foreach ($messages as $message) {
+                        $contactInfo = $contacts[0] ?? null;
+                        ProcessMetaMessage::dispatch($config->company_id, $message, $contactInfo, $phoneNumberId);
+                    }
                 }
             }
         }
