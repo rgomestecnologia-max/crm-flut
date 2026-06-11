@@ -687,7 +687,7 @@ class ProcessBotResponse implements ShouldQueue
 
     private function extractPhotoUrl(string $content): ?string
     {
-        if (preg_match('/\[FOTO:(https?:\/\/[^\]]+)\]/i', $content, $m)) {
+        if (preg_match('/\[FOTO:\s*(https?:\/\/[^\]]+)\]/i', $content, $m)) {
             return trim($m[1]);
         }
         return null;
@@ -695,7 +695,7 @@ class ProcessBotResponse implements ShouldQueue
 
     private function extractDocUrl(string $content): ?string
     {
-        if (preg_match('/\[DOC:(https?:\/\/[^\]]+)\]/i', $content, $m)) {
+        if (preg_match('/\[DOC:\s*(https?:\/\/[^\]]+)\]/i', $content, $m)) {
             return trim($m[1]);
         }
         return null;
@@ -704,8 +704,8 @@ class ProcessBotResponse implements ShouldQueue
     private function cleanContent(string $content): string
     {
         $content = preg_replace('/\[DEPT:\d+\]/i', '', $content);
-        $content = preg_replace('/\[FOTO:https?:\/\/[^\]]+\]/i', '', $content);
-        $content = preg_replace('/\[DOC:https?:\/\/[^\]]+\]/i', '', $content);
+        $content = preg_replace('/\[FOTO:\s*https?:\/\/[^\]]+\]/i', '', $content);
+        $content = preg_replace('/\[DOC:\s*https?:\/\/[^\]]+\]/i', '', $content);
         $content = preg_replace('/\[HANDOFF\]/i', '', $content);
         $content = preg_replace('/\[FIELD:[^\]=]+=[^\]]+\]/i', '', $content);
         // Remove links Markdown [texto](url) → mantém só a URL
