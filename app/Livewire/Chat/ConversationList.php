@@ -395,13 +395,13 @@ class ConversationList extends Component
             default    => null,
         };
 
-        // Filtro por fila de departamento (ex: 'queue_9' filtra fila do dept 9)
+        // Filtro por departamento (ex: 'queue_9' mostra todas conversas ativas do dept 9)
         if (str_starts_with($this->filter, 'queue_')) {
             $deptId = (int) substr($this->filter, 6);
-            $query->where('is_archived', false)->whereNull('waiting_human_reason')
+            $query->where('is_archived', false)
                 ->where('is_group', false)
                 ->where('department_id', $deptId)
-                ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred']);
+                ->whereIn('status', ['open', 'pending', 'transferred']);
         }
 
         // Filtro por tag (ex: 'tag_5' filtra pela tag ID 5)
@@ -465,10 +465,9 @@ class ConversationList extends Component
             foreach ($userDeptIds as $deptId) {
                 $deptQueueCounts[$deptId] = (clone $baseQuery)
                     ->where('is_archived', false)
-                    ->whereNull('waiting_human_reason')
                     ->where('is_group', false)
                     ->where('department_id', $deptId)
-                    ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred'])
+                    ->whereIn('status', ['open', 'pending', 'transferred'])
                     ->count();
             }
         }
