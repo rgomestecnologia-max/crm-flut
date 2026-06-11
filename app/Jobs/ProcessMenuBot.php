@@ -141,15 +141,24 @@ class ProcessMenuBot implements ShouldQueue
 
         // Verifica se dept usa outro número WhatsApp
         $currentEvoId = $this->conversation->evolution_api_config_id;
-        $deptUsesOtherNumber = $department->evolution_api_config_id
-            && $department->evolution_api_config_id !== $currentEvoId;
+        // Se dept não tem instância específica (NULL), usa a primeira instância da empresa (número principal)
+        $deptEvoId = $department->evolution_api_config_id;
+        if (!$deptEvoId) {
+            $defaultConfig = \App\Models\EvolutionApiConfig::withoutGlobalScopes()
+                ->where('company_id', $this->conversation->company_id)
+                ->where('is_active', true)
+                ->orderBy('id')
+                ->first();
+            $deptEvoId = $defaultConfig?->id;
+        }
+        $deptUsesOtherNumber = $deptEvoId && $deptEvoId !== $currentEvoId;
 
         if ($deptUsesOtherNumber) {
             // ── MULTI-NÚMERO: cria conversa separada no outro número ──
 
             // Verifica se já existe conversa nesse número (aberta ou resolvida) para evitar duplicatas
             $existingOtherConv = \App\Models\Conversation::where('contact_id', $this->conversation->contact_id)
-                ->where('evolution_api_config_id', $department->evolution_api_config_id)
+                ->where('evolution_api_config_id', $deptEvoId)
                 ->where('is_group', false)
                 ->latest()
                 ->first();
@@ -175,7 +184,7 @@ class ProcessMenuBot implements ShouldQueue
             }
 
             // Busca o número da nova instância
-            $newConfig = \App\Models\EvolutionApiConfig::find($department->evolution_api_config_id);
+            $newConfig = \App\Models\EvolutionApiConfig::find($deptEvoId);
             $newNumber = '';
             if ($newConfig) {
                 try {
@@ -211,7 +220,7 @@ class ProcessMenuBot implements ShouldQueue
                 : \App\Models\Conversation::create([
                     'contact_id'             => $this->conversation->contact_id,
                     'department_id'          => $department->id,
-                    'evolution_api_config_id' => $department->evolution_api_config_id,
+                    'evolution_api_config_id' => $deptEvoId,
                     'status'                 => 'open',
                     'is_group'               => false,
                 ]);
