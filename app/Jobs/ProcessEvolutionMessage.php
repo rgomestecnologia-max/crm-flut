@@ -161,12 +161,25 @@ class ProcessEvolutionMessage implements ShouldQueue
                     }
 
                     if (!$contact) {
-                        Log::info('ProcessEvolutionMessage: fromMe sem contato encontrado', [
-                            'remoteJid' => $remoteJid,
-                            'chatPhone' => $chatPhone,
-                            'instance'  => $instanceName,
-                        ]);
-                        return;
+                        // Cria contato para mensagens fromMe (agente iniciou conversa pelo WhatsApp)
+                        if ($chatPhone && preg_match('/^55\d{10,11}$/', $chatPhone)) {
+                            $contact = Contact::create([
+                                'company_id' => $companyId,
+                                'phone'      => $chatPhone,
+                                'chat_lid'   => $remoteJid,
+                                'name'       => $chatPhone,
+                            ]);
+                            Log::info('ProcessEvolutionMessage: contato criado via fromMe', [
+                                'phone' => $chatPhone, 'instance' => $instanceName,
+                            ]);
+                        } else {
+                            Log::info('ProcessEvolutionMessage: fromMe sem contato e phone inválido', [
+                                'remoteJid' => $remoteJid,
+                                'chatPhone' => $chatPhone,
+                                'instance'  => $instanceName,
+                            ]);
+                            return;
+                        }
                     }
                 } else {
                     $contact = Contact::where('chat_lid', $remoteJid)->first()
