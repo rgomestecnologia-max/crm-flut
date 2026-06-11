@@ -37,6 +37,7 @@ class CampaignManager extends Component
     public array  $manualRecipientIds   = [];
     public string $contactSearch        = '';
     public string $meta_template_name   = '';
+    public array  $meta_template_params = [];
     public string $scheduled_at         = '';
 
     // Detail

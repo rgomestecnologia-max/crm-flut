@@ -210,7 +210,7 @@
                 @if($isMeta && $metaTemplates->isNotEmpty())
                 <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Template Meta WhatsApp</label>
-                    <select wire:model="meta_template_name"
+                    <select wire:model.live="meta_template_name"
                             style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
                         <option value="">Nenhum (texto livre)</option>
                         @foreach($metaTemplates as $tpl)
@@ -219,7 +219,43 @@
                     </select>
                     <p style="font-size:9px; color:rgba(255,255,255,0.15); margin-top:3px;">Obrigatório para mensagens fora da janela de 24h. Sincronize em Meta WhatsApp > Templates.</p>
                 </div>
+                @if($meta_template_name)
+                    @php
+                        $selectedTpl = $metaTemplates->firstWhere('name', $meta_template_name);
+                        $tplParams = [];
+                        $tplBody = '';
+                        if ($selectedTpl) {
+                            $comps = json_decode($selectedTpl->components ?? '[]', true);
+                            foreach ($comps as $comp) {
+                                if ($comp['type'] === 'BODY') {
+                                    $tplBody = $comp['text'] ?? '';
+                                    preg_match_all('/\{\{(\d+)\}\}/', $tplBody, $pMatches);
+                                    $tplParams = $pMatches[1] ?? [];
+                                }
+                            }
+                            $examples = [];
+                            foreach ($comps as $comp) {
+                                if ($comp['type'] === 'BODY' && !empty($comp['example']['body_text'][0])) {
+                                    $examples = $comp['example']['body_text'][0];
+                                }
+                            }
+                        }
+                    @endphp
+                    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; margin-top:6px;">
+                        <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:6px;">PREVIEW DO TEMPLATE:</p>
+                        <p style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.6; white-space:pre-line;">{{ $tplBody }}</p>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Parâmetros do template *</label>
+                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin:2px 0 6px;">Preencha um valor por linha. Linha 1 = @{{1}}, Linha 2 = @{{2}}, etc. Use <strong style="color:rgba(255,255,255,0.4);">{nome}</strong> para o nome do contato.</p>
+                        <textarea wire:model="message" rows="{{ count($tplParams) + 1 }}"
+                                  placeholder="{{ implode("\n", array_map(fn($i) => 'Parâmetro {{' . ($i) . '}}' . (isset($examples[$i-1]) ? ' — ex: ' . $examples[$i-1] : ''), $tplParams)) }}"
+                                  style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical; font-family:monospace;"></textarea>
+                        @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                    </div>
                 @endif
+                @endif
+                @if(!$meta_template_name)
                 <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">{{ $campaignImage ? 'Legenda da imagem *' : 'Contexto para IA *' }}</label>
                     <textarea wire:model="message" rows="5" placeholder="Escreva o contexto da mensagem. A IA vai gerar variações únicas para cada destinatário, evitando bloqueio por repetição.&#10;&#10;Ex: Olá {nome}! Temos uma oferta especial de máquinas para panificação com 20% de desconto até sexta-feira..."
@@ -227,6 +263,7 @@
                     @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
                     <p style="font-size:10px; color:rgba(139,92,246,0.7); margin-top:4px;">A IA gera uma mensagem diferente para cada lead com base neste contexto. Use {nome} para personalizar.</p>
                 </div>
+                @endif
                 @else
                 {{-- Email: campos simples --}}
                 <div>

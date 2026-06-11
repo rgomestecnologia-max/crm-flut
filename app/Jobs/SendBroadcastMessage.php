@@ -77,8 +77,28 @@ class SendBroadcastMessage implements ShouldQueue
                 if ($campaign->meta_template_name && $api instanceof MetaWhatsAppService) {
                     $tpl = MetaMessageTemplate::where('name', $campaign->meta_template_name)->first();
                     $bodyParams = [];
-                    if ($tpl && $tpl->body_parameter_count >= 1) {
-                        $bodyParams[] = $contactName;
+                    if ($tpl) {
+                        // Extrai parâmetros do campo message (cada linha = um parâmetro)
+                        // Linha 1 = {{1}}, Linha 2 = {{2}}, etc.
+                        // Usa {nome} como placeholder para o nome do contato
+                        $paramLines = $campaign->message
+                            ? array_filter(array_map('trim', explode("\n", $campaign->message)), fn($l) => $l !== '')
+                            : [];
+
+                        $paramCount = 0;
+                        $comps = json_decode($tpl->components ?? '[]', true);
+                        foreach ($comps as $comp) {
+                            if ($comp['type'] === 'BODY') {
+                                preg_match_all('/\{\{\d+\}\}/', $comp['text'] ?? '', $matches);
+                                $paramCount = count($matches[0]);
+                            }
+                        }
+
+                        for ($p = 0; $p < $paramCount; $p++) {
+                            $val = $paramLines[$p] ?? '';
+                            $val = str_replace(['{nome}', '{name}'], $contactName, $val);
+                            $bodyParams[] = $val ?: ($p === 0 ? ($contactName ?: 'Cliente') : '-');
+                        }
                     }
                     $result = $api->sendTemplate(
                         $recipient->phone,
