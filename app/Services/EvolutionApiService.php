@@ -132,7 +132,7 @@ class EvolutionApiService
 
     // ─── Envio de mensagens ─────────────────────────────────────────────────
 
-    public function sendText(string $phone, string $text, ?string $quotedId = null): array
+    public function sendText(string $phone, string $text, ?string $quotedId = null, ?array $mentionedJid = null): array
     {
         $number = $this->normalizePhone($phone);
 
@@ -143,6 +143,10 @@ class EvolutionApiService
 
         if ($quotedId) {
             $body['quoted'] = ['key' => ['id' => $quotedId]];
+        }
+
+        if (!empty($mentionedJid)) {
+            $body['mentionedJid'] = $mentionedJid;
         }
 
         return $this->post("/message/sendText/{$this->instanceName}", $body);

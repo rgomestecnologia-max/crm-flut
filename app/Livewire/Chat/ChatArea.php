@@ -41,6 +41,7 @@ class ChatArea extends Component
     // Group members
     public bool    $showGroupMembers = false;
     public array   $groupMembers     = [];
+    public array   $mentionJids      = [];
 
     // CRM
     public bool    $showCrmPanel     = false;
@@ -527,8 +528,10 @@ class ChatArea extends Component
         }
         $this->conversation->update($updates);
 
+        $mentions = !empty($this->mentionJids) ? $this->mentionJids : null;
+
         try {
-            SendWhatsAppMessage::dispatch($message);
+            SendWhatsAppMessage::dispatch($message, null, $mentions);
         } catch (\Throwable $e) {
             Log::warning('SendWhatsAppMessage falhou', ['error' => $e->getMessage()]);
         }
@@ -539,8 +542,9 @@ class ChatArea extends Component
             Log::warning('Broadcast falhou (Reverb offline?)', ['error' => $e->getMessage()]);
         }
 
-        $this->messageText = '';
-        $this->replyToId   = null;
+        $this->messageText  = '';
+        $this->replyToId    = null;
+        $this->mentionJids  = [];
         $this->dispatch('message-sent');
         $this->dispatch('scroll-to-bottom');
     }

@@ -22,6 +22,7 @@ class SendWhatsAppMessage implements ShouldQueue
     public function __construct(
         public Message $message,
         public ?string $base64Content = null,
+        public ?array  $mentionedJid = null,
     ) {}
 
     public function handle(): void
@@ -158,7 +159,7 @@ class SendWhatsAppMessage implements ShouldQueue
             'video'    => $api->sendVideo($phone, $mediaRef, $caption),
             'document' => $api->sendDocument($phone, $mediaRef, $this->message->media_filename ?? 'documento'),
             'contact'  => $api->sendContact($phone, $this->message->media_filename ?? 'Contato', $this->message->media_url ?? ''),
-            default    => $api->sendText($phone, $text, $quotedId),
+            default    => $api->sendText($phone, $text, $quotedId, $this->mentionedJid),
         };
 
         if ($result['success'] ?? false) {

@@ -1206,6 +1206,53 @@ function senderColor(?string $identifier): string {
             emojiPos: null,
             pastedImage: null,
             recording: false,
+            mentionOpen: false,
+            mentionFilter: '',
+            mentionIndex: 0,
+            mentionJids: [],
+            get mentionMembers() {
+                const members = $wire.groupMembers || [];
+                if (!this.mentionFilter) return members.slice(0, 10);
+                const f = this.mentionFilter.toLowerCase();
+                return members.filter(m => m.name.toLowerCase().includes(f) || m.phone.includes(f)).slice(0, 10);
+            },
+            onInputMention(e) {
+                const el = e.target;
+                const val = el.value;
+                const pos = el.selectionStart;
+                const before = val.substring(0, pos);
+                const atMatch = before.match(/@([^@\n]*)$/);
+                if (atMatch && {{ $conversation->is_group ? 'true' : 'false' }}) {
+                    this.mentionFilter = atMatch[1];
+                    this.mentionOpen = true;
+                    this.mentionIndex = 0;
+                    if (!$wire.groupMembers.length) $wire.loadGroupMembers();
+                } else {
+                    this.mentionOpen = false;
+                }
+            },
+            selectMention(member) {
+                const el = document.getElementById('main-message-input');
+                const val = el.value;
+                const pos = el.selectionStart;
+                const before = val.substring(0, pos);
+                const after = val.substring(pos);
+                const atPos = before.lastIndexOf('@');
+                el.value = before.substring(0, atPos) + '@' + member.name + ' ' + after;
+                el.selectionStart = el.selectionEnd = atPos + member.name.length + 2;
+                this.mentionJids.push(member.jid);
+                $wire.set('mentionJids', this.mentionJids);
+                this.mentionOpen = false;
+                el.focus();
+            },
+            mentionKeydown(e) {
+                if (!this.mentionOpen) return;
+                const list = this.mentionMembers;
+                if (e.key === 'ArrowDown') { e.preventDefault(); this.mentionIndex = Math.min(this.mentionIndex + 1, list.length - 1); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); this.mentionIndex = Math.max(this.mentionIndex - 1, 0); }
+                else if (e.key === 'Enter' && list.length) { e.preventDefault(); e.stopPropagation(); this.selectMention(list[this.mentionIndex]); }
+                else if (e.key === 'Escape') { this.mentionOpen = false; }
+            },
             recSeconds: 0,
             recTimer: null,
             mediaRecorder: null,
@@ -1621,6 +1668,26 @@ function senderColor(?string $identifier): string {
                 </div>
             </template>
 
+            {{-- Mention dropdown --}}
+            <div x-show="mentionOpen && mentionMembers.length > 0" x-cloak
+                 style="position:absolute; bottom:100%; left:60px; right:60px; background:#1a1f2e; border:1px solid rgba(255,255,255,0.1); border-radius:10px; max-height:200px; overflow-y:auto; z-index:50; box-shadow:0 -4px 20px rgba(0,0,0,0.4); margin-bottom:4px;">
+                <template x-for="(m, i) in mentionMembers" :key="m.jid">
+                    <button @click="selectMention(m)" type="button"
+                            :style="i === mentionIndex ? 'background:rgba(178,255,0,0.1);' : ''"
+                            style="display:flex; align-items:center; gap:10px; width:100%; padding:8px 12px; border:none; cursor:pointer; transition:background 0.1s; background:transparent; text-align:left;"
+                            @mouseover="mentionIndex = i">
+                        <div style="width:28px; height:28px; border-radius:50%; background:rgba(178,255,0,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <span style="font-size:11px; font-weight:700; color:#b2ff00;" x-text="m.name.charAt(0).toUpperCase()"></span>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <p style="font-size:12px; font-weight:600; color:white; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" x-text="m.name"></p>
+                            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;" x-text="m.phone"></p>
+                        </div>
+                        <span x-show="m.role === 'admin' || m.role === 'superadmin'" style="font-size:9px; color:#fbbf24; padding:1px 5px; background:rgba(251,191,36,0.1); border-radius:4px;">Admin</span>
+                    </button>
+                </template>
+            </div>
+
             {{-- Text input --}}
             <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid {{ $editingMessageId ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.08)' }}; border-radius:14px; overflow:hidden; display:flex; align-items:flex-end; transition:all 0.2s;"
                  onfocusin="this.style.borderColor='rgba(178,255,0,0.4)'; this.style.background='rgba(178,255,0,0.03)'; this.style.boxShadow='0 0 0 3px rgba(178,255,0,0.06)'"
@@ -1628,7 +1695,9 @@ function senderColor(?string $identifier): string {
                 <textarea
                     id="main-message-input"
                     spellcheck="true" lang="pt-BR"
-                    x-on:keydown.enter="if(!$event.shiftKey && !window._fcSending){ $event.preventDefault(); window._fcSending=true; setTimeout(()=>window._fcSending=false, 2000); $wire.set('messageText', $el.value); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage(); } }"
+                    x-on:keydown="mentionKeydown($event)"
+                    x-on:keydown.enter="if(mentionOpen) return; if(!$event.shiftKey && !window._fcSending){ $event.preventDefault(); window._fcSending=true; setTimeout(()=>window._fcSending=false, 2000); $wire.set('messageText', $el.value); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { mentionJids=[]; $wire.sendMessage(); } }"
+                    x-on:input.debounce.100ms="onInputMention($event)"
                     x-on:paste="
                         const items = $event.clipboardData?.items;
                         if (items) {
@@ -1661,7 +1730,7 @@ function senderColor(?string $identifier): string {
                     x-data
                     x-init="$nextTick(() => $el.focus())"
                     x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'"
-                    x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; $el.focus()"
+                    x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; mentionJids=[]; mentionOpen=false; $el.focus()"
                     x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'; $el.focus(); })"
                 ></textarea>
                 {{-- Quick Reply button --}}
