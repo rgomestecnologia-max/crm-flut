@@ -225,7 +225,7 @@
                         $tplParams = [];
                         $tplBody = '';
                         if ($selectedTpl) {
-                            $comps = json_decode($selectedTpl->components ?? '[]', true);
+                            $comps = is_string($selectedTpl->components) ? json_decode($selectedTpl->components, true) : ($selectedTpl->components ?? []);
                             foreach ($comps as $comp) {
                                 if ($comp['type'] === 'BODY') {
                                     $tplBody = $comp['text'] ?? '';
