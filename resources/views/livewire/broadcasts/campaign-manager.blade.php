@@ -248,8 +248,12 @@
                     <div style="margin-top:8px;">
                         <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Parâmetros do template *</label>
                         <p style="font-size:9px; color:rgba(255,255,255,0.2); margin:2px 0 6px;">Preencha um valor por linha. Linha 1 = @{{1}}, Linha 2 = @{{2}}, etc. Use <strong style="color:rgba(255,255,255,0.4);">{nome}</strong> para o nome do contato.</p>
+                        @php
+                            $placeholderLines = array_map(fn($i) => 'Parâmetro {{' . $i . '}}' . (isset($examples[$i-1]) ? ' — ex: ' . $examples[$i-1] : ''), $tplParams);
+                            $placeholderText = implode("\n", $placeholderLines);
+                        @endphp
                         <textarea wire:model="message" rows="{{ count($tplParams) + 1 }}"
-                                  placeholder="{{ implode("\n", array_map(fn($i) => 'Parâmetro {{' . ($i) . '}}' . (isset($examples[$i-1]) ? ' — ex: ' . $examples[$i-1] : ''), $tplParams)) }}"
+                                  placeholder="{{ $placeholderText }}"
                                   style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical; font-family:monospace;"></textarea>
                         @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
                     </div>
