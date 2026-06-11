@@ -38,9 +38,33 @@ class SendWhatsAppMessage implements ShouldQueue
             return;
         }
 
-        // WhatsApp
+        // WhatsApp — sempre preferir número real sobre LID
         $realPhone = ($contact->phone && preg_match('/^55\d{10,11}$/', $contact->phone)) ? $contact->phone : null;
-        $phone     = $realPhone ?? $contact->chat_lid ?? $contact->phone;
+
+        // Se só tem LID, tenta resolver número real via Evolution API
+        if (!$realPhone && $contact->chat_lid && str_contains($contact->chat_lid, '@lid')) {
+            try {
+                $evoConfig = $conversation->evolution_api_config_id
+                    ? \App\Models\EvolutionApiConfig::find($conversation->evolution_api_config_id)
+                    : \App\Models\EvolutionApiConfig::current();
+                if ($evoConfig) {
+                    $api = new \App\Services\EvolutionApiService($evoConfig);
+                    $result = $api->get("/chat/findContacts/{$evoConfig->instance_name}?where.id={$contact->chat_lid}");
+                    $resolved = $result[0]['id'] ?? null;
+                    if ($resolved && str_contains($resolved, '@s.whatsapp.net')) {
+                        $realPhone = preg_replace('/\D/', '', str_replace('@s.whatsapp.net', '', $resolved));
+                        $contact->update(['phone' => $realPhone]);
+                        Log::info('SendWhatsAppMessage: LID resolvido para número real', [
+                            'lid' => $contact->chat_lid, 'phone' => $realPhone,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('SendWhatsAppMessage: falha ao resolver LID', ['error' => $e->getMessage()]);
+            }
+        }
+
+        $phone = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
         // Se provider da empresa é Meta e config ativa, usa Meta (prioridade sobre Evolution)
