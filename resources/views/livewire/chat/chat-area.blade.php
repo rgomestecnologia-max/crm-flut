@@ -1447,6 +1447,26 @@ function senderColor(?string $identifier): string {
         </div>
         </template>
 
+        {{-- Mention dropdown (estilo WhatsApp) --}}
+        @if($conversation->is_group)
+        <div x-show="mentionOpen && mentionMembers.length > 0" x-cloak
+             style="background:#1a2c33; max-height:220px; overflow-y:auto; margin:0 -12px; padding:4px 0; border-top:1px solid rgba(255,255,255,0.06);">
+            <template x-for="(m, i) in mentionMembers" :key="m.jid">
+                <div @mousedown.prevent="selectMention(m)"
+                     :style="i === mentionIndex ? 'background:rgba(255,255,255,0.06);' : ''"
+                     style="display:flex; align-items:center; gap:12px; padding:8px 20px; cursor:pointer;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:#4a6670; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="20" height="20" fill="rgba(255,255,255,0.6)" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <p style="font-size:15px; color:#e9edef; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" x-text="m.name"></p>
+                        <p style="font-size:13px; color:rgba(255,255,255,0.35); margin:1px 0 0;" x-text="'~' + m.phone"></p>
+                    </div>
+                </div>
+            </template>
+        </div>
+        @endif
+
         <div style="display:flex; align-items:flex-end; gap:8px;">
             {{-- Attach button --}}
             <div x-data="{ open: false, clipPos: null }" style="position:relative; flex-shrink:0;">
@@ -1667,28 +1687,6 @@ function senderColor(?string $identifier): string {
                     <button @click="pastedImage=null" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:18px;">&times;</button>
                 </div>
             </template>
-
-            {{-- Mention dropdown (estilo WhatsApp) --}}
-            <div x-show="mentionOpen && mentionMembers.length > 0" x-cloak
-                 x-transition:enter="transition ease-out duration-100"
-                 x-transition:enter-start="opacity-0 translate-y-1"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 style="position:absolute; bottom:100%; left:0; right:0; background:#233138; border-radius:8px 8px 0 0; max-height:240px; overflow-y:auto; z-index:50; box-shadow:0 -2px 12px rgba(0,0,0,0.5);">
-                <template x-for="(m, i) in mentionMembers" :key="m.jid">
-                    <button @click="selectMention(m)" type="button"
-                            :style="i === mentionIndex ? 'background:rgba(255,255,255,0.08);' : 'background:transparent;'"
-                            style="display:flex; align-items:center; gap:12px; width:100%; padding:10px 16px; border:none; cursor:pointer; text-align:left;"
-                            @mouseover="mentionIndex = i">
-                        <div style="width:36px; height:36px; border-radius:50%; background:#4a6670; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            <svg width="18" height="18" fill="rgba(255,255,255,0.5)" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                        </div>
-                        <div style="flex:1; min-width:0;">
-                            <p style="font-size:14px; color:white; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" x-text="m.name"></p>
-                            <p style="font-size:12px; color:rgba(255,255,255,0.4); margin:0;" x-text="'~' + m.phone"></p>
-                        </div>
-                    </button>
-                </template>
-            </div>
 
             {{-- Text input --}}
             <div style="flex:1; background:rgba(255,255,255,0.04); border:1px solid {{ $editingMessageId ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.08)' }}; border-radius:14px; overflow:hidden; display:flex; align-items:flex-end; transition:all 0.2s;"
