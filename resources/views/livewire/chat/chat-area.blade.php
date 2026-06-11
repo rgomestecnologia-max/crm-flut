@@ -1699,7 +1699,6 @@ function senderColor(?string $identifier): string {
                     spellcheck="true" lang="pt-BR"
                     x-on:keydown="mentionKeydown($event)"
                     x-on:keydown.enter="if(mentionOpen) return; if(!$event.shiftKey && !window._fcSending){ $event.preventDefault(); window._fcSending=true; setTimeout(()=>window._fcSending=false, 2000); $wire.set('messageText', $el.value); if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { mentionJids=[]; $wire.sendMessage(); } }"
-                    x-on:input.debounce.100ms="onInputMention($event)"
                     x-on:paste="
                         const items = $event.clipboardData?.items;
                         if (items) {
@@ -1729,9 +1728,8 @@ function senderColor(?string $identifier): string {
                     placeholder="{{ $editingMessageId ? 'Edite a mensagem...' : 'Digite uma mensagem...' }}"
                     rows="1"
                     style="flex:1; background:transparent; padding:10px 12px; font-size:13px; color:white; outline:none; resize:none; max-height:200px; font-family:inherit; line-height:1.5; overflow-y:auto;"
-                    x-data
                     x-init="$nextTick(() => $el.focus())"
-                    x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'"
+                    x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'; onInputMention($event)"
                     x-on:message-sent.window="$el.style.height = 'auto'; $el.value = ''; mentionJids=[]; mentionOpen=false; $el.focus()"
                     x-on:focus-message-input.window="$nextTick(() => { $el.value = $wire.messageText; $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 200) + 'px'; $el.focus(); })"
                 ></textarea>
