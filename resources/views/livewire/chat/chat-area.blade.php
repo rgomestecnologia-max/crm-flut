@@ -1668,22 +1668,24 @@ function senderColor(?string $identifier): string {
                 </div>
             </template>
 
-            {{-- Mention dropdown --}}
+            {{-- Mention dropdown (estilo WhatsApp) --}}
             <div x-show="mentionOpen && mentionMembers.length > 0" x-cloak
-                 style="position:absolute; bottom:100%; left:60px; right:60px; background:#1a1f2e; border:1px solid rgba(255,255,255,0.1); border-radius:10px; max-height:200px; overflow-y:auto; z-index:50; box-shadow:0 -4px 20px rgba(0,0,0,0.4); margin-bottom:4px;">
+                 x-transition:enter="transition ease-out duration-100"
+                 x-transition:enter-start="opacity-0 translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 style="position:absolute; bottom:100%; left:0; right:0; background:#233138; border-radius:8px 8px 0 0; max-height:240px; overflow-y:auto; z-index:50; box-shadow:0 -2px 12px rgba(0,0,0,0.5);">
                 <template x-for="(m, i) in mentionMembers" :key="m.jid">
                     <button @click="selectMention(m)" type="button"
-                            :style="i === mentionIndex ? 'background:rgba(178,255,0,0.1);' : ''"
-                            style="display:flex; align-items:center; gap:10px; width:100%; padding:8px 12px; border:none; cursor:pointer; transition:background 0.1s; background:transparent; text-align:left;"
+                            :style="i === mentionIndex ? 'background:rgba(255,255,255,0.08);' : 'background:transparent;'"
+                            style="display:flex; align-items:center; gap:12px; width:100%; padding:10px 16px; border:none; cursor:pointer; text-align:left;"
                             @mouseover="mentionIndex = i">
-                        <div style="width:28px; height:28px; border-radius:50%; background:rgba(178,255,0,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            <span style="font-size:11px; font-weight:700; color:#b2ff00;" x-text="m.name.charAt(0).toUpperCase()"></span>
+                        <div style="width:36px; height:36px; border-radius:50%; background:#4a6670; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="18" height="18" fill="rgba(255,255,255,0.5)" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <p style="font-size:12px; font-weight:600; color:white; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" x-text="m.name"></p>
-                            <p style="font-size:10px; color:rgba(255,255,255,0.3); margin:0;" x-text="m.phone"></p>
+                            <p style="font-size:14px; color:white; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" x-text="m.name"></p>
+                            <p style="font-size:12px; color:rgba(255,255,255,0.4); margin:0;" x-text="'~' + m.phone"></p>
                         </div>
-                        <span x-show="m.role === 'admin' || m.role === 'superadmin'" style="font-size:9px; color:#fbbf24; padding:1px 5px; background:rgba(251,191,36,0.1); border-radius:4px;">Admin</span>
                     </button>
                 </template>
             </div>
