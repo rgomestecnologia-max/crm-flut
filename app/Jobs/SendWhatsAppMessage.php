@@ -144,6 +144,21 @@ class SendWhatsAppMessage implements ShouldQueue
         $caption = $this->prefixAgentName($this->message->content ?? '');
         $contact = $this->message->conversation->contact;
 
+        // Converte URL para base64 para imagens e documentos (melhora entrega no celular)
+        if ($mediaRef && str_starts_with($mediaRef, 'http') && in_array($this->message->type, ['image', 'document'])) {
+            try {
+                $resp = \Illuminate\Support\Facades\Http::timeout(10)->get($mediaRef);
+                if ($resp->successful()) {
+                    $mime = $resp->header('Content-Type') ?: 'application/octet-stream';
+                    $mediaRef = 'data:' . $mime . ';base64,' . base64_encode($resp->body());
+                }
+            } catch (\Throwable $e) {
+                Log::warning('SendWhatsApp: falha ao converter URL para base64, enviando URL direto', [
+                    'url' => substr($mediaRef, 0, 80), 'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         // Quoted message (resposta referenciando outra mensagem)
         $quotedId = null;
         if ($this->message->reply_to_id) {
