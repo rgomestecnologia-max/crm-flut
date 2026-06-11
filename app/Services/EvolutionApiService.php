@@ -233,7 +233,22 @@ class EvolutionApiService
             return [$raw, $defaultMime];
         }
 
-        // URL pública ou base64 puro — passa direto
+        // URL pública — baixa e converte para base64 (evita problemas de entrega no celular)
+        if (str_starts_with($input, 'http://') || str_starts_with($input, 'https://')) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::timeout(15)->get($input);
+                if ($response->successful()) {
+                    $mime = $response->header('Content-Type') ?: $defaultMime;
+                    return [base64_encode($response->body()), $mime];
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('extractMedia: falha ao baixar URL, enviando direto', [
+                    'url' => substr($input, 0, 100), 'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // base64 puro — passa direto
         return [$input, $defaultMime];
     }
 
