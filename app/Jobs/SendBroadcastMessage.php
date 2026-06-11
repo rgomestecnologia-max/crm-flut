@@ -86,7 +86,7 @@ class SendBroadcastMessage implements ShouldQueue
                             : [];
 
                         $paramCount = 0;
-                        $comps = json_decode($tpl->components ?? '[]', true);
+                        $comps = is_string($tpl->components) ? json_decode($tpl->components, true) : ($tpl->components ?? []);
                         foreach ($comps as $comp) {
                             if ($comp['type'] === 'BODY') {
                                 preg_match_all('/\{\{\d+\}\}/', $comp['text'] ?? '', $matches);
