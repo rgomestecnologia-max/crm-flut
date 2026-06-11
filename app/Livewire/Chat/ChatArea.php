@@ -309,10 +309,21 @@ class ChatArea extends Component
         $msg->update(['reactions' => $reactions]);
     }
 
+    public function loadGroupMembersForMention(): void
+    {
+        if (!empty($this->groupMembers)) return;
+        $this->fetchGroupMembers();
+    }
+
     public function loadGroupMembers(): void
     {
         $this->showGroupMembers = !$this->showGroupMembers;
         if (!$this->showGroupMembers) return;
+        $this->fetchGroupMembers();
+    }
+
+    private function fetchGroupMembers(): void
+    {
 
         $conv = $this->conversation;
         if (!$conv || !$conv->is_group) return;

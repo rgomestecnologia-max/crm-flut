@@ -1226,7 +1226,7 @@ function senderColor(?string $identifier): string {
                     this.mentionFilter = atMatch[1];
                     this.mentionOpen = true;
                     this.mentionIndex = 0;
-                    if (!$wire.groupMembers.length) $wire.loadGroupMembers();
+                    if (!$wire.groupMembers.length) $wire.loadGroupMembersForMention();
                 } else {
                     this.mentionOpen = false;
                 }
