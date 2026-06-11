@@ -160,6 +160,30 @@ class ProcessEvolutionMessage implements ShouldQueue
                         }
                     }
 
+                    // fromMe com LID: tenta resolver via Evolution API
+                    if (!$contact && str_contains($remoteJid, '@lid')) {
+                        try {
+                            $evoConfig = EvolutionApiConfig::withoutCompanyScope()
+                                ->where('instance_name', $instanceName)->first();
+                            if ($evoConfig) {
+                                $api = new \App\Services\EvolutionApiService($evoConfig);
+                                $profileData = $api->get("/chat/findContacts/{$instanceName}?where.id={$remoteJid}");
+                                $realNumber = $profileData[0]['id'] ?? null;
+                                if ($realNumber && str_contains($realNumber, '@s.whatsapp.net')) {
+                                    $realPhone = preg_replace('/\D/', '', str_replace('@s.whatsapp.net', '', $realNumber));
+                                    $contact = Contact::where('phone', $realPhone)->first();
+                                    if ($contact && !$contact->chat_lid) {
+                                        $contact->update(['chat_lid' => $remoteJid]);
+                                    }
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            Log::warning('ProcessEvolutionMessage: falha ao resolver LID via API', [
+                                'lid' => $remoteJid, 'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+
                     if (!$contact) {
                         // Cria contato para mensagens fromMe (agente iniciou conversa pelo WhatsApp)
                         if ($chatPhone && preg_match('/^55\d{10,11}$/', $chatPhone)) {
@@ -171,6 +195,17 @@ class ProcessEvolutionMessage implements ShouldQueue
                             ]);
                             Log::info('ProcessEvolutionMessage: contato criado via fromMe', [
                                 'phone' => $chatPhone, 'instance' => $instanceName,
+                            ]);
+                        } elseif (str_contains($remoteJid, '@lid')) {
+                            // LID sem número real — cria contato temporário com LID
+                            $contact = Contact::create([
+                                'company_id' => $companyId,
+                                'phone'      => $chatPhone,
+                                'chat_lid'   => $remoteJid,
+                                'name'       => $senderName ?: $chatPhone,
+                            ]);
+                            Log::info('ProcessEvolutionMessage: contato criado via fromMe LID', [
+                                'lid' => $remoteJid, 'instance' => $instanceName,
                             ]);
                         } else {
                             Log::info('ProcessEvolutionMessage: fromMe sem contato e phone inválido', [
