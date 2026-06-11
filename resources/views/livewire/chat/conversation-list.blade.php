@@ -217,6 +217,9 @@
         if (($counts['groups'] ?? 0) > 0) {
             $tabs[] = ['key' => 'groups', 'label' => 'Grupos', 'count' => $counts['groups'], 'color' => '#a855f7', 'activeBg' => 'rgba(168,85,247,0.12)', 'activeColor' => '#c084fc'];
         }
+        if (app(\App\Services\CurrentCompany::class)->id() === 6 && ($counts['unread'] ?? 0) > 0) {
+            $tabs[] = ['key' => 'unread', 'label' => 'Não Lidas', 'count' => $counts['unread'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
+        }
         if (($counts['archived'] ?? 0) > 0) {
             $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
         }

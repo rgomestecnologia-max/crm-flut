@@ -388,6 +388,10 @@ class ConversationList extends Component
             // Grupos
             'groups' => $query->where('is_archived', false)->where('is_group', true)->whereIn('status', ['open', 'pending']),
 
+            // Não lidas
+            'unread' => $query->where('is_archived', false)
+                ->whereHas('messages', fn($q) => $q->where('sender_type', 'contact')->where('is_read', false)),
+
             default    => null,
         };
 
@@ -439,6 +443,8 @@ class ConversationList extends Component
             'messenger' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'messenger')->count(),
             'instagram' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'instagram')->count(),
             'groups'    => (clone $baseQuery)->where('is_archived', false)->where('is_group', true)->whereIn('status', ['open', 'pending'])->count(),
+            'unread'    => (clone $baseQuery)->where('is_archived', false)
+                ->whereHas('messages', fn($q) => $q->where('sender_type', 'contact')->where('is_read', false))->count(),
         ];
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
