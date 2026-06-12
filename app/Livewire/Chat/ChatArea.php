@@ -468,7 +468,7 @@ class ChatArea extends Component
                 if ($svc instanceof \App\Services\EvolutionApiService) {
                     $svc->updateMessage($msg->zapi_message_id, $remoteJid, $newText);
                 } elseif ($svc instanceof \App\Services\ZapiService) {
-                    $svc->editMessage($msg->zapi_message_id, $newText);
+                    $svc->editMessage($remoteJid, $msg->zapi_message_id, $newText);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Edit message failed', ['error' => $e->getMessage()]);

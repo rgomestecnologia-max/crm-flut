@@ -93,11 +93,12 @@ class ZapiService
         ]);
     }
 
-    public function editMessage(string $messageId, string $newText): array
+    public function editMessage(string $phone, string $messageId, string $newText): array
     {
-        return $this->post('/edit-message', [
-            'messageId' => $messageId,
-            'text'      => $newText,
+        return $this->post('/send-text', [
+            'phone'         => $this->normalizePhone($phone),
+            'message'       => $newText,
+            'editMessageId' => $messageId,
         ]);
     }
 
