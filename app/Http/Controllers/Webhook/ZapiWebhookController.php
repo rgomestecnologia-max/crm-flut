@@ -67,6 +67,20 @@ class ZapiWebhookController extends Controller
             }
         }
 
+        // Mensagem editada pelo remetente
+        if (!empty($payload['isEdit']) && !empty($payload['messageId'])) {
+            $msg = \App\Models\Message::where('zapi_message_id', $payload['messageId'])->first();
+            if ($msg) {
+                $newContent = $payload['text']['message'] ?? $payload['body'] ?? $payload['caption'] ?? null;
+                if ($newContent) {
+                    $msg->update(['content' => $newContent]);
+                    try { broadcast(new \App\Events\MessageReceived($msg)); } catch (\Throwable) {}
+                    Log::info('Z-API mensagem editada', ['messageId' => $payload['messageId'], 'newContent' => substr($newContent, 0, 50)]);
+                }
+            }
+            return response()->json(['ok' => true]);
+        }
+
         if ($phone) {
             ProcessIncomingMessage::dispatch($payload);
             Log::info('Z-API job despachado para ' . $phone . ($fromMe ? ' [fromMe]' : '') . ($isGroup ? ' [grupo]' : ''));
