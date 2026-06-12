@@ -106,10 +106,15 @@ class ProcessIncomingMessage implements ShouldQueue
                     }
                 }
 
+                // Preservar hífen no phone do grupo (ex: 5511970620020-1548262453)
                 $groupPhone = preg_replace('/@.*/', '', $groupJid);
-                $groupPhone = preg_replace('/\D/', '', $groupPhone);
+                // Truncar a 20 chars para caber no campo phone (compatível com Evolution)
+                $groupPhone = substr($groupPhone, 0, 20);
 
+                // Busca por chat_lid exato ou por variação sem hífen
+                $groupJidNoHyphen = preg_replace('/[^0-9@.a-z]/', '', $groupJid);
                 $contact = Contact::where('chat_lid', $groupJid)->first()
+                    ?? Contact::where('chat_lid', $groupJidNoHyphen)->first()
                     ?? Contact::where('phone', $groupPhone)->first();
 
                 if (!$contact) {
