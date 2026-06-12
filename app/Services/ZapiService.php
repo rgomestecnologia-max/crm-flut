@@ -198,9 +198,9 @@ class ZapiService
 
     private function normalizePhone(string $phone): string
     {
-        // Grupos: preservar o sufixo @g.us
+        // Grupos: Z-API usa formato "numero-group" (não @g.us)
         if (str_contains($phone, '@g.us')) {
-            return $phone;
+            return str_replace('@g.us', '-group', $phone);
         }
 
         // JID individual: remover sufixo @s.whatsapp.net ou @lid
