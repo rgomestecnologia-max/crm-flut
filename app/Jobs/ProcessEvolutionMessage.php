@@ -368,9 +368,13 @@ class ProcessEvolutionMessage implements ShouldQueue
 
                 // Busca conversa existente — filtra pela instância para permitir
                 // conversas separadas por número (ex: Vendas + Criação)
+                // Aceita NULL para compatibilidade com conversas criadas antes da config
                 $conversation = Conversation::where('contact_id', $contact->id)
                     ->where('is_group', false)
-                    ->when($evoConfig, fn($q) => $q->where('evolution_api_config_id', $evoConfig->id))
+                    ->when($evoConfig, fn($q) => $q->where(function ($q2) use ($evoConfig) {
+                        $q2->where('evolution_api_config_id', $evoConfig->id)
+                           ->orWhereNull('evolution_api_config_id');
+                    }))
                     ->where(function ($q) {
                         $q->whereIn('status', ['open', 'pending', 'resolved'])
                           ->orWhere('is_archived', true);
