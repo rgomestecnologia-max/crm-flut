@@ -31,7 +31,7 @@
         {{-- List --}}
         <div style="max-height:380px; overflow-y:auto;">
             @forelse($notifications as $notif)
-            <div wire:click="markAsRead({{ $notif->id }})"
+            <div wire:click="toggleExpand({{ $notif->id }})"
                  style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.03); cursor:pointer; transition:background 0.1s;
                         background:{{ $notif->is_read ? 'transparent' : 'rgba(59,130,246,0.04)' }};"
                  onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='{{ $notif->is_read ? 'transparent' : 'rgba(59,130,246,0.04)' }}'">
@@ -55,7 +55,11 @@
                     <div style="flex:1; min-width:0;">
                         <p style="font-size:12px; font-weight:{{ $notif->is_read ? '400' : '600' }}; color:{{ $notif->is_read ? 'rgba(255,255,255,0.5)' : 'white' }};">{{ $notif->title }}</p>
                         @if($notif->message)
-                        <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $notif->message }}</p>
+                            @if($expandedId === $notif->id)
+                            <p style="font-size:11px; color:rgba(255,255,255,0.5); margin-top:6px; white-space:pre-line; line-height:1.6;">{{ $notif->message }}</p>
+                            @else
+                            <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $notif->message }}</p>
+                            @endif
                         @endif
                         <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:4px;">{{ $notif->created_at->diffForHumans() }}</p>
                     </div>

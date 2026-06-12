@@ -9,10 +9,18 @@ use Livewire\Component;
 class NotificationBell extends Component
 {
     public bool $showDropdown = false;
+    public ?int $expandedId  = null;
 
     public function toggleDropdown(): void
     {
         $this->showDropdown = !$this->showDropdown;
+        if (!$this->showDropdown) $this->expandedId = null;
+    }
+
+    public function toggleExpand(int $id): void
+    {
+        $this->expandedId = $this->expandedId === $id ? null : $id;
+        Notification::where('id', $id)->update(['is_read' => true]);
     }
 
     public function markAsRead(int $id): void
