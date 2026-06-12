@@ -651,9 +651,14 @@ class ProcessEvolutionMessage implements ShouldQueue
             if (!$fromMe && !$isGroup && $conversation->source_automation_id && $content) {
                 $sourceAuto = $conversation->sourceAutomation;
                 if ($sourceAuto && ($sourceAuto->reply_yes_message || $sourceAuto->reply_no_message)) {
-                    // Ignora se humano já está atendendo (respondeu pelo CRM ou WhatsApp)
+                    // Ignora se humano já está atendendo ou conversa já teve intervenção
                     $humanAttending = $conversation->assigned_to
-                        || $conversation->waiting_human_reason === 'Atendente respondeu pelo WhatsApp';
+                        || $conversation->waiting_human_reason
+                        || Message::where('conversation_id', $conversation->id)
+                            ->where('sender_type', 'agent')
+                            ->whereNotNull('sender_id')
+                            ->where('created_at', '>=', now()->subHours(48))
+                            ->exists();
 
                     // Ignora auto-reply se a última msg de automação tem mais de 48h (agendamento já passou)
                     $lastAutoMsg = Message::where('conversation_id', $conversation->id)
