@@ -164,6 +164,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                         style="width:100%; padding:8px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none;">
                     <option value="evolution">Evolution API</option>
                     <option value="meta">Meta WhatsApp (Oficial)</option>
+                    <option value="zapi">Z-API</option>
                 </select>
             </div>
             <div style="flex:1;">
@@ -172,6 +173,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                         style="width:100%; padding:8px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none;">
                     <option value="evolution">Evolution API</option>
                     <option value="meta">Meta WhatsApp (Oficial)</option>
+                    <option value="zapi">Z-API</option>
                 </select>
             </div>
         </div>

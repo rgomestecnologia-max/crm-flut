@@ -181,6 +181,7 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('evolution', fn() => view('admin.evolution.index'))->name('evolution.index');
         Route::get('meta-whatsapp', fn() => view('admin.meta-whatsapp.index'))->name('meta-whatsapp.index');
         Route::get('meta-whatsapp/callback', [\App\Http\Controllers\Admin\MetaSignupCallbackController::class, 'handle'])->name('meta-whatsapp.callback');
+        Route::get('zapi', fn() => view('admin.zapi.index'))->name('zapi.index');
         Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
     });
 

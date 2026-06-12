@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Webhook\EvolutionWebhookController;
 use App\Http\Controllers\Webhook\MetaWebhookController;
 use App\Http\Controllers\Webhook\SendGridWebhookController;
+use App\Http\Controllers\Webhook\ZapiWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/webhook/evolution', [EvolutionWebhookController::class, 'handle'])
@@ -15,6 +16,10 @@ Route::get('/webhook/meta', [MetaWebhookController::class, 'verify'])
 Route::post('/webhook/meta', [MetaWebhookController::class, 'handle'])
     ->middleware('throttle:500,1')
     ->name('webhook.meta');
+
+Route::post('/webhook/zapi', [ZapiWebhookController::class, 'handle'])
+    ->middleware('throttle:500,1')
+    ->name('webhook.zapi');
 
 Route::post('/webhook/sendgrid', [SendGridWebhookController::class, 'handle'])
     ->middleware('throttle:500,1')

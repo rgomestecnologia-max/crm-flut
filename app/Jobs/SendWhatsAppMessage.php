@@ -68,13 +68,21 @@ class SendWhatsAppMessage implements ShouldQueue
         $phone = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
-        // Se provider da empresa é Meta e config ativa, usa Meta (prioridade sobre Evolution)
+        // Se provider da empresa é Meta ou Z-API, usa antes de checar Evolution
         $provider = WhatsAppProvider::currentProvider();
         if ($provider === 'meta') {
             $metaConfig = \App\Models\MetaWhatsAppConfig::current();
             if ($metaConfig && $metaConfig->is_active) {
                 $service = new MetaWhatsAppService($metaConfig);
                 $this->sendViaMeta($service, $phone, $mediaRef);
+                return;
+            }
+        }
+
+        if ($provider === 'zapi') {
+            $zapiConfig = \App\Models\ZapiConfig::active();
+            if ($zapiConfig) {
+                $this->sendViaZapi(new \App\Services\ZapiService($zapiConfig), $phone, $mediaRef);
                 return;
             }
         }
@@ -224,6 +232,36 @@ class SendWhatsAppMessage implements ShouldQueue
             ]);
             $this->message->update(['delivery_status' => 'failed']);
             $this->fail('Meta API error: ' . ($result['error'] ?? 'unknown'));
+        }
+    }
+
+    private function sendViaZapi(\App\Services\ZapiService $api, string $phone, ?string $mediaRef): void
+    {
+        $text    = $this->prefixAgentName($this->message->content);
+        $caption = $this->prefixAgentName($this->message->content ?? '');
+
+        $result = match ($this->message->type) {
+            'image'    => $api->sendImageMessage($phone, $mediaRef, $caption),
+            'audio'    => $api->sendAudioMessage($phone, $mediaRef),
+            'video'    => $api->sendVideoMessage($phone, $mediaRef, $caption),
+            'document' => $api->sendDocumentMessage($phone, $mediaRef, $this->message->media_filename ?? 'documento'),
+            default    => $api->sendTextMessage($phone, $text),
+        };
+
+        $msgId = $result['messageId'] ?? $result['id'] ?? null;
+
+        if (!empty($result['zapiMessageId']) || !empty($msgId) || ($result['success'] ?? false)) {
+            $this->message->update([
+                'delivery_status' => 'sent',
+                'zapi_message_id' => $result['zapiMessageId'] ?? $msgId,
+            ]);
+        } else {
+            Log::error('SendWhatsAppMessage (Z-API) failed', [
+                'message_id' => $this->message->id,
+                'result'     => $result,
+            ]);
+            $this->message->update(['delivery_status' => 'failed']);
+            $this->fail('Z-API error: ' . ($result['error'] ?? json_encode($result)));
         }
     }
 
