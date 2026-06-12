@@ -23,7 +23,8 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
     </div>
 
     @if($showForm)
-    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,15,28,0.95) 100%); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:24px; margin-bottom:24px; position:relative; overflow:hidden;">
+    <div style="position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);" wire:click.self="$set('showForm', false)">
+    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.98) 0%, rgba(11,15,28,0.99) 100%); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:24px; width:520px; max-width:92vw; max-height:85vh; overflow-y:auto; position:relative;">
         <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, #b2ff0080, #b2ff0020, transparent); border-radius:16px 16px 0 0;"></div>
 
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
@@ -203,6 +204,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
                 Cancelar
             </button>
         </div>
+    </div>
     </div>
     @endif
 
