@@ -93,6 +93,21 @@ class ZapiService
         ]);
     }
 
+    public function editMessage(string $messageId, string $newText): array
+    {
+        return $this->post('/edit-message', [
+            'messageId' => $messageId,
+            'text'      => $newText,
+        ]);
+    }
+
+    public function deleteMessage(string $messageId): array
+    {
+        return $this->post('/delete-message', [
+            'messageId' => $messageId,
+        ]);
+    }
+
     // ─── Contatos ─────────────────────────────────────────────────
 
     public function getProfilePicture(string $phone): ?string

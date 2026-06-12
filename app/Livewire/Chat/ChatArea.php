@@ -464,12 +464,14 @@ class ChatArea extends Component
                 ? \App\Models\EvolutionApiConfig::find($this->conversation->evolution_api_config_id)
                 : null;
             $svc = \App\Services\WhatsAppProvider::service($specificConfig);
-            if ($svc instanceof \App\Services\EvolutionApiService) {
-                try {
+            try {
+                if ($svc instanceof \App\Services\EvolutionApiService) {
                     $svc->updateMessage($msg->zapi_message_id, $remoteJid, $newText);
-                } catch (\Throwable $e) {
-                    Log::warning('Edit message failed', ['error' => $e->getMessage()]);
+                } elseif ($svc instanceof \App\Services\ZapiService) {
+                    $svc->editMessage($msg->zapi_message_id, $newText);
                 }
+            } catch (\Throwable $e) {
+                Log::warning('Edit message failed', ['error' => $e->getMessage()]);
             }
         }
 
@@ -493,12 +495,14 @@ class ChatArea extends Component
                 ? \App\Models\EvolutionApiConfig::find($this->conversation->evolution_api_config_id)
                 : null;
             $svc = \App\Services\WhatsAppProvider::service($specificConfig);
-            if ($svc instanceof \App\Services\EvolutionApiService) {
-                try {
+            try {
+                if ($svc instanceof \App\Services\EvolutionApiService) {
                     $svc->deleteMessage($msg->zapi_message_id, $remoteJid);
-                } catch (\Throwable $e) {
-                    Log::warning('Delete message failed', ['error' => $e->getMessage()]);
+                } elseif ($svc instanceof \App\Services\ZapiService) {
+                    $svc->deleteMessage($msg->zapi_message_id);
                 }
+            } catch (\Throwable $e) {
+                Log::warning('Delete message failed', ['error' => $e->getMessage()]);
             }
         }
 
