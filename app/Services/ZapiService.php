@@ -198,6 +198,16 @@ class ZapiService
 
     private function normalizePhone(string $phone): string
     {
+        // Grupos: preservar o sufixo @g.us
+        if (str_contains($phone, '@g.us')) {
+            return $phone;
+        }
+
+        // JID individual: remover sufixo @s.whatsapp.net ou @lid
+        if (str_contains($phone, '@')) {
+            $phone = explode('@', $phone)[0];
+        }
+
         // Remove tudo que não é número
         $phone = preg_replace('/\D/', '', $phone);
 
