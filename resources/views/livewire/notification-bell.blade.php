@@ -13,6 +13,11 @@
         @endif
     </button>
 
+    {{-- Backdrop --}}
+    @if($showDropdown)
+    <div wire:click="toggleDropdown" style="position:fixed; inset:0; z-index:9998;"></div>
+    @endif
+
     {{-- Dropdown --}}
     @if($showDropdown)
     <div style="position:fixed; top:60px; left:70px; z-index:9999; width:360px; max-height:450px; background:#0f1320; border:1px solid rgba(255,255,255,0.1); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.6); overflow:hidden;">
