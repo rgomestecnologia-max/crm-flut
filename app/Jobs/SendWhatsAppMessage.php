@@ -68,22 +68,27 @@ class SendWhatsAppMessage implements ShouldQueue
         $phone = $realPhone ?? $contact->chat_lid ?? $contact->phone;
         $mediaRef = $this->base64Content ?? $this->message->media_url;
 
-        // Se provider da empresa é Meta ou Z-API, usa antes de checar Evolution
-        $provider = WhatsAppProvider::currentProvider();
-        if ($provider === 'meta') {
-            $metaConfig = \App\Models\MetaWhatsAppConfig::current();
-            if ($metaConfig && $metaConfig->is_active) {
-                $service = new MetaWhatsAppService($metaConfig);
-                $this->sendViaMeta($service, $phone, $mediaRef);
-                return;
-            }
-        }
+        // Grupos sempre usam Evolution API (o grupo pertence ao número da Evolution)
+        $isGroup = $conversation->is_group;
 
-        if ($provider === 'zapi') {
-            $zapiConfig = \App\Models\ZapiConfig::active();
-            if ($zapiConfig) {
-                $this->sendViaZapi(new \App\Services\ZapiService($zapiConfig), $phone, $mediaRef);
-                return;
+        if (!$isGroup) {
+            // Se provider da empresa é Meta ou Z-API, usa antes de checar Evolution
+            $provider = WhatsAppProvider::currentProvider();
+            if ($provider === 'meta') {
+                $metaConfig = \App\Models\MetaWhatsAppConfig::current();
+                if ($metaConfig && $metaConfig->is_active) {
+                    $service = new MetaWhatsAppService($metaConfig);
+                    $this->sendViaMeta($service, $phone, $mediaRef);
+                    return;
+                }
+            }
+
+            if ($provider === 'zapi') {
+                $zapiConfig = \App\Models\ZapiConfig::active();
+                if ($zapiConfig) {
+                    $this->sendViaZapi(new \App\Services\ZapiService($zapiConfig), $phone, $mediaRef);
+                    return;
+                }
             }
         }
 
