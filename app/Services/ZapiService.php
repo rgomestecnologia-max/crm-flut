@@ -25,11 +25,35 @@ class ZapiService
 
     // ─── Envio de mensagens ───────────────────────────────────────
 
-    public function sendTextMessage(string $phone, string $message): array
+    public function sendTextMessage(string $phone, string $message, ?string $quotedMessageId = null): array
     {
-        return $this->post('/send-text', [
+        $body = [
             'phone'   => $this->normalizePhone($phone),
             'message' => $message,
+        ];
+
+        if ($quotedMessageId) {
+            $body['messageId'] = $quotedMessageId;
+        }
+
+        return $this->post('/send-text', $body);
+    }
+
+    public function sendReaction(string $phone, string $messageId, string $emoji): array
+    {
+        return $this->post('/send-reaction', [
+            'phone'     => $this->normalizePhone($phone),
+            'messageId' => $messageId,
+            'reaction'  => $emoji,
+        ]);
+    }
+
+    public function sendContactMessage(string $phone, string $contactName, string $contactPhone): array
+    {
+        return $this->post('/send-contact', [
+            'phone'        => $this->normalizePhone($phone),
+            'contactName'  => $contactName,
+            'contactPhone' => $this->normalizePhone($contactPhone),
         ]);
     }
 

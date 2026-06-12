@@ -190,16 +190,25 @@ class ProcessIncomingMessage implements ShouldQueue
             $senderType     = $fromMe ? 'agent' : 'contact';
             $deliveryStatus = $fromMe ? 'sent'  : 'delivered';
 
+            // Quoted message (reply context)
+            $replyToId = null;
+            $quotedMsgId = $this->payload['quotedMsg']['messageId'] ?? $this->payload['contextInfo']['stanzaId'] ?? null;
+            if ($quotedMsgId) {
+                $quotedMsg = Message::where('zapi_message_id', $quotedMsgId)->first();
+                if ($quotedMsg) $replyToId = $quotedMsg->id;
+            }
+
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_type'     => $senderType,
-                'sender_id'       => null, // enviado direto pelo WhatsApp, sem usuário CRM
+                'sender_id'       => null,
                 'content'         => $content,
                 'type'            => $type,
                 'media_url'       => $mediaUrl,
                 'media_filename'  => $mediaFilename,
                 'zapi_message_id' => $zapiId,
                 'delivery_status' => $deliveryStatus,
+                'reply_to_id'     => $replyToId,
             ]);
 
             $conversation->update(['last_message_at' => now(), 'status' => 'open']);

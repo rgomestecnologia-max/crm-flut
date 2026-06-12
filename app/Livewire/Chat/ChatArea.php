@@ -293,6 +293,8 @@ class ChatArea extends Component
             try {
                 if ($svc instanceof \App\Services\EvolutionApiService) {
                     $result = $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji, $fromMe);
+                } elseif ($svc instanceof \App\Services\ZapiService) {
+                    $result = $svc->sendReaction($remoteJid, $msg->zapi_message_id, $whatsappEmoji);
                 } else {
                     $result = $svc->sendReaction($msg->zapi_message_id, $remoteJid, $whatsappEmoji);
                 }

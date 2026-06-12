@@ -240,12 +240,22 @@ class SendWhatsAppMessage implements ShouldQueue
         $text    = $this->prefixAgentName($this->message->content);
         $caption = $this->prefixAgentName($this->message->content ?? '');
 
+        // Quoted message (resposta referenciando outra mensagem)
+        $quotedId = null;
+        if ($this->message->reply_to_id) {
+            $replyMsg = Message::find($this->message->reply_to_id);
+            if ($replyMsg && $replyMsg->zapi_message_id) {
+                $quotedId = $replyMsg->zapi_message_id;
+            }
+        }
+
         $result = match ($this->message->type) {
             'image'    => $api->sendImageMessage($phone, $mediaRef, $caption),
             'audio'    => $api->sendAudioMessage($phone, $mediaRef),
             'video'    => $api->sendVideoMessage($phone, $mediaRef, $caption),
             'document' => $api->sendDocumentMessage($phone, $mediaRef, $this->message->media_filename ?? 'documento'),
-            default    => $api->sendTextMessage($phone, $text),
+            'contact'  => $api->sendContactMessage($phone, $this->message->media_filename ?? 'Contato', $this->message->media_url ?? ''),
+            default    => $api->sendTextMessage($phone, $text, $quotedId),
         };
 
         $msgId = $result['messageId'] ?? $result['id'] ?? null;
