@@ -70,37 +70,43 @@ class ProcessIncomingMessage implements ShouldQueue
 
             if ($isGroup) {
                 // ── Mensagem de grupo ────────────────────────────────────
-                // O remetente real vem em participantPhone (confirmado nos logs do Z-API)
+                // O remetente real vem em participantPhone
                 $senderRaw = $this->payload['participantPhone']
                     ?? $this->payload['senderPhone']
                     ?? $this->payload['participant']
                     ?? $this->payload['sender']
                     ?? null;
                 $senderPhone = $senderRaw ? preg_replace('/\D/', '', $senderRaw) : null;
-
                 $senderName = $this->payload['senderName'] ?? $this->payload['notifyName'] ?? null;
 
-                // Cria/busca contato pelo número do remetente (não o ID do grupo)
-                if ($senderPhone) {
-                    $contact = Contact::firstOrCreate(
-                        ['phone' => $senderPhone],
-                        ['name'  => $senderName]
-                    );
-                    if ($senderName && !$contact->name) {
-                        $contact->update(['name' => $senderName]);
-                    }
-                } else {
-                    // Sem remetente identificável — usa o ID do grupo como contato
-                    $contact = Contact::firstOrCreate(
-                        ['phone' => $phone],
-                        ['name'  => $groupName ?? 'Grupo']
-                    );
+                // Contato do grupo = o GRUPO (não o remetente individual)
+                $groupPhone = $phone;
+                $groupJid = $this->payload['chatId'] ?? ($groupPhone . '@g.us');
+                if (!str_contains($groupJid, '@g.us')) {
+                    $groupJid = $groupPhone . '@g.us';
                 }
 
-                // Busca ou cria conversa do grupo (identificada pelo phone do grupo)
+                $contact = Contact::where('chat_lid', $groupJid)->first()
+                    ?? Contact::where('phone', $groupPhone)->first();
+
+                if (!$contact) {
+                    $contact = Contact::create([
+                        'phone'    => $groupPhone,
+                        'name'     => $groupName ?? 'Grupo',
+                        'chat_lid' => $groupJid,
+                    ]);
+                }
+
+                if ($groupName && (!$contact->name || preg_match('/^\d{10,}$/', $contact->name))) {
+                    $contact->update(['name' => $groupName]);
+                }
+                if ($groupJid && !$contact->chat_lid) {
+                    $contact->update(['chat_lid' => $groupJid]);
+                }
+
+                // Busca ou cria conversa do grupo
                 $conversation = Conversation::where('contact_id', $contact->id)
                     ->where('is_group', true)
-                    ->whereIn('status', ['open', 'pending'])
                     ->latest()
                     ->first();
 
@@ -202,6 +208,8 @@ class ProcessIncomingMessage implements ShouldQueue
                 'conversation_id' => $conversation->id,
                 'sender_type'     => $senderType,
                 'sender_id'       => null,
+                'sender_name'     => ($isGroup && !$fromMe) ? $senderName : null,
+                'sender_phone'    => ($isGroup && !$fromMe) ? $senderPhone : null,
                 'content'         => $content,
                 'type'            => $type,
                 'media_url'       => $mediaUrl,
