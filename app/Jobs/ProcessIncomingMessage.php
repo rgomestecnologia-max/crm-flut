@@ -70,21 +70,44 @@ class ProcessIncomingMessage implements ShouldQueue
 
             if ($isGroup) {
                 // ── Mensagem de grupo ────────────────────────────────────
-                // O remetente real vem em participantPhone
-                $senderRaw = $this->payload['participantPhone']
-                    ?? $this->payload['senderPhone']
-                    ?? $this->payload['participant']
-                    ?? $this->payload['sender']
-                    ?? null;
-                $senderPhone = $senderRaw ? preg_replace('/\D/', '', $senderRaw) : null;
-                $senderName = $this->payload['senderName'] ?? $this->payload['notifyName'] ?? null;
+                Log::info('Z-API GROUP payload', [
+                    'phone' => $this->payload['phone'] ?? null,
+                    'chatId' => $this->payload['chatId'] ?? null,
+                    'chat' => $this->payload['chat'] ?? null,
+                    'chatName' => $this->payload['chatName'] ?? null,
+                    'participantPhone' => $this->payload['participantPhone'] ?? null,
+                    'senderName' => $this->payload['senderName'] ?? null,
+                ]);
 
-                // Contato do grupo = o GRUPO (não o remetente individual)
-                $groupPhone = $phone;
-                $groupJid = $this->payload['chatId'] ?? ($groupPhone . '@g.us');
-                if (!str_contains($groupJid, '@g.us')) {
-                    $groupJid = $groupPhone . '@g.us';
+                // O remetente real vem em participantPhone ou phone
+                $senderPhone = $this->normalizePhone(
+                    $this->payload['participantPhone']
+                    ?? $this->payload['senderPhone']
+                    ?? $this->payload['phone']
+                    ?? ''
+                );
+                $senderName = $this->payload['senderName']
+                    ?? $this->payload['notifyName']
+                    ?? $this->payload['pushName']
+                    ?? null;
+
+                // ID do grupo: chatId tem o JID correto (@g.us)
+                // Z-API pode enviar como "5511970620020-1548262453@g.us" ou "120363xxx@g.us"
+                $groupJid = $this->payload['chatId'] ?? $this->payload['chat'] ?? null;
+
+                // Se chatId não tem @g.us, tenta construir do phone
+                if (!$groupJid || !str_contains($groupJid, '@g.us')) {
+                    // phone pode ter o JID do grupo quando vem com @g.us
+                    $rawPhone = $this->payload['phone'] ?? '';
+                    if (str_contains($rawPhone, '@g.us')) {
+                        $groupJid = $rawPhone;
+                    } else {
+                        $groupJid = preg_replace('/\D/', '', $rawPhone) . '@g.us';
+                    }
                 }
+
+                $groupPhone = preg_replace('/@.*/', '', $groupJid);
+                $groupPhone = preg_replace('/\D/', '', $groupPhone);
 
                 $contact = Contact::where('chat_lid', $groupJid)->first()
                     ?? Contact::where('phone', $groupPhone)->first();
