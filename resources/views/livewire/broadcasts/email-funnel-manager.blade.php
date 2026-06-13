@@ -6,9 +6,9 @@ $stepLabels = ['email' => 'Email', 'delay' => 'Delay', 'condition' => 'Condiçã
 @endphp
 <div>
     {{-- Tabs --}}
-    <div style="display:flex; gap:8px; margin-bottom:16px;">
+    <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
         @foreach(['list' => 'Funis', 'editor' => 'Editor de Steps', 'subscribers' => 'Contatos', 'analytics' => 'Analytics'] as $k => $l)
-        <button wire:click="$set('tab', '{{ $k }}')" style="padding:5px 14px; font-size:11px; font-weight:{{ $tab === $k ? '600' : '400' }}; border-radius:7px; cursor:pointer; border:1px solid {{ $tab === $k ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.08)' }}; background:{{ $tab === $k ? 'rgba(139,92,246,0.1)' : 'transparent' }}; color:{{ $tab === $k ? '#a78bfa' : 'rgba(255,255,255,0.4)' }};">{{ $l }}</button>
+        <button wire:click="$set('tab', '{{ $k }}')" style="padding:9px 20px; font-size:13px; font-weight:600; border-radius:10px; cursor:pointer; transition:all 0.2s; border:1px solid {{ $tab === $k ? 'transparent' : 'rgba(255,255,255,0.08)' }}; background:{{ $tab === $k ? 'linear-gradient(135deg,#b2ff00,#8fcc00)' : 'rgba(255,255,255,0.03)' }}; color:{{ $tab === $k ? '#111' : 'rgba(255,255,255,0.5)' }};">{{ $l }}</button>
         @endforeach
     </div>
 

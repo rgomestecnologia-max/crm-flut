@@ -5,9 +5,9 @@ $sectionTypes = ['hero' => '🎯 Hero', 'features' => '✨ Features', 'testimoni
 @endphp
 <div>
     {{-- Tabs --}}
-    <div style="display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:12px;">
+    <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
         @foreach(['pages' => 'Páginas', 'editor' => 'Editor', 'analytics' => 'Analytics'] as $k => $l)
-        <button wire:click="$set('tab', '{{ $k }}')" style="padding:6px 16px; font-size:12px; font-weight:{{ $tab === $k ? '700' : '400' }}; border-radius:8px; cursor:pointer; border:1px solid {{ $tab === $k ? 'rgba(178,255,0,0.3)' : 'rgba(255,255,255,0.08)' }}; background:{{ $tab === $k ? 'rgba(178,255,0,0.1)' : 'transparent' }}; color:{{ $tab === $k ? '#b2ff00' : 'rgba(255,255,255,0.4)' }};">{{ $l }}</button>
+        <button wire:click="$set('tab', '{{ $k }}')" style="padding:9px 20px; font-size:13px; font-weight:600; border-radius:10px; cursor:pointer; transition:all 0.2s; border:1px solid {{ $tab === $k ? 'transparent' : 'rgba(255,255,255,0.08)' }}; background:{{ $tab === $k ? 'linear-gradient(135deg,#b2ff00,#8fcc00)' : 'rgba(255,255,255,0.03)' }}; color:{{ $tab === $k ? '#111' : 'rgba(255,255,255,0.5)' }};">{{ $l }}</button>
         @endforeach
     </div>
 
