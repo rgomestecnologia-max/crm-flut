@@ -85,14 +85,25 @@ class CampaignManager extends Component
             'interval_seconds' => 'required|integer|min:1|max:120',
         ];
 
+        // Se tem template selecionado, preenche dados do template
+        if ($this->campaignTemplateId) {
+            $tpl = \App\Models\CampaignTemplate::find($this->campaignTemplateId);
+            if ($tpl) {
+                if (!$this->message) $this->message = $tpl->message ?? '';
+                if ($this->channel === 'email') {
+                    if (!$this->subject) $this->subject = $tpl->subject ?? '';
+                    $this->emailColor = $tpl->header_color ?? $this->emailColor;
+                }
+            }
+        }
+
         if ($this->channel === 'whatsapp') {
-            $rules['message'] = 'required|string|max:4000';
-            $rules['campaignImage'] = 'nullable|image|max:5120';
+            if (!$this->campaignTemplateId && !$this->meta_template_name) {
+                $rules['message'] = 'required|string|max:4000';
+            }
         } else {
             $rules['subject'] = 'required|string|max:200';
             $rules['message'] = 'required|string|max:4000';
-            $rules['emailLogo'] = 'nullable|image|max:2048';
-            $rules['emailImage'] = 'nullable|image|max:5120';
         }
 
         $this->validate($rules);

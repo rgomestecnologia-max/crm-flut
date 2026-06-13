@@ -194,180 +194,87 @@
                     @error('name') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
                 </div>
 
-                {{-- Template selector --}}
-                @php $channelTemplates = $campaignTemplates->where('channel', $channel); @endphp
-                @if($channelTemplates->isNotEmpty())
+                {{-- Template selector (obrigatório) --}}
+                @php
+                    $channelTemplates = $campaignTemplates->where('channel', $channel);
+                    $hasMetaTemplates = $isMeta && $metaTemplates->isNotEmpty() && $channel === 'whatsapp';
+                @endphp
                 <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Usar template</label>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Template *</label>
                     <div style="display:flex; gap:8px; margin-top:4px;">
-                        <select wire:model="campaignTemplateId" wire:change="applyCampaignTemplate"
+                        <select wire:model.live="campaignTemplateId" wire:change="applyCampaignTemplate"
                                 style="flex:1; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
-                            <option value="">Criar do zero</option>
-                            @foreach($channelTemplates as $ctpl)
-                                <option value="{{ $ctpl->id }}">{{ $ctpl->name }}</option>
-                            @endforeach
+                            <option value="">Selecione um template...</option>
+                            @if($channelTemplates->isNotEmpty())
+                            <optgroup label="Templates de Campanha">
+                                @foreach($channelTemplates as $ctpl)
+                                    <option value="{{ $ctpl->id }}">{{ $ctpl->name }}</option>
+                                @endforeach
+                            </optgroup>
+                            @endif
                         </select>
                         <a href="{{ route('broadcasts.templates') }}" style="padding:8px 12px; font-size:11px; color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; text-decoration:none; white-space:nowrap; display:flex; align-items:center; gap:4px;"
                            onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
                             <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Gerenciar
+                            Criar
                         </a>
                     </div>
                 </div>
-                @endif
 
-                @if($channel === 'whatsapp')
-                {{-- WhatsApp: imagem + mensagem --}}
+                @if($hasMetaTemplates)
                 <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Imagem <span style="color:rgba(255,255,255,0.2); font-weight:400;">(opcional — enviada com a mensagem como legenda)</span></label>
-                    <input wire:model="campaignImage" type="file" accept="image/*"
-                           style="width:100%; margin-top:4px; padding:8px; font-size:12px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.04); border:1px dashed rgba(34,197,94,0.3); border-radius:8px; cursor:pointer;">
-                    @if($campaignImage)
-                    <div style="margin-top:6px;">
-                        <img src="{{ $campaignImage->temporaryUrl() }}" alt="Preview" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                    </div>
-                    @elseif($existingImageUrl)
-                    <div style="margin-top:6px;">
-                        <img src="{{ $existingImageUrl }}" alt="Template image" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                    </div>
-                    @endif
-                    @error('campaignImage') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
-                </div>
-                @if($isMeta && $metaTemplates->isNotEmpty())
-                <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Template Meta WhatsApp</label>
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Ou template Meta (Oficial)</label>
                     <select wire:model.live="meta_template_name"
                             style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
-                        <option value="">Nenhum (texto livre)</option>
+                        <option value="">Nenhum</option>
                         @foreach($metaTemplates as $tpl)
                             <option value="{{ $tpl->name }}">{{ $tpl->name }} ({{ $tpl->language }})</option>
                         @endforeach
                     </select>
-                    <p style="font-size:9px; color:rgba(255,255,255,0.15); margin-top:3px;">Obrigatório para mensagens fora da janela de 24h. Sincronize em Meta WhatsApp > Templates.</p>
                 </div>
                 @if($meta_template_name)
                     @php
                         $selectedTpl = $metaTemplates->firstWhere('name', $meta_template_name);
-                        $tplParams = [];
-                        $tplBody = '';
+                        $tplParams = []; $tplBody = ''; $examples = [];
                         if ($selectedTpl) {
                             $comps = is_string($selectedTpl->components) ? json_decode($selectedTpl->components, true) : ($selectedTpl->components ?? []);
                             foreach ($comps as $comp) {
-                                if ($comp['type'] === 'BODY') {
-                                    $tplBody = $comp['text'] ?? '';
-                                    preg_match_all('/\{\{(\d+)\}\}/', $tplBody, $pMatches);
-                                    $tplParams = $pMatches[1] ?? [];
-                                }
-                            }
-                            $examples = [];
-                            foreach ($comps as $comp) {
-                                if ($comp['type'] === 'BODY' && !empty($comp['example']['body_text'][0])) {
-                                    $examples = $comp['example']['body_text'][0];
-                                }
+                                if ($comp['type'] === 'BODY') { $tplBody = $comp['text'] ?? ''; preg_match_all('/\{\{(\d+)\}\}/', $tplBody, $pM); $tplParams = $pM[1] ?? []; }
+                                if ($comp['type'] === 'BODY' && !empty($comp['example']['body_text'][0])) { $examples = $comp['example']['body_text'][0]; }
                             }
                         }
                     @endphp
-                    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; margin-top:6px;">
-                        <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:6px;">PREVIEW DO TEMPLATE:</p>
+                    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px;">
+                        <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:4px;">PREVIEW:</p>
                         <p style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.6; white-space:pre-line;">{{ $tplBody }}</p>
                     </div>
-                    <div style="margin-top:8px;">
-                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Parâmetros do template *</label>
-                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin:2px 0 6px;">Preencha um valor por linha. Linha 1 = @{{1}}, Linha 2 = @{{2}}, etc. Use <strong style="color:rgba(255,255,255,0.4);">{nome}</strong> para o nome do contato.</p>
-                        @php
-                            $placeholderLines = array_map(fn($i) => 'Parâmetro {{' . $i . '}}' . (isset($examples[$i-1]) ? ' — ex: ' . $examples[$i-1] : ''), $tplParams);
-                            $placeholderText = implode("\n", $placeholderLines);
-                        @endphp
-                        <textarea wire:model="message" rows="{{ count($tplParams) + 1 }}"
-                                  placeholder="{{ $placeholderText }}"
-                                  style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical; font-family:monospace;"></textarea>
-                        @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
-                    </div>
-                @endif
-                @endif
-                @if(!$meta_template_name)
-                @if($isMeta)
-                <div style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:10px 14px; display:flex; align-items:flex-start; gap:10px;">
-                    <svg width="16" height="16" fill="none" stroke="#f59e0b" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
+                    @if(!empty($tplParams))
                     <div>
-                        <p style="font-size:12px; font-weight:600; color:#fbbf24; margin:0;">Disparo sem template (texto livre)</p>
-                        <p style="font-size:11px; color:rgba(255,255,255,0.4); margin:3px 0 0; line-height:1.5;">A API oficial da Meta só entrega mensagens de texto livre para contatos que <strong style="color:rgba(255,255,255,0.6);">interagiram nas últimas 24 horas</strong> (janela de conversa aberta). Para enviar para todos os contatos, selecione um <strong style="color:rgba(255,255,255,0.6);">template aprovado</strong> acima.</p>
-                    </div>
-                </div>
-                @endif
-                <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">{{ $campaignImage ? 'Legenda da imagem *' : 'Contexto para IA *' }}</label>
-                    <textarea wire:model="message" rows="5" placeholder="Escreva o contexto da mensagem. A IA vai gerar variações únicas para cada destinatário, evitando bloqueio por repetição.&#10;&#10;Ex: Olá {nome}! Temos uma oferta especial de máquinas para panificação com 20% de desconto até sexta-feira..."
-                              style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical;"></textarea>
-                    @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
-                    <p style="font-size:10px; color:rgba(139,92,246,0.7); margin-top:4px;">A IA gera uma mensagem diferente para cada lead com base neste contexto. Use {nome} para personalizar.</p>
-                </div>
-                @endif
-                @else
-                {{-- Email: campos simples --}}
-                <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Assunto do email *</label>
-                    <input wire:model="subject" type="text" placeholder="Ex: Novidades especiais para você!"
-                           style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none;">
-                    @error('subject') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
-                </div>
-
-                {{-- Cor do header --}}
-                <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:6px; display:block;">Cor do header</label>
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                        @foreach(['#2563eb' => 'Azul', '#111827' => 'Escuro', '#dc2626' => 'Vermelho', '#16a34a' => 'Verde', '#9333ea' => 'Roxo', '#ea580c' => 'Laranja', '#0891b2' => 'Ciano', '#be185d' => 'Rosa'] as $hex => $colorName)
-                        <button type="button" wire:click="$set('emailColor', '{{ $hex }}')"
-                                style="width:28px; height:28px; border-radius:50%; background:{{ $hex }}; border:2px solid {{ $emailColor === $hex ? 'white' : 'transparent' }}; cursor:pointer; transition:all 0.15s;"
-                                title="{{ $colorName }}"></button>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- Logo --}}
-                <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Logo da empresa <span style="color:rgba(255,255,255,0.2); font-weight:400;">(opcional — aparece no topo do email)</span></label>
-                    <input wire:model="emailLogo" type="file" accept="image/*"
-                           style="width:100%; margin-top:4px; padding:8px; font-size:12px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.04); border:1px dashed rgba(59,130,246,0.3); border-radius:8px; cursor:pointer;">
-                    @if($emailLogo)
-                    <div style="margin-top:4px; padding:8px; background:rgba(255,255,255,0.04); border-radius:6px; text-align:center;">
-                        <img src="{{ $emailLogo->temporaryUrl() }}" alt="Logo" style="max-height:50px;">
-                    </div>
-                    @elseif($existingLogoUrl)
-                    <div style="margin-top:4px; padding:8px; background:rgba(255,255,255,0.04); border-radius:6px; text-align:center;">
-                        <img src="{{ $existingLogoUrl }}" alt="Logo atual" style="max-height:50px;">
-                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:4px;">Logo atual (envie novo para substituir)</p>
+                        <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Parâmetros *</label>
+                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin:2px 0 6px;">Um valor por linha. Use <strong style="color:rgba(255,255,255,0.4);">{nome}</strong> para o nome do contato.</p>
+                        @php $placeholderLines = array_map(fn($i) => 'Parâmetro {{' . $i . '}}' . (isset($examples[$i-1]) ? ' — ex: ' . $examples[$i-1] : ''), $tplParams); @endphp
+                        <textarea wire:model="message" rows="{{ count($tplParams) + 1 }}" placeholder="{{ implode("\n", $placeholderLines) }}"
+                                  style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical; font-family:monospace;"></textarea>
                     </div>
                     @endif
-                </div>
+                @endif
+                @endif
 
-                {{-- Imagem principal --}}
-                <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Imagem <span style="color:rgba(255,255,255,0.2); font-weight:400;">(opcional — aparece abaixo do header)</span></label>
-                    <input wire:model="emailImage" type="file" accept="image/*"
-                           style="width:100%; margin-top:4px; padding:8px; font-size:12px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.04); border:1px dashed rgba(59,130,246,0.3); border-radius:8px; cursor:pointer;">
-                    @if($emailImage)
-                    <div style="margin-top:4px;">
-                        <img src="{{ $emailImage->temporaryUrl() }}" alt="Preview" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                    </div>
-                    @elseif($existingImageUrl && $channel === 'email')
-                    <div style="margin-top:4px;">
-                        <img src="{{ $existingImageUrl }}" alt="Imagem atual" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                        <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:4px;">Imagem atual (envie nova para substituir)</p>
-                    </div>
+                {{-- Preview do template selecionado --}}
+                @if($campaignTemplateId)
+                @php $previewTpl = $campaignTemplates->firstWhere('id', $campaignTemplateId); @endphp
+                @if($previewTpl)
+                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px;">
+                    <p style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); margin-bottom:8px;">PREVIEW DO TEMPLATE:</p>
+                    @if($previewTpl->getImageUrl())
+                    <img src="{{ $previewTpl->getImageUrl() }}" style="max-height:120px; border-radius:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.06);">
                     @endif
+                    @if($previewTpl->subject)
+                    <p style="font-size:11px; color:#60a5fa; margin-bottom:4px;">Assunto: {{ $previewTpl->subject }}</p>
+                    @endif
+                    <p style="font-size:12px; color:rgba(255,255,255,0.5); line-height:1.6; white-space:pre-line;">{{ \Illuminate\Support\Str::limit($previewTpl->message, 200) }}</p>
                 </div>
-
-                {{-- Mensagem --}}
-                <div>
-                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">Mensagem * <span style="color:rgba(255,255,255,0.2); font-weight:400;">(use {nome} para personalizar)</span></label>
-                    <textarea wire:model="message" rows="5" placeholder="Olá {nome}! Temos uma novidade especial para você..."
-                              style="width:100%; margin-top:4px; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:white; outline:none; resize:vertical;"></textarea>
-                    @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
-                    <p style="font-size:10px; color:rgba(255,255,255,0.2); margin-top:4px;">Variáveis: {nome}, {email}. Leads sem email serão ignorados ({{ $emailLeadCount }} com email).</p>
-                </div>
+                @endif
                 @endif
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div>
