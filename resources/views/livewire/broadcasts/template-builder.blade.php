@@ -61,9 +61,9 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,
                 @if($existingImage)
                 <div style="margin-top:8px; position:relative; display:inline-block;">
                     <img src="{{ $existingImage }}" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                    <a href="{{ $existingImage }}" download style="position:absolute; bottom:6px; right:6px; width:28px; height:28px; border-radius:6px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; text-decoration:none; backdrop-filter:blur(4px);" title="Baixar imagem">
+                    <button onclick="fetch('{{ $existingImage }}').then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='template-image.png';a.click()})" style="position:absolute; bottom:6px; right:6px; width:28px; height:28px; border-radius:6px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; backdrop-filter:blur(4px);" title="Baixar imagem">
                         <svg width="14" height="14" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>
