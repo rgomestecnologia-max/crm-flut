@@ -37,7 +37,7 @@
             <livewire:admin.evolution-api-manager />
         </div>
         <div x-show="tab==='meta'" x-cloak>
-            <livewire:admin.meta-whatsapp-manager />
+            <livewire:admin.meta-whats-app-manager />
         </div>
         <div x-show="tab==='zapi'" x-cloak>
             <livewire:admin.zapi-config-form />
