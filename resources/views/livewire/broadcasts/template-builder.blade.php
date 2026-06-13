@@ -94,12 +94,23 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,
                 </button>
             </div>
 
-            {{-- Mensagem --}}
+            {{-- Mensagem / Contexto IA --}}
             <div style="margin-bottom:14px;">
-                <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; display:block; margin-bottom:4px;">Mensagem *</label>
-                <textarea wire:model="message" rows="5" placeholder="Texto do template. Use {nome} para personalizar com o nome do contato."
+                @if($channel === 'whatsapp')
+                <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; display:block; margin-bottom:4px;">Contexto para IA *</label>
+                <textarea wire:model="message" rows="5" placeholder="Escreva o contexto da mensagem. A IA vai gerar variações únicas para cada destinatário, evitando bloqueio por envios repetidos.&#10;&#10;Ex: Olá {nome}! A empresa XYZ está com uma promoção imperdível de 20% em todos os serviços até sexta-feira. Agende agora!"
                           style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
                 @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                <div style="display:flex; align-items:flex-start; gap:8px; margin-top:6px; background:rgba(139,92,246,0.04); border:1px solid rgba(139,92,246,0.12); border-radius:8px; padding:8px 10px;">
+                    <svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    <p style="font-size:10px; color:rgba(255,255,255,0.4); line-height:1.5; margin:0;">A IA gera uma <strong style="color:rgba(255,255,255,0.6);">mensagem diferente</strong> para cada destinatário com base neste contexto, evitando bloqueio por repetição. Use <strong style="color:rgba(255,255,255,0.6);">{nome}</strong> para personalizar com o nome do contato.</p>
+                </div>
+                @else
+                <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; display:block; margin-bottom:4px;">Mensagem *</label>
+                <textarea wire:model="message" rows="5" placeholder="Texto do email. Use {nome} para personalizar com o nome do contato e {email} para o email."
+                          style="width:100%; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
+                @error('message') <span style="font-size:10px; color:#f87171;">{{ $message }}</span> @enderror
+                @endif
             </div>
 
             {{-- Actions --}}
