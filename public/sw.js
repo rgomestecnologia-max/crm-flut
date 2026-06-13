@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flut-crm-v6';
+const CACHE_NAME = 'flut-crm-v7';
 const OFFLINE_URL = '/offline';
 
 // Assets to pre-cache
