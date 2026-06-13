@@ -173,6 +173,7 @@ Route::middleware(['auth', 'company'])->group(function () {
 
     // Disparos (Broadcasts)
     Route::get('/broadcasts', fn() => view('broadcasts.index'))->middleware('module:broadcasts')->name('broadcasts.index');
+    Route::get('/broadcasts/templates', fn() => view('broadcasts.templates'))->middleware('module:broadcasts')->name('broadcasts.templates');
 
     // Admin — somente admin do sistema (empresas, config globais, integrações WhatsApp)
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

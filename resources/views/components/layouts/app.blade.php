@@ -293,12 +293,20 @@
 
             @if($canSee('broadcasts'))
             <a href="{{ route('broadcasts.index') }}"
-               class="nav-item {{ request()->routeIs('broadcasts*') ? 'active' : '' }}"
-               style="color:{{ request()->routeIs('broadcasts*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+               class="nav-item {{ request()->routeIs('broadcasts.index') ? 'active' : '' }}"
+               style="color:{{ request()->routeIs('broadcasts.index') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
                 </svg>
                 <span x-show="sidebarOpen">Disparos</span>
+            </a>
+            <a href="{{ route('broadcasts.templates') }}"
+               class="nav-item {{ request()->routeIs('broadcasts.templates') ? 'active' : '' }}"
+               style="color:{{ request()->routeIs('broadcasts.templates') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}; padding-left:28px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z"/>
+                </svg>
+                <span x-show="sidebarOpen">Templates</span>
             </a>
             @endif
             @endif{{-- /!isVendedor --}}
@@ -478,15 +486,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
                     </svg>
                     <span x-show="sidebarOpen">WhatsApp API</span>
-                </a>
-
-                <a href="{{ route('admin.templates.index') }}"
-                   class="nav-item {{ request()->routeIs('admin.templates*') ? 'active' : '' }}"
-                   style="color:{{ request()->routeIs('admin.templates*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
-                    </svg>
-                    <span x-show="sidebarOpen">Templates</span>
                 </a>
 
             </div>
