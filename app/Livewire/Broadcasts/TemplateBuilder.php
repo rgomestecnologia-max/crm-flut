@@ -157,12 +157,12 @@ class TemplateBuilder extends Component
                     . "Não inclua texto longo na imagem, apenas elementos visuais e título curto se necessário.",
             ];
 
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-            $response = Http::timeout(60)->post($url, [
+            // Usa modelo com suporte a geração de imagem
+            $imageModel = 'gemini-2.5-flash-image';
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$imageModel}:generateContent?key={$apiKey}";
+            $response = Http::timeout(90)->post($url, [
                 'contents' => [['parts' => $parts]],
                 'generationConfig' => [
-                    'maxOutputTokens' => 4096,
-                    'temperature' => 0.8,
                     'responseModalities' => ['image', 'text'],
                 ],
             ]);
