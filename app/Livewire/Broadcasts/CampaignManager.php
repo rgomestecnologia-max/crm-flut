@@ -39,6 +39,7 @@ class CampaignManager extends Component
     public string $meta_template_name   = '';
     public array  $meta_template_params = [];
     public string $scheduled_at         = '';
+    public ?int   $campaignTemplateId   = null;
 
     // Detail
     public ?int $viewingCampaignId = null;
@@ -48,12 +49,32 @@ class CampaignManager extends Component
 
     public function openCreate(): void
     {
-        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode', 'manualRecipientIds', 'contactSearch', 'scheduled_at', 'existingLogoUrl', 'existingImageUrl');
+        $this->reset('editingId', 'channel', 'name', 'message', 'meta_template_name', 'subject', 'htmlContent', 'campaignImage', 'emailLogo', 'emailImage', 'emailColor', 'interval_seconds', 'filterTag', 'recipientMode', 'manualRecipientIds', 'contactSearch', 'scheduled_at', 'existingLogoUrl', 'existingImageUrl', 'campaignTemplateId');
         $this->emailColor = '#2563eb';
         $this->channel          = 'whatsapp';
         $this->interval_seconds = 10;
         $this->recipientMode    = 'all';
         $this->showForm         = true;
+    }
+
+    public function applyCampaignTemplate(): void
+    {
+        if (!$this->campaignTemplateId) return;
+
+        $tpl = \App\Models\CampaignTemplate::find($this->campaignTemplateId);
+        if (!$tpl) return;
+
+        $this->message = $tpl->message ?? '';
+        if ($tpl->channel === 'email') {
+            $this->subject    = $tpl->subject ?? '';
+            $this->emailColor = $tpl->header_color ?? '#2563eb';
+            $this->existingImageUrl = $tpl->getImageUrl();
+            $this->existingLogoUrl  = $tpl->getLogoUrl();
+        } else {
+            $this->existingImageUrl = $tpl->getImageUrl();
+        }
+
+        $this->dispatch('toast', type: 'success', message: 'Template "' . $tpl->name . '" aplicado.');
     }
 
     public function save(): void
@@ -85,6 +106,11 @@ class CampaignManager extends Component
         $imagePath = null;
         if ($this->channel === 'whatsapp' && $this->campaignImage) {
             $imagePath = \App\Services\MediaStorage::store($this->campaignImage, 'broadcasts');
+        } elseif ($this->channel === 'whatsapp' && $this->campaignTemplateId && !$this->campaignImage) {
+            $tpl = \App\Models\CampaignTemplate::find($this->campaignTemplateId);
+            if ($tpl && $tpl->image_path) {
+                $imagePath = $tpl->image_path;
+            }
         }
         $emailImagePath = null;
 
@@ -492,9 +518,10 @@ class CampaignManager extends Component
         $sendgridConfigured = !empty($company?->sendgrid_api_key) || !empty(\App\Models\GlobalSetting::get('sendgrid_api_key'));
         $isMeta        = ($company?->broadcast_provider ?? 'evolution') === 'meta';
         $metaTemplates = $isMeta ? MetaMessageTemplate::approved()->orderBy('name')->get() : collect();
+        $campaignTemplates = \App\Models\CampaignTemplate::active()->orderBy('name')->get();
 
         return view('livewire.broadcasts.campaign-manager', compact(
-            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'allContacts', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured', 'isMeta', 'metaTemplates', 'reportData'
+            'campaigns', 'runs', 'viewingCampaign', 'allTags', 'allContacts', 'activeLeadCount', 'emailLeadCount', 'sendgridConfigured', 'isMeta', 'metaTemplates', 'campaignTemplates', 'reportData'
         ));
     }
 }
