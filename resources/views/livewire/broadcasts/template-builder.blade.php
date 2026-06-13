@@ -59,7 +59,12 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,
                 <input wire:model="imageUpload" type="file" accept="image/*"
                        style="width:100%; padding:6px; font-size:11px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:8px; cursor:pointer; box-sizing:border-box;">
                 @if($existingImage)
-                <img src="{{ $existingImage }}" style="max-height:120px; border-radius:8px; margin-top:8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="margin-top:8px; position:relative; display:inline-block;">
+                    <img src="{{ $existingImage }}" style="max-height:120px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                    <a href="{{ $existingImage }}" download style="position:absolute; bottom:6px; right:6px; width:28px; height:28px; border-radius:6px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; text-decoration:none; backdrop-filter:blur(4px);" title="Baixar imagem">
+                        <svg width="14" height="14" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </a>
+                </div>
                 @endif
             </div>
 
