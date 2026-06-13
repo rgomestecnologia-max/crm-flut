@@ -260,6 +260,17 @@
                 @endif
                 @endif
                 @if(!$meta_template_name)
+                @if($isMeta)
+                <div style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:10px 14px; display:flex; align-items:flex-start; gap:10px;">
+                    <svg width="16" height="16" fill="none" stroke="#f59e0b" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <div>
+                        <p style="font-size:12px; font-weight:600; color:#fbbf24; margin:0;">Disparo sem template (texto livre)</p>
+                        <p style="font-size:11px; color:rgba(255,255,255,0.4); margin:3px 0 0; line-height:1.5;">A API oficial da Meta só entrega mensagens de texto livre para contatos que <strong style="color:rgba(255,255,255,0.6);">interagiram nas últimas 24 horas</strong> (janela de conversa aberta). Para enviar para todos os contatos, selecione um <strong style="color:rgba(255,255,255,0.6);">template aprovado</strong> acima.</p>
+                    </div>
+                </div>
+                @endif
                 <div>
                     <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase;">{{ $campaignImage ? 'Legenda da imagem *' : 'Contexto para IA *' }}</label>
                     <textarea wire:model="message" rows="5" placeholder="Escreva o contexto da mensagem. A IA vai gerar variações únicas para cada destinatário, evitando bloqueio por repetição.&#10;&#10;Ex: Olá {nome}! Temos uma oferta especial de máquinas para panificação com 20% de desconto até sexta-feira..."
