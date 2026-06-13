@@ -26,40 +26,6 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
         </div>
     </div>
 
-    {{-- Provider selector --}}
-    <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:20px 24px; position:relative; overflow:hidden;">
-        <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, #3b82f680, transparent);"></div>
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-            <div style="width:2px; height:16px; background:#3b82f6; border-radius:2px;"></div>
-            <h3 style="font-size:12px; font-weight:700; color:white; text-transform:uppercase; letter-spacing:0.06em;">Provider ativo</h3>
-        </div>
-        <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:14px;">Escolha qual API de WhatsApp esta empresa utiliza para enviar e receber mensagens.</p>
-
-        <div style="display:flex; gap:12px;">
-            <button wire:click="switchProvider('evolution')"
-                    style="flex:1; padding:14px 16px; border-radius:12px; border:2px solid {{ $whatsapp_provider === 'evolution' ? '#b2ff00' : 'rgba(255,255,255,0.08)' }}; background:{{ $whatsapp_provider === 'evolution' ? 'rgba(178,255,0,0.06)' : 'rgba(255,255,255,0.02)' }}; cursor:pointer; transition:all 0.2s; text-align:left;">
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                    <svg width="18" height="18" fill="none" stroke="{{ $whatsapp_provider === 'evolution' ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    <span style="font-size:13px; font-weight:700; color:{{ $whatsapp_provider === 'evolution' ? '#b2ff00' : 'rgba(255,255,255,0.5)' }};">Evolution API</span>
-                </div>
-                <p style="font-size:10px; color:rgba(255,255,255,0.25);">API não-oficial via instância própria. Requer QR Code.</p>
-            </button>
-
-            <button wire:click="switchProvider('meta')"
-                    style="flex:1; padding:14px 16px; border-radius:12px; border:2px solid {{ $whatsapp_provider === 'meta' ? '#b2ff00' : 'rgba(255,255,255,0.08)' }}; background:{{ $whatsapp_provider === 'meta' ? 'rgba(178,255,0,0.06)' : 'rgba(255,255,255,0.02)' }}; cursor:pointer; transition:all 0.2s; text-align:left;">
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                    <svg width="18" height="18" fill="none" stroke="{{ $whatsapp_provider === 'meta' ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
-                    </svg>
-                    <span style="font-size:13px; font-weight:700; color:{{ $whatsapp_provider === 'meta' ? '#b2ff00' : 'rgba(255,255,255,0.5)' }};">Meta WhatsApp</span>
-                </div>
-                <p style="font-size:10px; color:rgba(255,255,255,0.25);">API oficial do WhatsApp Business. Sem QR Code.</p>
-            </button>
-        </div>
-    </div>
-
     {{-- Toggle ativo --}}
     <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:20px 24px; display:flex; align-items:center; gap:16px; position:relative; overflow:hidden;">
         <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, {{ $is_active ? '#22c55e80' : 'rgba(107,114,128,0.3)' }}, transparent);"></div>

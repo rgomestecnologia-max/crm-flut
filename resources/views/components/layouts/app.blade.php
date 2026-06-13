@@ -471,22 +471,13 @@
                     <span x-show="sidebarOpen">Config. Globais</span>
                 </a>
 
-                <a href="{{ route('admin.evolution.index') }}"
-                   class="nav-item {{ request()->routeIs('admin.evolution*') ? 'active' : '' }}"
-                   style="color:{{ request()->routeIs('admin.evolution*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    <span x-show="sidebarOpen">Evolution API</span>
-                </a>
-
-                <a href="{{ route('admin.meta-whatsapp.index') }}"
-                   class="nav-item {{ request()->routeIs('admin.meta-whatsapp*') ? 'active' : '' }}"
-                   style="color:{{ request()->routeIs('admin.meta-whatsapp*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
+                <a href="{{ route('admin.whatsapp-api.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.whatsapp-api*') ? 'active' : '' }}"
+                   style="color:{{ request()->routeIs('admin.whatsapp-api*') ? '#b2ff00' : 'rgba(255,255,255,0.4)' }}">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
                     </svg>
-                    <span x-show="sidebarOpen">Meta WhatsApp</span>
+                    <span x-show="sidebarOpen">WhatsApp API</span>
                 </a>
 
                 <a href="{{ route('admin.templates.index') }}"

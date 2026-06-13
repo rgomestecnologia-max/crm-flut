@@ -179,9 +179,10 @@ Route::middleware(['auth', 'company'])->group(function () {
         Route::get('companies', fn() => view('admin.companies.index'))->name('companies.index');
         Route::get('global-settings', fn() => view('admin.global-settings.index'))->name('global-settings.index');
         Route::get('evolution', fn() => view('admin.evolution.index'))->name('evolution.index');
-        Route::get('meta-whatsapp', fn() => view('admin.meta-whatsapp.index'))->name('meta-whatsapp.index');
+        Route::get('whatsapp-api', fn() => view('admin.whatsapp-api.index'))->name('whatsapp-api.index');
+        Route::get('meta-whatsapp', fn() => redirect()->route('admin.whatsapp-api.index', ['tab' => 'meta']))->name('meta-whatsapp.index');
         Route::get('meta-whatsapp/callback', [\App\Http\Controllers\Admin\MetaSignupCallbackController::class, 'handle'])->name('meta-whatsapp.callback');
-        Route::get('zapi', fn() => view('admin.zapi.index'))->name('zapi.index');
+        Route::get('zapi', fn() => redirect()->route('admin.whatsapp-api.index', ['tab' => 'zapi']))->name('zapi.index');
         Route::get('templates', fn() => view('admin.templates.index'))->name('templates.index');
     });
 

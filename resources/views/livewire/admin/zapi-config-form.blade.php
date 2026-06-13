@@ -47,16 +47,6 @@ $cardStyle = "background:linear-gradient(145deg, rgba(17,24,39,0.9) 0%, rgba(11,
         </div>
     </div>
 
-    {{-- Banner de aviso quando inativo --}}
-    @unless($isActive)
-    <div style="background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
-        <svg width="16" height="16" fill="none" stroke="#f87171" viewBox="0 0 24 24" style="flex-shrink:0;">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-        </svg>
-        <p style="font-size:12px; color:rgba(248,113,113,0.9); margin:0;"><strong style="color:#f87171;">Z-API desativado.</strong> O sistema está usando a Evolution API para envio de mensagens.</p>
-    </div>
-    @endunless
-
     {{-- Credenciais --}}
     <div style="{{ $cardStyle }} margin-bottom:16px; position:relative; overflow:hidden;">
         <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, #b2ff0080, #b2ff0020, transparent); border-radius:16px 16px 0 0;"></div>
