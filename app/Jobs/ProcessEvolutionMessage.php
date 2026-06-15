@@ -1086,15 +1086,36 @@ class ProcessEvolutionMessage implements ShouldQueue
         // Documento
         if (!empty($msg['documentMessage'])) {
             $dm  = $msg['documentMessage'];
-            $url = $this->resolveMediaUrl($dm, $messageId, $dm['mimetype'] ?? 'application/octet-stream');
-            return [$dm['caption'] ?? null, 'document', $url, $dm['fileName'] ?? 'documento'];
+            $mime = $dm['mimetype'] ?? 'application/octet-stream';
+            $url = $this->resolveMediaUrl($dm, $messageId, $mime);
+            $fileName = $dm['fileName'] ?? 'documento';
+            if (!pathinfo($fileName, PATHINFO_EXTENSION)) {
+                $ext = match(true) {
+                    str_contains($mime, 'pdf') => 'pdf',
+                    str_contains($mime, 'word') || str_contains($mime, 'docx') => 'docx',
+                    str_contains($mime, 'excel') || str_contains($mime, 'spreadsheet') => 'xlsx',
+                    str_contains($mime, 'powerpoint') || str_contains($mime, 'presentation') => 'pptx',
+                    str_contains($mime, 'zip') => 'zip',
+                    str_contains($mime, 'csv') => 'csv',
+                    str_contains($mime, 'text') => 'txt',
+                    default => null,
+                };
+                if ($ext) $fileName .= '.' . $ext;
+            }
+            return [$dm['caption'] ?? null, 'document', $url, $fileName];
         }
 
         // Documento com legenda
         if (!empty($msg['documentWithCaptionMessage'])) {
             $dm  = $msg['documentWithCaptionMessage']['message']['documentMessage'] ?? [];
-            $url = $this->resolveMediaUrl($dm, $messageId, $dm['mimetype'] ?? 'application/octet-stream');
-            return [$dm['caption'] ?? null, 'document', $url, $dm['fileName'] ?? 'documento'];
+            $mime = $dm['mimetype'] ?? 'application/octet-stream';
+            $url = $this->resolveMediaUrl($dm, $messageId, $mime);
+            $fileName = $dm['fileName'] ?? 'documento';
+            if (!pathinfo($fileName, PATHINFO_EXTENSION)) {
+                $ext = str_contains($mime, 'pdf') ? 'pdf' : (str_contains($mime, 'word') ? 'docx' : null);
+                if ($ext) $fileName .= '.' . $ext;
+            }
+            return [$dm['caption'] ?? null, 'document', $url, $fileName];
         }
 
         // Sticker

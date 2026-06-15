@@ -318,6 +318,11 @@ class ProcessIncomingMessage implements ShouldQueue
         } elseif (!empty($payload['document']['documentUrl'])) {
             $mediaUrl      = $payload['document']['documentUrl'];
             $mediaFilename = $payload['document']['fileName'] ?? 'documento';
+            $mime          = $payload['document']['mimetype'] ?? '';
+            if ($mediaFilename && !pathinfo($mediaFilename, PATHINFO_EXTENSION)) {
+                $ext = str_contains($mime, 'pdf') ? 'pdf' : (str_contains($mime, 'word') ? 'docx' : (str_contains($mime, 'excel') ? 'xlsx' : null));
+                if ($ext) $mediaFilename .= '.' . $ext;
+            }
             $type          = 'document';
         } elseif (!empty($payload['video']['videoUrl'])) {
             $mediaUrl = $payload['video']['videoUrl'];
