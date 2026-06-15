@@ -241,7 +241,16 @@ class ProcessMenuBot implements ShouldQueue
             // Auto-criar card no pipeline do departamento
             $this->autoCreateCardAndTag($department);
 
-            // Sistema
+            // Marca menu como concluído na nova conversa (evita URA reentrar)
+            Message::create([
+                'conversation_id' => $newConv->id,
+                'sender_type'     => 'system',
+                'content'         => "Menu: cliente selecionou {$department->name}",
+                'type'            => 'text',
+                'delivery_status' => 'sent',
+            ]);
+
+            // Sistema na conversa original
             Message::create([
                 'conversation_id' => $this->conversation->id,
                 'sender_type'     => 'system',
