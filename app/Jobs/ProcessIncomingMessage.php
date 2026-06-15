@@ -352,7 +352,7 @@ class ProcessIncomingMessage implements ShouldQueue
         $instanceId     = $this->payload['instanceId'] ?? null;
         $connectedPhone = $this->payload['connectedPhone'] ?? null;
 
-        $query = ZapiConfig::withoutCompanyScope();
+        $query = ZapiConfig::withoutCompanyScope()->where('is_active', true);
 
         if ($instanceId) {
             $companyId = (clone $query)->where('instance_id', $instanceId)->value('company_id');
