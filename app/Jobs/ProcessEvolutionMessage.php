@@ -1178,11 +1178,15 @@ class ProcessEvolutionMessage implements ShouldQueue
             Log::warning('Mídia: base64 do payload inválido', ['messageId' => $messageId, 'type' => $type]);
         }
 
-        // 2) Download decifrado via Evolution
+        // 2) Download decifrado via Evolution (usando a instância correta)
         if ($messageId) {
             try {
-                $fetched = app(\App\Services\EvolutionApiService::class)
-                    ->getBase64FromMediaMessage($messageId);
+                $instanceName = $this->payload['instance'] ?? $this->payload['instanceName'] ?? null;
+                $evoConfig = $instanceName
+                    ? EvolutionApiConfig::withoutCompanyScope()->where('instance_name', $instanceName)->first()
+                    : EvolutionApiConfig::current();
+                $evoService = $evoConfig ? new \App\Services\EvolutionApiService($evoConfig) : app(\App\Services\EvolutionApiService::class);
+                $fetched = $evoService->getBase64FromMediaMessage($messageId);
 
                 if ($fetched) {
                     $saved = $this->saveMedia($fetched['base64'], $fetched['mimetype'] ?? $mime, $type);
