@@ -177,8 +177,20 @@ class ProcessIncomingMessage implements ShouldQueue
                     }
                 }
 
+                // Resolve a evolution_api_config que usa Z-API (para multi-instância)
+                $zapiEvoConfig = \App\Models\EvolutionApiConfig::withoutGlobalScopes()
+                    ->where('company_id', $companyId)
+                    ->where('api_provider', 'zapi')
+                    ->where('is_active', true)
+                    ->first();
+                $evoConfigId = $zapiEvoConfig?->id;
+
                 $conversation = Conversation::where('contact_id', $contact->id)
                     ->where('is_group', false)
+                    ->when($evoConfigId, fn($q) => $q->where(function ($q2) use ($evoConfigId) {
+                        $q2->where('evolution_api_config_id', $evoConfigId)
+                           ->orWhereNull('evolution_api_config_id');
+                    }))
                     ->whereIn('status', ['open', 'pending', 'resolved'])
                     ->latest()
                     ->first();
@@ -186,17 +198,20 @@ class ProcessIncomingMessage implements ShouldQueue
                 if (!$conversation) {
                     if ($fromMe) return;
 
-                    $department = Department::active()->first();
+                    $department = $zapiEvoConfig && $zapiEvoConfig->default_department_id
+                        ? Department::find($zapiEvoConfig->default_department_id)
+                        : Department::active()->first();
                     if (!$department) {
                         Log::error('ProcessIncomingMessage: no active department found');
                         return;
                     }
 
                     $conversation = Conversation::create([
-                        'contact_id'    => $contact->id,
-                        'department_id' => $department->id,
-                        'status'        => 'open',
-                        'is_group'      => false,
+                        'contact_id'              => $contact->id,
+                        'department_id'            => $department->id,
+                        'evolution_api_config_id'  => $evoConfigId,
+                        'status'                   => 'open',
+                        'is_group'                 => false,
                     ]);
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Reabre conversa resolvida quando o contato manda nova mensagem
