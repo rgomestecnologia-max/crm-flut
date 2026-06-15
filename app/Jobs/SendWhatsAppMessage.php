@@ -107,6 +107,8 @@ class SendWhatsAppMessage implements ShouldQueue
 
         if ($service instanceof MetaWhatsAppService) {
             $this->sendViaMeta($service, $phone, $mediaRef);
+        } elseif ($service instanceof \App\Services\ZapiService) {
+            $this->sendViaZapi($service, $phone, $mediaRef);
         } else {
             $this->sendViaEvolution($service, $phone, $mediaRef);
         }

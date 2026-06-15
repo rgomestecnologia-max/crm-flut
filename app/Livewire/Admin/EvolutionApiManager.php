@@ -18,6 +18,8 @@ class EvolutionApiManager extends Component
     public bool   $reject_call    = false;
     public string $msg_call       = '';
 
+    public string $api_provider   = 'evolution';
+
     // Multi-instância
     public ?int    $selectedConfigId = null;
 
@@ -47,6 +49,7 @@ class EvolutionApiManager extends Component
             $this->read_messages  = $config->read_messages;
             $this->reject_call    = $config->reject_call;
             $this->msg_call       = $config->msg_call ?? '';
+            $this->api_provider   = $config->api_provider ?? 'evolution';
             $this->connectionStatus = $config->connection_status;
             $this->profileName    = $config->profile_name;
             $this->phoneNumber    = $config->phone_number;
@@ -85,6 +88,7 @@ class EvolutionApiManager extends Component
         $this->read_messages  = $config->read_messages;
         $this->reject_call    = $config->reject_call;
         $this->msg_call       = $config->msg_call ?? '';
+        $this->api_provider   = $config->api_provider ?? 'evolution';
         $this->connectionStatus = $config->connection_status;
         $this->profileName    = $config->profile_name;
         $this->phoneNumber    = $config->phone_number;
@@ -135,6 +139,7 @@ class EvolutionApiManager extends Component
             'reject_call'    => $this->reject_call,
             'msg_call'       => $this->msg_call,
             'is_active'      => true,
+            'api_provider'   => $this->api_provider,
         ]);
         $config->save();
         $this->selectedConfigId = $config->id;

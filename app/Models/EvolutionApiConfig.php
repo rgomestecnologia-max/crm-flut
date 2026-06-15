@@ -17,7 +17,7 @@ class EvolutionApiConfig extends Model
         'webhook_token', 'connection_status', 'phone_number', 'profile_name',
         'groups_ignore', 'always_online', 'read_messages', 'reject_call', 'msg_call',
         'qr_code', 'pairing_code',
-        'is_active', 'default_department_id',
+        'is_active', 'default_department_id', 'api_provider',
     ];
 
     protected $hidden = ['global_api_key', 'instance_api_key', 'webhook_token'];

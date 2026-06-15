@@ -207,6 +207,16 @@
                     Configurações da Instância
                 </h2>
 
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; display:block; margin-bottom:4px;">API Provider desta instância</label>
+                    <select wire:model="api_provider"
+                            style="width:100%; max-width:280px; padding:8px 10px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none;">
+                        <option value="evolution">Evolution API</option>
+                        <option value="zapi">Z-API</option>
+                    </select>
+                    <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:3px;">Define qual API de WhatsApp esta instância utiliza para enviar e receber mensagens.</p>
+                </div>
+
                 <div style="display:flex; flex-direction:column; gap:10px;">
                     @foreach([
                         ['groups_ignore',  'Ignorar mensagens de grupos'],

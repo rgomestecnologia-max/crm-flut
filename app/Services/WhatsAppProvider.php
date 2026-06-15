@@ -14,8 +14,12 @@ class WhatsAppProvider
      */
     public static function service(?EvolutionApiConfig $specificConfig = null): EvolutionApiService|MetaWhatsAppService|ZapiService|null
     {
-        // Se passou config específico (multi-instância), usa direto
+        // Se passou config específico (multi-instância), verifica api_provider
         if ($specificConfig && $specificConfig->is_active) {
+            if (($specificConfig->api_provider ?? 'evolution') === 'zapi') {
+                $zapiConfig = ZapiConfig::active();
+                return $zapiConfig ? new ZapiService($zapiConfig) : new EvolutionApiService($specificConfig);
+            }
             return new EvolutionApiService($specificConfig);
         }
 
