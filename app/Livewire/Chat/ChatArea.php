@@ -1481,6 +1481,7 @@ class ChatArea extends Component
             $systemMsg = $targetAgent
                 ? "Transferido de {$conv->department?->name} → {$department->name} ({$targetAgent->name}) [outro número]"
                 : "Transferido de {$conv->department?->name} → {$department->name} [outro número]";
+            if ($this->transferReason) $systemMsg .= "\nMotivo: {$this->transferReason}";
             Message::create([
                 'conversation_id' => $newConv->id,
                 'sender_type'     => 'system',
@@ -1499,6 +1500,7 @@ class ChatArea extends Component
             $systemMsg = $targetAgent
                 ? "Conversa transferida para {$department->name} → {$targetAgent->name}."
                 : "Conversa transferida para o departamento {$department->name}.";
+            if ($this->transferReason) $systemMsg .= "\nMotivo: {$this->transferReason}";
 
             Message::create([
                 'conversation_id' => $conv->id,
