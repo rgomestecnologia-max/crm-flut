@@ -266,16 +266,12 @@ class ProcessIncomingMessage implements ShouldQueue
                     // Conversas de automação com IA habilitada pulam o menu e vão direto para a IA
                     $skipMenu = $automationAi && $botConfig && $botConfig->is_active && $botConfig->hasKey();
 
-                    Log::info('Bot dispatch', [
-                        'conv'         => $conversation->id,
-                        'msg'          => $message->id,
-                        'automationAi' => $automationAi,
-                        'menuActive'   => $menuConfig?->is_active,
-                        'aiActive'     => $botConfig?->is_active,
-                        'skipMenu'     => $skipMenu,
-                    ]);
+                    // Não envia chatbot/IA em grupos se reply_in_groups está desativado
+                    $skipGroups = $isGroup && (!$menuConfig || !$menuConfig->reply_in_groups);
 
-                    if ($menuConfig && $menuConfig->is_active && !$skipMenu) {
+                    if ($skipGroups) {
+                        // Grupo sem permissão de bot — ignora
+                    } elseif ($menuConfig && $menuConfig->is_active && !$skipMenu) {
                         \App\Jobs\ProcessMenuBot::dispatch($conversation, $menuConfig, $botConfig, $message->id);
                     } elseif ($botConfig && $botConfig->is_active && $botConfig->hasKey()) {
                         \App\Jobs\ProcessBotResponse::dispatch($conversation, $botConfig, $message->id);
