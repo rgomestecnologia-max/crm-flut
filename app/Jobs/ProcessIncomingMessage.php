@@ -214,8 +214,18 @@ class ProcessIncomingMessage implements ShouldQueue
                         'is_group'                 => false,
                     ]);
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
-                    // Reabre conversa resolvida quando o contato manda nova mensagem
-                    $conversation->update(['status' => 'open']);
+                    // Reabre conversa resolvida: reseta estado para novo atendimento
+                    $conversation->update([
+                        'status'               => 'open',
+                        'assigned_to'          => null,
+                        'menu_awaiting'        => false,
+                        'waiting_human_reason' => null,
+                    ]);
+                    // Remove mensagens de sistema do menu anterior para permitir novo menu
+                    Message::where('conversation_id', $conversation->id)
+                        ->where('sender_type', 'system')
+                        ->where('content', 'like', 'Menu: cliente selecionou%')
+                        ->delete();
                 }
             }
 
