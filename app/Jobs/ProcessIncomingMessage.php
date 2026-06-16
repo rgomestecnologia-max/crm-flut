@@ -224,9 +224,14 @@ class ProcessIncomingMessage implements ShouldQueue
                         $q2->where('evolution_api_config_id', $evoConfigId)
                            ->orWhereNull('evolution_api_config_id');
                     }))
-                    ->whereIn('status', ['open', 'pending', 'resolved'])
+                    ->whereIn('status', ['open', 'pending', 'resolved', 'archived'])
                     ->latest()
                     ->first();
+
+                // Conversa arquivada: ignorar mensagem (não cria nova conversa)
+                if ($conversation && $conversation->status === 'archived') {
+                    return;
+                }
 
                 if (!$conversation) {
                     $department = $zapiEvoConfig && $zapiEvoConfig->default_department_id
