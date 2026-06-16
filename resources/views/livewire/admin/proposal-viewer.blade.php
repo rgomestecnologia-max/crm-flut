@@ -223,12 +223,35 @@
                         Desconto %
                     </button>
 
+                    {{-- Duplicar --}}
+                    <button wire:click="openDuplicate({{ $p['id'] }})"
+                            style="padding:6px 14px; font-size:11px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); color:#60a5fa; border-radius:8px; cursor:pointer;">
+                        Duplicar
+                    </button>
+
                     {{-- Excluir --}}
                     <button wire:click="delete({{ $p['id'] }})" wire:confirm="Excluir esta proposta?"
                             style="padding:6px 14px; font-size:11px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; border-radius:8px; cursor:pointer;">
                         Excluir
                     </button>
                 </div>
+
+                {{-- Duplicar form --}}
+                @if($duplicateId === $p['id'])
+                <div style="margin-top:10px; padding:12px; background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.15); border-radius:10px; display:flex; align-items:center; gap:10px;">
+                    <input wire:model="duplicateName" type="text" placeholder="Nome da empresa para a nova proposta"
+                           style="flex:1; padding:8px 12px; font-size:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; outline:none;"
+                           wire:keydown.enter="confirmDuplicate({{ $p['id'] }})">
+                    <button wire:click="confirmDuplicate({{ $p['id'] }})"
+                            style="padding:7px 16px; font-size:11px; font-weight:600; background:#3b82f6; color:white; border:none; border-radius:8px; cursor:pointer; white-space:nowrap;">
+                        Duplicar
+                    </button>
+                    <button wire:click="$set('duplicateId', null)"
+                            style="padding:7px 10px; font-size:11px; color:rgba(255,255,255,0.4); background:transparent; border:none; cursor:pointer;">
+                        Cancelar
+                    </button>
+                </div>
+                @endif
             </div>
             @endif
         </div>

@@ -17,6 +17,10 @@ class ProposalViewer extends Component
     public ?int $editValuesId = null;
     public array $editDetails = [];
 
+    // Duplicar proposta
+    public ?int $duplicateId = null;
+    public string $duplicateName = '';
+
     public function mount()
     {
         $this->loadProposals();
@@ -133,6 +137,34 @@ class ProposalViewer extends Component
         $this->loadProposals();
 
         $this->dispatch('toast', type: 'success', message: "Desconto de {$pct}% aplicado!");
+    }
+
+    public function openDuplicate(int $id): void
+    {
+        $this->duplicateId = $this->duplicateId === $id ? null : $id;
+        $this->duplicateName = '';
+    }
+
+    public function confirmDuplicate(int $id): void
+    {
+        if (!trim($this->duplicateName)) {
+            $this->dispatch('toast', type: 'error', message: 'Informe o nome da empresa.');
+            return;
+        }
+
+        $original = Proposal::findOrFail($id);
+        $new = $original->replicate(['token', 'status', 'discount_percent', 'original_total_monthly', 'original_total_setup']);
+        $new->client_name = trim($this->duplicateName);
+        $new->status = 'analise';
+        $new->user_id = auth()->id();
+        $new->total_monthly = $original->original_total_monthly ?? $original->total_monthly;
+        $new->total_setup = $original->original_total_setup ?? $original->total_setup;
+        $new->save();
+
+        $this->duplicateId = null;
+        $this->duplicateName = '';
+        $this->loadProposals();
+        $this->dispatch('toast', type: 'success', message: 'Proposta duplicada para "' . $new->client_name . '".');
     }
 
     public function delete($id)
