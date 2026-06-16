@@ -214,18 +214,42 @@ class ProcessIncomingMessage implements ShouldQueue
                         'is_group'                 => false,
                     ]);
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
-                    // Reabre conversa resolvida: reseta estado para novo atendimento
-                    $conversation->update([
-                        'status'               => 'open',
-                        'assigned_to'          => null,
-                        'menu_awaiting'        => false,
-                        'waiting_human_reason' => null,
-                    ]);
-                    // Remove mensagens de sistema do menu anterior para permitir novo menu
-                    Message::where('conversation_id', $conversation->id)
+                    // Verifica se a última interação foi de um humano (agente com sender_id)
+                    $lastHumanMsg = Message::where('conversation_id', $conversation->id)
+                        ->where('sender_type', 'agent')
+                        ->whereNotNull('sender_id')
+                        ->latest()
+                        ->first();
+
+                    $lastResolvedAt = Message::where('conversation_id', $conversation->id)
                         ->where('sender_type', 'system')
-                        ->where('content', 'like', 'Menu: cliente selecionou%')
-                        ->delete();
+                        ->where('content', 'like', 'Atendimento encerrado%')
+                        ->latest()
+                        ->value('created_at');
+
+                    // Se humano atendeu recentemente (última msg humana é depois do encerramento ou < 48h)
+                    $humanRecent = $lastHumanMsg && (!$lastResolvedAt || $lastHumanMsg->created_at > $lastResolvedAt
+                        || $lastHumanMsg->created_at->diffInHours(now()) < 48);
+
+                    if ($humanRecent) {
+                        // Reabre sem resetar URA — humano já atendeu
+                        $conversation->update([
+                            'status'               => 'open',
+                            'waiting_human_reason' => 'Atendente respondeu pelo WhatsApp',
+                        ]);
+                    } else {
+                        // Reabre com reset completo para novo atendimento (URA entra)
+                        $conversation->update([
+                            'status'               => 'open',
+                            'assigned_to'          => null,
+                            'menu_awaiting'        => false,
+                            'waiting_human_reason' => null,
+                        ]);
+                        Message::where('conversation_id', $conversation->id)
+                            ->where('sender_type', 'system')
+                            ->where('content', 'like', 'Menu: cliente selecionou%')
+                            ->delete();
+                    }
                 }
             }
 
