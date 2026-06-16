@@ -214,41 +214,23 @@ class ProcessIncomingMessage implements ShouldQueue
                         'is_group'                 => false,
                     ]);
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
-                    // Verifica se a última interação foi de um humano (agente com sender_id)
-                    $lastHumanMsg = Message::where('conversation_id', $conversation->id)
-                        ->where('sender_type', 'agent')
-                        ->whereNotNull('sender_id')
-                        ->latest()
-                        ->first();
-
-                    $lastResolvedAt = Message::where('conversation_id', $conversation->id)
+                    // Cliente reabriu conversa encerrada → reset completo → URA entra
+                    $conversation->update([
+                        'status'               => 'open',
+                        'assigned_to'          => null,
+                        'menu_awaiting'        => false,
+                        'waiting_human_reason' => null,
+                    ]);
+                    Message::where('conversation_id', $conversation->id)
                         ->where('sender_type', 'system')
-                        ->where('content', 'like', 'Atendimento encerrado%')
-                        ->latest()
-                        ->value('created_at');
-
-                    // Se humano já atendeu nesta conversa, URA nunca entra
-                    $humanRecent = (bool) $lastHumanMsg;
-
-                    if ($humanRecent) {
-                        // Reabre sem resetar URA — humano já atendeu
-                        $conversation->update([
-                            'status'               => 'open',
-                            'waiting_human_reason' => 'Atendente respondeu pelo WhatsApp',
-                        ]);
-                    } else {
-                        // Reabre com reset completo para novo atendimento (URA entra)
-                        $conversation->update([
-                            'status'               => 'open',
-                            'assigned_to'          => null,
-                            'menu_awaiting'        => false,
-                            'waiting_human_reason' => null,
-                        ]);
-                        Message::where('conversation_id', $conversation->id)
-                            ->where('sender_type', 'system')
-                            ->where('content', 'like', 'Menu: cliente selecionou%')
-                            ->delete();
-                    }
+                        ->where('content', 'like', 'Menu: cliente selecionou%')
+                        ->delete();
+                } elseif ($fromMe && $conversation->status === 'resolved') {
+                    // Humano reabriu pelo WhatsApp direto → URA não entra
+                    $conversation->update([
+                        'status'               => 'open',
+                        'waiting_human_reason' => 'Atendente respondeu pelo WhatsApp',
+                    ]);
                 }
             }
 
