@@ -641,12 +641,22 @@ function pricingSimulator() {
                 monthly += m; setup += s;
             }
 
-            // Salva originais antes do desconto
-            this.originalTotal.monthly = monthly;
-            this.originalTotal.setup = setup;
+            // Quando customDetails vem do banco, os valores JÁ incluem desconto.
+            // Só aplica desconto quando NÃO está usando customDetails (simulação nova).
+            const detailsAlreadyDiscounted = !!this.customDetails;
 
-            // Aplica desconto se existir
-            if (this.discountPercent > 0) {
+            if (detailsAlreadyDiscounted && this.discountPercent > 0) {
+                // Recalcular originais a partir dos valores com desconto
+                const factor = 1 - (this.discountPercent / 100);
+                this.originalTotal.monthly = monthly / factor;
+                this.originalTotal.setup = setup / factor;
+            } else {
+                this.originalTotal.monthly = monthly;
+                this.originalTotal.setup = setup;
+            }
+
+            // Aplica desconto apenas em simulação nova (sem customDetails)
+            if (!detailsAlreadyDiscounted && this.discountPercent > 0) {
                 const factor = 1 - (this.discountPercent / 100);
                 monthly *= factor;
                 setup *= factor;

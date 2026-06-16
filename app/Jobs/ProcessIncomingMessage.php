@@ -163,7 +163,19 @@ class ProcessIncomingMessage implements ShouldQueue
                     if (!$contact && $phone && !str_contains($this->payload['phone'] ?? '', '@')) {
                         $contact = Contact::where('phone', $phone)->first();
                     }
-                    if (!$contact) return;
+                    if (!$contact) {
+                        // Cria contato para mensagens fromMe (agente iniciou conversa pelo WhatsApp)
+                        if ($phone && preg_match('/^55\d{10,11}$/', $phone)) {
+                            $contact = Contact::create([
+                                'phone'    => $phone,
+                                'chat_lid' => $chatLid,
+                                'name'     => $phone,
+                            ]);
+                            Log::info('ProcessIncomingMessage: contato criado via fromMe', ['phone' => $phone]);
+                        } else {
+                            return;
+                        }
+                    }
                 } else {
                     $contact = Contact::firstOrCreate(
                         ['phone' => $phone],
@@ -196,8 +208,6 @@ class ProcessIncomingMessage implements ShouldQueue
                     ->first();
 
                 if (!$conversation) {
-                    if ($fromMe) return;
-
                     $department = $zapiEvoConfig && $zapiEvoConfig->default_department_id
                         ? Department::find($zapiEvoConfig->default_department_id)
                         : Department::active()->first();
@@ -212,6 +222,7 @@ class ProcessIncomingMessage implements ShouldQueue
                         'evolution_api_config_id'  => $evoConfigId,
                         'status'                   => 'open',
                         'is_group'                 => false,
+                        'waiting_human_reason'     => $fromMe ? 'Atendente respondeu pelo WhatsApp' : null,
                     ]);
                 } elseif (!$fromMe && $conversation->status === 'resolved') {
                     // Cliente reabriu conversa encerrada → reset completo → URA entra
