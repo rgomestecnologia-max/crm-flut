@@ -227,9 +227,8 @@ class ProcessIncomingMessage implements ShouldQueue
                         ->latest()
                         ->value('created_at');
 
-                    // Se humano atendeu recentemente (última msg humana é depois do encerramento ou < 48h)
-                    $humanRecent = $lastHumanMsg && (!$lastResolvedAt || $lastHumanMsg->created_at > $lastResolvedAt
-                        || $lastHumanMsg->created_at->diffInHours(now()) < 48);
+                    // Se humano já atendeu nesta conversa, URA nunca entra
+                    $humanRecent = (bool) $lastHumanMsg;
 
                     if ($humanRecent) {
                         // Reabre sem resetar URA — humano já atendeu
