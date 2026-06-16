@@ -263,7 +263,7 @@
             $agentColors = ['#06b6d4', '#ec4899', '#f59e0b', '#8b5cf6'];
             foreach ($spAgents as $idx => $ag) {
                 $agColor = $agentColors[$idx % count($agentColors)];
-                $agCount = (clone $baseQuery)->where('is_archived', false)->where('assigned_to', $ag->id)->where('status', 'open')->count();
+                $agCount = \App\Models\Conversation::where('is_archived', false)->where('assigned_to', $ag->id)->where('status', 'open')->count();
                 $firstName = explode(' ', $ag->name)[0];
                 $tabs[] = ['key' => 'agent_' . $ag->id, 'label' => $firstName, 'count' => $agCount, 'color' => $agColor, 'activeBg' => $agColor . '20', 'activeColor' => $agColor];
             }
