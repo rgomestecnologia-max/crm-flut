@@ -189,13 +189,34 @@ class ProcessIncomingMessage implements ShouldQueue
                 } else {
                     // Busca por chat_lid primeiro (pode existir contato temporário criado via fromMe LID)
                     $contact = null;
+                    $lidContact = null;
                     if ($chatLid) {
-                        $contact = Contact::where('chat_lid', $chatLid)->first();
-                        if ($contact && $phone && !preg_match('/^55/', $contact->phone)) {
-                            // Contato tinha LID como phone — atualiza para phone real
-                            $contact->update(['phone' => $phone]);
-                        }
+                        $lidContact = Contact::where('chat_lid', $chatLid)->first();
                     }
+
+                    // Contato real pelo phone
+                    $realContact = $phone ? Contact::where('phone', $phone)->first() : null;
+
+                    if ($lidContact && $realContact && $lidContact->id !== $realContact->id) {
+                        // Merge: contato LID temporário + contato real existem separados
+                        // Mover conversas do LID para o real e atualizar chat_lid
+                        Conversation::where('contact_id', $lidContact->id)
+                            ->update(['contact_id' => $realContact->id]);
+                        if (!$realContact->chat_lid) {
+                            $realContact->update(['chat_lid' => $chatLid]);
+                        }
+                        $lidContact->delete();
+                        $contact = $realContact;
+                    } elseif ($lidContact && !$realContact) {
+                        // Contato LID sem duplicata — atualiza phone para real
+                        if ($phone && !preg_match('/^55/', $lidContact->phone)) {
+                            $lidContact->update(['phone' => $phone]);
+                        }
+                        $contact = $lidContact;
+                    } elseif ($realContact) {
+                        $contact = $realContact;
+                    }
+
                     if (!$contact) {
                         $contact = Contact::firstOrCreate(
                             ['phone' => $phone],
