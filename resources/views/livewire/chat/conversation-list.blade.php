@@ -398,8 +398,7 @@
                                 </span>
                             </div>
 
-                            {{-- Department + agente atribuído (admin/supervisor) --}}
-                            @if(auth()->user()->canManageCompany())
+                            {{-- Department + agente atribuído --}}
                                 <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
                                     <p style="font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ $conv->department->color }}; opacity:0.8;">
                                         {{ $conv->department->name }}
@@ -411,7 +410,6 @@
                                         </p>
                                     @endif
                                 </div>
-                            @endif
 
                             {{-- CRM badge --}}
                             @php $crmCard = $conv->contact?->crmCards?->first(); @endphp
