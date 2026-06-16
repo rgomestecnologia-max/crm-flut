@@ -165,22 +165,43 @@ class ProcessIncomingMessage implements ShouldQueue
                     }
                     if (!$contact) {
                         // Cria contato para mensagens fromMe (agente iniciou conversa pelo WhatsApp)
+                        $phoneRawFm = $this->payload['phone'] ?? '';
                         if ($phone && preg_match('/^55\d{10,11}$/', $phone)) {
                             $contact = Contact::create([
                                 'phone'    => $phone,
                                 'chat_lid' => $chatLid,
-                                'name'     => $phone,
+                                'name'     => $this->payload['chatName'] ?? $phone,
                             ]);
                             Log::info('ProcessIncomingMessage: contato criado via fromMe', ['phone' => $phone]);
+                        } elseif ($chatLid && str_contains($phoneRawFm, '@lid')) {
+                            // fromMe enviado direto do WhatsApp — Z-API envia phone como LID
+                            $lidDigits = preg_replace('/\D/', '', $chatLid);
+                            $contact = Contact::create([
+                                'phone'    => $lidDigits,
+                                'chat_lid' => $chatLid,
+                                'name'     => $this->payload['chatName'] ?? 'Contato',
+                            ]);
+                            Log::info('ProcessIncomingMessage: contato criado via fromMe LID', ['chatLid' => $chatLid]);
                         } else {
                             return;
                         }
                     }
                 } else {
-                    $contact = Contact::firstOrCreate(
-                        ['phone' => $phone],
-                        ['name'  => $this->payload['senderName'] ?? null]
-                    );
+                    // Busca por chat_lid primeiro (pode existir contato temporário criado via fromMe LID)
+                    $contact = null;
+                    if ($chatLid) {
+                        $contact = Contact::where('chat_lid', $chatLid)->first();
+                        if ($contact && $phone && !preg_match('/^55/', $contact->phone)) {
+                            // Contato tinha LID como phone — atualiza para phone real
+                            $contact->update(['phone' => $phone]);
+                        }
+                    }
+                    if (!$contact) {
+                        $contact = Contact::firstOrCreate(
+                            ['phone' => $phone],
+                            ['name'  => $this->payload['senderName'] ?? null]
+                        );
+                    }
                     if (!empty($this->payload['senderName']) && !$contact->name) {
                         $contact->update(['name' => $this->payload['senderName']]);
                     }
