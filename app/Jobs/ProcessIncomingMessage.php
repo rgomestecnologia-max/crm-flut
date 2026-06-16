@@ -234,8 +234,8 @@ class ProcessIncomingMessage implements ShouldQueue
                 }
             }
 
-            // Atualiza foto de perfil do WhatsApp a partir do payload (Z-API envia no campo "photo")
-            if (isset($contact)) {
+            // Atualiza foto de perfil do WhatsApp (apenas conversas individuais, não grupos)
+            if (isset($contact) && !$isGroup) {
                 $senderPhoto = $this->payload['photo'] ?? $this->payload['senderPhoto'] ?? null;
                 if ($senderPhoto && $contact->avatar_url !== $senderPhoto) {
                     $contact->update(['avatar_url' => $senderPhoto]);
