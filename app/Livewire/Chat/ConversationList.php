@@ -399,7 +399,6 @@ class ConversationList extends Component
         if (str_starts_with($this->filter, 'queue_')) {
             $deptId = (int) substr($this->filter, 6);
             $query->where('is_archived', false)
-                ->where('is_group', false)
                 ->where('department_id', $deptId)
                 ->whereIn('status', ['open', 'pending', 'transferred']);
         }
@@ -471,7 +470,6 @@ class ConversationList extends Component
             foreach ($userDeptIds as $deptId) {
                 $deptQueueCounts[$deptId] = (clone $baseQuery)
                     ->where('is_archived', false)
-                    ->where('is_group', false)
                     ->where('department_id', $deptId)
                     ->whereIn('status', ['open', 'pending', 'transferred'])
                     ->count();
