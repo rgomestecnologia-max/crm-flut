@@ -404,6 +404,12 @@ class ConversationList extends Component
                 ->whereIn('status', ['open', 'pending', 'transferred']);
         }
 
+        // Filtro por agente (ex: 'agent_17' filtra conversas do agente 17)
+        if (str_starts_with($this->filter, 'agent_')) {
+            $agentId = (int) substr($this->filter, 6);
+            $query->where('is_archived', false)->where('assigned_to', $agentId)->where('status', 'open');
+        }
+
         // Filtro por tag (ex: 'tag_5' filtra pela tag ID 5)
         if (str_starts_with($this->filter, 'tag_')) {
             $tagId = (int) substr($this->filter, 4);

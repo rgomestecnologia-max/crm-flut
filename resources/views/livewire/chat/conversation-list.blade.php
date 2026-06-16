@@ -249,6 +249,26 @@
             $queueLabel = app(\App\Services\CurrentCompany::class)->id() === 3 ? 'IA' : 'Fila';
             $tabs[] = ['key' => 'queue', 'label' => $queueLabel, 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
         }
+        // Abas por agente do departamento (apenas Regiane - ID 43)
+        if (auth()->id() === 43) {
+            $spAgents = \App\Models\User::withoutGlobalScopes()
+                ->where('company_id', app(\App\Services\CurrentCompany::class)->id())
+                ->where('is_active', true)
+                ->where('id', '!=', 43)
+                ->where(function ($q) {
+                    $q->where('department_id', 11)
+                       ->orWhereHas('departments', fn($q2) => $q2->where('departments.id', 11));
+                })
+                ->orderBy('name')->get(['id', 'name']);
+            $agentColors = ['#06b6d4', '#ec4899', '#f59e0b', '#8b5cf6'];
+            foreach ($spAgents as $idx => $ag) {
+                $agColor = $agentColors[$idx % count($agentColors)];
+                $agCount = (clone $baseQuery)->where('is_archived', false)->where('assigned_to', $ag->id)->where('status', 'open')->count();
+                $firstName = explode(' ', $ag->name)[0];
+                $tabs[] = ['key' => 'agent_' . $ag->id, 'label' => $firstName, 'count' => $agCount, 'color' => $agColor, 'activeBg' => $agColor . '20', 'activeColor' => $agColor];
+            }
+        }
+
         // "Todos" sempre por último
         $tabs[] = ['key' => 'all', 'label' => 'Todos', 'count' => $counts['all'], 'color' => '#6b7280', 'activeBg' => 'rgba(255,255,255,0.08)', 'activeColor' => 'white'];
         @endphp
