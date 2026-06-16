@@ -87,7 +87,16 @@ class ProposalViewer extends Component
 
         // Remover desconto (voltar ao original)
         if ($pct == 0 && $proposal->original_total_monthly) {
+            // Reverter details para valores sem desconto
+            $details = $proposal->details;
+            if ($proposal->discount_percent) {
+                $reverseFactor = 1 / (1 - ($proposal->discount_percent / 100));
+                foreach ($details as $key => $value) {
+                    $details[$key] = round($value * $reverseFactor, 2);
+                }
+            }
             $proposal->update([
+                'details'                => $details,
                 'total_monthly'          => $proposal->original_total_monthly,
                 'total_setup'            => $proposal->original_total_setup,
                 'discount_percent'       => null,
@@ -118,8 +127,16 @@ class ProposalViewer extends Component
         $origMonthly = $proposal->original_total_monthly;
         $origSetup = $proposal->original_total_setup;
 
-        // Recalcular details proporcionalmente
+        // Reverter details para valores sem desconto antes de aplicar novo
         $details = $proposal->details;
+        $currentDiscount = $proposal->discount_percent;
+        if ($currentDiscount) {
+            $reverseFactor = 1 / (1 - ($currentDiscount / 100));
+            foreach ($details as $key => $value) {
+                $details[$key] = round($value * $reverseFactor, 2);
+            }
+        }
+        // Aplicar novo desconto sobre valores revertidos (originais)
         foreach ($details as $key => $value) {
             $details[$key] = round($value * $factor, 2);
         }
