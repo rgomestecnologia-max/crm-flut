@@ -180,6 +180,23 @@ html.light [style*="background:rgba(255,255,255,0.06)"][style*="border-left:3px 
     background: rgba(0,0,0,0.04) !important;
 }
 
+/* Light mode — audio player */
+html.light [style*="background:rgba(255,255,255,0.08)"][style*="border-radius:50%"] {
+    background: rgba(0,0,0,0.06) !important;
+    color: #667781 !important;
+}
+html.light [style*="background:rgba(178,255,0,0.2)"][style*="border:1px solid rgba(178,255,0"] {
+    background: rgba(74,86,214,0.12) !important;
+    border-color: rgba(74,86,214,0.25) !important;
+}
+html.light [style*="fill:#b2ff00"] { fill: #4a56d6 !important; }
+html.light [style*="background:#b2ff00"][style*="border-radius:50%"] { background: #4a56d6 !important; }
+/* Waveform bars — played = blue, unplayed = gray */
+html.light [style*="height:"][style*="background:#b2ff00"][style*="border-radius:2px"] { background: #4a56d6 !important; }
+html.light [style*="height:"][style*="background:rgba(255,255,255,0.15)"][style*="border-radius:2px"] { background: rgba(0,0,0,0.15) !important; }
+/* Progress dot */
+html.light [style*="background:#b2ff00"][style*="width:10px"][style*="height:10px"] { background: #4a56d6 !important; }
+
 /* Light mode — inputs */
 html.light textarea, html.light input[type="text"], html.light input[type="search"] {
     background: #f0f2f5 !important;
