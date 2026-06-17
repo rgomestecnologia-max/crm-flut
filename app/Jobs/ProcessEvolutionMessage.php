@@ -184,6 +184,37 @@ class ProcessEvolutionMessage implements ShouldQueue
                         }
                     }
 
+                    // fromMe com LID: busca contato pelo chatName (pushName do destinatário)
+                    if (!$contact && str_contains($remoteJid, '@lid')) {
+                        $chatName = $data['pushName'] ?? null;
+                        // pushName em fromMe é o remetente (empresa), não o destinatário
+                        // chatName pode vir em key.remoteJidAlt ou no chatName do payload
+                        $destName = $data['chatName'] ?? $data['verifiedBizName'] ?? null;
+
+                        // Busca contato com conversa aberta no mesmo evo_config (mais provável)
+                        $evoConfig = EvolutionApiConfig::withoutCompanyScope()
+                            ->where('instance_name', $instanceName)->first();
+                        if ($evoConfig) {
+                            $recentConv = Conversation::where('is_group', false)
+                                ->where('evolution_api_config_id', $evoConfig->id)
+                                ->whereIn('status', ['open', 'pending', 'transferred'])
+                                ->when($destName, fn($q) => $q->whereHas('contact', fn($cq) =>
+                                    $cq->where('name', 'like', '%' . explode(' ', $destName)[0] . '%')
+                                ))
+                                ->latest('last_message_at')
+                                ->first();
+                            if ($recentConv) {
+                                $contact = Contact::find($recentConv->contact_id);
+                                if ($contact) {
+                                    Log::info('fromMe LID: contato encontrado via conversa aberta', [
+                                        'contact' => $contact->id, 'phone' => $contact->phone,
+                                        'destName' => $destName, 'lid' => $remoteJid,
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+
                     if (!$contact) {
                         // Cria contato para mensagens fromMe (agente iniciou conversa pelo WhatsApp)
                         if ($chatPhone && preg_match('/^55\d{10,11}$/', $chatPhone)) {
