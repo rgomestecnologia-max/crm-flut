@@ -296,10 +296,10 @@ class ProcessEvolutionMessage implements ShouldQueue
                     }
 
                     if (!$contact) {
-                        $contact = Contact::create([
-                            'phone' => $chatPhone,
-                            'name'  => $senderName,
-                        ]);
+                        $contact = Contact::firstOrCreate(
+                            ['phone' => $chatPhone],
+                            ['name'  => $senderName]
+                        );
                     }
 
                     if ($senderName && !$contact->name) {
@@ -309,14 +309,34 @@ class ProcessEvolutionMessage implements ShouldQueue
                     if (!$contact->chat_lid) {
                         $contact->update(['chat_lid' => $remoteJid]);
                     }
-                    // Se o contato tinha LID como phone e agora temos o real, atualiza
+                    // Se o contato tinha LID como phone e agora temos o real, faz merge
                     if ($contact->phone && !str_starts_with($contact->phone, '55')
                         && strlen($contact->phone) > 14 && str_starts_with($chatPhone, '55')) {
-                        $oldLid = $contact->phone;
-                        $contact->update([
-                            'phone'    => $chatPhone,
-                            'chat_lid' => $contact->chat_lid ?: $oldLid . '@lid',
-                        ]);
+                        // Verifica se já existe contato real com esse phone
+                        $realContact = Contact::where('phone', $chatPhone)->where('id', '!=', $contact->id)->first();
+                        if ($realContact) {
+                            // Merge: move conversas do LID → real e deleta LID
+                            Conversation::where('contact_id', $contact->id)
+                                ->update(['contact_id' => $realContact->id]);
+                            if (!$realContact->chat_lid) {
+                                $realContact->update(['chat_lid' => $contact->chat_lid ?: $remoteJid]);
+                            }
+                            Log::info('Merge contato LID→real (Evolution)', [
+                                'lid_id' => $contact->id, 'real_id' => $realContact->id,
+                                'phone' => $chatPhone,
+                            ]);
+                            $contact->delete();
+                            $contact = $realContact;
+
+                            // Mescla conversas duplicadas no mesmo departamento+evo_config
+                            $this->mergeConversationDuplicates($contact);
+                        } else {
+                            $oldLid = $contact->phone;
+                            $contact->update([
+                                'phone'    => $chatPhone,
+                                'chat_lid' => $contact->chat_lid ?: $oldLid . '@lid',
+                            ]);
+                        }
                     }
                 }
             }
@@ -1353,6 +1373,44 @@ class ProcessEvolutionMessage implements ShouldQueue
             }
         } catch (\Throwable $e) {
             Log::error('createCardForDepartment falhou', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Mescla conversas duplicadas do mesmo contato no mesmo departamento + evo_config.
+     * Mantém a mais antiga e move mensagens das duplicadas.
+     */
+    private function mergeConversationDuplicates(Contact $contact): void
+    {
+        $dupes = \Illuminate\Support\Facades\DB::select("
+            SELECT evolution_api_config_id, department_id, COUNT(*) as total
+            FROM conversations
+            WHERE contact_id = ? AND status IN ('open','pending','transferred') AND is_group = 0
+            GROUP BY evolution_api_config_id, department_id
+            HAVING total > 1
+        ", [$contact->id]);
+
+        foreach ($dupes as $d) {
+            $convs = Conversation::where('contact_id', $contact->id)
+                ->where('evolution_api_config_id', $d->evolution_api_config_id)
+                ->where('department_id', $d->department_id)
+                ->whereIn('status', ['open', 'pending', 'transferred'])
+                ->where('is_group', false)
+                ->orderBy('id')
+                ->get();
+
+            $keep = $convs->first();
+            foreach ($convs->skip(1) as $dup) {
+                Message::where('conversation_id', $dup->id)
+                    ->update(['conversation_id' => $keep->id]);
+                $dup->delete();
+            }
+            $lastMsg = Message::where('conversation_id', $keep->id)->latest()->first();
+            $keep->update(['last_message_at' => $lastMsg?->created_at ?? now()]);
+
+            Log::info('Conversas duplicadas mescladas', [
+                'contact' => $contact->id, 'kept' => $keep->id, 'merged' => $convs->count() - 1,
+            ]);
         }
     }
 

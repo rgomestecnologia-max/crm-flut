@@ -199,7 +199,6 @@ class ProcessIncomingMessage implements ShouldQueue
 
                     if ($lidContact && $realContact && $lidContact->id !== $realContact->id) {
                         // Merge: contato LID temporário + contato real existem separados
-                        // Mover conversas do LID para o real e atualizar chat_lid
                         Conversation::where('contact_id', $lidContact->id)
                             ->update(['contact_id' => $realContact->id]);
                         if (!$realContact->chat_lid) {
@@ -207,6 +206,8 @@ class ProcessIncomingMessage implements ShouldQueue
                         }
                         $lidContact->delete();
                         $contact = $realContact;
+                        // Mescla conversas duplicadas no mesmo dept/evo_config
+                        $this->mergeConversationDuplicates($contact);
                     } elseif ($lidContact && !$realContact) {
                         // Contato LID sem duplicata — atualiza phone para real
                         if ($phone && !preg_match('/^55/', $lidContact->phone)) {
@@ -435,6 +436,40 @@ class ProcessIncomingMessage implements ShouldQueue
      * Como Z-API é legacy, este job tende a ser desativado quando todas as
      * empresas migrarem para Evolution.
      */
+    private function mergeConversationDuplicates(Contact $contact): void
+    {
+        $dupes = \Illuminate\Support\Facades\DB::select("
+            SELECT evolution_api_config_id, department_id, COUNT(*) as total
+            FROM conversations
+            WHERE contact_id = ? AND status IN ('open','pending','transferred') AND is_group = 0
+            GROUP BY evolution_api_config_id, department_id
+            HAVING total > 1
+        ", [$contact->id]);
+
+        foreach ($dupes as $d) {
+            $convs = Conversation::where('contact_id', $contact->id)
+                ->where('evolution_api_config_id', $d->evolution_api_config_id)
+                ->where('department_id', $d->department_id)
+                ->whereIn('status', ['open', 'pending', 'transferred'])
+                ->where('is_group', false)
+                ->orderBy('id')
+                ->get();
+
+            $keep = $convs->first();
+            foreach ($convs->skip(1) as $dup) {
+                Message::where('conversation_id', $dup->id)
+                    ->update(['conversation_id' => $keep->id]);
+                $dup->delete();
+            }
+            $lastMsg = Message::where('conversation_id', $keep->id)->latest()->first();
+            $keep->update(['last_message_at' => $lastMsg?->created_at ?? now()]);
+
+            Log::info('Conversas duplicadas mescladas (Z-API)', [
+                'contact' => $contact->id, 'kept' => $keep->id, 'merged' => $convs->count() - 1,
+            ]);
+        }
+    }
+
     private function resolveCompanyId(): ?int
     {
         $instanceId     = $this->payload['instanceId'] ?? null;
