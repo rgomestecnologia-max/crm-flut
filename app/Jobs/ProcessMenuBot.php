@@ -47,6 +47,26 @@ class ProcessMenuBot implements ShouldQueue
                 ->exists();
             if ($alreadyResponded) return;
 
+            // Anti-loop: se houve 3+ "opção inválida" consecutivas, para de responder
+            // (protege contra bots automáticos respondendo à URA)
+            $recentBotMsgs = Message::where('conversation_id', $this->conversation->id)
+                ->where('sender_type', 'agent')
+                ->whereNull('sender_id')
+                ->latest()
+                ->take(3)
+                ->pluck('content');
+            if ($recentBotMsgs->count() >= 3) {
+                $invalidMsg = $this->config->invalid_option_message ?? 'Opção inválida';
+                $allInvalid = $recentBotMsgs->every(fn($c) => $c && str_contains($c, $invalidMsg));
+                if ($allInvalid) {
+                    Log::warning('MenuBot: loop detectado (3+ opção inválida), parando resposta', [
+                        'conv' => $this->conversation->id,
+                    ]);
+                    $this->conversation->update(['menu_awaiting' => false]);
+                    return;
+                }
+            }
+
             // Se a conversa já tem agente OU humano estava atendendo pelo WhatsApp,
             // o bot não deve enviar menu nem "opção inválida".
             $humanAttending = $this->conversation->assigned_to
