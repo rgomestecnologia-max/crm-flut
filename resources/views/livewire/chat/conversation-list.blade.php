@@ -391,11 +391,6 @@
                                  :src="err ? '{{ $conv->contact?->avatar_fallback ?? '' }}' : '{{ $conv->contact?->avatar ?? '' }}'"
                                  x-on:error="err = true" alt=""
                                  style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid {{ $activeId === $conv->id ? '#b2ff00' : 'rgba(255,255,255,0.06)' }};">
-                            @if($conv->unread_count > 0)
-                                <span style="position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; background:#b2ff00; color:#111; font-size:9px; font-weight:800; border-radius:20px; display:flex; align-items:center; justify-content:center; padding:0 3px; border:2px solid #0B0F1C;">
-                                    {{ $conv->unread_count > 9 ? '9+' : $conv->unread_count }}
-                                </span>
-                            @endif
                         </div>
 
                         {{-- Info --}}
@@ -419,8 +414,8 @@
                                     </span>
                                     @endif
                                 </div>
-                                <span style="font-size:10px; color:rgba(255,255,255,0.2); flex-shrink:0; margin-left:4px;">
-                                    {{ $conv->last_message_at?->diffForHumans(short: true) }}
+                                <span style="font-size:10px; color:{{ $conv->unread_count > 0 ? '#25d366' : 'rgba(255,255,255,0.2)' }}; flex-shrink:0; margin-left:4px; font-weight:{{ $conv->unread_count > 0 ? '600' : '400' }};">
+                                    {{ $conv->last_message_at?->format('H:i') }}
                                 </span>
                             </div>
 
@@ -448,6 +443,11 @@
                                 <span style="font-size:9px; font-weight:600; padding:2px 6px; border-radius:20px; flex-shrink:0; background:{{ $st['bg'] }}; color:{{ $st['color'] }}; letter-spacing:0.02em;">
                                     {{ $st['label'] }}
                                 </span>
+                                @if($conv->unread_count > 0)
+                                    <span style="min-width:18px; height:18px; background:#25d366; color:#fff; font-size:10px; font-weight:700; border-radius:20px; display:inline-flex; align-items:center; justify-content:center; padding:0 5px; flex-shrink:0;">
+                                        {{ $conv->unread_count > 99 ? '99+' : $conv->unread_count }}
+                                    </span>
+                                @endif
                             </div>
 
                             {{-- Department + agente atribuído --}}
