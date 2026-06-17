@@ -1,4 +1,4 @@
-<div wire:poll.60s>
+<div wire:poll.120s.visible>
     <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:20px; height:100%;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">
             <div style="width:2px; height:14px; background:#a855f7; border-radius:2px;"></div>

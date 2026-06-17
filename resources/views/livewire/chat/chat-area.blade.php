@@ -6,7 +6,7 @@ function senderColor(?string $identifier): string {
 }
 @endphp
 <div class="flex flex-col h-full" style="overflow-x:hidden; max-width:100vw;"
-     wire:poll.30s
+     wire:poll.60s
      x-data="chatArea()"
      x-init="init()"
      @scroll-to-bottom.window="scrollToBottom(true)"
@@ -370,6 +370,16 @@ function senderColor(?string $identifier): string {
                     background: radial-gradient(ellipse at 20% 0%, rgba(178,255,0,0.02) 0%, transparent 60%),
                                 radial-gradient(ellipse at 80% 100%, rgba(178,255,0,0.015) 0%, transparent 60%);
                     background-attachment:local;">
+        @if($hasOlderMessages)
+            <div style="display:flex; justify-content:center; padding:8px 0 12px;">
+                <button wire:click="loadMoreMessages" wire:loading.attr="disabled"
+                    style="background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.3); color:rgba(178,255,0,0.9); font-size:12px; font-weight:600; padding:6px 20px; border-radius:20px; cursor:pointer; transition:all 0.2s;"
+                    onmouseover="this.style.background='rgba(178,255,0,0.2)'" onmouseout="this.style.background='rgba(178,255,0,0.1)'">
+                    <span wire:loading.remove wire:target="loadMoreMessages">&#8593; Carregar mensagens anteriores</span>
+                    <span wire:loading wire:target="loadMoreMessages">Carregando...</span>
+                </button>
+            </div>
+        @endif
         @php $lastDate = null; @endphp
         @foreach($messages as $msg)
             @php

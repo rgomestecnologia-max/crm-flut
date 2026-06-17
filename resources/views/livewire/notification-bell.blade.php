@@ -1,4 +1,4 @@
-<div style="position:relative;" wire:poll.30s>
+<div style="position:relative;" wire:poll.60s.visible>
     {{-- Bell icon --}}
     <button wire:click="toggleDropdown"
             style="position:relative; width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"

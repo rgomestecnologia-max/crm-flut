@@ -1,4 +1,4 @@
-<div style="display:flex; flex-direction:column; height:100vh;" wire:poll.15s>
+<div style="display:flex; flex-direction:column; height:100vh;" wire:poll.30s>
 
     {{-- Header --}}
     <div style="height:64px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:0 16px; gap:10px; flex-shrink:0; background:rgba(11,15,28,0.6); backdrop-filter:blur(8px);">

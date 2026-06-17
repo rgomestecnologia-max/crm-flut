@@ -75,6 +75,10 @@ class ChatArea extends Component
     // FlutChat ao vivo
     public ?int $flutChatConvId = null;
 
+    // Paginação de mensagens
+    public int $messageLimit = 100;
+    public bool $hasOlderMessages = false;
+
     public function mount(?int $conversationId = null): void
     {
         if ($conversationId) {
@@ -227,8 +231,14 @@ class ChatArea extends Component
         }
     }
 
+    public function loadMoreMessages(): void
+    {
+        $this->messageLimit += 100;
+    }
+
     public function loadConversation(int $id): void
     {
+        $this->messageLimit = 100; // Reset ao trocar de conversa
         $this->flutChatConvId = null; // Sai do modo FlutChat
         $user = Auth::user();
         $conv = Conversation::with(['contact', 'department', 'assignedAgent'])->find($id);
@@ -1583,10 +1593,16 @@ class ChatArea extends Component
         }
 
         if ($this->conversationId) {
+            $totalMessages = Message::where('conversation_id', $this->conversationId)->count();
+            $this->hasOlderMessages = $totalMessages > $this->messageLimit;
+
             $messages = Message::where('conversation_id', $this->conversationId)
                 ->with(['sender', 'replyTo'])
-                ->orderBy('created_at')
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->take($this->messageLimit)
+                ->get()
+                ->reverse()
+                ->values();
 
             if ($this->showTransfer) {
                 $departments = Department::active()->get();

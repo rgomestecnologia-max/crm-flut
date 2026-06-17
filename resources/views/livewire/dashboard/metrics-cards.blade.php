@@ -1,4 +1,4 @@
-<div wire:poll.60s>
+<div wire:poll.120s.visible>
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:14px;" class="mobile-grid-2">
         @php
         $cards = [
