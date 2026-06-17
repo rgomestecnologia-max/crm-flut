@@ -222,6 +222,11 @@
                 // Inserir após o primeiro dept (Vendas)
                 array_splice($tabs, 2, 0, [['key' => 'unread', 'label' => 'Não Lidas', 'count' => $counts['unread'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24']]);
             }
+            // Tags (ex: Impressão)
+            foreach ($tags as $tag) {
+                $tagColor = $tag->color ?: '#8b5cf6';
+                $tabs[] = ['key' => 'tag_' . $tag->id, 'label' => $tag->name, 'count' => $tagCounts[$tag->id] ?? 0, 'color' => $tagColor, 'activeBg' => $tagColor . '20', 'activeColor' => $tagColor];
+            }
             if (($counts['groups'] ?? 0) > 0) {
                 $tabs[] = ['key' => 'groups', 'label' => 'Grupos', 'count' => $counts['groups'], 'color' => '#a855f7', 'activeBg' => 'rgba(168,85,247,0.12)', 'activeColor' => '#c084fc'];
             }
