@@ -123,7 +123,8 @@ class Conversation extends Model
             ->count();
     }
 
-    public function isOpen(): bool    { return $this->status === 'open'; }
-    public function isPending(): bool { return $this->status === 'pending'; }
-    public function isResolved(): bool{ return $this->status === 'resolved'; }
+    public function isOpen(): bool        { return $this->status === 'open'; }
+    public function isPending(): bool     { return $this->status === 'pending'; }
+    public function isTransferred(): bool { return $this->status === 'transferred'; }
+    public function isResolved(): bool    { return $this->status === 'resolved'; }
 }

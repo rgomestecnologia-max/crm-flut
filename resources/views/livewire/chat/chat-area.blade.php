@@ -157,7 +157,7 @@ function senderColor(?string $identifier): string {
 
         {{-- Actions --}}
         <div class="chat-header-actions" style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-            @if($conversation->isOpen() || $conversation->isPending())
+            @if($conversation->isOpen() || $conversation->isPending() || $conversation->isTransferred())
                 {{-- Resolve button --}}
                 <button wire:click="resolveConversation"
                         wire:confirm="Encerrar este atendimento?"
@@ -1207,7 +1207,7 @@ function senderColor(?string $identifier): string {
     @endif
 
     {{-- Message input --}}
-    @if($conversation->isOpen() || $conversation->isPending())
+    @if($conversation->isOpen() || $conversation->isPending() || $conversation->isTransferred())
     <div style="border-top:1px solid rgba(255,255,255,0.05); padding:10px 12px; flex-shrink:0; background:rgba(8,12,22,0.7); backdrop-filter:blur(8px); position:relative;"
          x-ref="inputArea"
          x-on:dropped-image.window="pastedImage = $event.detail"

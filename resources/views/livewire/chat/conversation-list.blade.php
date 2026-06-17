@@ -407,9 +407,10 @@
                                 {{-- Status badge --}}
                                 @php
                                     $statusMap = [
-                                        'open'      => ['label' => 'Aberto',   'bg' => 'rgba(178,255,0,0.12)',   'color' => '#b2ff00'],
-                                        'resolved'  => ['label' => 'Resolvido','bg' => 'rgba(107,114,128,0.12)',  'color' => '#6b7280'],
-                                        'pending'   => ['label' => 'Transf.',  'bg' => 'rgba(59,130,246,0.12)',   'color' => '#60a5fa'],
+                                        'open'        => ['label' => 'Aberto',   'bg' => 'rgba(178,255,0,0.12)',   'color' => '#b2ff00'],
+                                        'resolved'    => ['label' => 'Resolvido','bg' => 'rgba(107,114,128,0.12)',  'color' => '#6b7280'],
+                                        'pending'     => ['label' => 'Pendente', 'bg' => 'rgba(251,191,36,0.12)',   'color' => '#fbbf24'],
+                                        'transferred' => ['label' => 'Transf.',  'bg' => 'rgba(59,130,246,0.12)',   'color' => '#60a5fa'],
                                     ];
                                     $st = $statusMap[$conv->status] ?? $statusMap['pending'];
                                 @endphp
