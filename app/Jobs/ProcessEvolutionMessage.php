@@ -376,7 +376,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                            ->orWhereNull('evolution_api_config_id');
                     }))
                     ->where(function ($q) {
-                        $q->whereIn('status', ['open', 'pending', 'resolved'])
+                        $q->whereIn('status', ['open', 'pending', 'resolved', 'transferred'])
                           ->orWhere('is_archived', true);
                     })
                     ->latest()

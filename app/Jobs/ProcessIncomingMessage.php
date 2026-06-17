@@ -245,7 +245,7 @@ class ProcessIncomingMessage implements ShouldQueue
                         $q2->where('evolution_api_config_id', $evoConfigId)
                            ->orWhereNull('evolution_api_config_id');
                     }))
-                    ->whereIn('status', ['open', 'pending', 'resolved', 'archived'])
+                    ->whereIn('status', ['open', 'pending', 'resolved', 'transferred', 'archived'])
                     ->latest()
                     ->first();
 
