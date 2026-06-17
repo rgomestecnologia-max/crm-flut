@@ -301,8 +301,18 @@ class ProcessIncomingMessage implements ShouldQueue
                 }
             }
 
+            // Ignora notificações de grupo (convites, entrada/saída de membros)
+            if (!empty($this->payload['notification'])) {
+                return;
+            }
+
             // Extrai conteúdo e tipo da mensagem
             [$content, $type, $mediaUrl, $mediaFilename] = $this->extractMessageData($this->payload);
+
+            // Ignora mensagens sem conteúdo e sem mídia (notificações de sistema)
+            if (!$content && !$mediaUrl && $type === 'text') {
+                return;
+            }
 
             // Evita duplicatas por zapi_message_id
             $zapiId = $this->payload['messageId'] ?? null;
