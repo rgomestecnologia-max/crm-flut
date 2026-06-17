@@ -116,6 +116,16 @@ html.light [style*="background:rgba(255,255,255,0.04)"] { background: #f0f2f5 !i
 html.light [style*="background:rgba(255,255,255,0.05)"] { background: #f0f2f5 !important; }
 html.light [style*="background:rgba(255,255,255,0.08)"] { background: #e9edef !important; }
 
+/* Light mode — card hover (override inline onmouseover shadows) */
+html.light [style*="box-shadow: 0 8px 24px rgba(0,0,0,0.3)"],
+html.light [style*="box-shadow:0 8px 24px rgba(0,0,0,0.3)"] {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+html.light [style*="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28"] {
+    background: #ffffff !important;
+    border-color: #e0e0e0 !important;
+}
+
 /* Light mode — borders */
 html.light [style*="border:1px solid rgba(255,255,255,0.06)"] { border-color: #e0e0e0 !important; }
 html.light [style*="border:1px solid rgba(255,255,255,0.08)"] { border-color: #d1d7db !important; }
