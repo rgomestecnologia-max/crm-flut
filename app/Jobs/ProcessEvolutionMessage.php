@@ -632,6 +632,10 @@ class ProcessEvolutionMessage implements ShouldQueue
             // ── Humano respondeu pelo WhatsApp direto → para IA e URA ──
             if ($fromMe && !$isGroup) {
                 $updateData = [];
+                // Reabrir se estava resolvida
+                if ($conversation->status === 'resolved') {
+                    $updateData['status'] = 'open';
+                }
                 // Para a IA e URA: sempre marcar que humano está atendendo
                 if (!$conversation->waiting_human_reason) {
                     $updateData['waiting_human_reason'] = 'Atendente respondeu pelo WhatsApp';
