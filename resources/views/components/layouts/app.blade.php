@@ -544,6 +544,19 @@
                     <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ auth()->user()->name }}</p>
                     <p style="font-size:10px; color:rgba(255,255,255,0.25); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ auth()->user()->department?->name ?? 'Admin' }}</p>
                 </div>
+                {{-- Theme toggle --}}
+                <button x-show="sidebarOpen"
+                        @click="const t = document.documentElement.classList.contains('light') ? 'dark' : 'light'; document.documentElement.className = t; localStorage.setItem('crm_theme', t);"
+                        style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; transition:color 0.15s; flex-shrink:0;"
+                        onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.2)'"
+                        title="Alternar tema claro/escuro">
+                    <svg x-show="!document.documentElement.classList.contains('light')" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <svg x-show="document.documentElement.classList.contains('light')" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
                 <form x-show="sidebarOpen" method="POST" action="{{ route('logout') }}" style="flex-shrink:0;">
                     @csrf
                     <button type="submit"
