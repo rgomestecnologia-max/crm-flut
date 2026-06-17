@@ -195,50 +195,10 @@
     @endphp
     <div style="display:flex; flex-wrap:wrap; padding:8px 10px; gap:4px; border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
         @php
-        $tabs = [
-            ['key' => 'mine',     'label' => 'Minhas', 'count' => $counts['mine'],    'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
-        ];
-        if ($aiActive) {
-            $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
-        }
-        $companyModulesFC = \App\Models\Company::find(app(\App\Services\CurrentCompany::class)->id())?->modules ?? [];
-        $hasFlutChat = in_array('admin.flut-chat', $companyModulesFC) || auth()->user()->isAdmin();
-        $hasActiveFlow = $hasFlutChat && \App\Models\FlutChatFlow::where('is_active', true)->exists();
-        if ($hasActiveFlow) {
-            $flutChatCount = \App\Models\FlutChatConversation::count();
-            $tabs[] = ['key' => 'flutchat', 'label' => 'FlutChat', 'count' => $flutChatCount, 'color' => '#6366f1', 'activeBg' => 'rgba(99,102,241,0.12)', 'activeColor' => '#818cf8'];
-        }
-        if (($counts['messenger'] ?? 0) > 0) {
-            $tabs[] = ['key' => 'messenger', 'label' => 'Messenger', 'count' => $counts['messenger'], 'color' => '#0084ff', 'activeBg' => 'rgba(0,132,255,0.12)', 'activeColor' => '#0084ff'];
-        }
-        if (($counts['instagram'] ?? 0) > 0) {
-            $tabs[] = ['key' => 'instagram', 'label' => 'Instagram', 'count' => $counts['instagram'], 'color' => '#E1306C', 'activeBg' => 'rgba(225,48,108,0.12)', 'activeColor' => '#E1306C'];
-        }
-        if (($counts['groups'] ?? 0) > 0) {
-            $tabs[] = ['key' => 'groups', 'label' => 'Grupos', 'count' => $counts['groups'], 'color' => '#a855f7', 'activeBg' => 'rgba(168,85,247,0.12)', 'activeColor' => '#c084fc'];
-        }
-        if (app(\App\Services\CurrentCompany::class)->id() === 6 && ($counts['unread'] ?? 0) > 0) {
-            $tabs[] = ['key' => 'unread', 'label' => 'Não Lidas', 'count' => $counts['unread'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
-        }
-        if (app(\App\Services\CurrentCompany::class)->id() === 3 && ($counts['inactivity'] ?? 0) > 0) {
-            $tabs[] = ['key' => 'inactivity', 'label' => 'Inatividade', 'count' => $counts['inactivity'], 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
-        }
-        if (($counts['archived'] ?? 0) > 0) {
-            $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
-        }
-        // Tags como filtros
-        foreach ($tags as $tag) {
-            $tagColor = $tag->color ?: '#8b5cf6';
-            $tabs[] = [
-                'key'         => 'tag_' . $tag->id,
-                'label'       => $tag->name,
-                'count'       => $tagCounts[$tag->id] ?? 0,
-                'color'       => $tagColor,
-                'activeBg'    => $tagColor . '20',
-                'activeColor' => $tagColor,
-            ];
-        }
-        // Filas (por departamento ou geral) — antes de "Todos"
+        $currentCompanyId = app(\App\Services\CurrentCompany::class)->id();
+
+        // Filas por departamento
+        $deptTabs = [];
         if ($showDeptQueues) {
             $deptColors = ['#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#ec4899'];
             $colorIdx = 0;
@@ -246,11 +206,74 @@
                 if (!in_array($dept->id, array_keys($deptQueueCounts))) continue;
                 $c = $deptColors[$colorIdx % count($deptColors)];
                 $colorIdx++;
-                $tabs[] = ['key' => 'queue_' . $dept->id, 'label' => $dept->name, 'count' => $deptQueueCounts[$dept->id] ?? 0, 'color' => $c, 'activeBg' => $c . '20', 'activeColor' => $c];
+                $deptTabs[] = ['key' => 'queue_' . $dept->id, 'label' => $dept->name, 'count' => $deptQueueCounts[$dept->id] ?? 0, 'color' => $c, 'activeBg' => $c . '20', 'activeColor' => $c];
+            }
+        }
+
+        // T21 Visual (company_id=6): ordem fixa — Minhas, Vendas, Não Lidas, Xerox, Criação, Grupos, Todos
+        if ($currentCompanyId === 6) {
+            $tabs = [
+                ['key' => 'mine', 'label' => 'Minhas', 'count' => $counts['mine'], 'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
+            ];
+            // Departamentos na ordem do sort_order
+            $tabs = array_merge($tabs, $deptTabs);
+            // Não Lidas após primeiro departamento
+            if (($counts['unread'] ?? 0) > 0) {
+                // Inserir após o primeiro dept (Vendas)
+                array_splice($tabs, 2, 0, [['key' => 'unread', 'label' => 'Não Lidas', 'count' => $counts['unread'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24']]);
+            }
+            if (($counts['groups'] ?? 0) > 0) {
+                $tabs[] = ['key' => 'groups', 'label' => 'Grupos', 'count' => $counts['groups'], 'color' => '#a855f7', 'activeBg' => 'rgba(168,85,247,0.12)', 'activeColor' => '#c084fc'];
             }
         } else {
-            $queueLabel = app(\App\Services\CurrentCompany::class)->id() === 3 ? 'IA' : 'Fila';
-            $tabs[] = ['key' => 'queue', 'label' => $queueLabel, 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
+            // Outras empresas: ordem padrão
+            $tabs = [
+                ['key' => 'mine', 'label' => 'Minhas', 'count' => $counts['mine'], 'color' => '#b2ff00', 'activeBg' => 'rgba(178,255,0,0.12)', 'activeColor' => '#b2ff00'],
+            ];
+            if ($aiActive) {
+                $tabs[] = ['key' => 'waiting', 'label' => 'Aguardando', 'count' => $counts['waiting'] ?? 0, 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
+            }
+            $companyModulesFC = \App\Models\Company::find($currentCompanyId)?->modules ?? [];
+            $hasFlutChat = in_array('admin.flut-chat', $companyModulesFC) || auth()->user()->isAdmin();
+            $hasActiveFlow = $hasFlutChat && \App\Models\FlutChatFlow::where('is_active', true)->exists();
+            if ($hasActiveFlow) {
+                $flutChatCount = \App\Models\FlutChatConversation::count();
+                $tabs[] = ['key' => 'flutchat', 'label' => 'FlutChat', 'count' => $flutChatCount, 'color' => '#6366f1', 'activeBg' => 'rgba(99,102,241,0.12)', 'activeColor' => '#818cf8'];
+            }
+            if (($counts['messenger'] ?? 0) > 0) {
+                $tabs[] = ['key' => 'messenger', 'label' => 'Messenger', 'count' => $counts['messenger'], 'color' => '#0084ff', 'activeBg' => 'rgba(0,132,255,0.12)', 'activeColor' => '#0084ff'];
+            }
+            if (($counts['instagram'] ?? 0) > 0) {
+                $tabs[] = ['key' => 'instagram', 'label' => 'Instagram', 'count' => $counts['instagram'], 'color' => '#E1306C', 'activeBg' => 'rgba(225,48,108,0.12)', 'activeColor' => '#E1306C'];
+            }
+            if (($counts['groups'] ?? 0) > 0) {
+                $tabs[] = ['key' => 'groups', 'label' => 'Grupos', 'count' => $counts['groups'], 'color' => '#a855f7', 'activeBg' => 'rgba(168,85,247,0.12)', 'activeColor' => '#c084fc'];
+            }
+            if ($currentCompanyId === 3 && ($counts['inactivity'] ?? 0) > 0) {
+                $tabs[] = ['key' => 'inactivity', 'label' => 'Inatividade', 'count' => $counts['inactivity'], 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
+            }
+            if (($counts['archived'] ?? 0) > 0) {
+                $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
+            }
+            // Tags como filtros
+            foreach ($tags as $tag) {
+                $tagColor = $tag->color ?: '#8b5cf6';
+                $tabs[] = [
+                    'key'         => 'tag_' . $tag->id,
+                    'label'       => $tag->name,
+                    'count'       => $tagCounts[$tag->id] ?? 0,
+                    'color'       => $tagColor,
+                    'activeBg'    => $tagColor . '20',
+                    'activeColor' => $tagColor,
+                ];
+            }
+            // Fila geral (sem dept queues)
+            if (!$showDeptQueues) {
+                $queueLabel = $currentCompanyId === 3 ? 'IA' : 'Fila';
+                $tabs[] = ['key' => 'queue', 'label' => $queueLabel, 'count' => $counts['queue'], 'color' => '#f59e0b', 'activeBg' => 'rgba(245,158,11,0.12)', 'activeColor' => '#fbbf24'];
+            } else {
+                $tabs = array_merge($tabs, $deptTabs);
+            }
         }
         // Abas por agente do departamento (apenas Regiane - ID 43)
         if (auth()->id() === 43) {
