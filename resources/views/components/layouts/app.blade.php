@@ -149,7 +149,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
         </button>
-        <img src="/images/logo-flut.webp" alt="CRM Flut" style="height:22px;">
+        <img :src="document.documentElement.classList.contains('light') ? '/images/logo-flut-light.webp' : '/images/logo-flut.webp'" alt="CRM Flut" style="height:22px;">
         <div style="margin-left:auto;">
             <livewire:notification-bell />
         </div>
@@ -176,7 +176,7 @@
         <div style="height:60px; display:flex; align-items:center; padding:0 14px; border-bottom:1px solid rgba(255,255,255,0.05); gap:10px; flex-shrink:0;"
              :class="{ 'mobile-hide': window.innerWidth <= 768 && !mobileMenu ? false : false }">
             <template x-if="window.innerWidth > 768">
-                <img src="/images/logo-flut.webp" alt="CRM Flut"
+                <img :src="document.documentElement.classList.contains('light') ? '/images/logo-flut-light.webp' : '/images/logo-flut.webp'" alt="CRM Flut"
                      :style="sidebarOpen ? 'height:28px; width:auto;' : 'height:24px; width:24px; object-fit:contain; object-position:left;'"
                      style="flex-shrink:0; transition:all 0.25s;">
             </template>
