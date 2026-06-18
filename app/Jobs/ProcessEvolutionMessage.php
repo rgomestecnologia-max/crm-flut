@@ -450,6 +450,28 @@ class ProcessEvolutionMessage implements ShouldQueue
                         return;
                     }
 
+                    // Anti-duplicata: verifica se já existe conversa aberta deste contato
+                    // no mesmo departamento (qualquer instância) antes de criar nova
+                    $existingInDept = Conversation::where('contact_id', $contact->id)
+                        ->where('is_group', false)
+                        ->where('department_id', $department->id)
+                        ->whereIn('status', ['open', 'pending', 'transferred'])
+                        ->latest()
+                        ->first();
+
+                    if ($existingInDept) {
+                        // Reaproveita conversa existente, atualiza a instância
+                        $conversation = $existingInDept;
+                        if ($evoConfig && !$conversation->evolution_api_config_id) {
+                            $conversation->update(['evolution_api_config_id' => $evoConfig->id]);
+                        }
+                        if ($conversation->status !== 'open') {
+                            $conversation->update(['status' => 'open']);
+                        }
+                        Log::info('ProcessEvolutionMessage: reaproveitou conversa existente no dept', [
+                            'conv_id' => $conversation->id, 'dept' => $department->name,
+                        ]);
+                    } else {
                     $conversation = Conversation::create([
                         'contact_id'              => $contact->id,
                         'department_id'            => $department->id,
@@ -458,6 +480,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                         'is_group'                 => false,
                         'waiting_human_reason'     => $fromMe ? 'Atendente respondeu pelo WhatsApp' : null,
                     ]);
+                    }
 
                     // Roteamento por DDD: redireciona para agente/departamento correto
                     try {
