@@ -377,8 +377,8 @@ class ConversationList extends Component
             // Aguardando: conversas onde a IA pediu handoff (não arquivadas)
             'waiting'  => $query->where('is_archived', false)->whereNotNull('waiting_human_reason'),
 
-            // Todos: todas não arquivadas
-            'all'      => $query->where('is_archived', false),
+            // Todos: todas não arquivadas e não resolvidas
+            'all'      => $query->where('is_archived', false)->whereIn('status', ['open', 'pending', 'transferred']),
 
             // Arquivadas
             'archived' => $query->where('is_archived', true),
@@ -455,7 +455,7 @@ class ConversationList extends Component
                 ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred'])
                 ->count(),
             'waiting'  => (clone $baseQuery)->where('is_archived', false)->whereNotNull('waiting_human_reason')->count(),
-            'all'       => (clone $baseQuery)->where('is_archived', false)->count(),
+            'all'       => (clone $baseQuery)->where('is_archived', false)->whereIn('status', ['open', 'pending', 'transferred'])->count(),
             'archived'  => (clone $baseQuery)->where('is_archived', true)->count(),
             'messenger' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'messenger')->count(),
             'instagram' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'instagram')->count(),
