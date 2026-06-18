@@ -86,9 +86,35 @@
 
             {{-- Mensagens do grupo --}}
             <div style="flex:1; overflow-y:auto; padding:16px;" x-data x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)" x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+                @php
+                    // Album grouping for internal chat
+                    $icAlbums = []; $icMsgMap = []; $icLeaders = []; $icAid = 0;
+                    $icGroup = []; $icLast = null;
+                    foreach ($messages as $m) {
+                        if ($m->type === 'image' && $m->media_url) {
+                            if ($icLast && $icLast->sender_id === $m->sender_id && abs($m->created_at->diffInSeconds($icLast->created_at)) <= 120) {
+                                $icGroup[] = $m;
+                            } else {
+                                if (count($icGroup) >= 2) { $icAid++; $icAlbums[$icAid] = $icGroup; $icLeaders[$icAid] = $icGroup[0]->id; foreach ($icGroup as $g) $icMsgMap[$g->id] = $icAid; }
+                                $icGroup = [$m];
+                            }
+                            $icLast = $m;
+                        } else {
+                            if (count($icGroup) >= 2) { $icAid++; $icAlbums[$icAid] = $icGroup; $icLeaders[$icAid] = $icGroup[0]->id; foreach ($icGroup as $g) $icMsgMap[$g->id] = $icAid; }
+                            $icGroup = []; $icLast = null;
+                        }
+                    }
+                    if (count($icGroup) >= 2) { $icAid++; $icAlbums[$icAid] = $icGroup; $icLeaders[$icAid] = $icGroup[0]->id; foreach ($icGroup as $g) $icMsgMap[$g->id] = $icAid; }
+                @endphp
                 @foreach($messages as $msg)
+                @if(isset($icMsgMap[$msg->id]) && ($icLeaders[$icMsgMap[$msg->id]] ?? null) !== $msg->id)
+                    @continue
+                @endif
                 @php $isMe = $msg->sender_id === auth()->id(); @endphp
                 <div style="display:flex; justify-content:{{ $isMe ? 'flex-end' : 'flex-start' }}; margin-bottom:8px;">
+                    @if(isset($icMsgMap[$msg->id]))
+                        @include('livewire.internal-chat.partials.image-album', ['album' => $icAlbums[$icMsgMap[$msg->id]], 'isMe' => $isMe, 'isGroup' => true])
+                    @else
                     <div style="max-width:70%; padding:8px 12px; border-radius:{{ $isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px' }};
                                 background:{{ $isMe ? 'rgba(178,255,0,0.1)' : 'rgba(255,255,255,0.04)' }};
                                 border:1px solid {{ $isMe ? 'rgba(178,255,0,0.15)' : 'rgba(255,255,255,0.06)' }};">
@@ -96,7 +122,8 @@
                         <p style="font-size:10px; font-weight:700; color:#a78bfa; margin-bottom:2px;">{{ $msg->sender?->name ?? '?' }}</p>
                         @endif
                         @if($msg->type === 'image')
-                            <img src="{{ $msg->media_url }}" style="max-width:200px; border-radius:8px; cursor:pointer;" onclick="window.open(this.src)">
+                            <img src="{{ $msg->media_url }}" style="max-width:200px; border-radius:8px; cursor:zoom-in;"
+                                 @click="$dispatch('open-lightbox', { src: '{{ $msg->media_url }}' })">
                         @elseif($msg->type === 'audio')
                             <audio controls src="{{ $msg->media_url }}" style="max-width:220px; height:32px;"></audio>
                         @elseif($msg->type === 'document')
@@ -106,6 +133,7 @@
                         @endif
                         <p style="font-size:9px; color:rgba(255,255,255,0.2); margin-top:3px; text-align:{{ $isMe ? 'right' : 'left' }};">{{ $msg->created_at->format('H:i') }}</p>
                     </div>
+                    @endif
                 </div>
                 @endforeach
             </div>
@@ -209,10 +237,35 @@
 
             {{-- Mensagens --}}
             <div style="flex:1; overflow-y:auto; padding:16px;" x-data x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)" x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+                @php
+                    $dmAlbums = []; $dmMsgMap = []; $dmLeaders = []; $dmAid = 0;
+                    $dmGroup = []; $dmLast = null;
+                    foreach ($messages as $m) {
+                        if ($m->type === 'image' && $m->media_url) {
+                            if ($dmLast && $dmLast->sender_id === $m->sender_id && abs($m->created_at->diffInSeconds($dmLast->created_at)) <= 120) {
+                                $dmGroup[] = $m;
+                            } else {
+                                if (count($dmGroup) >= 2) { $dmAid++; $dmAlbums[$dmAid] = $dmGroup; $dmLeaders[$dmAid] = $dmGroup[0]->id; foreach ($dmGroup as $g) $dmMsgMap[$g->id] = $dmAid; }
+                                $dmGroup = [$m];
+                            }
+                            $dmLast = $m;
+                        } else {
+                            if (count($dmGroup) >= 2) { $dmAid++; $dmAlbums[$dmAid] = $dmGroup; $dmLeaders[$dmAid] = $dmGroup[0]->id; foreach ($dmGroup as $g) $dmMsgMap[$g->id] = $dmAid; }
+                            $dmGroup = []; $dmLast = null;
+                        }
+                    }
+                    if (count($dmGroup) >= 2) { $dmAid++; $dmAlbums[$dmAid] = $dmGroup; $dmLeaders[$dmAid] = $dmGroup[0]->id; foreach ($dmGroup as $g) $dmMsgMap[$g->id] = $dmAid; }
+                @endphp
                 @foreach($messages as $msg)
+                @if(isset($dmMsgMap[$msg->id]) && ($dmLeaders[$dmMsgMap[$msg->id]] ?? null) !== $msg->id)
+                    @continue
+                @endif
                 @php $isMe = $msg->sender_id === auth()->id(); @endphp
                 <div style="display:flex; justify-content:{{ $isMe ? 'flex-end' : 'flex-start' }}; margin-bottom:8px;"
                      x-data="{ showActions: false, editing: false, editText: '{{ addslashes($msg->content ?? '') }}' }">
+                    @if(isset($dmMsgMap[$msg->id]))
+                        @include('livewire.internal-chat.partials.image-album', ['album' => $dmAlbums[$dmMsgMap[$msg->id]], 'isMe' => $isMe, 'isGroup' => false])
+                    @else
                     <div style="max-width:70%; padding:8px 12px; border-radius:{{ $isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px' }};
                                 background:{{ $isMe ? '#2d4a08' : 'rgba(31,41,55,0.8)' }}; color:white; font-size:13px; line-height:1.5; position:relative;"
                          @mouseenter="showActions = true" @mouseleave="showActions = false">
@@ -328,6 +381,7 @@
 
                         <p style="font-size:9px; color:rgba(255,255,255,0.3); margin-top:4px; text-align:right;">{{ $msg->created_at->format('H:i') }}</p>
                     </div>
+                    @endif
                 </div>
                 @endforeach
 
