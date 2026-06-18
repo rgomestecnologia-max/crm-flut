@@ -750,7 +750,7 @@ function senderColor(?string $identifier): string {
                                 </div>
                                 @endif
                                 @if($msg->sender?->name)
-                                    <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); margin-bottom:3px;">{{ $msg->sender->name }}</p>
+                                    <p class="msg-agent-name" style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.95); margin-bottom:3px;">{{ $msg->sender->name }}</p>
                                 @endif
                                 <span style="white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</span>
                             </div>

@@ -235,6 +235,11 @@ html.light .conv-agent-name {
     color: #667781 !important;
 }
 
+/* Light mode — agent name inside sent message bubbles */
+html.light .msg-agent-name {
+    color: #075e54 !important;
+}
+
 /* Light mode — chat toolbar buttons (clip, emoji, quick reply, mic) */
 html.light .chat-tb-btn {
     color: #8696a0 !important;
