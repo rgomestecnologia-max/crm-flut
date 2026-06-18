@@ -13,7 +13,7 @@
     @endphp
 
     {{-- Header --}}
-    <div style="border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 24px; flex-shrink:0; background:rgba(11,15,28,0.5); backdrop-filter:blur(6px);" class="mobile-p-sm">
+    <div class="dash-header" style="border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 24px; flex-shrink:0; background:rgba(11,15,28,0.5); backdrop-filter:blur(6px);" class="mobile-p-sm">
         <div style="flex-shrink:0;">
             <h1 style="font-size:15px; font-weight:800; color:white; font-family:'Syne',sans-serif; letter-spacing:-0.02em;">Dashboard</h1>
             <p style="font-size:10px; color:rgba(255,255,255,0.25); margin-top:1px;">
@@ -29,15 +29,15 @@
                 <span style="font-size:11px; font-weight:700; color:{{ $currentCompany->color }};">{{ $currentCompany->name }}</span>
             </div>
             @endif
-            <div style="display:flex; align-items:center; gap:4px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:4px 6px;">
-                <svg width="11" height="11" fill="none" stroke="rgba(255,255,255,0.3)" viewBox="0 0 24 24" style="flex-shrink:0;">
+            <div class="dash-date-filter" style="display:flex; align-items:center; gap:4px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:4px 6px;">
+                <svg class="dash-date-icon" width="11" height="11" fill="none" stroke="rgba(255,255,255,0.3)" viewBox="0 0 24 24" style="flex-shrink:0;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 <input type="date" x-model="dateFrom" @change="Livewire.dispatch('dashboard-date-changed', { from: dateFrom, to: dateTo })"
-                       style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; max-width:95px; width:auto; cursor:pointer; color-scheme:dark;">
-                <span style="font-size:10px; color:rgba(255,255,255,0.2);">até</span>
+                       class="dash-date-input" style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; max-width:95px; width:auto; cursor:pointer; color-scheme:dark;">
+                <span class="dash-date-sep" style="font-size:10px; color:rgba(255,255,255,0.2);">até</span>
                 <input type="date" x-model="dateTo" @change="Livewire.dispatch('dashboard-date-changed', { from: dateFrom, to: dateTo })"
-                       style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; max-width:95px; width:auto; cursor:pointer; color-scheme:dark;">
+                       class="dash-date-input" style="background:transparent; border:none; color:rgba(255,255,255,0.5); font-size:11px; outline:none; max-width:95px; width:auto; cursor:pointer; color-scheme:dark;">
                 <button x-show="dateFrom || dateTo" @click="dateFrom=''; dateTo=''; Livewire.dispatch('dashboard-date-changed', { from: null, to: null })"
                         style="background:none; border:none; color:#f87171; font-size:10px; cursor:pointer; padding:0 2px;" title="Limpar filtro">✕</button>
             </div>

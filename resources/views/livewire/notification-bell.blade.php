@@ -3,7 +3,7 @@
     <button wire:click="toggleDropdown"
             style="position:relative; width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s;"
             onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
-        <svg width="18" height="18" fill="none" stroke="{{ $unreadCount > 0 ? '#fbbf24' : 'rgba(255,255,255,0.4)' }}" viewBox="0 0 24 24">
+        <svg class="bell-icon" width="18" height="18" fill="none" stroke="{{ $unreadCount > 0 ? '#fbbf24' : 'rgba(255,255,255,0.4)' }}" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
         @if($unreadCount > 0)

@@ -133,6 +133,37 @@ html.light .dash-card-sub {
     color: #8696a0 !important;
 }
 
+/* Light mode — notification bell */
+html.light .bell-icon {
+    stroke: #54656f !important;
+}
+
+/* Light mode — dashboard header & date filter */
+html.light .dash-header {
+    background: #f0f2f5 !important;
+    border-bottom-color: #e0e0e0 !important;
+}
+html.light .dash-header h1 {
+    color: #111b21 !important;
+}
+html.light .dash-header p {
+    color: #667781 !important;
+}
+html.light .dash-date-filter {
+    background: #ffffff !important;
+    border-color: #d1d7db !important;
+}
+html.light .dash-date-icon {
+    stroke: #54656f !important;
+}
+html.light .dash-date-input {
+    color: #111b21 !important;
+    color-scheme: light !important;
+}
+html.light .dash-date-sep {
+    color: #667781 !important;
+}
+
 /* Light mode — borders */
 html.light [style*="border:1px solid rgba(255,255,255,0.06)"] { border-color: #e0e0e0 !important; }
 html.light [style*="border:1px solid rgba(255,255,255,0.08)"] { border-color: #d1d7db !important; }
