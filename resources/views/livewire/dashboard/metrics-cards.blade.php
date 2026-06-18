@@ -14,21 +14,19 @@
         @endphp
 
         @foreach($cards as $card)
-        <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:18px; position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s;"
-             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow=document.documentElement.classList.contains('light') ? '0 4px 12px rgba(0,0,0,0.08)' : '0 8px 24px rgba(0,0,0,0.3)'"
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        <div class="dash-card" style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:18px; position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s;">
             <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, {{ $card['color'] }}80, {{ $card['color'] }}20, transparent);"></div>
             <div style="position:absolute; top:-20px; right:-20px; width:80px; height:80px; background:radial-gradient(circle, {{ $card['color'] }}15 0%, transparent 70%); pointer-events:none;"></div>
 
             <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px;">
-                <span style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.08em;">{{ $card['label'] }}</span>
+                <span class="dash-card-label" style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.08em;">{{ $card['label'] }}</span>
                 <div style="width:28px; height:28px; border-radius:8px; background:{{ $card['color'] }}18; border:1px solid {{ $card['color'] }}30; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="{{ $card['color'] }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $card['icon'] }}"/></svg>
                 </div>
             </div>
 
             <div style="font-size:28px; font-weight:800; color:{{ $card['color'] }}; line-height:1; margin-bottom:4px; font-family:'Syne',sans-serif; letter-spacing:-0.02em;">{{ $card['value'] }}</div>
-            <div style="font-size:11px; color:rgba(255,255,255,0.2);">hoje</div>
+            <div class="dash-card-sub" style="font-size:11px; color:rgba(255,255,255,0.2);">hoje</div>
         </div>
         @endforeach
     </div>
