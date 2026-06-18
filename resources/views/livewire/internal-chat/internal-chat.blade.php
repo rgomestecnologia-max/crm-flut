@@ -85,7 +85,39 @@
             </div>
 
             {{-- Mensagens do grupo --}}
-            <div style="flex:1; overflow-y:auto; padding:16px;" x-data x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)" x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+            <div style="flex:1; overflow-y:auto; padding:16px; position:relative;"
+                 x-data="{ icDragging: false, icDragCount: 0 }"
+                 x-on:dragenter.prevent="icDragCount++; icDragging=true"
+                 x-on:dragleave.prevent="icDragCount--; if(icDragCount<=0){ icDragging=false; icDragCount=0; }"
+                 x-on:dragover.prevent
+                 x-on:drop.prevent="
+                    icDragging=false; icDragCount=0;
+                    const files = $event.dataTransfer?.files;
+                    if (files) {
+                        for (const file of files) {
+                            if (file.type.startsWith('image/')) {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const MAX=1600; let w=img.width, h=img.height;
+                                    if(w>MAX||h>MAX){ if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;} }
+                                    const c=document.createElement('canvas'); c.width=w; c.height=h;
+                                    c.getContext('2d').drawImage(img,0,0,w,h);
+                                    window.dispatchEvent(new CustomEvent('ic-dropped-image',{detail:c.toDataURL('image/jpeg',0.85)}));
+                                };
+                                img.src = URL.createObjectURL(file); break;
+                            }
+                        }
+                    }
+                 "
+                 x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
+                 x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+                {{-- Drop overlay --}}
+                <div x-show="icDragging" x-transition.opacity style="position:absolute; inset:0; background:rgba(178,255,0,0.08); border:2px dashed rgba(178,255,0,0.5); border-radius:12px; z-index:50; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+                    <div style="background:rgba(0,0,0,0.7); padding:14px 28px; border-radius:12px; display:flex; align-items:center; gap:10px;">
+                        <svg width="20" height="20" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span style="color:#b2ff00; font-size:13px; font-weight:700;">Solte a imagem aqui</span>
+                    </div>
+                </div>
                 @php
                     // Album grouping for internal chat
                     $icAlbums = []; $icMsgMap = []; $icLeaders = []; $icAid = 0;
@@ -142,6 +174,7 @@
             <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0; position:relative;"
                  x-data="{
                     showEmoji: false,
+                    pastedImage: null, dragging: false, dragCount: 0,
                     recording: false, recSeconds: 0, recTimer: null, mediaRecorder: null, audioChunks: [],
                     async startRec() {
                         try {
@@ -208,9 +241,29 @@
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         <input type="file" wire:model="attachment" style="display:none;">
                     </label>
+                    {{-- Preview imagem colada/arrastada --}}
+                    <template x-if="pastedImage">
+                        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(178,255,0,0.06); border:1px solid rgba(178,255,0,0.2); border-radius:8px; margin-right:4px;">
+                            <img :src="pastedImage" style="width:36px; height:36px; object-fit:cover; border-radius:4px;">
+                            <button @click="$wire.sendPastedImage(pastedImage); pastedImage=null;"
+                                    style="padding:4px 10px; background:#b2ff00; color:#111; font-size:10px; font-weight:700; border:none; border-radius:6px; cursor:pointer;">Enviar</button>
+                            <button @click="pastedImage=null" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px;">&times;</button>
+                        </div>
+                    </template>
                     <input wire:model="messageText" type="text" placeholder="Mensagem para o grupo..." x-ref="groupInput"
-                           x-on:keydown.enter="$wire.sendMessage().then(() => { $refs.groupInput.value = ''; })"
+                           x-on:ic-dropped-image.window="pastedImage = $event.detail"
+                           x-on:keydown.enter="if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage().then(() => { $refs.groupInput.value = ''; }); }"
                            x-on:internal-scroll-bottom.window="$nextTick(() => { $refs.groupInput.value = ''; $refs.groupInput.focus(); })"
+                           x-on:paste="
+                               const items = $event.clipboardData?.items;
+                               if(items){ for(const item of items){ if(item.type.startsWith('image/')){ $event.preventDefault();
+                                   const file=item.getAsFile(); const img=new Image();
+                                   img.onload=()=>{ const MAX=1600; let w=img.width,h=img.height;
+                                       if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+                                       const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+                                       pastedImage=c.toDataURL('image/jpeg',0.85);};
+                                   img.src=URL.createObjectURL(file); return; }}}
+                           "
                            style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:13px; color:white; outline:none;"
                            onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
                     <button type="button" @click.stop="showEmoji = !showEmoji" title="Emojis" style="padding:6px; color:rgba(255,255,255,0.3); background:none; border:none; cursor:pointer;" onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
@@ -236,7 +289,39 @@
             </div>
 
             {{-- Mensagens --}}
-            <div style="flex:1; overflow-y:auto; padding:16px;" x-data x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)" x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+            <div style="flex:1; overflow-y:auto; padding:16px; position:relative;"
+                 x-data="{ dmDragging: false, dmDragCount: 0 }"
+                 x-on:dragenter.prevent="dmDragCount++; dmDragging=true"
+                 x-on:dragleave.prevent="dmDragCount--; if(dmDragCount<=0){ dmDragging=false; dmDragCount=0; }"
+                 x-on:dragover.prevent
+                 x-on:drop.prevent="
+                    dmDragging=false; dmDragCount=0;
+                    const files = $event.dataTransfer?.files;
+                    if (files) {
+                        for (const file of files) {
+                            if (file.type.startsWith('image/')) {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const MAX=1600; let w=img.width, h=img.height;
+                                    if(w>MAX||h>MAX){ if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;} }
+                                    const c=document.createElement('canvas'); c.width=w; c.height=h;
+                                    c.getContext('2d').drawImage(img,0,0,w,h);
+                                    window.dispatchEvent(new CustomEvent('dm-dropped-image',{detail:c.toDataURL('image/jpeg',0.85)}));
+                                };
+                                img.src = URL.createObjectURL(file); break;
+                            }
+                        }
+                    }
+                 "
+                 x-on:internal-scroll-bottom.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
+                 x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
+                {{-- Drop overlay --}}
+                <div x-show="dmDragging" x-transition.opacity style="position:absolute; inset:0; background:rgba(178,255,0,0.08); border:2px dashed rgba(178,255,0,0.5); border-radius:12px; z-index:50; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+                    <div style="background:rgba(0,0,0,0.7); padding:14px 28px; border-radius:12px; display:flex; align-items:center; gap:10px;">
+                        <svg width="20" height="20" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span style="color:#b2ff00; font-size:13px; font-weight:700;">Solte a imagem aqui</span>
+                    </div>
+                </div>
                 @php
                     $dmAlbums = []; $dmMsgMap = []; $dmLeaders = []; $dmAid = 0;
                     $dmGroup = []; $dmLast = null;
@@ -397,6 +482,7 @@
             <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); flex-shrink:0; position:relative;"
                  x-data="{
                     showEmoji: false,
+                    pastedImage: null,
                     recording: false, recSeconds: 0, recTimer: null, mediaRecorder: null, audioChunks: [],
                     async startRec() {
                         try {
@@ -485,10 +571,30 @@
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                         <input type="file" wire:model="attachment" style="display:none;">
                     </label>
+                    {{-- Preview imagem colada/arrastada --}}
+                    <template x-if="pastedImage">
+                        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(178,255,0,0.06); border:1px solid rgba(178,255,0,0.2); border-radius:8px; margin-right:4px;">
+                            <img :src="pastedImage" style="width:36px; height:36px; object-fit:cover; border-radius:4px;">
+                            <button @click="$wire.sendPastedImage(pastedImage); pastedImage=null;"
+                                    style="padding:4px 10px; background:#b2ff00; color:#111; font-size:10px; font-weight:700; border:none; border-radius:6px; cursor:pointer;">Enviar</button>
+                            <button @click="pastedImage=null" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:16px;">&times;</button>
+                        </div>
+                    </template>
                     <input wire:model="messageText" type="text" placeholder="Digite uma mensagem..." spellcheck="true" lang="pt-BR"
                            x-ref="internalInput"
-                           x-on:keydown.enter="$wire.sendMessage().then(() => { $refs.internalInput.value = ''; })"
+                           x-on:dm-dropped-image.window="pastedImage = $event.detail"
+                           x-on:keydown.enter="if(pastedImage){ $wire.sendPastedImage(pastedImage); pastedImage=null; } else { $wire.sendMessage().then(() => { $refs.internalInput.value = ''; }); }"
                            x-on:internal-scroll-bottom.window="$nextTick(() => { $refs.internalInput.value = ''; $refs.internalInput.focus(); })"
+                           x-on:paste="
+                               const items = $event.clipboardData?.items;
+                               if(items){ for(const item of items){ if(item.type.startsWith('image/')){ $event.preventDefault();
+                                   const file=item.getAsFile(); const img=new Image();
+                                   img.onload=()=>{ const MAX=1600; let w=img.width,h=img.height;
+                                       if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+                                       const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+                                       pastedImage=c.toDataURL('image/jpeg',0.85);};
+                                   img.src=URL.createObjectURL(file); return; }}}
+                           "
                            style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:13px; color:white; outline:none;"
                            onfocus="this.style.borderColor='rgba(178,255,0,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
                     {{-- Emoji --}}

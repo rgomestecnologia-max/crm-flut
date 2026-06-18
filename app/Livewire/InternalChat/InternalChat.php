@@ -155,6 +155,38 @@ class InternalChat extends Component
         $this->attachment = null;
     }
 
+    public function sendPastedImage(string $dataUrl): void
+    {
+        if (!$this->selectedUserId && !$this->selectedGroupId) return;
+
+        $parts = explode(',', $dataUrl, 2);
+        if (count($parts) < 2) return;
+
+        $raw = base64_decode($parts[1]);
+        if (!$raw || strlen($raw) < 100) return;
+
+        $filename = 'pasted_' . now()->format('Ymd_His') . '.jpg';
+        $tmpPath = tempnam(sys_get_temp_dir(), 'ic_paste_');
+        file_put_contents($tmpPath, $raw);
+
+        $path = MediaStorage::store(new \Illuminate\Http\File($tmpPath), 'internal-chat/' . date('Y/m'));
+        $url  = MediaStorage::url($path);
+        @unlink($tmpPath);
+
+        $msg = InternalMessage::create([
+            'sender_id'      => Auth::id(),
+            'recipient_id'   => $this->selectedUserId,
+            'group_id'       => $this->selectedGroupId,
+            'content'        => $filename,
+            'type'           => 'image',
+            'media_url'      => $url,
+            'media_filename' => $filename,
+        ]);
+
+        try { broadcast(new InternalMessageSent($msg)); } catch (\Throwable) {}
+        $this->dispatch('internal-scroll-bottom');
+    }
+
     public function editInternalMessage(int $messageId, string $newText): void
     {
         if (!trim($newText)) return;
