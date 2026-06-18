@@ -15,7 +15,7 @@
 
         @foreach($cards as $card)
         <div style="background:linear-gradient(145deg, rgba(17,24,39,0.9), rgba(11,15,28,0.95)); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:18px; position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s;"
-             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)'"
+             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow=document.documentElement.classList.contains('light') ? '0 4px 12px rgba(0,0,0,0.08)' : '0 8px 24px rgba(0,0,0,0.3)'"
              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
             <div style="position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, {{ $card['color'] }}80, {{ $card['color'] }}20, transparent);"></div>
             <div style="position:absolute; top:-20px; right:-20px; width:80px; height:80px; background:radial-gradient(circle, {{ $card['color'] }}15 0%, transparent 70%); pointer-events:none;"></div>
