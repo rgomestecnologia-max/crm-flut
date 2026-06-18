@@ -93,14 +93,46 @@ html.light [style*="background:rgba(11,15,28"] { background: #ffffff !important;
 html.light [style*="background:rgba(8,12,22"] { background: #f0f2f5 !important; }
 html.light [style*="background:#080C16"] { background: #f0f2f5 !important; }
 html.light [style*="background:#0B0F1C"] { background: #ffffff !important; }
+html.light [style*="background:#0f1320"] { background: #ffffff !important; }
+html.light [style*="background:#1a2c33"] { background: #f0f2f5 !important; }
 html.light [style*="border-bottom:1px solid rgba(255,255,255,0.05)"] { border-bottom-color: #e0e0e0 !important; }
 html.light [style*="border-top:1px solid rgba(255,255,255,0.05)"] { border-top-color: #e0e0e0 !important; }
 html.light [style*="border-right:1px solid rgba(255,255,255,0.06)"] { border-right-color: #e0e0e0 !important; }
+
+/* Light mode — Tailwind surface overrides */
+html.light .bg-surface-950 { background-color: #f0f2f5 !important; }
+html.light .bg-surface-900 { background-color: #f5f6f6 !important; }
+html.light .bg-surface-800 { background-color: #ffffff !important; }
+html.light .bg-surface-700 { background-color: #f5f6f6 !important; }
+html.light .bg-surface-600 { background-color: #e9edef !important; }
+html.light .bg-surface-500 { background-color: #e0e0e0 !important; }
+html.light .border-surface-700 { border-color: #e0e0e0 !important; }
+html.light .border-surface-600 { border-color: #d1d7db !important; }
+html.light .text-white { color: #111b21 !important; }
+html.light .text-gray-300 { color: #54656f !important; }
+html.light .text-gray-400 { color: #667781 !important; }
+html.light .text-gray-500 { color: #667781 !important; }
+html.light .text-gray-600 { color: #8696a0 !important; }
+html.light .hover\:text-gray-300:hover { color: #111b21 !important; }
+html.light .hover\:bg-surface-800\/50:hover { background-color: #f0f2f5 !important; }
+
+/* Light mode — config cards & inputs (chatbot, IA, automação) */
+html.light .cfg-card {
+    background: #ffffff !important;
+    border-color: #e0e0e0 !important;
+}
+html.light .cfg-input {
+    background: #f0f2f5 !important;
+    border-color: #d1d7db !important;
+    color: #111b21 !important;
+}
 
 /* Light mode — text colors */
 html.light [style*="color:white"], html.light [style*="color: white"] { color: #111b21 !important; }
 html.light [style*="color:rgba(255,255,255,0.85)"] { color: #111b21 !important; }
 html.light [style*="color:rgba(255,255,255,0.8)"] { color: #111b21 !important; }
+html.light [style*="color:rgba(255,255,255,0.7)"] { color: #54656f !important; }
+html.light [style*="color:rgba(255,255,255,0.6)"] { color: #54656f !important; }
 html.light [style*="color:rgba(255,255,255,0.5)"] { color: #667781 !important; }
 html.light [style*="color:rgba(255,255,255,0.4)"] { color: #667781 !important; }
 html.light [style*="color:rgba(255,255,255,0.35)"] { color: #8696a0 !important; }
@@ -156,7 +188,8 @@ html.light .dash-date-filter {
 html.light .dash-date-icon {
     stroke: #54656f !important;
 }
-html.light .dash-date-input {
+html.light .dash-date-input,
+html.light [style*="color-scheme:dark"] {
     color: #111b21 !important;
     color-scheme: light !important;
 }

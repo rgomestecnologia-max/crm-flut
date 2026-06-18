@@ -67,10 +67,10 @@
         {{-- Filtro de data + Export --}}
         <div style="margin-left:auto; display:flex; align-items:center; gap:6px; padding-bottom:8px; flex-shrink:0;">
             <input wire:model.live="dateFrom" type="date"
-                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
+                   class="dash-date-input" style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
             <span style="font-size:10px; color:rgba(255,255,255,0.3);">até</span>
             <input wire:model.live="dateTo" type="date"
-                   style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
+                   class="dash-date-input" style="padding:4px 8px; font-size:11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:white; outline:none; color-scheme:dark;">
             @if($dateFrom || $dateTo)
             <button wire:click="$set('dateFrom', ''); $wire.set('dateTo', '')"
                     style="padding:4px 8px; font-size:10px; color:#f87171; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:6px; cursor:pointer;">
@@ -85,7 +85,8 @@
                 </button>
                 <template x-teleport="body">
                 <div x-show="showExport" x-transition @click.outside="showExport=false" x-cloak
-                     :style="exportPos ? `position:fixed; top:${exportPos.top}px; right:${exportPos.right}px; z-index:99999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.7); width:220px;` : ''">
+                     class="chat-popup"
+                     :style="exportPos ? `position:fixed; top:${exportPos.top}px; right:${exportPos.right}px; z-index:99999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.7); width:220px;` : ''"
                     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px;">Etapas para exportar:</p>
                     <div style="display:flex; flex-direction:column; gap:6px; max-height:250px; overflow-y:auto;">
                         @foreach($stages as $s)
