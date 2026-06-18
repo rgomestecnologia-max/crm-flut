@@ -1483,6 +1483,7 @@ function senderColor(?string $identifier): string {
             <div x-data="{ open: false, clipPos: null }" style="position:relative; flex-shrink:0;">
                 <button @click="const r=$el.getBoundingClientRect(); clipPos={bottom: window.innerHeight - r.top + 8, left: r.left}; open=!open"
                         title="Anexar"
+                        class="chat-tb-btn"
                         style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:10px; border:none; cursor:pointer; transition:all 0.15s; background:rgba(255,255,255,0.04); color:{{ ($pendingFile || !empty($pendingFiles)) ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}; margin-bottom:2px;"
                         onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.7)'"
                         onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='{{ $pendingFile ? '#b2ff00' : 'rgba(255,255,255,0.3)' }}'">
@@ -1745,6 +1746,7 @@ function senderColor(?string $identifier): string {
                 ></textarea>
                 {{-- Quick Reply button --}}
                 <button type="button" @click.stop="$wire.set('showQuickReplies', !$wire.showQuickReplies)" title="Respostas rápidas"
+                        class="chat-tb-btn"
                         style="padding:8px 6px 10px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; transition:color 0.15s; flex-shrink:0;"
                         onmouseover="this.style.color='#b2ff00'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1753,6 +1755,7 @@ function senderColor(?string $identifier): string {
                 </button>
                 {{-- Emoji button --}}
                 <button type="button" @click.stop="const r=$el.getBoundingClientRect(); emojiPos={bottom: window.innerHeight - r.top + 8, right: window.innerWidth - r.right}; showEmoji=!showEmoji" title="Emojis"
+                        class="chat-tb-btn"
                         style="padding:8px 10px 10px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; transition:color 0.15s; flex-shrink:0;"
                         onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1763,6 +1766,7 @@ function senderColor(?string $identifier): string {
 
             {{-- Mic button --}}
             <button type="button" @click="recording ? stopRec() : startRec()" title="Gravar áudio"
+                    class="chat-tb-btn"
                     :style="recording ? 'background:#ef4444; color:white; border-radius:50%; animation:pulse 1.5s ease-in-out infinite;' : ''"
                     style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer; transition:all 0.15s; flex-shrink:0; border-radius:50%;">
                 <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1990,6 +1994,7 @@ function senderColor(?string $identifier): string {
             {{-- Anexar --}}
             <div x-data="{ fcClip: false }" style="position:relative; flex-shrink:0;">
                 <button @click="fcClip=!fcClip" title="Anexar"
+                        class="chat-tb-btn"
                         style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer;"
                         onmouseover="this.style.color='rgba(255,255,255,0.5)'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
@@ -2014,6 +2019,7 @@ function senderColor(?string $identifier): string {
             {{-- Respostas rápidas --}}
             @php $fcAllQrs = \App\Models\QuickReply::orderBy('title')->get(['id','title','content'])->toArray(); @endphp
             <button @click="const p = $root.querySelector('[x-ref=fcQrPanel]')?.closest('[x-data]'); if(p){ const d = Alpine.$data(p); d.fcQrs = {{ json_encode($fcAllQrs) }}; d.fcQrOpen = !d.fcQrOpen; }" title="Respostas rápidas"
+                    class="chat-tb-btn"
                     style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; flex-shrink:0;"
                     onmouseover="this.style.color='#b2ff00'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -2033,6 +2039,7 @@ function senderColor(?string $identifier): string {
             {{-- Emojis --}}
             <div style="position:relative; flex-shrink:0;">
                 <button @click="fcEmoji=!fcEmoji" title="Emojis"
+                        class="chat-tb-btn"
                         style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer;"
                         onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -2051,6 +2058,7 @@ function senderColor(?string $identifier): string {
 
             {{-- Mic --}}
             <button x-show="!fcRec" @click="fcStartRec()" title="Gravar áudio"
+                    class="chat-tb-btn"
                     style="padding:6px; color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; flex-shrink:0;"
                     onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3z"/></svg>

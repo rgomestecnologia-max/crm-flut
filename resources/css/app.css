@@ -189,6 +189,15 @@ html.light .chat-popup-input {
     color: #111b21 !important;
 }
 
+/* Light mode — chat toolbar buttons (clip, emoji, quick reply, mic) */
+html.light .chat-tb-btn {
+    color: #8696a0 !important;
+}
+html.light .chat-tb-btn:hover {
+    color: #54656f !important;
+    background: rgba(0,0,0,0.05) !important;
+}
+
 /* Light mode — borders */
 html.light [style*="border:1px solid rgba(255,255,255,0.06)"] { border-color: #e0e0e0 !important; }
 html.light [style*="border:1px solid rgba(255,255,255,0.08)"] { border-color: #d1d7db !important; }
