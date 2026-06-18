@@ -104,13 +104,13 @@
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
             <span style="font-size:11px; color:#f87171;">{{ count($selected) }} selecionada(s)</span>
             <button wire:click="selectAll({{ json_encode($conversations->pluck('id')->toArray()) }})"
-                    style="font-size:10px; color:rgba(255,255,255,0.4); padding:3px 6px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
+                    class="hover-light-safe" style="font-size:10px; color:rgba(255,255,255,0.4); padding:3px 6px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
                     onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
                 Todas
             </button>
             <button wire:click="deselectAll"
-                    style="font-size:10px; color:rgba(255,255,255,0.4); padding:3px 6px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
-                    onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
+                    class="hover-light-safe" style="font-size:10px; color:rgba(255,255,255,0.4); padding:3px 6px; border-radius:4px; border:none; background:transparent; cursor:pointer;"
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'"
                 Limpar
             </button>
         </div>
@@ -154,7 +154,7 @@
                 Confirmar
             </button>
             <button wire:click="$set('showBulkTransfer', false)"
-                    style="font-size:11px; color:rgba(255,255,255,0.4); padding:5px 8px; border-radius:6px; border:none; background:transparent; cursor:pointer;"
+                    class="hover-light-safe" style="font-size:11px; color:rgba(255,255,255,0.4); padding:5px 8px; border-radius:6px; border:none; background:transparent; cursor:pointer;"
                     onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
                 Cancelar
             </button>

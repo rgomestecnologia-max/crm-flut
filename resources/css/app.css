@@ -255,6 +255,15 @@ html.light .msg-agent-name {
     color: #075e54 !important;
 }
 
+/* Light mode — generic hover-safe buttons (prevents white-on-white) */
+html.light .hover-light-safe {
+    color: #667781 !important;
+}
+html.light .hover-light-safe:hover {
+    color: #54656f !important;
+    background: rgba(0,0,0,0.05) !important;
+}
+
 /* Light mode — chat toolbar buttons (clip, emoji, quick reply, mic) */
 html.light .chat-tb-btn {
     color: #8696a0 !important;

@@ -260,7 +260,7 @@
                                     <div style="display:flex; gap:5px; flex-shrink:0;">
                                         @if($icDocCanPv)
                                         <button @click.stop="pvOpen = true"
-                                                style="font-size:10px; color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:5px; padding:3px 8px; cursor:pointer;"
+                                                class="hover-light-safe" style="font-size:10px; color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:5px; padding:3px 8px; cursor:pointer;"
                                                 onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'"
                                                 onmouseout="this.style.color='rgba(255,255,255,0.55)'; this.style.background='rgba(255,255,255,0.05)'">Ver</button>
                                         @endif
@@ -313,7 +313,7 @@
                             @if($isMe)
                                 @if($msg->type === 'text')
                                 <button @click.stop="editing=true; showActions=false" title="Editar"
-                                        style="width:24px; height:24px; border-radius:6px; background:rgba(0,0,0,0.5); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5);"
+                                        class="hover-light-safe" style="width:24px; height:24px; border-radius:6px; background:rgba(0,0,0,0.5); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5);"
                                         onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
                                     <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>

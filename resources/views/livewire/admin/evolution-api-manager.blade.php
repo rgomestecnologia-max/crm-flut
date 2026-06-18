@@ -130,7 +130,7 @@
                         Salvar Configuração
                     </button>
                     <button wire:click="testServer" wire:loading.attr="disabled"
-                            style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s;"
+                            class="hover-light-safe" style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s;"
                             onmouseover="this.style.background='rgba(255,255,255,0.07)'; this.style.color='white'"
                             onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='rgba(255,255,255,0.6)'">
                         Testar
@@ -164,7 +164,7 @@
                     </button>
 
                     <button wire:click="checkStatus" wire:loading.attr="disabled"
-                            style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:6px;"
+                            class="hover-light-safe" style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 14px; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:6px;"
                             onmouseover="this.style.background='rgba(255,255,255,0.07)'; this.style.color='white'"
                             onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='rgba(255,255,255,0.6)'">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +272,7 @@
                         </button>
 
                         <button wire:click="loadWebhookInfo" wire:loading.attr="disabled"
-                                style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:12px; cursor:pointer; transition:all 0.15s;"
+                                class="hover-light-safe" style="background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:9px 14px; font-size:12px; cursor:pointer; transition:all 0.15s;"
                                 onmouseover="this.style.background='rgba(255,255,255,0.07)'; this.style.color='white'"
                                 onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='rgba(255,255,255,0.5)'">
                             Ver Configuração Atual

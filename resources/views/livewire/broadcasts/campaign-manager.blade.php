@@ -213,7 +213,7 @@
                             </optgroup>
                             @endif
                         </select>
-                        <a href="{{ route('broadcasts.templates') }}" style="padding:8px 12px; font-size:11px; color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; text-decoration:none; white-space:nowrap; display:flex; align-items:center; gap:4px;"
+                        <a href="{{ route('broadcasts.templates') }}" class="hover-light-safe" style="padding:8px 12px; font-size:11px; color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; text-decoration:none; white-space:nowrap; display:flex; align-items:center; gap:4px;"
                            onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
                             <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             Criar

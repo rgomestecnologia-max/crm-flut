@@ -354,7 +354,7 @@ $labelStyle = "display:block; font-size:10px; font-weight:700; color:rgba(255,25
 
                 <div style="display:flex; gap:10px; justify-content:flex-end;">
                     <button wire:click="cancelDelete"
-                            style="padding:9px 18px; background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; border-radius:9px; border:1px solid rgba(255,255,255,0.07); cursor:pointer; transition:all 0.2s;"
+                            class="hover-light-safe" style="padding:9px 18px; background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; border-radius:9px; border:1px solid rgba(255,255,255,0.07); cursor:pointer; transition:all 0.2s;"
                             onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='white'"
                             onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='rgba(255,255,255,0.6)'">
                         Cancelar

@@ -298,7 +298,7 @@ function senderColor(?string $identifier): string {
                   style="font-size:11px; color:rgba(239,68,68,0.6); flex-shrink:0;">Não encontrado</span>
         </div>
         <button @click="prevMatch()" x-show="searchMatches.length > 0"
-                style="width:28px; height:28px; border-radius:7px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.4); cursor:pointer; display:flex; align-items:center; justify-content:center;"
+                class="hover-light-safe" style="width:28px; height:28px; border-radius:7px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.4); cursor:pointer; display:flex; align-items:center; justify-content:center;"
                 onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"
                 onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='rgba(255,255,255,0.4)'">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,7 +306,7 @@ function senderColor(?string $identifier): string {
             </svg>
         </button>
         <button @click="nextMatch()" x-show="searchMatches.length > 0"
-                style="width:28px; height:28px; border-radius:7px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.4); cursor:pointer; display:flex; align-items:center; justify-content:center;"
+                class="hover-light-safe" style="width:28px; height:28px; border-radius:7px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.4); cursor:pointer; display:flex; align-items:center; justify-content:center;"
                 onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"
                 onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='rgba(255,255,255,0.4)'">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -594,7 +594,7 @@ function senderColor(?string $identifier): string {
                                     <div style="display:flex; gap:6px; flex-shrink:0;">
                                         @if($docCanPv)
                                         <button @click.stop="pvOpen = true"
-                                                style="font-size:11px; color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:3px 9px; cursor:pointer;"
+                                                class="hover-light-safe" style="font-size:11px; color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:3px 9px; cursor:pointer;"
                                                 onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'"
                                                 onmouseout="this.style.color='rgba(255,255,255,0.55)'; this.style.background='rgba(255,255,255,0.05)'">Ver</button>
                                         @endif
@@ -907,7 +907,7 @@ function senderColor(?string $identifier): string {
                                     <div style="display:flex; gap:6px; flex-shrink:0;">
                                         @if($aDocCanPv)
                                         <button @click.stop="pvOpen = true"
-                                                style="font-size:11px; color:rgba(255,255,255,0.6); background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:3px 9px; cursor:pointer;"
+                                                class="hover-light-safe" style="font-size:11px; color:rgba(255,255,255,0.6); background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:3px 9px; cursor:pointer;"
                                                 onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.15)'"
                                                 onmouseout="this.style.color='rgba(255,255,255,0.6)'; this.style.background='rgba(255,255,255,0.08)'">Ver</button>
                                         @endif

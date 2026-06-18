@@ -11,6 +11,7 @@
         <div style="display:flex; align-items:center; gap:8px;">
             @if(auth()->user()->canManageCompany())
             <a href="{{ route('admin.crm.index') }}"
+               class="hover-light-safe"
                style="display:flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:8px; text-decoration:none; transition:all 0.15s;"
                onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.color='white'"
                onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.color='rgba(255,255,255,0.4)'">

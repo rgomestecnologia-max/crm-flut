@@ -77,6 +77,7 @@
             <div style="border-top:1px solid rgba(255,255,255,0.05); padding:6px;">
                 <a href="{{ route('admin.companies.index') }}"
                    @click="open = false"
+                   class="hover-light-safe"
                    style="display:flex; align-items:center; gap:7px; padding:7px 8px; font-size:11px; color:rgba(255,255,255,0.5); text-decoration:none; border-radius:7px; transition:all 0.12s;"
                    onmouseover="this.style.background='rgba(255,255,255,0.04)'; this.style.color='white'"
                    onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.5)'">
