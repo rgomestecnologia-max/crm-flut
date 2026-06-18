@@ -86,7 +86,7 @@
                 <template x-teleport="body">
                 <div x-show="showExport" x-transition @click.outside="showExport=false" x-cloak
                      class="chat-popup"
-                     :style="exportPos ? `position:fixed; top:${exportPos.top}px; right:${exportPos.right}px; z-index:99999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.7); width:220px;` : ''"
+                     :style="exportPos ? `position:fixed; top:${exportPos.top}px; right:${exportPos.right}px; z-index:99999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.7); width:220px;` : ''">
                     <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:10px;">Etapas para exportar:</p>
                     <div style="display:flex; flex-direction:column; gap:6px; max-height:250px; overflow-y:auto;">
                         @foreach($stages as $s)
