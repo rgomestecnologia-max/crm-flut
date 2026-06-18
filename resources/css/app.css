@@ -264,6 +264,54 @@ html.light .chat-tb-btn:hover {
     background: rgba(0,0,0,0.05) !important;
 }
 
+/* Light mode — CRM card edit panel */
+html.light .crm-card-panel {
+    background: #ffffff !important;
+    border-left-color: #e0e0e0 !important;
+}
+html.light .crm-card-panel [style*="background: linear-gradient(180deg, #0d1117"] {
+    background: linear-gradient(180deg, #f0f2f5 0%, transparent 100%) !important;
+}
+html.light .crm-card-panel [style*="border-bottom: 1px solid #1a2234"],
+html.light .crm-card-panel [style*="border-top: 1px solid #1a2234"] {
+    border-color: #e0e0e0 !important;
+}
+html.light .crm-card-panel [style*="border: 1px solid #1f2937"] {
+    border-color: #d1d7db !important;
+}
+html.light .crm-card-panel [style*="background: rgba(255,255,255,0.04)"],
+html.light .crm-card-panel [style*="background:rgba(255,255,255,0.04)"] {
+    background: #f0f2f5 !important;
+}
+html.light .crm-card-panel .text-white {
+    color: #111b21 !important;
+}
+html.light .crm-card-panel select,
+html.light .crm-card-panel input,
+html.light .crm-card-panel textarea {
+    color: #111b21 !important;
+    background: #f0f2f5 !important;
+    border-color: #d1d7db !important;
+}
+html.light .crm-card-panel select option {
+    background: #ffffff !important;
+    color: #111b21 !important;
+}
+html.light .crm-card-panel .placeholder-gray-600::placeholder {
+    color: #8696a0 !important;
+}
+html.light .crm-card-panel [style*="color:rgba(255,255,255,0.03)"],
+html.light .crm-card-panel [style*="border-bottom:1px solid rgba(255,255,255,0.03)"] {
+    border-color: #e9edef !important;
+}
+html.light .crm-card-panel [class*="color-scheme"] {
+    color-scheme: light !important;
+}
+html.light .crm-card-panel [style*="background: rgba(255,255,255,0.03)"],
+html.light .crm-card-panel [style*="background:rgba(255,255,255,0.03)"] {
+    background: #f5f6f6 !important;
+}
+
 /* Light mode — borders */
 html.light [style*="border:1px solid rgba(255,255,255,0.06)"] { border-color: #e0e0e0 !important; }
 html.light [style*="border:1px solid rgba(255,255,255,0.08)"] { border-color: #d1d7db !important; }

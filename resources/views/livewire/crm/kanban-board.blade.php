@@ -284,7 +284,7 @@
     @if($showCardPanel)
     <div class="fixed inset-0 bg-black/50 z-40" wire:click="closePanel"></div>
 
-    <div class="fixed inset-y-0 right-0 w-full bg-surface-900 z-50 flex flex-col shadow-2xl"
+    <div class="fixed inset-y-0 right-0 w-full bg-surface-900 z-50 flex flex-col shadow-2xl crm-card-panel"
          style="border-left: 1px solid #1f2937">
 
         {{-- Barra teal no topo --}}
