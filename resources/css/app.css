@@ -222,6 +222,19 @@ html.light .chat-popup-input {
     color: #111b21 !important;
 }
 
+/* Light mode — sidebar action buttons (theme toggle, logout) */
+html.light .sidebar-action-btn {
+    color: #8696a0 !important;
+}
+html.light .sidebar-action-btn:hover {
+    color: #54656f !important;
+}
+
+/* Light mode — agent name in conversation list */
+html.light .conv-agent-name {
+    color: #667781 !important;
+}
+
 /* Light mode — chat toolbar buttons (clip, emoji, quick reply, mic) */
 html.light .chat-tb-btn {
     color: #8696a0 !important;

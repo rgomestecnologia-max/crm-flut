@@ -547,6 +547,7 @@
                 {{-- Theme toggle --}}
                 <button x-show="sidebarOpen"
                         @click="const t = document.documentElement.classList.contains('light') ? 'dark' : 'light'; document.documentElement.className = t; localStorage.setItem('crm_theme', t);"
+                        class="sidebar-action-btn"
                         style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; transition:color 0.15s; flex-shrink:0;"
                         onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='rgba(255,255,255,0.2)'"
                         title="Alternar tema claro/escuro">
@@ -560,6 +561,7 @@
                 <form x-show="sidebarOpen" method="POST" action="{{ route('logout') }}" style="flex-shrink:0;">
                     @csrf
                     <button type="submit"
+                            class="sidebar-action-btn"
                             style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer; padding:4px; transition:color 0.15s;"
                             onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.2)'">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">

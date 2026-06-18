@@ -456,8 +456,8 @@
                                         {{ $conv->department->name }}
                                     </p>
                                     @if($conv->assignedAgent)
-                                        <span style="font-size:9px; color:rgba(255,255,255,0.35);">·</span>
-                                        <p style="font-size:10px; color:rgba(255,255,255,0.35); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        <span class="conv-agent-name" style="font-size:9px; color:rgba(255,255,255,0.35);">·</span>
+                                        <p class="conv-agent-name" style="font-size:10px; color:rgba(255,255,255,0.35); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                             {{ $conv->assignedAgent->name }}
                                         </p>
                                     @endif
