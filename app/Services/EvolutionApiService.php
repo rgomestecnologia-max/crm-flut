@@ -438,6 +438,11 @@ class EvolutionApiService
 
         $phone = preg_replace('/\D/', '', $phone);
 
+        // Remove zero à esquerda do DDD (ex: 011963421516 → 11963421516)
+        if (str_starts_with($phone, '0') && !str_starts_with($phone, '00')) {
+            $phone = substr($phone, 1);
+        }
+
         if (strlen($phone) <= 11) {
             $phone = '55' . $phone;
         }
