@@ -383,7 +383,50 @@ function senderColor(?string $identifier): string {
             </div>
         @endif
         @php $lastDate = null; @endphp
+        @php
+            // ── Album grouping: agrupa imagens consecutivas do mesmo sender em até 2 min ──
+            $imageAlbums = []; $msgAlbumMap = []; $albumLeaders = [];
+            $albumId = 0; $currentGroup = []; $lastImgMsg = null;
+            foreach ($messages as $m) {
+                if ($m->type === 'image' && !$m->isSystem()) {
+                    if ($lastImgMsg
+                        && $lastImgMsg->sender_type === $m->sender_type
+                        && abs($m->created_at->diffInSeconds($lastImgMsg->created_at)) <= 120
+                        && $m->created_at->format('Y-m-d') === $lastImgMsg->created_at->format('Y-m-d')
+                    ) {
+                        $currentGroup[] = $m;
+                    } else {
+                        if (count($currentGroup) >= 2) {
+                            $albumId++;
+                            $imageAlbums[$albumId] = $currentGroup;
+                            $albumLeaders[$albumId] = $currentGroup[0]->id;
+                            foreach ($currentGroup as $gm) $msgAlbumMap[$gm->id] = $albumId;
+                        }
+                        $currentGroup = [$m];
+                    }
+                    $lastImgMsg = $m;
+                } else {
+                    if (count($currentGroup) >= 2) {
+                        $albumId++;
+                        $imageAlbums[$albumId] = $currentGroup;
+                        $albumLeaders[$albumId] = $currentGroup[0]->id;
+                        foreach ($currentGroup as $gm) $msgAlbumMap[$gm->id] = $albumId;
+                    }
+                    $currentGroup = []; $lastImgMsg = null;
+                }
+            }
+            if (count($currentGroup) >= 2) {
+                $albumId++;
+                $imageAlbums[$albumId] = $currentGroup;
+                $albumLeaders[$albumId] = $currentGroup[0]->id;
+                foreach ($currentGroup as $gm) $msgAlbumMap[$gm->id] = $albumId;
+            }
+        @endphp
         @foreach($messages as $msg)
+            {{-- Skip album images that aren't the leader --}}
+            @if(isset($msgAlbumMap[$msg->id]) && ($albumLeaders[$msgAlbumMap[$msg->id]] ?? null) !== $msg->id)
+                @continue
+            @endif
             @php
                 $msgDate = $msg->created_at->format('Y-m-d');
                 $showDateSep = $msgDate !== $lastDate;
@@ -432,6 +475,9 @@ function senderColor(?string $identifier): string {
                                 <span style="white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</span>
                             </div>
                         @elseif($msg->type === 'image')
+                            @if(isset($msgAlbumMap[$msg->id]))
+                                @include('livewire.chat.partials.image-album', ['album' => $imageAlbums[$msgAlbumMap[$msg->id]], 'side' => 'incoming'])
+                            @else
                             <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; overflow:hidden; border:1px solid rgba(255,255,255,0.06);">
                                 @if($msg->sender_name)
                                     <p style="font-size:11px; font-weight:700; color:{{ senderColor($msg->sender_phone ?? $msg->sender_name) }}; padding:8px 10px 4px;">{{ $msg->sender_name }}</p>
@@ -446,6 +492,7 @@ function senderColor(?string $identifier): string {
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.6); white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</p>
                                 @endif
                             </div>
+                            @endif
                         @elseif($msg->type === 'audio')
                             @php
                                 $audioSeed = strlen($msg->media_url ?? '');
@@ -757,6 +804,9 @@ function senderColor(?string $identifier): string {
                                 <span style="white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</span>
                             </div>
                         @elseif($msg->type === 'image')
+                            @if(isset($msgAlbumMap[$msg->id]))
+                                @include('livewire.chat.partials.image-album', ['album' => $imageAlbums[$msgAlbumMap[$msg->id]], 'side' => 'outgoing'])
+                            @else
                             <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; overflow:hidden; border:1px solid rgba(45,74,8,0.6);">
                                 <img src="{{ $msg->media_thumb_url ?? $msg->media_url }}" alt="Imagem"
                                      loading="lazy"
@@ -768,6 +818,7 @@ function senderColor(?string $identifier): string {
                                     <p style="padding:6px 10px 8px; font-size:11px; color:rgba(255,255,255,0.7); white-space:pre-wrap;">{!! \App\Helpers\WhatsAppFormatter::format($msg->content) !!}</p>
                                 @endif
                             </div>
+                            @endif
                         @elseif($msg->type === 'audio')
                             @php
                                 $audioSeedA = strlen($msg->media_url ?? '');

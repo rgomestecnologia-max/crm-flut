@@ -243,6 +243,40 @@ Route::middleware(['auth', 'company'])->group(function () {
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     })->name('media.download');
 
+    // Download de álbum de imagens (ZIP)
+    Route::get('/media/download-album', function (\Illuminate\Http\Request $request) {
+        $ids = array_filter(array_map('intval', explode(',', $request->query('ids', ''))));
+        if (empty($ids) || count($ids) > 20) abort(400);
+
+        $messages = \App\Models\Message::whereIn('id', $ids)->where('type', 'image')->get();
+        if ($messages->isEmpty()) abort(404);
+
+        $convId = $messages->first()->conversation_id;
+        if ($messages->contains(fn($m) => $m->conversation_id !== $convId)) abort(403);
+
+        $conversation = \App\Models\Conversation::findOrFail($convId);
+        $companyId = app(\App\Services\CurrentCompany::class)->id();
+        if ($conversation->company_id !== $companyId && !auth()->user()->isAdmin()) abort(403);
+
+        $zipName = 'album_' . now()->format('Ymd_His') . '.zip';
+        $tempPath = tempnam(sys_get_temp_dir(), 'album_') . '.zip';
+        $zip = new \ZipArchive();
+        $zip->open($tempPath, \ZipArchive::CREATE);
+
+        $ctx = stream_context_create(['http' => ['timeout' => 15], 'ssl' => ['verify_peer' => false]]);
+        foreach ($messages as $i => $msg) {
+            if (!$msg->media_url) continue;
+            $content = @file_get_contents($msg->media_url, false, $ctx, 0, 100 * 1024 * 1024);
+            if (!$content) continue;
+            $ext = pathinfo(parse_url($msg->media_url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+            $filename = ($i + 1) . '_' . ($msg->media_filename ?? "imagem.{$ext}");
+            $zip->addFromString($filename, $content);
+        }
+
+        $zip->close();
+        return response()->download($tempPath, $zipName)->deleteFileAfterSend(true);
+    })->name('media.download-album');
+
     // Exportação CRM
     Route::get('/crm/export', function (\Illuminate\Http\Request $request) {
         $pipelineId = $request->query('pipeline_id');

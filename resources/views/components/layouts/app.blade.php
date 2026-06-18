@@ -594,15 +594,24 @@ function toastManager() {
 }
 </script>
 
-{{-- Lightbox global (imagem + vídeo) --}}
+{{-- Lightbox global (imagem + vídeo + álbum) --}}
 <div x-data="{
         src: null, alt: '', isVideo: false, msgId: null,
+        album: [], albumIndex: 0,
+        get albumCount() { return this.album.length; },
+        get isAlbum() { return this.album.length > 1; },
+        openSingle(d) { this.album = []; this.src = d.src; this.msgId = d.msgId || null; this.isVideo = d.video || false; this.alt = d.alt || ''; },
+        openAlbum(d) { this.album = d.album; this.albumIndex = d.startIndex || 0; this.isVideo = false; this.showCurrent(); },
+        showCurrent() { const item = this.album[this.albumIndex]; if(item) { this.src = item.src; this.msgId = item.msgId; } },
+        prev() { if(this.albumIndex > 0) { this.albumIndex--; this.showCurrent(); } },
+        next() { if(this.albumIndex < this.album.length - 1) { this.albumIndex++; this.showCurrent(); } },
         closeLightbox() {
             if (this.$refs.lbVideo) { this.$refs.lbVideo.pause(); this.$refs.lbVideo.removeAttribute('src'); this.$refs.lbVideo.load(); }
-            this.src = null; this.isVideo = false; this.msgId = null;
+            this.src = null; this.isVideo = false; this.msgId = null; this.album = [];
         }
      }"
-     @open-lightbox.window="src = $event.detail.src; alt = $event.detail.alt || ''; isVideo = $event.detail.video || false; msgId = $event.detail.msgId || null"
+     @open-lightbox.window="openSingle($event.detail)"
+     @open-lightbox-album.window="openAlbum($event.detail)"
      x-show="src" x-cloak
      x-transition:enter="transition ease-out duration-200"
      x-transition:enter-start="opacity-0"
@@ -612,9 +621,11 @@ function toastManager() {
      x-transition:leave-end="opacity-0"
      @click="closeLightbox()"
      @keydown.escape.window="closeLightbox()"
+     @keydown.left.window="if(isAlbum) prev()"
+     @keydown.right.window="if(isAlbum) next()"
      class="lightbox-overlay">
     <div @click.stop style="position:absolute; top:16px; right:16px; display:flex; gap:8px; z-index:10;">
-        {{-- Download --}}
+        {{-- Download individual --}}
         <a x-show="!isVideo && msgId" x-bind:href="'/media/download/' + msgId" @click.stop
                 style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; text-decoration:none;"
                 onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
@@ -623,6 +634,17 @@ function toastManager() {
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
+        </a>
+        {{-- Download todas (álbum) --}}
+        <a x-show="isAlbum" :href="'/media/download-album?ids=' + album.map(a => a.msgId).join(',')" @click.stop
+           style="color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.06); border:none; cursor:pointer; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:6px; padding:0 12px; transition:all 0.15s; text-decoration:none; font-size:12px;"
+           onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white'"
+           onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.5)'"
+           title="Baixar todas">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span x-text="'ZIP (' + albumCount + ')'"></span>
         </a>
         {{-- Download vídeo --}}
         <a x-show="isVideo" :href="src" download @click.stop
@@ -643,6 +665,23 @@ function toastManager() {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
+    </div>
+    {{-- Album navigation: prev --}}
+    <button x-show="isAlbum && albumIndex > 0" @click.stop="prev()"
+            style="position:absolute; left:16px; top:50%; transform:translateY(-50%); z-index:10; width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; backdrop-filter:blur(4px);"
+            onmouseover="this.style.background='rgba(0,0,0,0.7)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    {{-- Album navigation: next --}}
+    <button x-show="isAlbum && albumIndex < albumCount - 1" @click.stop="next()"
+            style="position:absolute; right:16px; top:50%; transform:translateY(-50%); z-index:10; width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; backdrop-filter:blur(4px);"
+            onmouseover="this.style.background='rgba(0,0,0,0.7)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+    </button>
+    {{-- Album counter --}}
+    <div x-show="isAlbum" @click.stop
+         style="position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:10; background:rgba(0,0,0,0.6); color:white; padding:5px 16px; border-radius:20px; font-size:13px; font-weight:600; backdrop-filter:blur(4px);">
+        <span x-text="(albumIndex + 1) + ' / ' + albumCount"></span>
     </div>
     {{-- Imagem --}}
     <img x-show="!isVideo" :src="src" :alt="alt"
