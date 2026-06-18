@@ -279,6 +279,10 @@ class ConversationList extends Component
 
         $user = Auth::user();
         $phone = preg_replace('/\D/', '', $this->newConvPhone);
+        // Remove zero à esquerda do DDD (ex: 011... → 11...)
+        if (str_starts_with($phone, '0') && !str_starts_with($phone, '00')) {
+            $phone = substr($phone, 1);
+        }
         if (strlen($phone) <= 11 && !str_starts_with($phone, '55')) {
             $phone = '55' . $phone;
         }

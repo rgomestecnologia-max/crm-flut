@@ -126,6 +126,9 @@ class LeadController extends Controller
         // nos webhooks de resposta (ex: 5511999999999)
 
         $phone = preg_replace('/\D/', '', $data['phone']);
+        if (str_starts_with($phone, '0') && !str_starts_with($phone, '00')) {
+            $phone = substr($phone, 1);
+        }
         if (strlen($phone) < 8) {
             return response()->json(['error' => 'Telefone inválido: ' . $data['phone']], 422);
         }

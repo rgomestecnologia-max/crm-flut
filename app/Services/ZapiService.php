@@ -211,6 +211,11 @@ class ZapiService
         // Remove tudo que não é número
         $phone = preg_replace('/\D/', '', $phone);
 
+        // Remove zero à esquerda do DDD (ex: 011... → 11...)
+        if (str_starts_with($phone, '0') && !str_starts_with($phone, '00')) {
+            $phone = substr($phone, 1);
+        }
+
         // Adiciona DDI Brasil se não tiver (número com 10 ou 11 dígitos)
         if (strlen($phone) <= 11) {
             $phone = '55' . $phone;

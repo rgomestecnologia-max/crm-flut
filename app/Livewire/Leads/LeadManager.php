@@ -102,6 +102,9 @@ class LeadManager extends Component
         ]);
 
         $phone = preg_replace('/\D/', '', $this->phone);
+        if (str_starts_with($phone, '0') && !str_starts_with($phone, '00')) {
+            $phone = substr($phone, 1);
+        }
         if (strlen($phone) <= 11 && !str_starts_with($phone, '55')) {
             $phone = '55' . $phone;
         }
@@ -300,6 +303,9 @@ class LeadManager extends Component
 
             if (!$phone || strlen($phone) < 8) continue;
 
+            if (str_starts_with($phone, '0') && !str_starts_with($phone, '00')) {
+                $phone = substr($phone, 1);
+            }
             if (strlen($phone) <= 11 && !str_starts_with($phone, '55')) {
                 $phone = '55' . $phone;
             }

@@ -424,6 +424,9 @@ class ChatArea extends Component
 
         // Normaliza phone
         $realPhone = preg_replace('/\D/', '', preg_replace('/@.*/', '', $phone));
+        if (str_starts_with($realPhone, '0') && !str_starts_with($realPhone, '00')) {
+            $realPhone = substr($realPhone, 1);
+        }
         if (strlen($realPhone) <= 11 && !str_starts_with($realPhone, '55')) {
             $realPhone = '55' . $realPhone;
         }
