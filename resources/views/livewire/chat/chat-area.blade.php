@@ -243,8 +243,8 @@ function senderColor(?string $identifier): string {
 
     {{-- Group members panel (fora do header para não ser cortado) --}}
     @if($showGroupMembers && !empty($groupMembers))
-    <div class="group-members-panel" style="position:relative; z-index:50; max-height:70vh; overflow-y:auto; background:#0f1320; border-bottom:1px solid rgba(255,255,255,0.1); flex-shrink:0;">
-        <div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#0f1320; z-index:1;">
+    <div class="group-members-panel chat-popup" style="position:relative; z-index:50; max-height:70vh; overflow-y:auto; background:#0f1320; border-bottom:1px solid rgba(255,255,255,0.1); flex-shrink:0;">
+        <div class="chat-popup" style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#0f1320; z-index:1;">
             <span style="font-size:12px; font-weight:700; color:white;">Membros do grupo ({{ count($groupMembers) }})</span>
             <button wire:click="$set('showGroupMembers', false)" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.5); cursor:pointer; font-size:12px; padding:6px 12px; border-radius:8px;">Fechar</button>
         </div>
@@ -675,7 +675,7 @@ function senderColor(?string $identifier): string {
                         </button>
                         {{-- Popup reações acima --}}
                         <div x-show="showMenu === 'react'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; bottom:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
+                             class="chat-popup" style="position:absolute; bottom:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
                             @foreach(['👍','❤️','😂','😮','😢','🙏'] as $e)
                             <button wire:click="reactToMessage({{ $msg->id }}, '{{ $e }}')" @click="showMenu = false"
                                     style="font-size:18px; padding:3px 4px; border:none; background:transparent; border-radius:6px; cursor:pointer; transition:all 0.12s; line-height:1;"
@@ -685,7 +685,7 @@ function senderColor(?string $identifier): string {
                         </div>
                         {{-- Dropdown seta --}}
                         <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; top:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
+                             class="chat-popup" style="position:absolute; top:32px; left:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
                             <button wire:click="setReply({{ $msg->id }})" @click="showMenu = false"
                                     style="display:flex; align-items:center; gap:8px; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
                                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
@@ -1005,7 +1005,7 @@ function senderColor(?string $identifier): string {
                         </button>
                         {{-- Popup reações acima --}}
                         <div x-show="showMenu === 'react'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; bottom:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
+                             class="chat-popup" style="position:absolute; bottom:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.5); display:flex; gap:2px; white-space:nowrap;">
                             @foreach(['👍','❤️','😂','😮','😢','🙏'] as $e)
                             <button wire:click="reactToMessage({{ $msg->id }}, '{{ $e }}')" @click="showMenu = false"
                                     style="font-size:18px; padding:3px 4px; border:none; background:transparent; border-radius:6px; cursor:pointer; transition:all 0.12s; line-height:1;"
@@ -1015,7 +1015,7 @@ function senderColor(?string $identifier): string {
                         </div>
                         {{-- Dropdown seta --}}
                         <div x-show="showMenu === 'drop'" x-transition @click.outside="showMenu = true"
-                             style="position:absolute; top:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
+                             class="chat-popup" style="position:absolute; top:32px; right:0; z-index:20; background:rgba(17,24,39,0.97); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:4px 0; box-shadow:0 4px 16px rgba(0,0,0,0.5); width:fit-content; white-space:nowrap;">
                             <button wire:click="setReply({{ $msg->id }})" @click="showMenu = false; $nextTick(() => $dispatch('focus-message-input'))"
                                     style="display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:transparent; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.7); transition:background 0.1s;"
                                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
@@ -1437,7 +1437,8 @@ function senderColor(?string $identifier): string {
              x-transition:enter="transition ease-out duration-100"
              x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
              @click.outside="showEmoji=false"
-             :style="emojiPos ? `position:fixed; bottom:${emojiPos.bottom}px; right:${emojiPos.right}px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.7); padding:12px; width:min(300px, 90vw);` : 'position:fixed; bottom:80px; right:16px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.7); padding:12px; width:min(300px, 90vw);'">
+             class="chat-popup"
+             :style="emojiPos ? `position:fixed; bottom:${emojiPos.bottom}px; right:${emojiPos.right}px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.7); padding:12px; width:min(300px, 90vw);` : 'position:fixed; bottom:80px; right:16px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.7); padding:12px; width:min(300px, 90vw);'"
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                 <p style="font-size:9px; color:rgba(255,255,255,0.25); font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Emojis</p>
                 <button @click="showEmoji=false" style="color:rgba(255,255,255,0.2); background:transparent; border:none; cursor:pointer;">
@@ -1460,7 +1461,7 @@ function senderColor(?string $identifier): string {
         {{-- Mention dropdown (estilo WhatsApp) --}}
         @if($conversation->is_group)
         <div x-show="mentionOpen && mentionMembers.length > 0" x-cloak
-             style="background:#1a2c33; max-height:220px; overflow-y:auto; margin:0 -12px; padding:4px 0; border-top:1px solid rgba(255,255,255,0.06);">
+             class="chat-popup" style="background:#1a2c33; max-height:220px; overflow-y:auto; margin:0 -12px; padding:4px 0; border-top:1px solid rgba(255,255,255,0.06);">
             <template x-for="(m, i) in mentionMembers" :key="m.jid">
                 <div @mousedown.prevent="selectMention(m)"
                      :style="i === mentionIndex ? 'background:rgba(255,255,255,0.06);' : ''"
@@ -1491,7 +1492,8 @@ function senderColor(?string $identifier): string {
                 </button>
                 <template x-teleport="body">
                     <div x-show="open" x-transition @click.outside="open=false"
-                         :style="clipPos ? `position:fixed; bottom:${clipPos.bottom}px; left:${clipPos.left}px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;` : 'position:fixed; bottom:80px; left:80px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;'">
+                         class="chat-popup"
+                         :style="clipPos ? `position:fixed; bottom:${clipPos.bottom}px; left:${clipPos.left}px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;` : 'position:fixed; bottom:80px; left:80px; z-index:9999; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,0.7); overflow:hidden; width:160px;'"
                         <label style="display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background 0.15s;"
                                onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
                             <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24">
@@ -1531,11 +1533,11 @@ function senderColor(?string $identifier): string {
 
             {{-- Painel de respostas rápidas --}}
             @if($showQuickReplies)
-            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:250px; overflow:hidden; display:flex; flex-direction:column;">
+            <div class="chat-popup" style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:250px; overflow:hidden; display:flex; flex-direction:column;">
                 <div style="padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
                     <svg width="14" height="14" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     <input wire:model.live.debounce.200ms="quickReplySearch" type="text" placeholder="Buscar resposta rápida..."
-                           style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
+                           class="chat-popup-input" style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
                     <button wire:click="$set('showQuickReplies', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:14px;">✕</button>
                 </div>
                 <div style="overflow-y:auto; max-height:200px;">
@@ -1557,11 +1559,11 @@ function senderColor(?string $identifier): string {
 
             {{-- Painel de seleção de contato --}}
             @if($showContactPicker)
-            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(167,139,250,0.2); border-radius:12px; margin-bottom:6px; max-height:280px; overflow:hidden; display:flex; flex-direction:column;">
+            <div class="chat-popup" style="background:rgba(17,24,39,0.95); border:1px solid rgba(167,139,250,0.2); border-radius:12px; margin-bottom:6px; max-height:280px; overflow:hidden; display:flex; flex-direction:column;">
                 <div style="padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
                     <svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     <input wire:model.live.debounce.300ms="contactSearch" type="text" placeholder="Buscar lead por nome ou telefone..."
-                           style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
+                           class="chat-popup-input" style="flex:1; background:transparent; border:none; outline:none; font-size:12px; color:white; font-family:inherit;">
                     <button wire:click="$set('showContactPicker', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:14px;">✕</button>
                 </div>
                 <div style="overflow-y:auto; max-height:230px;">
@@ -1603,12 +1605,12 @@ function senderColor(?string $identifier): string {
 
             {{-- Painel de encaminhar mensagem --}}
             @if($showForwardPicker)
-            <div style="background:rgba(17,24,39,0.95); border:1px solid rgba(59,130,246,0.2); border-radius:12px; margin-bottom:6px; max-height:340px; overflow:hidden; display:flex; flex-direction:column;">
+            <div class="chat-popup" style="background:rgba(17,24,39,0.95); border:1px solid rgba(59,130,246,0.2); border-radius:12px; margin-bottom:6px; max-height:340px; overflow:hidden; display:flex; flex-direction:column;">
                 <div style="padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">
                     <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4m0 0L8 6m4-4v13"/></svg>
                     <span style="font-size:11px; font-weight:700; color:#60a5fa;">Enviar para</span>
                     <input wire:model.live.debounce.300ms="forwardSearch" type="text" placeholder="Pesquisar..."
-                           style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:4px 8px; outline:none; font-size:11px; color:white; font-family:inherit;">
+                           class="chat-popup-input" style="flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:4px 8px; outline:none; font-size:11px; color:white; font-family:inherit;">
                     <button wire:click="$set('showForwardPicker', false)" style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:14px;">✕</button>
                 </div>
                 <div style="overflow-y:auto; max-height:200px;">
@@ -1941,7 +1943,7 @@ function senderColor(?string $identifier): string {
 
         {{-- Respostas rápidas (carregadas via Alpine) --}}
         <div x-data="{ fcQrOpen: false, fcQrs: [] }" x-show="fcQrOpen" x-transition
-             style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:200px; overflow:hidden; display:flex; flex-direction:column;"
+             class="chat-popup" style="background:rgba(17,24,39,0.95); border:1px solid rgba(178,255,0,0.15); border-radius:12px; margin-bottom:6px; max-height:200px; overflow:hidden; display:flex; flex-direction:column;"
              x-ref="fcQrPanel">
             <div style="padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:6px;">
                 <svg width="12" height="12" fill="none" stroke="#b2ff00" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -1993,7 +1995,7 @@ function senderColor(?string $identifier): string {
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                 </button>
                 <div x-show="fcClip" x-transition @click.outside="fcClip=false"
-                     style="position:absolute; bottom:40px; left:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:4px 0; box-shadow:0 8px 30px rgba(0,0,0,0.5); width:150px;">
+                     class="chat-popup" style="position:absolute; bottom:40px; left:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:4px 0; box-shadow:0 8px 30px rgba(0,0,0,0.5); width:150px;">
                     <label style="display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.6);"
                            onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
                         <svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -2036,7 +2038,7 @@ function senderColor(?string $identifier): string {
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </button>
                 <div x-show="fcEmoji" x-transition @click.outside="fcEmoji=false"
-                     style="position:absolute; bottom:40px; right:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px; width:260px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+                     class="chat-popup" style="position:absolute; bottom:40px; right:0; z-index:50; background:#0f1320; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px; width:260px; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
                     <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:2px; max-height:160px; overflow-y:auto;">
                         @foreach(['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','🤗','🤩','👍','👎','👏','🙏','❤','🔥','✅','❌','⚠️','💯','✨','🎉','👀','💬','📱','💻','🚀'] as $emoji)
                         <button @click="const ta=document.getElementById('fc-reply-input'); const cur=ta.value||''; ta.value=cur+'{{ $emoji }}'; $wire.set('messageText', ta.value); fcEmoji=false; ta.focus()"

@@ -164,6 +164,31 @@ html.light .dash-date-sep {
     color: #667781 !important;
 }
 
+/* Light mode — chat popups, modals, dropdowns */
+html.light .chat-popup {
+    background: #ffffff !important;
+    border-color: #d1d7db !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
+}
+html.light .chat-popup button {
+    color: #111b21 !important;
+}
+html.light .chat-popup span {
+    color: #667781 !important;
+}
+html.light .chat-popup p {
+    color: #667781 !important;
+}
+html.light .chat-popup label {
+    color: #111b21 !important;
+}
+html.light .chat-popup label span {
+    color: #111b21 !important;
+}
+html.light .chat-popup-input {
+    color: #111b21 !important;
+}
+
 /* Light mode — borders */
 html.light [style*="border:1px solid rgba(255,255,255,0.06)"] { border-color: #e0e0e0 !important; }
 html.light [style*="border:1px solid rgba(255,255,255,0.08)"] { border-color: #d1d7db !important; }
