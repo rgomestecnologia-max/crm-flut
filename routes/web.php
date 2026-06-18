@@ -29,7 +29,9 @@ Route::get('/auth/meta/callback', function (\Illuminate\Http\Request $request) {
     \Log::info('Instagram callback recebido', ['code' => substr($request->query('code', ''), 0, 20) . '...']);
 
     $code = $request->query('code');
-    if (!$code) return redirect('/admin/meta-whatsapp')->with('error', 'Código não recebido.');
+    $redirectUrl = auth()->check() ? '/admin/whatsapp-api?tab=meta' : '/login';
+
+    if (!$code) return redirect($redirectUrl)->with('error', 'Código não recebido do Instagram.');
 
     try {
         // Troca code por short-lived token
@@ -47,7 +49,7 @@ Route::get('/auth/meta/callback', function (\Illuminate\Http\Request $request) {
 
         if (!$shortToken) {
             \Log::warning('Instagram OAuth: falha ao trocar code', ['response' => $data]);
-            return redirect('/admin/meta-whatsapp')->with('error', 'Falha ao obter token do Instagram.');
+            return redirect($redirectUrl)->with('error', 'Falha ao obter token do Instagram: ' . json_encode($data));
         }
 
         // Troca por long-lived token
@@ -58,12 +60,25 @@ Route::get('/auth/meta/callback', function (\Illuminate\Http\Request $request) {
         ]);
         $longToken = $longResp->json('access_token') ?? $shortToken;
 
+        // Salva token e Instagram Account ID na config da empresa
+        if (auth()->check()) {
+            $companyId = app(\App\Services\CurrentCompany::class)->id();
+            $metaConfig = \App\Models\MetaWhatsAppConfig::where('company_id', $companyId)->first();
+            if ($metaConfig) {
+                $metaConfig->update([
+                    'instagram_account_id' => (string) $igUserId,
+                    'instagram_enabled'    => true,
+                ]);
+                \Log::info('Instagram OAuth: config atualizada', ['company_id' => $companyId, 'ig_user_id' => $igUserId]);
+            }
+        }
+
         \Log::info('Instagram OAuth: token obtido', ['ig_user_id' => $igUserId]);
 
-        return redirect('/admin/meta-whatsapp')->with('success', 'Instagram conectado com sucesso! User ID: ' . $igUserId);
+        return redirect($redirectUrl)->with('success', 'Instagram conectado com sucesso! User ID: ' . $igUserId);
     } catch (\Throwable $e) {
         \Log::error('Instagram OAuth: erro', ['error' => $e->getMessage()]);
-        return redirect('/admin/meta-whatsapp')->with('error', 'Erro ao conectar Instagram: ' . $e->getMessage());
+        return redirect($redirectUrl)->with('error', 'Erro ao conectar Instagram: ' . $e->getMessage());
     }
 });
 
