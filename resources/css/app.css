@@ -235,6 +235,21 @@ html.light .conv-agent-name {
     color: #667781 !important;
 }
 
+/* Light mode — document/file cards inside chat messages */
+html.light .msg-doc-card {
+    background: rgba(0,0,0,0.04) !important;
+    border-color: rgba(0,0,0,0.1) !important;
+}
+html.light .msg-doc-card p {
+    color: #111b21 !important;
+}
+html.light .msg-doc-card button,
+html.light .msg-doc-card a {
+    color: #54656f !important;
+    background: rgba(0,0,0,0.05) !important;
+    border-color: rgba(0,0,0,0.1) !important;
+}
+
 /* Light mode — agent name inside sent message bubbles */
 html.light .msg-agent-name {
     color: #075e54 !important;

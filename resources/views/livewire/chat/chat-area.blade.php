@@ -581,7 +581,7 @@ function senderColor(?string $identifier): string {
                                 };
                             @endphp
                             <div x-data="{ pvOpen: false }" style="position:relative;">
-                                <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; padding:10px 14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(255,255,255,0.06);">
+                                <div class="msg-doc-card" style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; padding:10px 14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(255,255,255,0.06);">
                                     <div style="width:34px; height:34px; border-radius:8px; background:{{ $docColor }}1a; border:1px solid {{ $docColor }}33; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                         <svg width="16" height="16" fill="none" stroke="{{ $docColor }}" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -893,7 +893,7 @@ function senderColor(?string $identifier): string {
                                 };
                             @endphp
                             <div x-data="{ pvOpen: false }" style="position:relative;">
-                                <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; padding:10px 14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(45,74,8,0.6);">
+                                <div class="msg-doc-card" style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; padding:10px 14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(45,74,8,0.6);">
                                     <div style="width:34px; height:34px; border-radius:8px; background:rgba(178,255,0,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                         <svg width="16" height="16" fill="none" stroke="{{ $aDocColor }}" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
