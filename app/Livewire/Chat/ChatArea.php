@@ -1344,6 +1344,12 @@ class ChatArea extends Component
         $phone = $msg->sender_phone;
         $name  = $msg->sender_name;
 
+        // Valida que o telefone é um número real (não um LID do WhatsApp)
+        if (!$phone || !preg_match('/^55\d{10,11}$/', $phone)) {
+            $this->dispatch('toast', type: 'error', message: 'Não foi possível identificar o número real deste membro. Pode ser um contato com identificador interno (LID) do WhatsApp.');
+            return;
+        }
+
         // Busca ou cria o contato individual
         $contact = Contact::where('phone', $phone)->first();
         if (!$contact) {

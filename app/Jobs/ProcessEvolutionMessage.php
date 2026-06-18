@@ -78,9 +78,17 @@ class ProcessEvolutionMessage implements ShouldQueue
 
             // Remetente real
             $participantJid = $data['participant'] ?? $key['participant'] ?? null;
-            $senderPhone    = $participantJid
-                ? preg_replace('/\D/', '', preg_replace('/@.+/', '', $participantJid))
-                : $chatPhone;
+            if ($participantJid && str_contains($participantJid, '@lid')) {
+                // LID não é um telefone real — tenta buscar o remoteJidAlt ou o número via key
+                $altJid = $key['remoteJidAlt'] ?? $data['key']['remoteJidAlt'] ?? null;
+                $senderPhone = $altJid && str_contains($altJid, '@s.whatsapp.net')
+                    ? preg_replace('/\D/', '', preg_replace('/@.+/', '', $altJid))
+                    : null;
+            } else {
+                $senderPhone = $participantJid
+                    ? preg_replace('/\D/', '', preg_replace('/@.+/', '', $participantJid))
+                    : $chatPhone;
+            }
 
             $senderName = $data['pushName'] ?? null;
 
