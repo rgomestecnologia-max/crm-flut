@@ -257,6 +257,9 @@
             if ($currentCompanyId === 3 && ($counts['inactivity'] ?? 0) > 0) {
                 $tabs[] = ['key' => 'inactivity', 'label' => 'Inatividade', 'count' => $counts['inactivity'], 'color' => '#ef4444', 'activeBg' => 'rgba(239,68,68,0.12)', 'activeColor' => '#f87171'];
             }
+            if ($currentCompanyId === 3 && ($counts['closed'] ?? 0) > 0) {
+                $tabs[] = ['key' => 'closed', 'label' => 'Encerradas', 'count' => $counts['closed'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
+            }
             if (($counts['archived'] ?? 0) > 0) {
                 $tabs[] = ['key' => 'archived', 'label' => 'Arquivadas', 'count' => $counts['archived'], 'color' => '#6b7280', 'activeBg' => 'rgba(107,114,128,0.12)', 'activeColor' => '#9ca3af'];
             }

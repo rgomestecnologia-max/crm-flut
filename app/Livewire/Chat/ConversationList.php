@@ -396,6 +396,10 @@ class ConversationList extends Component
             'inactivity' => $query->where('status', 'resolved')
                 ->whereHas('messages', fn($q) => $q->where('sender_type', 'system')->where('content', 'like', '%encerramento inatividade%')),
 
+            // Encerradas (resolved por outros motivos — manual, chatbot, etc. — exceto inatividade)
+            'closed' => $query->where('status', 'resolved')
+                ->whereDoesntHave('messages', fn($q) => $q->where('sender_type', 'system')->where('content', 'like', '%encerramento inatividade%')),
+
             default    => null,
         };
 
@@ -456,6 +460,8 @@ class ConversationList extends Component
                 ->whereHas('messages', fn($q) => $q->where('sender_type', 'contact')->where('is_read', false))->count(),
             'inactivity' => (clone $baseQuery)->where('status', 'resolved')
                 ->whereHas('messages', fn($q) => $q->where('sender_type', 'system')->where('content', 'like', '%encerramento inatividade%'))->count(),
+            'closed' => (clone $baseQuery)->where('status', 'resolved')
+                ->whereDoesntHave('messages', fn($q) => $q->where('sender_type', 'system')->where('content', 'like', '%encerramento inatividade%'))->count(),
         ];
 
         $departments = Department::active()->orderBy('sort_order')->orderBy('name')->get();
