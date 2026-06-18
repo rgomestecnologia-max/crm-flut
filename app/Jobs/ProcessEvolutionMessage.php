@@ -450,12 +450,11 @@ class ProcessEvolutionMessage implements ShouldQueue
                         return;
                     }
 
-                    // Anti-duplicata: verifica se já existe conversa aberta deste contato
-                    // no mesmo departamento (qualquer instância) antes de criar nova
+                    // Anti-duplicata: verifica se já existe conversa deste contato
+                    // no mesmo departamento (qualquer instância, qualquer status) antes de criar nova
                     $existingInDept = Conversation::where('contact_id', $contact->id)
                         ->where('is_group', false)
                         ->where('department_id', $department->id)
-                        ->whereIn('status', ['open', 'pending', 'transferred'])
                         ->latest()
                         ->first();
 

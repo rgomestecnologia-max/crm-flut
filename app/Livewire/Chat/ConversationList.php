@@ -313,10 +313,11 @@ class ConversationList extends Component
         // Determina evolution_api_config_id
         $evoConfigId = $dept?->evolution_api_config_id ?? \App\Models\EvolutionApiConfig::first()?->id;
 
-        // Busca conversa existente para esse contato (qualquer status, incluindo resolvida)
+        // Anti-duplicata: busca conversa existente do contato no mesmo departamento
+        // (qualquer status, incluindo resolvida — reabre em vez de criar nova)
         $existingConv = Conversation::where('contact_id', $contact->id)
             ->where('is_group', false)
-            ->when($evoConfigId, fn($q) => $q->where('evolution_api_config_id', $evoConfigId))
+            ->where('department_id', $deptId)
             ->latest()
             ->first();
 
@@ -377,8 +378,8 @@ class ConversationList extends Component
             // Aguardando: conversas onde a IA pediu handoff (não arquivadas)
             'waiting'  => $query->where('is_archived', false)->whereNotNull('waiting_human_reason'),
 
-            // Todos: todas não arquivadas e não resolvidas
-            'all'      => $query->where('is_archived', false)->whereIn('status', ['open', 'pending', 'transferred']),
+            // Todos: todas não arquivadas (ativas + encerradas)
+            'all'      => $query->where('is_archived', false),
 
             // Arquivadas
             'archived' => $query->where('is_archived', true),
@@ -455,7 +456,7 @@ class ConversationList extends Component
                 ->whereNull('assigned_to')->whereIn('status', ['open', 'pending', 'transferred'])
                 ->count(),
             'waiting'  => (clone $baseQuery)->where('is_archived', false)->whereNotNull('waiting_human_reason')->count(),
-            'all'       => (clone $baseQuery)->where('is_archived', false)->whereIn('status', ['open', 'pending', 'transferred'])->count(),
+            'all'       => (clone $baseQuery)->where('is_archived', false)->count(),
             'archived'  => (clone $baseQuery)->where('is_archived', true)->count(),
             'messenger' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'messenger')->count(),
             'instagram' => (clone $baseQuery)->where('is_archived', false)->where('channel', 'instagram')->count(),
