@@ -264,11 +264,13 @@ function senderColor(?string $identifier): string {
                     @endif
                 </p>
             </div>
-            @if(!str_contains($member['jid'], '@g.us'))
-            <button wire:click="chatWithMember('{{ $member['jid'] }}')"
+            @if(!str_contains($member['jid'], '@g.us') && empty($member['is_lid']))
+            <button wire:click="chatWithMember('{{ $member['phone'] }}')"
                     style="flex-shrink:0; padding:6px 12px; font-size:10px; font-weight:600; color:#b2ff00; background:rgba(178,255,0,0.08); border:1px solid rgba(178,255,0,0.2); border-radius:6px; cursor:pointer;">
                 Conversar
             </button>
+            @elseif(!empty($member['is_lid']))
+            <span style="flex-shrink:0; padding:6px 12px; font-size:9px; color:rgba(255,255,255,0.25);">LID</span>
             @endif
         </div>
         @endforeach

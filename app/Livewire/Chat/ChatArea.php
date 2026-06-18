@@ -358,6 +358,7 @@ class ChatArea extends Component
 
             foreach ($participants as $p) {
                 $jid = $p['id'] ?? '';
+                $isLid = str_contains($jid, '@lid');
                 $phone = preg_replace('/@.*/', '', $jid);
                 $role = $p['admin'] ?? 'member';
 
@@ -371,7 +372,25 @@ class ChatArea extends Component
 
                 if ($contactInfo) {
                     $name = $contactInfo->name;
-                    $phone = $contactInfo->phone;
+                    // Se o contato tem um phone real, usar em vez do LID
+                    if ($contactInfo->phone && preg_match('/^55\d{10,11}$/', $contactInfo->phone)) {
+                        $phone = $contactInfo->phone;
+                        $isLid = false;
+                    }
+                }
+
+                // Se ainda é LID, tentar resolver via Evolution API
+                if ($isLid && $config) {
+                    try {
+                        $resolved = $http->post($config->serverUrl() . "/chat/findContacts/{$config->instance_name}", [
+                            'where' => ['id' => $jid],
+                        ])->json();
+                        $resolvedId = $resolved[0]['id'] ?? null;
+                        if ($resolvedId && str_contains($resolvedId, '@s.whatsapp.net')) {
+                            $phone = preg_replace('/\D/', '', preg_replace('/@.*/', '', $resolvedId));
+                            $isLid = false;
+                        }
+                    } catch (\Throwable) {}
                 }
 
                 // Try pushName from messages
@@ -388,6 +407,7 @@ class ChatArea extends Component
                     'phone' => $phone,
                     'name'  => $name ?: $phone,
                     'role'  => $role,
+                    'is_lid' => $isLid,
                 ];
             }
 
@@ -406,6 +426,12 @@ class ChatArea extends Component
         $realPhone = preg_replace('/\D/', '', preg_replace('/@.*/', '', $phone));
         if (strlen($realPhone) <= 11 && !str_starts_with($realPhone, '55')) {
             $realPhone = '55' . $realPhone;
+        }
+
+        // Valida que não é um LID
+        if (!preg_match('/^55\d{10,11}$/', $realPhone)) {
+            $this->dispatch('toast', type: 'error', message: 'Não foi possível identificar o número real deste membro.');
+            return;
         }
 
         // Busca ou cria contato
