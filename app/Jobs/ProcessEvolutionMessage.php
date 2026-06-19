@@ -657,6 +657,12 @@ class ProcessEvolutionMessage implements ShouldQueue
                 if ($quotedMsg) $replyToId = $quotedMsg->id;
             }
 
+            // ── Se agente respondeu pelo WhatsApp, marca ANTES de criar a mensagem ──
+            // (evita race condition com workers paralelos processando a resposta do cliente)
+            if ($fromMe && !$isGroup && !$conversation->waiting_human_reason) {
+                $conversation->update(['waiting_human_reason' => 'Atendente respondeu pelo WhatsApp']);
+            }
+
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_type'     => $senderType,
@@ -817,6 +823,9 @@ class ProcessEvolutionMessage implements ShouldQueue
             }
 
             // ── Bot de atendimento ────────────────────────────────────────────
+            // Delay para evitar race condition com workers paralelos
+            // (agente responde pelo WhatsApp e cliente responde quase ao mesmo tempo)
+            usleep(500000); // 500ms
             // Recarrega conversa do banco para pegar waiting_human_reason atualizado
             $conversation->refresh();
             // Não dispara IA se conversa está aguardando atendente humano
@@ -826,11 +835,27 @@ class ProcessEvolutionMessage implements ShouldQueue
                 ->where('content', 'like', 'Atendimento encerrado%')
                 ->latest()
                 ->value('created_at');
-            $humanSent = Message::where('conversation_id', $conversation->id)
+            // Checa mensagens de agentes via CRM (sender_id preenchido)
+            $humanSentCrm = Message::where('conversation_id', $conversation->id)
                 ->where('sender_type', 'agent')
                 ->whereNotNull('sender_id')
                 ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
                 ->exists();
+            // Checa mensagens de agentes via WhatsApp direto (sender_id null, últimos 30min)
+            // Exclui mensagens de bot/URA que também têm sender_id null
+            $humanSentWhatsApp = Message::where('conversation_id', $conversation->id)
+                ->where('sender_type', 'agent')
+                ->whereNull('sender_id')
+                ->where('created_at', '>=', now()->subMinutes(30))
+                ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
+                ->where(function ($q) {
+                    $q->where('content', 'not like', '%Seja muito bem-vindo%')
+                      ->where('content', 'not like', '%Digite o número do setor%')
+                      ->where('content', 'not like', '%Direcionando você para%')
+                      ->where('content', 'not like', '%Perfeito! Direcionando%');
+                })
+                ->exists();
+            $humanSent = $humanSentCrm || $humanSentWhatsApp;
             if (!$fromMe && !$conversation->waiting_human_reason && !$humanSent) {
                 try {
                     $menuConfig = ChatbotMenuConfig::current();
