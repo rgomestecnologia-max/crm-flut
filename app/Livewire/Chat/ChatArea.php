@@ -234,7 +234,7 @@ class ChatArea extends Component
     public function loadMoreMessages(): void
     {
         $this->messageLimit += 100;
-        $this->dispatch('restore-scroll-position');
+        $this->dispatch('scroll-to-bottom');
     }
 
     public function loadConversation(int $id): void
