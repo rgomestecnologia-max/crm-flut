@@ -42,8 +42,9 @@ COPY . .
 # Finaliza instalação do Composer (scripts, auto-discover)
 RUN composer dump-autoload --optimize
 
-# Permissões do storage + diretório temporário do Livewire
-RUN mkdir -p storage/app/livewire-tmp \
+# Permissões do storage + diretório temporário do Livewire + log
+RUN mkdir -p storage/app/livewire-tmp storage/logs \
+    && touch storage/logs/laravel.log \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
