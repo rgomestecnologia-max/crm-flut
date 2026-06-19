@@ -10,6 +10,7 @@ function senderColor(?string $identifier): string {
      x-data="chatArea()"
      x-init="init()"
      @scroll-to-bottom.window="scrollToBottom(true)"
+     @restore-scroll-position.window="restoreScroll()"
      x-on:dragover.prevent
      x-on:drop.prevent
      x-on:livewire-upload-error="$dispatch('toast', { type: 'error', message: 'Erro no upload. Verifique o tamanho (máx 25MB).' })"
@@ -2204,47 +2205,34 @@ function chatArea() {
             this._shouldAutoScroll = true;
             this.$nextTick(() => this.scrollToBottom(false));
 
-            // Fallback: hook do Livewire para restaurar scroll após morph completo
-            const self = this;
-            Livewire.hook('morph.updated', ({ component }) => {
-                if (self._preserveScroll) {
-                    requestAnimationFrame(() => {
-                        const c = self.$refs.msgContainer;
-                        if (c && self._preserveScroll) {
-                            const diff = c.scrollHeight - self._savedScrollHeight;
-                            c.scrollTop = self._savedScrollTop + diff;
-                        }
-                        self._preserveScroll = false;
-                        clearTimeout(self._preserveScrollTimer);
-                    });
-                }
-            });
-
-            // MutationObserver: detecta quando mensagens são renderizadas no DOM
+            // MutationObserver: apenas para auto-scroll de novas mensagens
             this.$nextTick(() => {
                 const container = this.$refs.msgContainer;
                 if (container) {
                     this._observer = new MutationObserver(() => {
-                        if (this._preserveScroll) {
-                            // Debounce: espera o Livewire terminar de morphar o DOM antes de restaurar scroll
-                            clearTimeout(this._preserveScrollTimer);
-                            this._preserveScrollTimer = setTimeout(() => {
-                                const c = this.$refs.msgContainer;
-                                if (c && this._preserveScroll) {
-                                    const diff = c.scrollHeight - this._savedScrollHeight;
-                                    c.scrollTop = this._savedScrollTop + diff;
-                                }
-                                this._preserveScroll = false;
-                            }, 150);
-                        } else if (this._shouldAutoScroll) {
+                        if (this._preserveScroll) return; // Não interferir durante load-more
+                        if (this._shouldAutoScroll) {
                             this.scrollToBottom(false);
-                            // Para de auto-scroll após 2s (usuário pode querer ler mensagens antigas)
                             clearTimeout(this._scrollTimer);
                             this._scrollTimer = setTimeout(() => { this._shouldAutoScroll = false; }, 2000);
                         }
                     });
                     this._observer.observe(container, { childList: true, subtree: true });
                 }
+            });
+        },
+
+        // Chamado pelo evento Livewire 'restore-scroll-position' APÓS o DOM ser atualizado
+        restoreScroll() {
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    const c = this.$refs.msgContainer;
+                    if (c && this._preserveScroll) {
+                        const diff = c.scrollHeight - this._savedScrollHeight;
+                        c.scrollTop = this._savedScrollTop + diff;
+                    }
+                    this._preserveScroll = false;
+                }, 50);
             });
         },
 
