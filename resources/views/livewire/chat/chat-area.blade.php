@@ -376,7 +376,7 @@ function senderColor(?string $identifier): string {
         @if($hasOlderMessages)
             <div style="display:flex; justify-content:center; padding:8px 0 12px;">
                 <button wire:click="loadMoreMessages" wire:loading.attr="disabled"
-                    x-on:click="let c = $refs.msgContainer; if(c){ _preserveScroll=true; _savedScrollHeight=c.scrollHeight; _savedScrollTop=c.scrollTop; }"
+                    onclick="let c=document.getElementById('messages-container'); if(c){ window.__scrollRestore={h:c.scrollHeight,t:c.scrollTop}; }"
                     style="background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.3); color:rgba(178,255,0,0.9); font-size:12px; font-weight:600; padding:6px 20px; border-radius:20px; cursor:pointer; transition:all 0.2s;"
                     onmouseover="this.style.background='rgba(178,255,0,0.2)'" onmouseout="this.style.background='rgba(178,255,0,0.1)'">
                     <span wire:loading.remove wire:target="loadMoreMessages">&#8593; Carregar mensagens anteriores</span>
@@ -2164,10 +2164,6 @@ function chatArea() {
         _observer: null,
         _drafts: {},
         _currentConvId: null,
-        _preserveScroll: false,
-        _savedScrollHeight: 0,
-        _savedScrollTop: 0,
-        _preserveScrollTimer: null,
 
         init() {
             this._currentConvId = this.$wire.conversationId;
@@ -2207,10 +2203,10 @@ function chatArea() {
 
             // MutationObserver: apenas para auto-scroll de novas mensagens
             this.$nextTick(() => {
-                const container = this.$refs.msgContainer;
+                const container = document.getElementById('messages-container');
                 if (container) {
                     this._observer = new MutationObserver(() => {
-                        if (this._preserveScroll) return; // Não interferir durante load-more
+                        if (window.__scrollRestore) return; // Não interferir durante load-more
                         if (this._shouldAutoScroll) {
                             this.scrollToBottom(false);
                             clearTimeout(this._scrollTimer);
@@ -2226,13 +2222,14 @@ function chatArea() {
         restoreScroll() {
             this.$nextTick(() => {
                 setTimeout(() => {
-                    const c = this.$refs.msgContainer;
-                    if (c && this._preserveScroll) {
-                        const diff = c.scrollHeight - this._savedScrollHeight;
-                        c.scrollTop = this._savedScrollTop + diff;
+                    const c = document.getElementById('messages-container');
+                    const saved = window.__scrollRestore;
+                    if (c && saved) {
+                        const diff = c.scrollHeight - saved.h;
+                        c.scrollTop = saved.t + diff;
                     }
-                    this._preserveScroll = false;
-                }, 50);
+                    window.__scrollRestore = null;
+                }, 100);
             });
         },
 
