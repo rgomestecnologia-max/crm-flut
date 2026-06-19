@@ -2166,6 +2166,7 @@ function chatArea() {
         _preserveScroll: false,
         _savedScrollHeight: 0,
         _savedScrollTop: 0,
+        _preserveScrollTimer: null,
 
         init() {
             this._currentConvId = this.$wire.conversationId;
@@ -2203,18 +2204,38 @@ function chatArea() {
             this._shouldAutoScroll = true;
             this.$nextTick(() => this.scrollToBottom(false));
 
+            // Fallback: hook do Livewire para restaurar scroll após morph completo
+            const self = this;
+            Livewire.hook('morph.updated', ({ component }) => {
+                if (self._preserveScroll) {
+                    requestAnimationFrame(() => {
+                        const c = self.$refs.msgContainer;
+                        if (c && self._preserveScroll) {
+                            const diff = c.scrollHeight - self._savedScrollHeight;
+                            c.scrollTop = self._savedScrollTop + diff;
+                        }
+                        self._preserveScroll = false;
+                        clearTimeout(self._preserveScrollTimer);
+                    });
+                }
+            });
+
             // MutationObserver: detecta quando mensagens são renderizadas no DOM
             this.$nextTick(() => {
                 const container = this.$refs.msgContainer;
                 if (container) {
                     this._observer = new MutationObserver(() => {
                         if (this._preserveScroll) {
-                            const container = this.$refs.msgContainer;
-                            if (container) {
-                                const diff = container.scrollHeight - this._savedScrollHeight;
-                                container.scrollTop = this._savedScrollTop + diff;
-                            }
-                            this._preserveScroll = false;
+                            // Debounce: espera o Livewire terminar de morphar o DOM antes de restaurar scroll
+                            clearTimeout(this._preserveScrollTimer);
+                            this._preserveScrollTimer = setTimeout(() => {
+                                const c = this.$refs.msgContainer;
+                                if (c && this._preserveScroll) {
+                                    const diff = c.scrollHeight - this._savedScrollHeight;
+                                    c.scrollTop = this._savedScrollTop + diff;
+                                }
+                                this._preserveScroll = false;
+                            }, 150);
                         } else if (this._shouldAutoScroll) {
                             this.scrollToBottom(false);
                             // Para de auto-scroll após 2s (usuário pode querer ler mensagens antigas)
