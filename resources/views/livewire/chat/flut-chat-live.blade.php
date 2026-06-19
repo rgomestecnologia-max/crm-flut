@@ -1,4 +1,4 @@
-<div style="display:flex; height:100%; overflow:hidden;" @if($activeConversationId) wire:poll.10s @endif>
+<div style="display:flex; height:100%; overflow:hidden;" @if($activeConversationId) wire:poll.30s.visible @endif>
     {{-- Lista de conversas --}}
     <div style="width:300px; flex-shrink:0; border-right:1px solid rgba(255,255,255,0.06); overflow-y:auto; background:rgba(8,12,22,0.5);">
         <div style="padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.06);">
