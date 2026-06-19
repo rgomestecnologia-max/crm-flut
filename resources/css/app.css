@@ -255,6 +255,11 @@ html.light .msg-agent-name {
     color: #075e54 !important;
 }
 
+/* Light mode — chat empty state (selecione uma conversa) */
+html.light .chat-empty-state {
+    background: #efeae2 !important;
+}
+
 /* Light mode — generic hover-safe buttons (prevents white-on-white) */
 html.light .hover-light-safe {
     color: #667781 !important;
