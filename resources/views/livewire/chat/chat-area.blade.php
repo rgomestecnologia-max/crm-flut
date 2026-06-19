@@ -10,6 +10,7 @@ function senderColor(?string $identifier): string {
      x-data="chatArea()"
      x-init="init()"
      @scroll-to-bottom.window="scrollToBottom(true)"
+     @scroll-to-message.window="$nextTick(() => { setTimeout(() => { const el = document.getElementById('msg-' + $event.detail.id); if(el) el.scrollIntoView({behavior:'instant', block:'start'}); }, 50); })"
      x-on:dragover.prevent
      x-on:drop.prevent
      x-on:livewire-upload-error="$dispatch('toast', { type: 'error', message: 'Erro no upload. Verifique o tamanho (máx 25MB).' })"

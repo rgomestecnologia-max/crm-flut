@@ -233,8 +233,19 @@ class ChatArea extends Component
 
     public function loadMoreMessages(): void
     {
+        // Guarda o ID da mensagem mais antiga atualmente visível (será a âncora do scroll)
+        $oldestVisibleId = Message::where('conversation_id', $this->conversationId)
+            ->orderBy('created_at', 'desc')
+            ->take($this->messageLimit)
+            ->get()
+            ->last()?->id;
+
         $this->messageLimit += 100;
-        $this->dispatch('scroll-to-bottom');
+
+        // Após o wire:key substituir o container, rola até a mensagem âncora
+        if ($oldestVisibleId) {
+            $this->dispatch('scroll-to-message', id: $oldestVisibleId);
+        }
     }
 
     public function loadConversation(int $id): void
