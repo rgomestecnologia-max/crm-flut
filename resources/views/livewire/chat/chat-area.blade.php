@@ -10,7 +10,6 @@ function senderColor(?string $identifier): string {
      x-data="chatArea()"
      x-init="init()"
      @scroll-to-bottom.window="scrollToBottom(true)"
-     @restore-scroll-position.window="restoreScroll()"
      x-on:dragover.prevent
      x-on:drop.prevent
      x-on:livewire-upload-error="$dispatch('toast', { type: 'error', message: 'Erro no upload. Verifique o tamanho (máx 25MB).' })"
@@ -369,6 +368,7 @@ function senderColor(?string $identifier): string {
         </div>
         {{-- Messages (scrollável) --}}
         <div class="overflow-y-auto" x-ref="msgContainer" id="messages-container"
+             wire:key="msgs-{{ $messageLimit }}"
              style="position:absolute; inset:0; padding:20px 16px; display:flex; flex-direction:column; gap:6px; overflow-x:hidden;
                     background: radial-gradient(ellipse at 20% 0%, rgba(178,255,0,0.02) 0%, transparent 60%),
                                 radial-gradient(ellipse at 80% 100%, rgba(178,255,0,0.015) 0%, transparent 60%);
@@ -376,7 +376,6 @@ function senderColor(?string $identifier): string {
         @if($hasOlderMessages)
             <div style="display:flex; justify-content:center; padding:8px 0 12px;">
                 <button wire:click="loadMoreMessages" wire:loading.attr="disabled"
-                    onclick="let c=document.getElementById('messages-container'); if(c){ window.__scrollRestore={h:c.scrollHeight,t:c.scrollTop}; }"
                     style="background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.3); color:rgba(178,255,0,0.9); font-size:12px; font-weight:600; padding:6px 20px; border-radius:20px; cursor:pointer; transition:all 0.2s;"
                     onmouseover="this.style.background='rgba(178,255,0,0.2)'" onmouseout="this.style.background='rgba(178,255,0,0.1)'">
                     <span wire:loading.remove wire:target="loadMoreMessages">&#8593; Carregar mensagens anteriores</span>
@@ -2206,7 +2205,6 @@ function chatArea() {
                 const container = document.getElementById('messages-container');
                 if (container) {
                     this._observer = new MutationObserver(() => {
-                        if (window.__scrollRestore) return; // Não interferir durante load-more
                         if (this._shouldAutoScroll) {
                             this.scrollToBottom(false);
                             clearTimeout(this._scrollTimer);
@@ -2215,21 +2213,6 @@ function chatArea() {
                     });
                     this._observer.observe(container, { childList: true, subtree: true });
                 }
-            });
-        },
-
-        // Chamado pelo evento Livewire 'restore-scroll-position' APÓS o DOM ser atualizado
-        restoreScroll() {
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    const c = document.getElementById('messages-container');
-                    const saved = window.__scrollRestore;
-                    if (c && saved) {
-                        const diff = c.scrollHeight - saved.h;
-                        c.scrollTop = saved.t + diff;
-                    }
-                    window.__scrollRestore = null;
-                }, 100);
             });
         },
 
