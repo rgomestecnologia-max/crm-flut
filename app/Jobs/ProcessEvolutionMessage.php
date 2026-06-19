@@ -823,9 +823,6 @@ class ProcessEvolutionMessage implements ShouldQueue
             }
 
             // ── Bot de atendimento ────────────────────────────────────────────
-            // Delay para evitar race condition com workers paralelos
-            // (agente responde pelo WhatsApp e cliente responde quase ao mesmo tempo)
-            usleep(500000); // 500ms
             // Recarrega conversa do banco para pegar waiting_human_reason atualizado
             $conversation->refresh();
             // Não dispara IA se conversa está aguardando atendente humano
