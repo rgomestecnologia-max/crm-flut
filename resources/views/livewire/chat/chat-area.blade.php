@@ -375,6 +375,7 @@ function senderColor(?string $identifier): string {
         @if($hasOlderMessages)
             <div style="display:flex; justify-content:center; padding:8px 0 12px;">
                 <button wire:click="loadMoreMessages" wire:loading.attr="disabled"
+                    x-on:click="let c = $refs.msgContainer; if(c){ _preserveScroll=true; _savedScrollHeight=c.scrollHeight; _savedScrollTop=c.scrollTop; }"
                     style="background:rgba(178,255,0,0.1); border:1px solid rgba(178,255,0,0.3); color:rgba(178,255,0,0.9); font-size:12px; font-weight:600; padding:6px 20px; border-radius:20px; cursor:pointer; transition:all 0.2s;"
                     onmouseover="this.style.background='rgba(178,255,0,0.2)'" onmouseout="this.style.background='rgba(178,255,0,0.1)'">
                     <span wire:loading.remove wire:target="loadMoreMessages">&#8593; Carregar mensagens anteriores</span>
@@ -2162,6 +2163,9 @@ function chatArea() {
         _observer: null,
         _drafts: {},
         _currentConvId: null,
+        _preserveScroll: false,
+        _savedScrollHeight: 0,
+        _savedScrollTop: 0,
 
         init() {
             this._currentConvId = this.$wire.conversationId;
@@ -2204,7 +2208,14 @@ function chatArea() {
                 const container = this.$refs.msgContainer;
                 if (container) {
                     this._observer = new MutationObserver(() => {
-                        if (this._shouldAutoScroll) {
+                        if (this._preserveScroll) {
+                            const container = this.$refs.msgContainer;
+                            if (container) {
+                                const diff = container.scrollHeight - this._savedScrollHeight;
+                                container.scrollTop = this._savedScrollTop + diff;
+                            }
+                            this._preserveScroll = false;
+                        } else if (this._shouldAutoScroll) {
                             this.scrollToBottom(false);
                             // Para de auto-scroll após 2s (usuário pode querer ler mensagens antigas)
                             clearTimeout(this._scrollTimer);
