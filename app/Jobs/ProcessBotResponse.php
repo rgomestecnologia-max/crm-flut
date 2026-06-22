@@ -716,7 +716,7 @@ class ProcessBotResponse implements ShouldQueue
         $content = preg_replace('/\[DOC:\s*https?:\/\/[^\]]+\]/i', '', $content);
         $content = preg_replace('/\[HANDOFF\]/i', '', $content);
         $content = preg_replace('/\[FIELD:[^\]=]+=[^\]]+\]/i', '', $content);
-        $content = preg_replace('/\[PROPOSTA:\{[^\]]*\}\]/i', '', $content);
+        $content = preg_replace('/\[PROPOSTA:\{.*?\}\]/s', '', $content);
         // Remove links Markdown [texto](url) → mantém só a URL
         $content = preg_replace('/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/', '$2', $content);
         return trim($content);
@@ -728,7 +728,7 @@ class ProcessBotResponse implements ShouldQueue
      */
     private function processPropostaTag(string $content): ?string
     {
-        if (!preg_match('/\[PROPOSTA:(\{[^\]]+\})\]/i', $content, $m)) {
+        if (!preg_match('/\[PROPOSTA:(\{.*?\})\]/s', $content, $m)) {
             return null;
         }
 
