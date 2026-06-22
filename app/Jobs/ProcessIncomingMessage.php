@@ -430,6 +430,29 @@ class ProcessIncomingMessage implements ShouldQueue
         } elseif (!empty($payload['sticker']['stickerUrl'])) {
             $mediaUrl = $payload['sticker']['stickerUrl'];
             $type     = 'sticker';
+        } elseif (!empty($payload['contactMessage'])) {
+            $name  = $payload['contactMessage']['displayName'] ?? 'Contato';
+            $vcard = $payload['contactMessage']['vcard'] ?? '';
+            $phone = '';
+            if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
+                $phone = trim($tm[1]);
+            }
+            $content = "📇 *{$name}*" . ($phone ? "\n📱 {$phone}" : '');
+            $type    = 'text';
+        } elseif (!empty($payload['contactsArrayMessage'])) {
+            $contacts = $payload['contactsArrayMessage']['contacts'] ?? [];
+            $lines = [];
+            foreach ($contacts as $c) {
+                $name  = $c['displayName'] ?? 'Contato';
+                $vcard = $c['vcard'] ?? '';
+                $phone = '';
+                if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
+                    $phone = trim($tm[1]);
+                }
+                $lines[] = "📇 *{$name}*" . ($phone ? " — {$phone}" : '');
+            }
+            $content = implode("\n", $lines);
+            $type    = 'text';
         }
 
         return [$content, $type, $mediaUrl, $mediaFilename];
