@@ -846,10 +846,20 @@ class ProcessEvolutionMessage implements ShouldQueue
                 ->where('created_at', '>=', now()->subMinutes(30))
                 ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
                 ->where(function ($q) {
+                    // Padrões de URA/menu
                     $q->where('content', 'not like', '%Seja muito bem-vindo%')
                       ->where('content', 'not like', '%Digite o número do setor%')
                       ->where('content', 'not like', '%Direcionando você para%')
-                      ->where('content', 'not like', '%Perfeito! Direcionando%');
+                      ->where('content', 'not like', '%Perfeito! Direcionando%')
+                      // Padrões de saudação da IA pós-menu
+                      ->where('content', 'not like', '%Em que posso te ajudar%')
+                      ->where('content', 'not like', '%como posso te ajudar%')
+                      ->where('content', 'not like', '%posso ajudar%')
+                      // Mensagem fora do horário
+                      ->where('content', 'not like', '%horário de atendimento%')
+                      ->where('content', 'not like', '%fora do horário%')
+                      // Mensagem de transferência multi-número
+                      ->where('content', 'not like', '%número exclusivo desse setor%');
                 })
                 ->exists();
             $humanSent = $humanSentCrm || $humanSentWhatsApp;
