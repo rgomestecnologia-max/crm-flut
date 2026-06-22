@@ -838,9 +838,11 @@ class ProcessEvolutionMessage implements ShouldQueue
                 ->whereNotNull('sender_id')
                 ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
                 ->exists();
-            // Se o menu está ativo (aguardando seleção) ou já concluído nesta sessão,
-            // mensagens agent+sender_id=null são do bot/IA/URA — não de humano.
-            $menuActive = $conversation->menu_awaiting
+            // Se a empresa tem bot/IA ativo ou menu URA, mensagens agent+sender_id=null
+            // são do bot — não de humano via WhatsApp. Só verifica humanSentWhatsApp
+            // quando NÃO tem bot ativo (empresa sem IA).
+            $hasBotOrMenu = $conversation->menu_awaiting
+                || AiBotConfig::where('is_active', true)->whereNotNull('model')->exists()
                 || Message::where('conversation_id', $conversation->id)
                     ->where('sender_type', 'system')
                     ->where('content', 'like', 'Menu: cliente selecionou%')
@@ -848,7 +850,7 @@ class ProcessEvolutionMessage implements ShouldQueue
                     ->exists();
 
             $humanSentWhatsApp = false;
-            if (!$menuActive) {
+            if (!$hasBotOrMenu) {
                 // Checa mensagens de agentes via WhatsApp direto (sender_id null, últimos 30min)
                 $humanSentWhatsApp = Message::where('conversation_id', $conversation->id)
                     ->where('sender_type', 'agent')
