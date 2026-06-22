@@ -1211,6 +1211,29 @@ class ChatArea extends Component
         // Sincronizar título dos cards do CRM
         \App\Models\CrmCard::where('contact_id', $contact->id)->update(['title' => $name]);
 
+        // Auto-mover para etapa Mensalistas se nome contém "mensalista"
+        if (stripos($name, 'mensalista') !== false) {
+            $mensalistaStage = \App\Models\CrmStage::whereHas('pipeline', fn($q) => $q->where('name', 'Vendas'))
+                ->where('name', 'Mensalistas')->first();
+            if ($mensalistaStage) {
+                $cards = \App\Models\CrmCard::where('contact_id', $contact->id)->get();
+                foreach ($cards as $card) {
+                    if ($card->stage_id !== $mensalistaStage->id) {
+                        $oldStage = $card->stage?->name ?? '—';
+                        $card->update([
+                            'stage_id'    => $mensalistaStage->id,
+                            'pipeline_id' => $mensalistaStage->pipeline_id,
+                        ]);
+                        \App\Models\CrmCardActivity::create([
+                            'card_id' => $card->id,
+                            'type'    => 'stage_change',
+                            'content' => "Mensalista detectado: {$oldStage} → Mensalistas",
+                        ]);
+                    }
+                }
+            }
+        }
+
         $this->conversation->refresh();
         $this->dispatch('toast', type: 'success', message: 'Nome atualizado.');
     }
