@@ -253,6 +253,11 @@ class ChatArea extends Component
         $this->messageLimit = 100; // Reset ao trocar de conversa
         $this->flutChatConvId = null; // Sai do modo FlutChat
         $user = Auth::user();
+
+        // Garante que CurrentCompany está setado (proteção contra sessão intermitente em Livewire)
+        if ($user?->company_id && !app(\App\Services\CurrentCompany::class)->check()) {
+            app(\App\Services\CurrentCompany::class)->set((int) $user->company_id);
+        }
         $conv = Conversation::with(['contact', 'department', 'assignedAgent'])->find($id);
 
         if (!$conv) return;
@@ -1655,6 +1660,14 @@ class ChatArea extends Component
 
     public function render()
     {
+        // Garante que CurrentCompany está setado (proteção contra sessão intermitente em Livewire)
+        if (!app(\App\Services\CurrentCompany::class)->check()) {
+            $user = Auth::user();
+            if ($user?->company_id) {
+                app(\App\Services\CurrentCompany::class)->set((int) $user->company_id);
+            }
+        }
+
         $messages       = [];
         $quickReplies   = [];
         $departments    = [];
