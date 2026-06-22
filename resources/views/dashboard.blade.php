@@ -68,6 +68,9 @@
             <div style="margin-top:16px;">
                 <livewire:dashboard.agent-ddd-report />
             </div>
+            <div style="margin-top:16px;">
+                <livewire:dashboard.agent-activity-report />
+            </div>
             @endif
             @endif
         </div>
