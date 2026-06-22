@@ -51,7 +51,7 @@ class CrmCardsExport implements FromCollection, WithHeadings, WithMapping, Shoul
 
     public function headings(): array
     {
-        $base = ['ID', 'Pipeline', 'Etapa', 'Título', 'Contato', 'Telefone', 'E-mail', 'Responsável', 'Prioridade', 'Criado em'];
+        $base = ['ID', 'Pipeline', 'Etapa', 'Título', 'Contato', 'Telefone', 'E-mail', 'Responsável', 'Prioridade', 'Criado em', 'Mês'];
 
         foreach ($this->customFields as $field) {
             $base[] = $field->name;
@@ -73,6 +73,7 @@ class CrmCardsExport implements FromCollection, WithHeadings, WithMapping, Shoul
             $card->assignedTo?->name ?? '',
             $card->priority_label ?? '',
             $card->created_at?->format('d/m/Y H:i') ?? '',
+            $card->created_at ? ucfirst($card->created_at->translatedFormat('F/Y')) : '',
         ];
 
         foreach ($this->customFields as $field) {
