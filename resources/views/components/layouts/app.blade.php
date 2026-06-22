@@ -574,7 +574,7 @@
     </aside>
 
     {{-- MAIN CONTENT --}}
-    <main style="flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column;">
+    <main style="flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column;">
         {{ $slot }}
     </main>
     </div>{{-- /flex row --}}
