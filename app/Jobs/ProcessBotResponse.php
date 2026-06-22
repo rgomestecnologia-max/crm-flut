@@ -259,10 +259,18 @@ class ProcessBotResponse implements ShouldQueue
             $photoUrl     = $this->extractPhotoUrl($aiContent);
             $docUrl       = $this->extractDocUrl($aiContent);
 
+            // Detecta [PROPOSTA:{json}] — IA quer criar proposta comercial via API externa
+            $propostaLink = $this->processPropostaTag($aiContent);
+
             // Extrai e salva campos do card antes de limpar as tags
             $this->extractAndSaveFields($aiContent);
 
             $cleanContent = $this->cleanContent($aiContent);
+
+            // Substitui placeholder pela link da proposta no texto
+            if ($propostaLink) {
+                $cleanContent = str_replace('[PROPOSTA_LINK]', $propostaLink, $cleanContent);
+            }
 
             if (!$cleanContent && !$photoUrl && !$docUrl && !$isHandoff) return;
 
@@ -708,9 +716,80 @@ class ProcessBotResponse implements ShouldQueue
         $content = preg_replace('/\[DOC:\s*https?:\/\/[^\]]+\]/i', '', $content);
         $content = preg_replace('/\[HANDOFF\]/i', '', $content);
         $content = preg_replace('/\[FIELD:[^\]=]+=[^\]]+\]/i', '', $content);
+        $content = preg_replace('/\[PROPOSTA:\{[^\]]*\}\]/i', '', $content);
         // Remove links Markdown [texto](url) → mantém só a URL
         $content = preg_replace('/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/', '$2', $content);
         return trim($content);
+    }
+
+    /**
+     * Detecta tag [PROPOSTA:{json}] na resposta da IA, chama API externa de propostas
+     * e retorna o link público da proposta criada.
+     */
+    private function processPropostaTag(string $content): ?string
+    {
+        if (!preg_match('/\[PROPOSTA:(\{[^\]]+\})\]/i', $content, $m)) {
+            return null;
+        }
+
+        $jsonData = json_decode($m[1], true);
+        if (!$jsonData) {
+            Log::warning('IA: PROPOSTA tag com JSON inválido', ['raw' => $m[1]]);
+            return null;
+        }
+
+        // Adiciona o WhatsApp do contato se não veio no JSON
+        if (empty($jsonData['whatsapp'])) {
+            $phone = $this->conversation->contact?->phone;
+            if ($phone) {
+                $jsonData['whatsapp'] = preg_replace('/(\d{2})(\d{2})(\d{4,5})(\d{4})/', '($2) $3-$4', $phone);
+            }
+        }
+
+        try {
+            $response = Http::timeout(15)
+                ->withHeaders([
+                    'Authorization' => 'Bearer mp-2026-api-key-machinery-prime',
+                    'Content-Type'  => 'application/json',
+                ])
+                ->post('https://propostas.machineryprime.com.br/api?r=propostas', $jsonData);
+
+            if ($response->successful()) {
+                $result = $response->json();
+                $link = $result['link_publico'] ?? null;
+
+                Log::info('IA: proposta criada via API', [
+                    'conv'    => $this->conversation->id,
+                    'id'      => $result['id'] ?? null,
+                    'link'    => $link,
+                    'cliente' => $jsonData['nome_cliente'] ?? null,
+                ]);
+
+                // Mensagem de sistema no histórico
+                Message::create([
+                    'conversation_id' => $this->conversation->id,
+                    'sender_type'     => 'system',
+                    'content'         => 'Proposta criada automaticamente pela IA: ' . ($link ?? 'sem link'),
+                    'type'            => 'text',
+                    'delivery_status' => 'sent',
+                ]);
+
+                return $link;
+            }
+
+            Log::error('IA: erro ao criar proposta', [
+                'conv'   => $this->conversation->id,
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('IA: exceção ao criar proposta', [
+                'conv'  => $this->conversation->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
     }
 
     /**
