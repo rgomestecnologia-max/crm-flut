@@ -435,24 +435,40 @@ class ProcessIncomingMessage implements ShouldQueue
             $vcard = $payload['contactMessage']['vcard'] ?? '';
             $phone = '';
             if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
-                $phone = trim($tm[1]);
+                $phone = preg_replace('/\D/', '', trim($tm[1]));
             }
-            $content = "📇 *{$name}*" . ($phone ? "\n📱 {$phone}" : '');
-            $type    = 'text';
+            $content       = $name;
+            $type          = 'contact';
+            $mediaUrl      = $phone;
+            $mediaFilename = $name;
         } elseif (!empty($payload['contactsArrayMessage'])) {
             $contacts = $payload['contactsArrayMessage']['contacts'] ?? [];
-            $lines = [];
-            foreach ($contacts as $c) {
+            if (count($contacts) === 1) {
+                $c     = $contacts[0];
                 $name  = $c['displayName'] ?? 'Contato';
                 $vcard = $c['vcard'] ?? '';
                 $phone = '';
                 if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
-                    $phone = trim($tm[1]);
+                    $phone = preg_replace('/\D/', '', trim($tm[1]));
                 }
-                $lines[] = "📇 *{$name}*" . ($phone ? " — {$phone}" : '');
+                $content       = $name;
+                $type          = 'contact';
+                $mediaUrl      = $phone;
+                $mediaFilename = $name;
+            } else {
+                $lines = [];
+                foreach ($contacts as $c) {
+                    $name  = $c['displayName'] ?? 'Contato';
+                    $vcard = $c['vcard'] ?? '';
+                    $phone = '';
+                    if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
+                        $phone = trim($tm[1]);
+                    }
+                    $lines[] = "📇 *{$name}*" . ($phone ? " — {$phone}" : '');
+                }
+                $content = implode("\n", $lines);
+                $type    = 'text';
             }
-            $content = implode("\n", $lines);
-            $type    = 'text';
         }
 
         return [$content, $type, $mediaUrl, $mediaFilename];

@@ -1244,14 +1244,24 @@ class ProcessEvolutionMessage implements ShouldQueue
             $vcard = $msg['contactMessage']['vcard'] ?? '';
             $phone = '';
             if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
-                $phone = trim($tm[1]);
+                $phone = preg_replace('/\D/', '', trim($tm[1]));
             }
-            return ["📇 *{$name}*" . ($phone ? "\n📱 {$phone}" : ''), 'text', null, null];
+            return [$name, 'contact', $phone, $name];
         }
 
         // Array de contatos
         if (!empty($msg['contactsArrayMessage'])) {
             $contacts = $msg['contactsArrayMessage']['contacts'] ?? [];
+            if (count($contacts) === 1) {
+                $c = $contacts[0];
+                $name = $c['displayName'] ?? 'Contato';
+                $vcard = $c['vcard'] ?? '';
+                $phone = '';
+                if (preg_match('/TEL[^:]*:([+\d\s\-]+)/i', $vcard, $tm)) {
+                    $phone = preg_replace('/\D/', '', trim($tm[1]));
+                }
+                return [$name, 'contact', $phone, $name];
+            }
             $lines = [];
             foreach ($contacts as $c) {
                 $name = $c['displayName'] ?? 'Contato';

@@ -681,14 +681,28 @@ function senderColor(?string $identifier): string {
                                 @endif
                             </div>
                         @elseif($msg->type === 'contact')
-                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; padding:10px 14px; display:flex; align-items:center; gap:10px; border:1px solid rgba(255,255,255,0.06); min-width:180px;">
-                                <div style="width:36px; height:36px; border-radius:50%; background:rgba(167,139,250,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                    <svg width="18" height="18" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <div style="background:rgba(31,41,55,0.8); border-radius:18px 18px 18px 4px; border:1px solid rgba(255,255,255,0.06); min-width:220px; overflow:hidden;">
+                                <div style="padding:12px 14px; display:flex; align-items:center; gap:10px;">
+                                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(167,139,250,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <svg width="20" height="20" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <p style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.85); margin:0;">{{ $msg->media_filename ?: $msg->content ?: 'Contato' }}</p>
+                                        @if($msg->media_url)
+                                        <p style="font-size:11px; color:rgba(255,255,255,0.35); margin:2px 0 0;">+{{ preg_replace('/(\d{2})(\d{2})(\d{4,5})(\d{4})/', '$1 ($2) $3-$4', $msg->media_url) }}</p>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div style="flex:1; min-width:0;">
-                                    <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.8); margin:0;">{{ $msg->media_filename ?: 'Contato' }}</p>
-                                    <p style="font-size:11px; color:rgba(255,255,255,0.35); margin:1px 0 0;">📱 +{{ $msg->media_url }}</p>
+                                @if($msg->media_url)
+                                <div style="border-top:1px solid rgba(255,255,255,0.08); padding:8px 14px; text-align:center;">
+                                    <button wire:click="openContactConversation('{{ $msg->media_url }}')"
+                                            style="background:none; border:none; color:#a78bfa; font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px;"
+                                            onmouseover="this.style.color='#c4b5fd'" onmouseout="this.style.color='#a78bfa'">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                        Conversar
+                                    </button>
                                 </div>
+                                @endif
                             </div>
                         @endif
                         {{-- Reactions --}}
@@ -994,14 +1008,28 @@ function senderColor(?string $identifier): string {
                                 @endif
                             </div>
                         @elseif($msg->type === 'contact')
-                            <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; padding:10px 14px; display:flex; align-items:center; gap:10px; border:1px solid rgba(45,74,8,0.6); min-width:180px;">
-                                <div style="width:36px; height:36px; border-radius:50%; background:rgba(167,139,250,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                    <svg width="18" height="18" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <div style="background:rgba(45,74,8,0.5); border-radius:18px 18px 4px 18px; border:1px solid rgba(45,74,8,0.6); min-width:220px; overflow:hidden;">
+                                <div style="padding:12px 14px; display:flex; align-items:center; gap:10px;">
+                                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(167,139,250,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <svg width="20" height="20" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <p style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.9); margin:0;">{{ $msg->media_filename ?: $msg->content ?: 'Contato' }}</p>
+                                        @if($msg->media_url)
+                                        <p style="font-size:11px; color:rgba(255,255,255,0.4); margin:2px 0 0;">+{{ preg_replace('/(\d{2})(\d{2})(\d{4,5})(\d{4})/', '$1 ($2) $3-$4', $msg->media_url) }}</p>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div style="flex:1; min-width:0;">
-                                    <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.9); margin:0;">{{ $msg->media_filename ?: 'Contato' }}</p>
-                                    <p style="font-size:11px; color:rgba(255,255,255,0.4); margin:1px 0 0;">📱 +{{ $msg->media_url }}</p>
+                                @if($msg->media_url)
+                                <div style="border-top:1px solid rgba(255,255,255,0.08); padding:8px 14px; text-align:center;">
+                                    <button wire:click="openContactConversation('{{ $msg->media_url }}')"
+                                            style="background:none; border:none; color:#a78bfa; font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px;"
+                                            onmouseover="this.style.color='#c4b5fd'" onmouseout="this.style.color='#a78bfa'">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                        Conversar
+                                    </button>
                                 </div>
+                                @endif
                             </div>
                         @endif
                         {{-- Inline edit form --}}

@@ -1261,6 +1261,46 @@ class ChatArea extends Component
         $this->conversation->refresh();
     }
 
+    public function openContactConversation(string $phone): void
+    {
+        if (!$phone) return;
+
+        $phone = preg_replace('/\D/', '', $phone);
+
+        // Busca contato pelo telefone
+        $contact = Contact::where('phone', $phone)->first();
+
+        if (!$contact) {
+            $contact = Contact::create([
+                'phone' => $phone,
+                'name'  => $phone,
+            ]);
+        }
+
+        // Busca conversa existente (aberta ou resolvida)
+        $conv = Conversation::where('contact_id', $contact->id)
+            ->where('is_group', false)
+            ->whereIn('status', ['open', 'pending', 'resolved', 'transferred'])
+            ->latest()
+            ->first();
+
+        if ($conv) {
+            $this->dispatch('conversation-selected', id: $conv->id);
+        } else {
+            // Cria nova conversa
+            $department = Department::active()->first();
+            if (!$department) return;
+
+            $conv = Conversation::create([
+                'contact_id'    => $contact->id,
+                'department_id' => $department->id,
+                'status'        => 'open',
+                'is_group'      => false,
+            ]);
+            $this->dispatch('conversation-selected', id: $conv->id);
+        }
+    }
+
     public function deleteConversation(): void
     {
         if (!$this->conversationId || !Auth::user()->canManageCompany()) return;
