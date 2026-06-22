@@ -79,7 +79,29 @@ class MetaWebhookController extends Controller
                     if (!isset($event['message'])) continue;
                     $config = MetaWhatsAppConfig::withoutGlobalScopes()
                         ->where('instagram_account_id', $igId)->where('instagram_enabled', true)->first();
-                    if (!$config) continue;
+
+                    // Auto-resolver: OAuth salva um ID diferente do que o webhook envia.
+                    // Se não achou pelo ID exato, busca qualquer config com Instagram ativado
+                    // e atualiza o instagram_account_id para o valor correto do webhook.
+                    if (!$config && $igId) {
+                        $config = MetaWhatsAppConfig::withoutGlobalScopes()
+                            ->where('instagram_enabled', true)
+                            ->whereNotNull('instagram_account_id')
+                            ->first();
+                        if ($config) {
+                            Log::info('Instagram: auto-resolvendo instagram_account_id', [
+                                'old' => $config->instagram_account_id,
+                                'new' => $igId,
+                                'company_id' => $config->company_id,
+                            ]);
+                            $config->update(['instagram_account_id' => (string) $igId]);
+                        }
+                    }
+
+                    if (!$config) {
+                        Log::warning('Instagram webhook: nenhuma config encontrada', ['ig_id' => $igId]);
+                        continue;
+                    }
                     \App\Jobs\ProcessMessengerMessage::dispatch($config, $event, 'instagram');
                 }
             }

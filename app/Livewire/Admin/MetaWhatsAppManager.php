@@ -94,10 +94,15 @@ class MetaWhatsAppManager extends Component
         }
 
         // Messenger / Instagram
-        $data['page_id']              = $this->page_id ?: null;
-        $data['instagram_account_id'] = $this->instagram_account_id ?: null;
-        $data['messenger_enabled']    = $this->messenger_enabled;
-        $data['instagram_enabled']    = $this->instagram_enabled;
+        $data['page_id']           = $this->page_id ?: null;
+        $data['messenger_enabled'] = $this->messenger_enabled;
+        $data['instagram_enabled'] = $this->instagram_enabled;
+        // Só atualiza instagram_account_id se o usuário preencheu algo no formulário.
+        // Evita sobrescrever o ID correto (resolvido automaticamente pelo webhook)
+        // com o ID errado do OAuth ou com null.
+        if ($this->instagram_account_id) {
+            $data['instagram_account_id'] = $this->instagram_account_id;
+        }
         if ($this->page_access_token) {
             $data['page_access_token'] = $this->page_access_token;
             $this->hasPageToken = true;
