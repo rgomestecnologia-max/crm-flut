@@ -47,6 +47,13 @@ class MetaWebhookController extends Controller
         $object  = $payload['object'] ?? '';
         $entries = $payload['entry'] ?? [];
 
+        Log::info('MetaWebhook recebido', [
+            'object'    => $object,
+            'entries'   => count($entries),
+            'entry_ids' => collect($entries)->pluck('id')->toArray(),
+            'raw'       => substr($request->getContent(), 0, 1500),
+        ]);
+
         // Messenger: object = 'page'
         if ($object === 'page') {
             foreach ($entries as $entry) {
