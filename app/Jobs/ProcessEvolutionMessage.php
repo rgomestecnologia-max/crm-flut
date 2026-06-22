@@ -838,30 +838,25 @@ class ProcessEvolutionMessage implements ShouldQueue
                 ->whereNotNull('sender_id')
                 ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
                 ->exists();
-            // Checa mensagens de agentes via WhatsApp direto (sender_id null, últimos 30min)
-            // Exclui mensagens de bot/URA que também têm sender_id null
-            $humanSentWhatsApp = Message::where('conversation_id', $conversation->id)
-                ->where('sender_type', 'agent')
-                ->whereNull('sender_id')
-                ->where('created_at', '>=', now()->subMinutes(30))
+            // Se o menu foi concluído nesta sessão, mensagens agent+sender_id=null são
+            // do bot/IA — não de humano. Só checamos humanSentWhatsApp quando o menu
+            // NÃO foi concluído (conversa sem URA ou criada manualmente).
+            $menuCompleted = Message::where('conversation_id', $conversation->id)
+                ->where('sender_type', 'system')
+                ->where('content', 'like', 'Menu: cliente selecionou%')
                 ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
-                ->where(function ($q) {
-                    // Padrões de URA/menu
-                    $q->where('content', 'not like', '%Seja muito bem-vindo%')
-                      ->where('content', 'not like', '%Digite o número do setor%')
-                      ->where('content', 'not like', '%Direcionando você para%')
-                      ->where('content', 'not like', '%Perfeito! Direcionando%')
-                      // Padrões de saudação da IA pós-menu
-                      ->where('content', 'not like', '%Em que posso te ajudar%')
-                      ->where('content', 'not like', '%como posso te ajudar%')
-                      ->where('content', 'not like', '%posso ajudar%')
-                      // Mensagem fora do horário
-                      ->where('content', 'not like', '%horário de atendimento%')
-                      ->where('content', 'not like', '%fora do horário%')
-                      // Mensagem de transferência multi-número
-                      ->where('content', 'not like', '%número exclusivo desse setor%');
-                })
                 ->exists();
+
+            $humanSentWhatsApp = false;
+            if (!$menuCompleted) {
+                // Checa mensagens de agentes via WhatsApp direto (sender_id null, últimos 30min)
+                $humanSentWhatsApp = Message::where('conversation_id', $conversation->id)
+                    ->where('sender_type', 'agent')
+                    ->whereNull('sender_id')
+                    ->where('created_at', '>=', now()->subMinutes(30))
+                    ->when($lastResolved, fn($q) => $q->where('created_at', '>', $lastResolved))
+                    ->exists();
+            }
             $humanSent = $humanSentCrm || $humanSentWhatsApp;
             if (!$fromMe && !$conversation->waiting_human_reason && !$humanSent) {
                 try {
